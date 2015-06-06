@@ -30,3 +30,7 @@
 
 # Debug files
 *.dSYM/
+
+# Generated
+robcmp
+rob_y.hpp

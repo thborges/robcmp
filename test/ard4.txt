@@ -1,0 +1,34 @@
+
+out3 = 255;
+delay 200;
+out3 = 0;
+delay 200;
+
+out3 = in0;
+out5 = in1;
+out6 = in2;
+
+delay 500;
+
+out3 = in0;
+out5 = in1;
+out6 = in2;
+
+delay 500;
+
+out3 = in0;
+out5 = in1;
+out6 = in2;
+
+delay 500;
+
+out3 = in0;
+out5 = in1;
+out6 = in2;
+
+delay 500;
+
+out3 = 0;
+out5 = 0;
+out6 = 0;
+

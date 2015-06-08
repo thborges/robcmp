@@ -1,4 +1,4 @@
-./robocmp $1.txt > $1.ll
+./robcmp $1.txt > $1.ll
 #llc -march=avr $1.ll -o $1.o -filetype=obj
 #avr-ld $1.o -o $1
 

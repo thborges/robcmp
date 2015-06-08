@@ -1,2 +1,2 @@
-avr-objcopy -O ihex $1 $1.hex
-avrdude -V -c arduino -p atmega328p -U flash:w:$1.hex -P /dev/ttyS0
+avr-objcopy -O ihex $2 $2.hex
+avrdude -V -c arduino -p atmega328p -U flash:w:$2.hex -P $1

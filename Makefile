@@ -1,5 +1,5 @@
 LLVMFLAGS=$(shell llvm-config --cxxflags)
-LLVMLIBS=$(shell llvm-config --ldflags --libs all) -lpthread -ldl
+LLVMLIBS=$(shell llvm-config --ldflags --libs all) -lpthread -ldl -lcurses
  
 FLAGS=-O3 -DYYERROR_VERBOSE
 #DFLAGS=-ggdb -O0

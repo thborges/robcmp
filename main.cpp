@@ -16,7 +16,7 @@ extern FILE *yyin;
 Module *mainmodule;
 
 // symbol table
-map<string, Value*> tabelasym;
+map<string, AllocaInst*> tabelasym;
 
 // arduino functions
 Function *analogWrite;
@@ -36,17 +36,17 @@ int main(int argc, char *argv[]) {
 
 	llvm::legacy::PassManager pm;
 
-	pm.add(createCFGSimplificationPass());
 	pm.add(createPromoteMemoryToRegisterPass());
 	pm.add(createInstructionCombiningPass());
+    pm.add(createReassociatePass());
 	pm.add(createCFGSimplificationPass());
-	pm.add(createLICMPass());
+	/*pm.add(createLICMPass());
 	pm.add(createGVNPass());
 	pm.add(createSCCPPass());
 	pm.add(createCFGSimplificationPass());
 	pm.add(createAggressiveDCEPass());
 	pm.add(createDeadStoreEliminationPass());
-	pm.add(createCFGSimplificationPass());
+	pm.add(createCFGSimplificationPass());*/
 
 	// imprime o código intermediário gerado
 	pm.add(createPrintModulePass(outs()));

@@ -44,12 +44,12 @@ stmt : TOK_OUT '=' expr ';'				{ $$ = new OutPort($1, $3); }
 
 condblock : TOK_IF '(' logicexpr ')' stmt %prec IFX				{ $$ = new If($3, $5, NULL); }
 		  | TOK_IF '(' logicexpr ')' stmt elseblock				{ $$ = new If($3, $5, $6); }
-		  /*| TOK_IF '(' logicexpr ')' '{' stmts '}' %prec IFX	{ $$ = new If($3, $6, NULL); } */
-		  /*| TOK_IF '(' logicexpr ')' '{' stmts '}' elseblock	{ $$ = new If($3, $6, $8); } */
+		  | TOK_IF '(' logicexpr ')' '{' stmts '}' %prec IFX	{ $$ = new If($3, $6, NULL); }
+		  | TOK_IF '(' logicexpr ')' '{' stmts '}' elseblock	{ $$ = new If($3, $6, $8); }
 		  ;
 
-elseblock : TOK_ELSE stmt				{ $$ = new Capsule($2); }
-		 /* | TOK_ELSE '{' stmts '}'		{ $$ = $3; } */
+elseblock : TOK_ELSE stmt				{ $$ = $2; }
+		  | TOK_ELSE '{' stmts '}'		{ $$ = $3; }
 		  ;
 
 whileblock : TOK_WHILE '(' logicexpr ')' '{' stmts '}' { $$ = new While($3, $6); }

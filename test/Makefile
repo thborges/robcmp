@@ -1,16 +1,14 @@
-ALLTESTS=$(patsubst %.txt,%.ll,$(wildcard *.txt))
-ALLOBJS=$(patsubst %.ll,%.o,${ALLTESTS})
-ALLASM=$(patsubst %.ll,%.s,${ALLTESTS})
-ALLBIN=$(patsubst %.ll,%,${ALLTESTS})
+ALL_LL=$(patsubst %.txt,%.ll,$(wildcard *.txt))
+ALLOBJS=$(patsubst %.ll,%.o,${ALL_LL})
+ALLASM=$(patsubst %.ll,%.s,${ALL_LL})
+ALLBIN=$(patsubst %.ll,%,${ALL_LL})
 
 ARDUINO=atmega328p
 
-all: ${ALLTESTS} ${ALLASM} ${ALLOBJS} ${ALLBIN}
+all: ${ALL_LL} ${ALLASM} ${ALLOBJS} ${ALLBIN}
 
 clean:
-	rm -f *.ll
-	rm -f *.s
-	rm -f *.o
+	rm -f ${ALLBIN} ${ALLASM} ${ALLOBJS} ${ALL_LL} *.hex
 
 %.ll : %.txt
 	./robcmp $< > $@

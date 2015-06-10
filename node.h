@@ -29,7 +29,7 @@ extern int yylex();
 extern Module *mainmodule;
 
 // symbol table
-extern map<string, Value*> tabelasym;
+extern map<string, AllocaInst*> tabelasym;
 
 // arduino functions
 extern Function *analogWrite;
@@ -103,8 +103,8 @@ public:
 		Value *leftv;
 		Value *exprv = expr->generate(func, block);
 		if (left == tabelasym.end()) {
-			leftv = new AllocaInst(exprv->getType(), name, block);
-			tabelasym[name] = leftv;
+			tabelasym[name] = new AllocaInst(exprv->getType(), name, block);
+            leftv = tabelasym[name];
 		}
 		else
 			leftv = left->second;

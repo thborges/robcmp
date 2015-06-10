@@ -38,7 +38,7 @@ while_body7:                                      ; preds = %while_cond5
   call void @delay(i32 200)
   br label %while_cond5
 
-if_cont:                                          ; preds = %while_cond5, %while_end
+if_cont:                                          ; preds = %while_end, %while_cond5
   ret i16 0
 }
 

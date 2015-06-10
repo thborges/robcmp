@@ -17,16 +17,18 @@ if_cont:                                          ; preds = %entry, %if_then
   br label %while_cond
 
 while_cond:                                       ; preds = %while_body, %if_cont
-  %i3 = phi i16 [ %1, %while_body ], [ 0, %if_cont ]
-  %cmpi2 = icmp slt i16 %i3, 200
+  %i1 = load i16, i16* %i, align 2
+  %cmpi2 = icmp slt i16 %i1, 200
   br i1 %cmpi2, label %while_body, label %while_end
 
 while_body:                                       ; preds = %while_cond
+  %i3 = load i16, i16* %i, align 2
   %1 = add i16 %i3, 20
   store i16 %1, i16* %i, align 2
   call void @analogWrite(i8 3, i16 0)
   call void @delay(i32 100)
-  call void @analogWrite(i8 3, i16 %1)
+  %i4 = load i16, i16* %i, align 2
+  call void @analogWrite(i8 3, i16 %i4)
   call void @delay(i32 500)
   br label %while_cond
 

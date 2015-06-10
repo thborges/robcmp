@@ -1,0 +1,46 @@
+
+sample_mic = 10;
+sample_phr = 10;
+
+/* sample the noise */
+noise = 0;
+sm = sample_mic;
+while (sm > 0) {
+    noise = noise + in3;
+    sm = sm - 1;
+    delay 100;
+}
+noise = noise / sample_mic;
+
+/* sample the light */
+lumin0 = 0;
+lumin1 = 0;
+sm = sample_phr;
+while (sm > 0) {
+    lumin0 = lumin0 + in0;
+    lumin1 = lumin1 + in1;
+    sm = sm - 1;
+    delay 100;
+}
+lumin0 = lumin0 / sample_phr;
+lumin1 = lumin1 / sample_phr;
+
+while (1 > 0) {
+    /* blink leds on mic noise */
+    a = in3 - noise;
+    if (a < 0) 
+      a = a - a - a; /* abs */
+    /*p = (a * 100) / noise;*/
+    p = a;
+    if (p > 2) {
+      out3 = a;
+      if (p > 33)
+        out5 = a;
+      if (p > 66)
+        out6 = a;
+    } else {
+      out3 = 0;
+      out5 = 0;
+      out6 = 0;
+    }
+}

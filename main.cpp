@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include <llvm/IR/LegacyPassManager.h>
-#include <llvm/IR/IRPrintingPasses.h>
+#include <llvm/Assembly/PrintModulePass.h>
 #include <llvm/Support/raw_ostream.h>
 
 #include <llvm/Analysis/Passes.h>
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 	pm.add(createCFGSimplificationPass());*/
 
 	// imprime o código intermediário gerado
-	pm.add(createPrintModulePass(outs()));
+	pm.add(createPrintModulePass(&outs()));
 
 	pm.run(*mainmodule);
 

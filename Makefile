@@ -1,7 +1,7 @@
 LLVMFLAGS=$(shell llvm-config --cxxflags)
 LLVMLIBS=$(shell llvm-config --ldflags --libs all) -lpthread -ldl -lcurses
  
-FLAGS=-O3 -DYYERROR_VERBOSE
+FLAGS=-std=c++11 -O3 -DYYERROR_VERBOSE
 #DFLAGS=-ggdb -O0
 
 CPPS=$(patsubst %.cpp,%.o,$(wildcard *.cpp))

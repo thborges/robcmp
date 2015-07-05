@@ -1,0 +1,33 @@
+/*out0 = 255;
+delay 100;
+out0 = 0;
+delay 100;
+out0 = 255;
+delay 100;
+out0 = 0;*/
+
+passo = 100;
+total_passo = 2000;
+tempo_maximo = 2000;
+direcao = 1;
+
+while(1==1) {
+    total_passo = total_passo - 100;
+    if (total_passo <= 0) {
+        total_passo = tempo_maximo;
+        if (direcao == 1) direcao = 0;
+        else direcao = 1;
+    }
+
+    delay(100);
+
+    if (direcao == 1) {
+        out3 = 255;
+        out5 = 0;
+    }
+    else {
+        out3 = 0;
+        out5 = 255;
+    }
+
+}

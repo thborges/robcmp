@@ -401,4 +401,7 @@ void init()
 #elif defined(UCSR0B)
 	UCSR0B = 0;
 #endif
+    int i;
+    for(i = 0; i <= 13; i++)
+        pinMode(i, OUTPUT);
 }

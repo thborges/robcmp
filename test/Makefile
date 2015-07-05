@@ -24,5 +24,8 @@ out/%.ll : %.txt
 out/core.a : $(ARDUINO_OBJS)
 	$(foreach obj, $(ARDUINO_OBJ), avr-ar rcs $@ $(obj);)
 
-% : %.o out/core.a
+#% : %.o out/core.a
+#	avr-gcc -mmcu=${ARDUINO} $< out/core.a -o $@
+
+% : %.s out/core.a
 	avr-gcc -mmcu=${ARDUINO} $< out/core.a -o $@

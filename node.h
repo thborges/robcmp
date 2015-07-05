@@ -22,25 +22,6 @@ using namespace llvm;
 class Node;
 #include "rob_y.hpp"
 
-#ifndef EQ_OP
-#define EQ_OP 1
-#endif
-#ifndef NE_OP
-#define NE_OP 2
-#endif
-#ifndef GE_OP
-#define GE_OP 3
-#endif
-#ifndef LE_OP
-#define LE_OP 4
-#endif
-#ifndef GT_OP
-#define GT_OP 5
-#endif
-#ifndef LT_OP
-#define LT_OP 6
-#endif
-
 extern void yyerror(const char *s);
 extern int yylex();
 
@@ -181,7 +162,10 @@ public:
 		if (value->getType()->isFloatTy())
 			nvalue = new FPToSIInst(value, Type::getInt16Ty(getGlobalContext()), "trunci", block);
 
-		args.push_back(nvalue);
+		//args.push_back(nvalue);
+        Value *int8v = new TruncInst(value, Type::getInt8Ty(getGlobalContext()), "", block);
+        args.push_back(int8v);
+
 		ArrayRef<Value*> argsRef(args);
 		return CallInst::Create(analogWrite, argsRef, "", block);
 	}
@@ -409,10 +393,13 @@ public:
 		// analogWrite
 		arg_types.clear();
 		arg_types.push_back(Type::getInt8Ty(getGlobalContext()));
-		arg_types.push_back(Type::getInt16Ty(getGlobalContext()));
+		//arg_types.push_back(Type::getInt16Ty(getGlobalContext()));
+		arg_types.push_back(Type::getInt8Ty(getGlobalContext()));
 		ftype = FunctionType::get(Type::getVoidTy(getGlobalContext()),
 			ArrayRef<Type*>(arg_types), false);
-		analogWrite = Function::Create(ftype, Function::ExternalLinkage, "analogWrite", mainmodule);
+//		analogWrite = Function::Create(ftype, Function::ExternalLinkage, "analogWrite", mainmodule);
+		analogWrite = Function::Create(ftype, Function::ExternalLinkage, "digitalWrite", mainmodule);
+
 		analogWrite->setCallingConv(CallingConv::C);
 
 		// delay 

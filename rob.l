@@ -5,6 +5,7 @@
 
 %}
 
+%option yylineno
 %x COMMENT
 
 %%

@@ -15,6 +15,8 @@
 <COMMENT>"*"/[^/]		{ yymore(); }
 <COMMENT>"*/"			{ BEGIN(INITIAL); }
 
+"//".*$					{ fprintf(stderr, "Comentario: %s\n", yytext); /* comentario de linha */}
+
 "printf"				{ return(TOK_PRINT); }
 
 "in"[0-9]+				{ yylval.port = strndup(yytext+2, yyleng-2);
@@ -25,7 +27,7 @@
 						  return(TOK_OUT);
 						}
 
-"delay"                 { return(TOK_DELAY); }
+"delay"					{ return(TOK_DELAY); }
 "if"					{ return(TOK_IF); }
 "else"					{ return(TOK_ELSE); }
 "while"					{ return(TOK_WHILE); }

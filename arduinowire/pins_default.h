@@ -1,5 +1,5 @@
 /*
-  pins_arduino.h - Pin definition functions for Arduino
+  pins_default.h - Pin definition functions for Arduino
   Part of Arduino - http://www.arduino.cc/
 
   Copyright (c) 2007 David A. Mellis

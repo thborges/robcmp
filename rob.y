@@ -93,11 +93,12 @@ factor : '(' expr ')'		{ $$ = new Capsule($2); }
 
 extern int yylineno;
 extern char *yytext;
+extern char *build_filename;
 
 void yyerror(const char *s)
 {
-	fprintf(stderr, "%d: %s %s\n", 
-		yylineno, s, yytext);
+	fprintf(stderr, "%s:%d: error: %s %s\n", 
+		build_filename, yylineno, s, yytext);
 	exit(1);
 }
 

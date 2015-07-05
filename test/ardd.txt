@@ -1,3 +1,4 @@
+/* robcmp */
 
 sample_mic = 10;
 sample_phr = 10;
@@ -29,9 +30,9 @@ while (1 > 0) {
     /* blink leds on mic noise */
     a = in3 - noise;
     if (a < 0) 
-      a = a - a - a; /* abs */
-    /*p = (a * 100) / noise;*/
-    p = a;
+      a = 0 - a; /* abs */
+    
+    p = (a * 100) / noise;
     if (p > 2) {
       out3 = a;
       if (p > 33)
@@ -43,4 +44,14 @@ while (1 > 0) {
       out5 = 0;
       out6 = 0;
     }
+
+    /*fa = 10.0;
+    fb = fa + 11;
+    fc = fb + 120.1413213;
+    fd = fc - 15;
+    fe = fc / fa;
+    ff = fe * 10;
+    fg = ff / fe;
+    out2 = fg * 10;*/
+    delay 10;
 }

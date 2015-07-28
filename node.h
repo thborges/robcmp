@@ -206,13 +206,14 @@ public:
 		Type *Ty2 = rhs->getType();
 
 		if (Ty1->isIntegerTy() && Ty2->isIntegerTy()) {
+			/*fallback SDiv disabled
 			if (opint == Instruction::SDiv) {
 				vector<Value*> args;
 				args.push_back(lhs);
 				args.push_back(rhs);
 				ArrayRef<Value*> argsRef(args);
 				return CallInst::Create(i16div, argsRef, "", block);
-			}
+			}*/
 			return BinaryOperator::Create(opint, lhs, rhs, "", block);
 		}
 		else {
@@ -260,7 +261,7 @@ public:
 				rexp = new SIToFPInst(rexp, Type::getFloatTy(getGlobalContext()), "", block);
 		}
 
-		if (op == EQ_OP)	  predicate = isFCmp ? FCmpInst::FCMP_OEQ : ICmpInst::ICMP_EQ;
+		if (op == EQ_OP)		predicate = isFCmp ? FCmpInst::FCMP_OEQ : ICmpInst::ICMP_EQ;
 		else if (op == NE_OP) predicate = isFCmp ? FCmpInst::FCMP_UNE : ICmpInst::ICMP_NE;
 		else if (op == GE_OP) predicate = isFCmp ? FCmpInst::FCMP_OGE : ICmpInst::ICMP_SGE;
 		else if (op == LE_OP) predicate = isFCmp ? FCmpInst::FCMP_OLE : ICmpInst::ICMP_SLE;
@@ -427,13 +428,13 @@ public:
 		init->setCallingConv(CallingConv::C);
 
 		// i16div
-		arg_types.clear();
+		/*arg_types.clear();
 		arg_types.push_back(Type::getInt16Ty(getGlobalContext()));
 		arg_types.push_back(Type::getInt16Ty(getGlobalContext()));
 		ftype = FunctionType::get(Type::getInt16Ty(getGlobalContext()),
 			ArrayRef<Type*>(arg_types), false);
 		i16div = Function::Create(ftype, Function::ExternalLinkage, "i16div", mainmodule);
-		i16div->setCallingConv(CallingConv::C);
+		i16div->setCallingConv(CallingConv::C);*/
 	}
 
 	void generate(Node *n) {

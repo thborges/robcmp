@@ -27,5 +27,8 @@ out/core.a : $(ARDUINO_OBJS)
 #% : %.o out/core.a
 #	avr-gcc -mmcu=${ARDUINO} $< out/core.a -o $@
 
-% : %.s out/core.a
-	avr-gcc -mmcu=${ARDUINO} $< out/core.a -o $@
+#% : %.s out/core.a
+#	avr-gcc -mmcu=${ARDUINO} $< out/core.a -o $@
+
+% : %.o out/core.a
+	clang --target=avr -mmcu=${ARDUINO} $< out/core.a -o $@

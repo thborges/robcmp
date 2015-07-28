@@ -1,17 +1,20 @@
+/* blinks port 3 if division is working
+   or port 1 if not working. Also 
+   test some arithmetic ops (+,-)*/
 
 qtd = 5;
 while (1 > 0) {
     a = 0;
     b = 0;
     
-    h = 0;
+    /*h = 0;
     c = 255;
     while (c >= qtd) {
         c = c - qtd;
         h = h + 1;
-    }
+    }*/
 
-    //h = 255 / qtd;
+    h = 255 / qtd;
   
     while (a < h) {
         c = qtd * a;
@@ -19,13 +22,13 @@ while (1 > 0) {
         if (c == b)
             out3 = 255;
         else
-            out6 = 255;
+            out1 = 255;
 
         out5 = c;
   
         delay 20;
         out3 = 0;
-        out6 = 0;
+        out1 = 0;
         delay 20;
 
         a = a + 1;

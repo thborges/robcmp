@@ -7,18 +7,23 @@ class Node;
 %token TOK_IDENT TOK_IN TOK_OUT TOK_FLOAT TOK_INTEIRO TOK_PRINT TOK_DELAY 
 %token TOK_IF TOK_ELSE TOK_WHILE
 %token EQ_OP NE_OP LT_OP GT_OP LE_OP GE_OP TOK_AND TOK_OR
+%token TOK_STRING
 
 %union {
 	char *port;
 	char *ident;
-	char *number;
+	char *str;
+	int nint;
+	float nfloat;
 	Node *node;
 }
 
-%type <node> term expr factor stmt stmts condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR 
+%type <node> term expr factor stmt stmts condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt
 %type <port> TOK_OUT TOK_IN
-%type <number> TOK_INTEIRO TOK_FLOAT
+%type <nint> TOK_INTEIRO
+%type <nfloat> TOK_FLOAT
 %type <ident> TOK_IDENT
+%type <str> TOK_STRING
 
 %nonassoc IFX
 %nonassoc TOK_ELSE
@@ -30,22 +35,25 @@ programa : stmts    { Program p;
                       p.generate($1); }
 		 ;
 
-stmts : stmts stmt			{ $$ = new Stmts($1, $2); }
+stmts : stmts stmt			{ Stmts *st = new Stmts($1); 
+							  st->append($2);
+							  $$ = st;
+                           }
 	  | stmt				{ $$ = new Stmts($1); }
 	  ;
 
 stmt : TOK_OUT '=' expr ';'				{ $$ = new OutPort($1, $3); } 
 	 | TOK_IDENT '=' expr ';'			{ $$ = new Variable($1, $3); }
-	 | TOK_DELAY expr';'        		{ $$ = new Delay($2); }
+	 | TOK_DELAY expr';'					{ $$ = new Delay($2); }
 	 | condblock						{ $$ = new Capsule($1); }
 	 | whileblock						{ $$ = new Capsule($1); }
-	 /* | TOK_PRINT TOK_IDENT ';'		{ $$ = new_print($2); } */
+	 | printstmt ';'						{ $$ = $1; }
 	 ;
 
 condblock : TOK_IF '(' logicexpr ')' stmt %prec IFX				{ $$ = new If($3, $5, NULL); }
 		  | TOK_IF '(' logicexpr ')' stmt elseblock				{ $$ = new If($3, $5, $6); }
-		  | TOK_IF '(' logicexpr ')' '{' stmts '}' %prec IFX	{ $$ = new If($3, $6, NULL); }
-		  | TOK_IF '(' logicexpr ')' '{' stmts '}' elseblock	{ $$ = new If($3, $6, $8); }
+		  | TOK_IF '(' logicexpr ')' '{' stmts '}' %prec IFX		{ $$ = new If($3, $6, NULL); }
+		  | TOK_IF '(' logicexpr ')' '{' stmts '}' elseblock		{ $$ = new If($3, $6, $8); }
 		  ;
 
 elseblock : TOK_ELSE stmt				{ $$ = $2; }
@@ -72,23 +80,25 @@ logicfactor : '(' logicexpr ')'		{ $$ = new Capsule($2); }
 			| expr GT_OP expr		{ $$ = new CmpOp($1, GT_OP, $3); }
 			;
 
-expr : expr '+' term		{ $$ = new BinaryOp($1, '+', $3); }
-	 | expr '-' term		{ $$ = new BinaryOp($1, '-', $3); }
-	 | term					{ $$ = new Capsule($1); }
+expr : expr '+' term			{ $$ = new BinaryOp($1, '+', $3); }
+	 | expr '-' term			{ $$ = new BinaryOp($1, '-', $3); }
+	 | term					{ $$ = $1; }
 	 ;
 
 term : term '*' factor		{ $$ = new BinaryOp($1, '*', $3); }
 	 | term '/' factor		{ $$ = new BinaryOp($1, '/', $3); }
-	 | factor				{ $$ = new Capsule($1); }
+	 | factor				{ $$ = $1; }
 	 ;
 
-factor : '(' expr ')'		{ $$ = new Capsule($2); }
+factor : '(' expr ')'		{ $$ = $2; }
 	   | TOK_IDENT			{ $$ = new Load($1); }
 	   | TOK_INTEIRO		{ $$ = new Int16($1); }
 	   | TOK_FLOAT			{ $$ = new Float($1); }
 	   | TOK_IN				{ $$ = new InPort($1); }
 	   ;
 
+printstmt : TOK_PRINT TOK_STRING		{ $$ = new Print(new String($2)); }
+		  | TOK_PRINT expr				{ $$ = new Print($2); }
 %%
 
 extern int yylineno;

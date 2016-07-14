@@ -28,6 +28,7 @@ Function *analogRead;
 Function *delay;
 Function *delayMicroseconds;
 Function *init;
+Function *print;
 Function *i16div;
 
 

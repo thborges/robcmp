@@ -39,51 +39,62 @@ extern Function *delay;
 extern Function *delayMicroseconds;
 
 extern Function *init;
-
+extern Function *print;
 extern Function *i16div;
 
 class Node {
 public:
-	virtual Value *generate(Function *func, BasicBlock *block) = 0; 
+	virtual Value *generate(Function *func, BasicBlock *block) = 0;
+	virtual ~Node() {}
 };
 
 class Int8: public Node {
 private:
-	string number;
+	char number;
 public:
-	Int8(const char *n): number(n) {}
+	Int8(char n): number(n) {}
 	Value *generate(Function *func, BasicBlock *block) {
-		return ConstantInt::get(Type::getInt8Ty(getGlobalContext()), number.c_str(), 10);
+		return ConstantInt::get(Type::getInt8Ty(getGlobalContext()), number);
 	}
 };
 
 class Int16: public Node {
 private:
-	string number;
+	short number;
 public:
-	Int16(const char *n): number(n) {}
+	Int16(short n): number(n) {}
 	Value *generate(Function *func, BasicBlock *block) {
-		return ConstantInt::get(Type::getInt16Ty(getGlobalContext()), number.c_str(), 10);
+		return ConstantInt::get(Type::getInt16Ty(getGlobalContext()), number);
 	}
 };
 
 class Int32: public Node {
 private:
-	string number;
+	int number;
 public:
-	Int32(const char *n): number(n) {}
+	Int32(int n): number(n) {}
 	Value *generate(Function *func, BasicBlock *block) {
-		return ConstantInt::get(Type::getInt32Ty(getGlobalContext()), number.c_str(), 10);
+		return ConstantInt::get(Type::getInt32Ty(getGlobalContext()), number);
 	}
 };
 
 class Float: public Node {
 private:
-	string number;
+	float number;
 public:
-	Float(const char *n): number(n) {}	
+	Float(float n): number(n) {}
 	Value *generate(Function *func, BasicBlock *block) {
-		return ConstantFP::get(Type::getFloatTy(getGlobalContext()), number.c_str());
+		return ConstantFP::get(Type::getFloatTy(getGlobalContext()), number);
+	}
+};
+
+class String: public Node {
+private:
+	string str;
+public:
+	String(const char *s): str(s) {}	
+	Value *generate(Function *func, BasicBlock *block) {
+		return ConstantDataArray::getString(getGlobalContext(), str, true);;
 	}
 };
 
@@ -137,7 +148,7 @@ public:
 	Value *generate(Function *func, BasicBlock *block) {
 		vector<Value*> args;
 		
-		Int8 prt(port.c_str());
+		Int8 prt(atoi(port.c_str()));
 		args.push_back(prt.generate(func, block));
 		
 		ArrayRef<Value*> argsRef(args);
@@ -154,7 +165,7 @@ public:
 	Value *generate(Function *func, BasicBlock *block) {
 		vector<Value*> args;
 		
-		Int8 prt(port.c_str());
+		Int8 prt(atoi(port.c_str()));
 		args.push_back(prt.generate(func, block));
 
 		Value *value = expr->generate(func, block);
@@ -232,6 +243,7 @@ public:
 			case '-' : return binary_operator(Instruction::Sub, Instruction::FSub, func, block);
 			case '*' : return binary_operator(Instruction::Mul, Instruction::FMul, func, block);
 			case '/' : return binary_operator(Instruction::SDiv, Instruction::FDiv, func, block);
+			default: return NULL;
 		}
 	}
 };
@@ -240,9 +252,9 @@ class CmpOp: public Node {
 private:
 	Node *lexpn;
 	Node *rexpn;
-	yytokentype op;
+	int op;
 public:
-	CmpOp (Node *l, yytokentype op, Node *r) : lexpn(l), rexpn(r) {
+	CmpOp (Node *l, int op, Node *r) : lexpn(l), rexpn(r) {
 		this->op = op;
 	}
 	Value *generate(Function *func, BasicBlock *block) {
@@ -356,22 +368,56 @@ public:
 
 class Stmts: public Node {
 private:
-	Node *stmts;
-	Node *stmt;
+	std::vector<Node *> stmts;
 public:
-	Stmts(Node *ss) : stmts(ss), stmt(NULL) {}
-	Stmts(Node *ss, Node *s) : stmts(ss), stmt(s) {}
+	Stmts(Node *s) {
+		this->stmts.push_back(s);
+	}
+
+	void append(Node *s) {
+		stmts.push_back(s);
+	}
+
 	Value *generate(Function *func, BasicBlock *block) {
-		Value *b = stmts->generate(func, block);
-		if (b->getValueID() == Value::BasicBlockVal) 
-			block = (BasicBlock*)b;
-		
-		if (stmt) {
-			b = stmt->generate(func, block);
+		for(Node *n: stmts) {
+			Value *b = n->generate(func, block);
 			if (b->getValueID() == Value::BasicBlockVal) 
 				block = (BasicBlock*)b;
 		}
 		return block;
+	}
+};
+
+class Print: public Node {
+private:
+	Node *expr;
+public:
+	Print(Node *e) : expr(e) {}
+	Value *generate(Function *func, BasicBlock *block) {
+		vector<Value*> args;
+
+		Value *lexp = expr->generate(func, block);
+		Type *ty1 = lexp->getType();
+		char cty1 = 0;
+		if (ty1->isIntegerTy())
+			cty1 = 0;
+		else if (ty1->isFloatTy())
+			cty1 = 1;
+		else if (ty1->isArrayTy())
+			cty1 = 2;
+		else
+			yyerror("Type not supported by print.");
+
+		Int8 prt(cty1);
+		args.push_back(prt.generate(func, block));
+		
+		AllocaInst *ptr_aux = new AllocaInst(lexp->getType(), "", block);
+		StoreInst *st = new StoreInst(lexp, ptr_aux, false, block);
+		CastInst *cinst = new BitCastInst(ptr_aux, PointerType::get(IntegerType::get(getGlobalContext(), 8), 0), "", block);
+		args.push_back(cinst);
+
+		ArrayRef<Value*> argsRef(args);
+		return CallInst::Create(print, argsRef, "", block);
 	}
 };
 
@@ -420,14 +466,30 @@ public:
 		delayMicroseconds = Function::Create(ftype, Function::ExternalLinkage, "delayMicroseconds", mainmodule);
 		delayMicroseconds->setCallingConv(CallingConv::C);
 		
-		// init 
-		arg_types.clear();
-		ftype = FunctionType::get(Type::getVoidTy(getGlobalContext()),
-			ArrayRef<Type*>(arg_types), false);
+		// init
+		ftype = FunctionType::get(Type::getVoidTy(getGlobalContext()), false);
 		init = Function::Create(ftype, Function::ExternalLinkage, "init", mainmodule);
 		init->setCallingConv(CallingConv::C);
 
-		// i16div
+		// print
+		arg_types.clear();
+		arg_types.push_back(Type::getInt8Ty(getGlobalContext()));
+		arg_types.push_back(PointerType::get(IntegerType::get(getGlobalContext(), 8), 0));
+		ftype = FunctionType::get(Type::getVoidTy(getGlobalContext()),
+			ArrayRef<Type*>(arg_types), false);
+		print = Function::Create(ftype, Function::ExternalLinkage, "print", mainmodule);
+		print->setCallingConv(CallingConv::C);
+		
+		/* Not necessary anymore. Stay as an example
+		AttributeSet print_func_attrs;
+		print_func_attrs = 
+			print_func_attrs.addAttribute(getGlobalContext(), AttributeSet::FunctionIndex, Attribute::NoUnwind)
+							 .addAttribute(getGlobalContext(), AttributeSet::FunctionIndex, Attribute::StackProtect)
+							 .addAttribute(getGlobalContext(), AttributeSet::FunctionIndex, Attribute::UWTable)
+							 .addAttribute(getGlobalContext(), 1, Attribute::ZExt);
+		print->setAttributes(print_func_attrs); */
+
+		// i16divse)
 		/*arg_types.clear();
 		arg_types.push_back(Type::getInt16Ty(getGlobalContext()));
 		arg_types.push_back(Type::getInt16Ty(getGlobalContext()));
@@ -459,7 +521,7 @@ public:
 			mainblock = (BasicBlock*)b;
 		}
 
-		Int16 ret("0");
+		Int16 ret(0);
 		Value *retv = ret.generate(mainfunc, mainblock);
 		ReturnInst::Create(getGlobalContext(), retv, mainblock);
 	}

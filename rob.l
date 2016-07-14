@@ -3,6 +3,8 @@
 #include "node.h"
 #include "rob_y.hpp"
 
+extern void unescape(char *s);
+
 %}
 
 %option yylineno
@@ -18,7 +20,7 @@
 
 "//".*$					{ fprintf(stderr, "Comentario: %s\n", yytext); /* comentario de linha */}
 
-"printf"				{ return(TOK_PRINT); }
+"print"					{ return(TOK_PRINT); }
 
 "in"[0-9]+				{ yylval.port = strndup(yytext+2, yyleng-2);
 						  return(TOK_IN);
@@ -49,10 +51,10 @@
 "{"						{ return('{'); }
 "}"						{ return('}'); }
 
--?[0-9]+\.[0-9]+		{ yylval.number = strndup(yytext, yyleng); 
+-?[0-9]+\.[0-9]+		{ yylval.nfloat = atof(yytext); 
 						  return(TOK_FLOAT); }
 
--?[0-9]+				{ yylval.number = strndup(yytext, yyleng);
+-?[0-9]+				{ yylval.nint = atoi(yytext);
 						  return(TOK_INTEIRO); }
 
 "*"						{ return('*'); }
@@ -61,6 +63,10 @@
 "-"						{ return('-'); }
 "="						{ return('='); }
 ";"						{ return(';'); }
+
+\"([^\\\"]|\\.)*\"		{ yylval.str = strndup(yytext+1, yyleng-2);
+						  unescape(yylval.str);
+						  return(TOK_STRING); }
 
 %%
 

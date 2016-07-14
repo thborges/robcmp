@@ -19,7 +19,7 @@ all: robcmp
 robcmp: ${YACS} ${LEXS} ${CPPS}
 	g++ ${FLAGS} ${DFLAGS} *.o ${LLVMLIBS} -o robcmp
 
-%.o: %.cpp
+%.o: %.cpp node.h
 	g++ ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@
 
 clean:

@@ -2,6 +2,7 @@
 #include "node.h"
 
 class Node;
+class Stmts;
 %}
 
 %token TOK_IDENT TOK_IN TOK_OUT TOK_FLOAT TOK_INTEIRO TOK_PRINT TOK_DELAY 
@@ -16,9 +17,11 @@ class Node;
 	int nint;
 	float nfloat;
 	Node *node;
+	Stmts *stmt;
 }
 
-%type <node> term expr factor stmt stmts condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt
+%type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt
+%type <stmt> stmts
 %type <port> TOK_OUT TOK_IN
 %type <nint> TOK_INTEIRO
 %type <nfloat> TOK_FLOAT
@@ -35,10 +38,7 @@ programa : stmts    { Program p;
                       p.generate($1); }
 		 ;
 
-stmts : stmts stmt			{ Stmts *st = new Stmts($1); 
-							  st->append($2);
-							  $$ = st;
-                           }
+stmts : stmts stmt			{ $$->append($2); }
 	  | stmt				{ $$ = new Stmts($1); }
 	  ;
 

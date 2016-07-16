@@ -1,8 +1,13 @@
 
-while(in0 > 0) {
-	print "THIAGO\n\233";
-	a = 40.1;
+a = in0;
+while(a > 0) {
+	print "THIAGO";
+	b = 40.1;
 	print 10;
 	print a;
+	print b;
+	out3 = a;
+	delay 1000;
+	a = in0;
 }
 

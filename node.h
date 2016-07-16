@@ -20,6 +20,7 @@ using namespace std;
 using namespace llvm;
 
 class Node;
+class Stmts;
 #include "rob_y.hpp"
 
 extern void yyerror(const char *s);

@@ -1,28 +1,33 @@
-LLVMFLAGS=$(shell llvm-config --cxxflags)
-LLVMLIBS=$(shell llvm-config --ldflags --libs all) -lpthread -ldl -lcurses
+CC=clang++
+
+LLVMFLAGS=$(shell llvm-config-3.8 --cxxflags)
+LLVMLIBS=$(shell llvm-config-3.8 --ldflags --libs all) -lpthread -ldl -lncurses
+
+COMPILER_NAME=$(shell basename "${PWD}")
  
 FLAGS=-O3 -DYYERROR_VERBOSE -fexceptions
 #DFLAGS=-ggdb -O0
 
 CPPS=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
-YACS=rob_y.o
-LEXS=rob_l.o
+YACS=$(patsubst %.y,%_y.o,$(wildcard *.y))
+LEXS=$(patsubst %.l,%_l.o,$(wildcard *.l))
 
-all: robcmp
+all: $(COMPILER_NAME)
 
 %_l.cpp: %.l
 	lex -o $@ $<
 
 %_y.cpp: %.y
-	bison -d -o $@ $<
+	bison --defines=bison.hpp -o $@ $<
 
-robcmp: ${YACS} ${LEXS} ${CPPS}
-	g++ ${FLAGS} ${DFLAGS} *.o ${LLVMLIBS} -o robcmp
+$(COMPILER_NAME): ${YACS} ${LEXS} ${CPPS}
+	${CC} ${FLAGS} ${DFLAGS} *.o ${LLVMLIBS} -o $@
 
 %.o: %.cpp node.h
-	g++ ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@
+	${CC} ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@
 
 clean:
-	rm -f rob_y.cpp rob_l.cpp rob_y.hpp *.o
+	rm -f *_y.cpp *_l.cpp bison.hpp *.o
 
+.SILENT:
 

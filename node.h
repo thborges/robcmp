@@ -21,7 +21,7 @@ using namespace llvm;
 
 class Node;
 class Stmts;
-#include "rob_y.hpp"
+#include "bison.hpp"
 
 extern void yyerror(const char *s);
 extern int yylex();

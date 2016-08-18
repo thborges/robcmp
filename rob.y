@@ -1,13 +1,20 @@
 %{
 #include "node.h"
 
+Int16* liga = new Int16(255);
+Int16* desliga = new Int16(0);
+
+Int16* delayCompleto = new Int16(1000);
+Int16* delayMeio = new Int16(500);
+
 class Node;
 class Stmts;
 %}
 
-%token TOK_IDENT TOK_IN TOK_OUT TOK_FLOAT TOK_INTEIRO TOK_PRINT TOK_DELAY 
-%token TOK_IF TOK_ELSE TOK_WHILE
-%token EQ_OP NE_OP LT_OP GT_OP LE_OP GE_OP TOK_AND TOK_OR
+%token TOK_IDENT TOK_INTEIRO TOK_PRINT TOK_DELAY
+%token TOK_DESENHA_1 TOK_DESENHA_2 TOK_DESENHA_3 TOK_DESENHA_4 TOK_DESENHA_5 TOK_DESENHA_6 TOK_DESENHA_7 TOK_ENTRADA 
+%token TOK_IF TOK_ELSE TOK_ENQUANTO TOK_RESOLVA
+%token EQ_OP NE_OP LT_OP GT_OP LE_OP GE_OP
 %token TOK_STRING
 
 %union {
@@ -20,11 +27,10 @@ class Stmts;
 	Stmts *stmt;
 }
 
-%type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt
+%type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor  printstmt
 %type <stmt> stmts
-%type <port> TOK_OUT TOK_IN
+%type <port> TOK_ENTRADA
 %type <nint> TOK_INTEIRO
-%type <nfloat> TOK_FLOAT
 %type <ident> TOK_IDENT
 %type <str> TOK_STRING
 
@@ -42,7 +48,14 @@ stmts : stmts stmt			{ $$->append($2); }
 	  | stmt				{ $$ = new Stmts($1); }
 	  ;
 
-stmt : TOK_OUT '=' expr ';'				{ $$ = new OutPort($1, $3); } 
+stmt : 	TOK_DESENHA_1 '(' ')' ';'		{ $$ = new OutPort("5", liga); }
+	| TOK_DESENHA_2 '(' ')' ';'			{ $$ = new OutPort("5", liga); }
+	| TOK_DESENHA_3 '(' ')' ';'			{ $$ = new OutPort("5", desliga);}
+	| TOK_DESENHA_4 '(' ')' ';'			{ $$ = new OutPort("5", desliga); }
+	| TOK_DESENHA_5 '(' ')' ';'			{  }
+	| TOK_DESENHA_6 '(' ')' ';'			{  }
+	| TOK_DESENHA_7 '(' ')' ';'			{  }
+	
 	 | TOK_IDENT '=' expr ';'			{ $$ = new Variable($1, $3); }
 	 | TOK_DELAY expr';'					{ $$ = new Delay($2); }
 	 | condblock						{ $$ = new Capsule($1); }
@@ -60,15 +73,13 @@ elseblock : TOK_ELSE stmt				{ $$ = $2; }
 		  | TOK_ELSE '{' stmts '}'		{ $$ = $3; }
 		  ;
 
-whileblock : TOK_WHILE '(' logicexpr ')' '{' stmts '}' { $$ = new While($3, $6); }
+whileblock : TOK_ENQUANTO '(' logicexpr ')' '{' stmts '}' { $$ = new While($3, $6); }
 		   ;
 
-logicexpr : logicexpr TOK_OR logicterm		{  }
-		  | logicterm						{ $$ = new Capsule($1); }
+logicexpr : | logicterm						{ $$ = new Capsule($1); }
 		  ;
 
-logicterm : logicterm TOK_AND logicfactor	{  }
-		  | logicfactor						{ $$ = new Capsule($1); }
+logicterm : logicfactor						{ $$ = new Capsule($1); }
 		  ;
 
 logicfactor : '(' logicexpr ')'		{ $$ = new Capsule($2); }
@@ -93,8 +104,7 @@ term : term '*' factor		{ $$ = new BinaryOp($1, '*', $3); }
 factor : '(' expr ')'		{ $$ = $2; }
 	   | TOK_IDENT			{ $$ = new Load($1); }
 	   | TOK_INTEIRO		{ $$ = new Int16($1); }
-	   | TOK_FLOAT			{ $$ = new Float($1); }
-	   | TOK_IN				{ $$ = new InPort($1); }
+	   | TOK_ENTRADA		{ $$ = new InPort($1); }
 	   ;
 
 printstmt : TOK_PRINT TOK_STRING		{ $$ = new Print(new String($2)); }

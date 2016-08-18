@@ -1,3 +1,5 @@
+desenha1();
+desenha2();
+desenha3();
 
-b = 10;
 

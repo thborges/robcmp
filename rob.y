@@ -4,8 +4,8 @@
 Int16* liga = new Int16(255);
 Int16* desliga = new Int16(0);
 
-Int16* delayCompleto = new Int16(1000);
-Int16* delayMeio = new Int16(500);
+Int16* delayCompleto = new Int16(6000);
+Int16* delayMeio = new Int16(1500);
 
 class Node;
 class Stmts;

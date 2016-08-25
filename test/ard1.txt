@@ -1,3 +1,16 @@
+a = entrada2;
+enquanto(entrada2>0) {
+
+print "****LIGOU****";
+print "DESENHANDO N1";
 desenha1();
 proximo();
-desenha1();
+print "DESENHANDO N2";
+desenha2();
+proximo();
+print "DESENHANDO N3";
+desenha3();
+print "**DESLIGOU**";
+a = entrada2;
+
+}

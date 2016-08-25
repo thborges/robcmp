@@ -32,7 +32,8 @@ extern void unescape(char *s);
 "desenha4"				{ return(TOK_DESENHA_4); }
 "desenha5"				{ return(TOK_DESENHA_5); }
 "desenha6"				{ return(TOK_DESENHA_6); }
-"desenha7"				{ return(TOK_DESENHA_7); }
+"desenha7"			 	{ return(TOK_DESENHA_7); }
+"proximo"				{ return(TOK_ESPACAMENTO); }
 "delay"					{ return(TOK_DELAY); }
 "if"					{ return(TOK_IF); }
 "else"					{ return(TOK_ELSE); }

@@ -1,5 +1,3 @@
 desenha1();
-desenha2();
-desenha3();
-
-
+proximo();
+desenha1();

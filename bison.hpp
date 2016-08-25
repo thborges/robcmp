@@ -57,18 +57,19 @@ extern int yydebug;
     TOK_DESENHA_6 = 267,
     TOK_DESENHA_7 = 268,
     TOK_ENTRADA = 269,
-    TOK_IF = 270,
-    TOK_ELSE = 271,
-    TOK_ENQUANTO = 272,
-    TOK_RESOLVA = 273,
-    EQ_OP = 274,
-    NE_OP = 275,
-    LT_OP = 276,
-    GT_OP = 277,
-    LE_OP = 278,
-    GE_OP = 279,
-    TOK_STRING = 280,
-    IFX = 281
+    TOK_ESPACAMENTO = 270,
+    TOK_IF = 271,
+    TOK_ELSE = 272,
+    TOK_ENQUANTO = 273,
+    TOK_RESOLVA = 274,
+    EQ_OP = 275,
+    NE_OP = 276,
+    LT_OP = 277,
+    GT_OP = 278,
+    LE_OP = 279,
+    GE_OP = 280,
+    TOK_STRING = 281,
+    IFX = 282
   };
 #endif
 
@@ -87,7 +88,7 @@ union YYSTYPE
 	Node *node;
 	Stmts *stmt;
 
-#line 91 "bison.hpp" /* yacc.c:1909  */
+#line 92 "bison.hpp" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

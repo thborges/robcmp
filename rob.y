@@ -12,7 +12,7 @@ class Stmts;
 %}
 
 %token TOK_IDENT TOK_INTEIRO TOK_PRINT TOK_DELAY
-%token TOK_DESENHA_1 TOK_DESENHA_2 TOK_DESENHA_3 TOK_DESENHA_4 TOK_DESENHA_5 TOK_DESENHA_6 TOK_DESENHA_7 TOK_ENTRADA 
+%token TOK_DESENHA_1 TOK_DESENHA_2 TOK_DESENHA_3 TOK_DESENHA_4 TOK_DESENHA_5 TOK_DESENHA_6 TOK_DESENHA_7 TOK_ENTRADA TOK_ESPACAMENTO 
 %token TOK_IF TOK_ELSE TOK_ENQUANTO TOK_RESOLVA
 %token EQ_OP NE_OP LT_OP GT_OP LE_OP GE_OP
 %token TOK_STRING
@@ -48,13 +48,164 @@ stmts : stmts stmt			{ $$->append($2); }
 	  | stmt				{ $$ = new Stmts($1); }
 	  ;
 
-stmt : 	TOK_DESENHA_1 '(' ')' ';'		{ $$ = new OutPort("5", liga); }
-	| TOK_DESENHA_2 '(' ')' ';'			{ $$ = new OutPort("5", liga); }
-	| TOK_DESENHA_3 '(' ')' ';'			{ $$ = new OutPort("5", desliga);}
-	| TOK_DESENHA_4 '(' ')' ';'			{ $$ = new OutPort("5", desliga); }
-	| TOK_DESENHA_5 '(' ')' ';'			{  }
-	| TOK_DESENHA_6 '(' ')' ';'			{  }
-	| TOK_DESENHA_7 '(' ')' ';'			{  }
+stmt : 	TOK_ESPACAMENTO '(' ')' ';' {
+								Stmts *comms = new Stmts(new OutPort("4", liga));
+								comms->append(new OutPort("2",liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("4", desliga));
+								comms->append(new OutPort("2", desliga));
+
+								comms->append(new OutPort("5", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("5", desliga));
+								$$ = comms;
+} 	
+
+
+	| TOK_DESENHA_1 '(' ')' ';'		{ 
+								Stmts *comms = new Stmts(new OutPort("2", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("2", desliga));
+								$$ = comms;
+}
+	| TOK_DESENHA_2 '(' ')' ';'			{  
+					Stmts *comms = new Stmts(new OutPort("4", liga));
+								comms->append(new OutPort("7", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("4", desliga));
+								comms->append(new OutPort("7",desliga));
+								comms->append(new OutPort("2", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("2",desliga));
+								comms->append(new OutPort("5",liga));
+								comms->append(new OutPort("6", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("5",desliga));
+								comms->append(new OutPort("6", desliga));
+								comms->append(new OutPort("2",liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("4", liga));
+								comms->append(new OutPort("7", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("4", desliga));
+								comms->append(new OutPort("7",desliga));
+								$$ = comms;
+	}
+	| TOK_DESENHA_3 '(' ')' ';'			{
+								Stmts *comms = new Stmts(new OutPort("5", liga));
+								comms->append(new OutPort("6", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("5", desliga));
+								comms->append(new OutPort("6",desliga));
+								comms->append(new OutPort("2", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("2",desliga));
+								comms->append(new OutPort("4",liga));
+								comms->append(new OutPort("7", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("4",desliga));
+								comms->append(new OutPort("7", desliga));
+								comms->append(new OutPort("5", liga));
+								comms->append(new OutPort("6", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("5", desliga));
+								comms->append(new OutPort("6",desliga));
+								comms->append(new OutPort("2",liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("2",desliga));
+								comms->append(new OutPort("4", liga));
+								comms->append(new OutPort("7", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("4", desliga));
+								comms->append(new OutPort("7",desliga));
+								$$ = comms;
+	}
+
+	| TOK_DESENHA_4 '(' ')' ';'			{ 
+								Stmts *comms = new Stmts(new OutPort("2", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("2",desliga));
+								comms->append(new OutPort("4",liga));
+								comms->append(new OutPort("7", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("4",desliga));
+								comms->append(new OutPort("7", desliga));
+								comms->append(new OutPort("2", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("2", desliga));
+								comms->append(new OutPort("3",liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("3",desliga));
+								comms->append(new OutPort("5", liga));
+								comms->append(new OutPort("6", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("5", desliga));
+								comms->append(new OutPort("6",desliga));
+								comms->append(new OutPort("2",liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("2",desliga));
+								$$ = comms; 
+
+	}
+	| TOK_DESENHA_5 '(' ')' ';'			{  
+						Stmts *comms = new Stmts(new OutPort("5", liga));
+								comms->append(new OutPort("6", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("5", desliga));
+								comms->append(new OutPort("6",desliga));
+								comms->append(new OutPort("2", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("2",desliga));
+								comms->append(new OutPort("4",liga));
+								comms->append(new OutPort("7", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("4",desliga));
+								comms->append(new OutPort("7", desliga));
+								comms->append(new OutPort("2", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("2",desliga));
+								comms->append(new OutPort("5", liga));
+								comms->append(new OutPort("6", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("5", desliga));
+								comms->append(new OutPort("6",desliga));
+								$$ = comms;
+
+	}
+	| TOK_DESENHA_6 '(' ')' ';'			{  
+
+						Stmts *comms = new Stmts(new OutPort("5", liga));
+								comms->append(new OutPort("6", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("5", desliga));
+								comms->append(new OutPort("6",desliga));
+								comms->append(new OutPort("2", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("2",desliga));
+								comms->append(new OutPort("4",liga));
+								comms->append(new OutPort("7", liga));
+								comms->append(new Delay(delayMeio));
+								comms->append(new OutPort("4",desliga));
+								comms->append(new OutPort("7", desliga));
+								comms->append(new OutPort("3", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("3",desliga));
+								$$ = comms;
+
+
+	}
+	| TOK_DESENHA_7 '(' ')' ';'			{  
+
+						Stmts *comms = new Stmts(new OutPort("2", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("2", desliga));
+								comms->append(new OutPort("4",liga));
+								comms->append(new OutPort("7", liga));
+								comms->append(new Delay(delayCompleto));
+								comms->append(new OutPort("4",desliga));
+								comms->append(new OutPort("7", desliga));
+								$$ = comms;
+	}
 	
 	 | TOK_IDENT '=' expr ';'			{ $$ = new Variable($1, $3); }
 	 | TOK_DELAY expr';'					{ $$ = new Delay($2); }

@@ -45,31 +45,11 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    TOK_IDENT = 258,
-    TOK_INTEIRO = 259,
-    TOK_PRINT = 260,
-    TOK_DELAY = 261,
-    TOK_DESENHA_1 = 262,
-    TOK_DESENHA_2 = 263,
-    TOK_DESENHA_3 = 264,
-    TOK_DESENHA_4 = 265,
-    TOK_DESENHA_5 = 266,
-    TOK_DESENHA_6 = 267,
-    TOK_DESENHA_7 = 268,
-    TOK_ENTRADA = 269,
-    TOK_ESPACAMENTO = 270,
-    TOK_IF = 271,
-    TOK_ELSE = 272,
-    TOK_ENQUANTO = 273,
-    TOK_RESOLVA = 274,
-    EQ_OP = 275,
-    NE_OP = 276,
-    LT_OP = 277,
-    GT_OP = 278,
-    LE_OP = 279,
-    GE_OP = 280,
-    TOK_STRING = 281,
-    IFX = 282
+    TOK_AGUARDE = 258,
+    TOK_RETANGULO = 259,
+    TOK_DESENHA_UFG = 260,
+    EQ_OP = 261,
+    IFX = 262
   };
 #endif
 
@@ -78,7 +58,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 20 "rob.y" /* yacc.c:1909  */
+#line 15 "rob.y" /* yacc.c:1909  */
 
 	char *port;
 	char *ident;
@@ -88,7 +68,7 @@ union YYSTYPE
 	Node *node;
 	Stmts *stmt;
 
-#line 92 "bison.hpp" /* yacc.c:1909  */
+#line 72 "bison.hpp" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

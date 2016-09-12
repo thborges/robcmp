@@ -1,7 +1,7 @@
-avr-objcopy -O ihex out/$1 out/$1.hex
+avr-objcopy -O ihex tmp/codigo tmp/codigo.hex
 
 PART="-c arduino -p m328p"
 #PART="-c avr109 -p atmega32u4 -b57600"
 
-avrdude -V $PART -U flash:w:out/$1.hex:i
+avrdude -V $PART -U flash:w:tmp/codigo.hex:i -P /dev/ttyACM0
 

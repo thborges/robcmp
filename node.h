@@ -31,6 +31,7 @@ extern int yylex();
 
 // Program main module
 extern Module *mainmodule;
+extern char* build_filename;
 static LLVMContext global_context;
 
 // symbol table
@@ -509,7 +510,7 @@ public:
 	}
 
 	void generate(Node *n) {
-		mainmodule = new Module("main_mod", global_context);
+		mainmodule = new Module(build_filename, global_context);
 	
 		FunctionType *ftype = FunctionType::get(Type::getInt16Ty(global_context),
 			ArrayRef<Type*>(), false);

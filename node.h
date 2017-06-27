@@ -1,6 +1,9 @@
 #ifndef NODE_H
 #define NODE_H
 
+#define ENABLE_ARDUINO
+#define ENABLE_PRINT
+
 #include <iostream>
 #include <string>
 #include <map>
@@ -23,11 +26,12 @@ class Node;
 class Stmts;
 #include "bison.hpp"
 
-extern void yyerror(const char *s);
+extern int yyerror(const char *s);
 extern int yylex();
 
 // Program main module
 extern Module *mainmodule;
+static LLVMContext global_context;
 
 // symbol table
 extern map<string, AllocaInst*> tabelasym;
@@ -55,7 +59,7 @@ private:
 public:
 	Int8(char n): number(n) {}
 	Value *generate(Function *func, BasicBlock *block) {
-		return ConstantInt::get(Type::getInt8Ty(getGlobalContext()), number);
+		return ConstantInt::get(Type::getInt8Ty(global_context), number);
 	}
 };
 
@@ -65,7 +69,7 @@ private:
 public:
 	Int16(short n): number(n) {}
 	Value *generate(Function *func, BasicBlock *block) {
-		return ConstantInt::get(Type::getInt16Ty(getGlobalContext()), number);
+		return ConstantInt::get(Type::getInt16Ty(global_context), number);
 	}
 };
 
@@ -75,7 +79,7 @@ private:
 public:
 	Int32(int n): number(n) {}
 	Value *generate(Function *func, BasicBlock *block) {
-		return ConstantInt::get(Type::getInt32Ty(getGlobalContext()), number);
+		return ConstantInt::get(Type::getInt32Ty(global_context), number);
 	}
 };
 
@@ -85,7 +89,7 @@ private:
 public:
 	Float(float n): number(n) {}
 	Value *generate(Function *func, BasicBlock *block) {
-		return ConstantFP::get(Type::getFloatTy(getGlobalContext()), number);
+		return ConstantFP::get(Type::getFloatTy(global_context), number);
 	}
 };
 
@@ -95,7 +99,7 @@ private:
 public:
 	String(const char *s): str(s) {}	
 	Value *generate(Function *func, BasicBlock *block) {
-		return ConstantDataArray::getString(getGlobalContext(), str, true);;
+		return ConstantDataArray::getString(global_context, str, true);;
 	}
 };
 
@@ -172,10 +176,10 @@ public:
 		Value *value = expr->generate(func, block);
 		Value *nvalue = value;
 		if (value->getType()->isFloatTy())
-			nvalue = new FPToSIInst(value, Type::getInt16Ty(getGlobalContext()), "trunci", block);
+			nvalue = new FPToSIInst(value, Type::getInt16Ty(global_context), "trunci", block);
 
 		//args.push_back(nvalue);
-        Value *int8v = new TruncInst(value, Type::getInt8Ty(getGlobalContext()), "", block);
+        Value *int8v = new TruncInst(value, Type::getInt8Ty(global_context), "", block);
         args.push_back(int8v);
 
 		ArrayRef<Value*> argsRef(args);
@@ -190,7 +194,7 @@ public:
 	Delay (Node *mseg) : ms(mseg) {}
 	Value *generate(Function *func, BasicBlock *block) {
 		Value *msv = ms->generate(func, block);
-		Value *msv32 = new SExtInst(msv, Type::getInt32Ty(getGlobalContext()), "conv", block);
+		Value *msv32 = new SExtInst(msv, Type::getInt32Ty(global_context), "conv", block);
 
 		vector<Value*> args;
 		args.push_back(msv32);
@@ -231,9 +235,9 @@ public:
 		else {
 			Value *flhs = lhs, *frhs = rhs;
 			if (Ty1->isIntegerTy())
-				flhs = new SIToFPInst(lhs, Type::getFloatTy(getGlobalContext()), "castitof", block);
+				flhs = new SIToFPInst(lhs, Type::getFloatTy(global_context), "castitof", block);
 			if (Ty2->isIntegerTy())
-				frhs = new SIToFPInst(rhs, Type::getFloatTy(getGlobalContext()), "castitof", block);
+				frhs = new SIToFPInst(rhs, Type::getFloatTy(global_context), "castitof", block);
 			return BinaryOperator::Create(opflt, flhs, frhs, "binop", block);
 		}
 	}
@@ -269,9 +273,9 @@ public:
 		int isFCmp = !Ty1->isIntegerTy() || !Ty2->isIntegerTy();
 		if (isFCmp) {
 			if (Ty1->isIntegerTy())
-				lexp = new SIToFPInst(lexp, Type::getFloatTy(getGlobalContext()), "", block);
+				lexp = new SIToFPInst(lexp, Type::getFloatTy(global_context), "", block);
 			if (Ty2->isIntegerTy())
-				rexp = new SIToFPInst(rexp, Type::getFloatTy(getGlobalContext()), "", block);
+				rexp = new SIToFPInst(rexp, Type::getFloatTy(global_context), "", block);
 		}
 
 		if (op == EQ_OP)		predicate = isFCmp ? FCmpInst::FCMP_OEQ : ICmpInst::ICMP_EQ;
@@ -313,18 +317,18 @@ public:
 	Value *generate(Function *func, BasicBlock *block) {
 		Value *exprv = expr->generate(func, block);
 
-		BasicBlock *thenb = BasicBlock::Create(getGlobalContext(), "if_then", func, 0);
+		BasicBlock *thenb = BasicBlock::Create(global_context, "if_then", func, 0);
 		Value *thennewb = thenst->generate(func, thenb);
 
 		Value *elsenewb = NULL;
-		BasicBlock *elseb = BasicBlock::Create(getGlobalContext(), "if_else", func, 0);
+		BasicBlock *elseb = BasicBlock::Create(global_context, "if_else", func, 0);
 		if (elsest != 0) {
 			elsenewb = elsest->generate(func, elseb);
 		}
 	
 		BranchInst::Create(thenb, elseb, exprv, block);
 
-		BasicBlock *mergb = BasicBlock::Create(getGlobalContext(), "if_cont", func, 0);
+		BasicBlock *mergb = BasicBlock::Create(global_context, "if_cont", func, 0);
 		
 		if (thennewb->getValueID() == Value::BasicBlockVal) 
 			BranchInst::Create(mergb, (BasicBlock*)thennewb);
@@ -347,13 +351,13 @@ private:
 public:
 	While(Node *e, Node *stms) : expr(e), stmts(stms) {}
 	Value *generate(Function *func, BasicBlock *block) {
-		BasicBlock *condwhile = BasicBlock::Create(getGlobalContext(), "while_cond", func, 0);
+		BasicBlock *condwhile = BasicBlock::Create(global_context, "while_cond", func, 0);
 		Value *exprv = expr->generate(func, condwhile);
 
-		BasicBlock *bodywhile = BasicBlock::Create(getGlobalContext(), "while_body", func, 0);
+		BasicBlock *bodywhile = BasicBlock::Create(global_context, "while_body", func, 0);
 		Value *newb = stmts->generate(func, bodywhile);
 
-		BasicBlock *endwhile = BasicBlock::Create(getGlobalContext(), "while_end", func, 0);
+		BasicBlock *endwhile = BasicBlock::Create(global_context, "while_end", func, 0);
 	
 		BranchInst::Create(condwhile, block);
 		BranchInst::Create(bodywhile, endwhile, exprv, condwhile);
@@ -414,7 +418,7 @@ public:
 		
 		AllocaInst *ptr_aux = new AllocaInst(lexp->getType(), "", block);
 		StoreInst *st = new StoreInst(lexp, ptr_aux, false, block);
-		CastInst *cinst = new BitCastInst(ptr_aux, PointerType::get(IntegerType::get(getGlobalContext(), 8), 0), "", block);
+		CastInst *cinst = new BitCastInst(ptr_aux, PointerType::get(IntegerType::get(global_context, 8), 0), "", block);
 		args.push_back(cinst);
 
 		ArrayRef<Value*> argsRef(args);
@@ -426,24 +430,25 @@ class Program {
 public:
 	Program() {}
 	
-	void declara_arduino_c_funcs() {
+	void declara_auxiliary_c_funcs() {
 		std::vector<Type*> arg_types;
 		FunctionType *ftype;
 
+		#ifdef ENABLE_ARDUINO
 		// analogRead
 		arg_types.clear();
-		arg_types.push_back(Type::getInt8Ty(getGlobalContext()));
-		ftype = FunctionType::get(Type::getInt16Ty(getGlobalContext()),
+		arg_types.push_back(Type::getInt8Ty(global_context));
+		ftype = FunctionType::get(Type::getInt16Ty(global_context),
 			ArrayRef<Type*>(arg_types), false);
 		analogRead = Function::Create(ftype, Function::ExternalLinkage, "analogRead", mainmodule);
 		analogRead->setCallingConv(CallingConv::C);
 
 		// analogWrite
 		arg_types.clear();
-		arg_types.push_back(Type::getInt8Ty(getGlobalContext()));
-		//arg_types.push_back(Type::getInt16Ty(getGlobalContext()));
-		arg_types.push_back(Type::getInt8Ty(getGlobalContext()));
-		ftype = FunctionType::get(Type::getVoidTy(getGlobalContext()),
+		arg_types.push_back(Type::getInt8Ty(global_context));
+		//arg_types.push_back(Type::getInt16Ty(global_context));
+		arg_types.push_back(Type::getInt8Ty(global_context));
+		ftype = FunctionType::get(Type::getVoidTy(global_context),
 			ArrayRef<Type*>(arg_types), false);
 //		analogWrite = Function::Create(ftype, Function::ExternalLinkage, "analogWrite", mainmodule);
 		analogWrite = Function::Create(ftype, Function::ExternalLinkage, "digitalWrite", mainmodule);
@@ -452,8 +457,8 @@ public:
 
 		// delay 
 		arg_types.clear();
-		arg_types.push_back(Type::getInt32Ty(getGlobalContext()));
-		ftype = FunctionType::get(Type::getVoidTy(getGlobalContext()),
+		arg_types.push_back(Type::getInt32Ty(global_context));
+		ftype = FunctionType::get(Type::getVoidTy(global_context),
 			ArrayRef<Type*>(arg_types), false);
 		delay = Function::Create(ftype, Function::ExternalLinkage, "delay", mainmodule);
 		delay->setCallingConv(CallingConv::C);
@@ -461,60 +466,65 @@ public:
 
 		// delayMicroseconds
 		arg_types.clear();
-		arg_types.push_back(Type::getInt32Ty(getGlobalContext()));
-		ftype = FunctionType::get(Type::getVoidTy(getGlobalContext()),
+		arg_types.push_back(Type::getInt32Ty(global_context));
+		ftype = FunctionType::get(Type::getVoidTy(global_context),
 			ArrayRef<Type*>(arg_types), false);
 		delayMicroseconds = Function::Create(ftype, Function::ExternalLinkage, "delayMicroseconds", mainmodule);
 		delayMicroseconds->setCallingConv(CallingConv::C);
 		
 		// init
-		ftype = FunctionType::get(Type::getVoidTy(getGlobalContext()), false);
+		ftype = FunctionType::get(Type::getVoidTy(global_context), false);
 		init = Function::Create(ftype, Function::ExternalLinkage, "init", mainmodule);
 		init->setCallingConv(CallingConv::C);
+		#endif
 
+		#ifdef ENABLE_PRINT
 		// print
 		arg_types.clear();
-		arg_types.push_back(Type::getInt8Ty(getGlobalContext()));
-		arg_types.push_back(PointerType::get(IntegerType::get(getGlobalContext(), 8), 0));
-		ftype = FunctionType::get(Type::getVoidTy(getGlobalContext()),
+		arg_types.push_back(Type::getInt8Ty(global_context));
+		arg_types.push_back(PointerType::get(IntegerType::get(global_context, 8), 0));
+		ftype = FunctionType::get(Type::getVoidTy(global_context),
 			ArrayRef<Type*>(arg_types), false);
 		print = Function::Create(ftype, Function::ExternalLinkage, "print", mainmodule);
 		print->setCallingConv(CallingConv::C);
-		
+		#endif
+
 		/* Not necessary anymore. Stay as an example
 		AttributeSet print_func_attrs;
 		print_func_attrs = 
-			print_func_attrs.addAttribute(getGlobalContext(), AttributeSet::FunctionIndex, Attribute::NoUnwind)
-							 .addAttribute(getGlobalContext(), AttributeSet::FunctionIndex, Attribute::StackProtect)
-							 .addAttribute(getGlobalContext(), AttributeSet::FunctionIndex, Attribute::UWTable)
-							 .addAttribute(getGlobalContext(), 1, Attribute::ZExt);
+			print_func_attrs.addAttribute(global_context, AttributeSet::FunctionIndex, Attribute::NoUnwind)
+							 .addAttribute(global_context, AttributeSet::FunctionIndex, Attribute::StackProtect)
+							 .addAttribute(global_context, AttributeSet::FunctionIndex, Attribute::UWTable)
+							 .addAttribute(global_context, 1, Attribute::ZExt);
 		print->setAttributes(print_func_attrs); */
 
 		// i16divse)
 		/*arg_types.clear();
-		arg_types.push_back(Type::getInt16Ty(getGlobalContext()));
-		arg_types.push_back(Type::getInt16Ty(getGlobalContext()));
-		ftype = FunctionType::get(Type::getInt16Ty(getGlobalContext()),
+		arg_types.push_back(Type::getInt16Ty(global_context));
+		arg_types.push_back(Type::getInt16Ty(global_context));
+		ftype = FunctionType::get(Type::getInt16Ty(global_context),
 			ArrayRef<Type*>(arg_types), false);
 		i16div = Function::Create(ftype, Function::ExternalLinkage, "i16div", mainmodule);
 		i16div->setCallingConv(CallingConv::C);*/
 	}
 
 	void generate(Node *n) {
-		mainmodule = new Module("main_mod", getGlobalContext());
+		mainmodule = new Module("main_mod", global_context);
 	
-		FunctionType *ftype = FunctionType::get(Type::getInt16Ty(getGlobalContext()),
+		FunctionType *ftype = FunctionType::get(Type::getInt16Ty(global_context),
 			ArrayRef<Type*>(), false);
 		Function *mainfunc = Function::Create(ftype,GlobalValue::ExternalLinkage, "main", mainmodule);
 
-		BasicBlock *mainblock = BasicBlock::Create(getGlobalContext(), "entry", mainfunc, 0);
+		BasicBlock *mainblock = BasicBlock::Create(global_context, "entry", mainfunc, 0);
 
-		declara_arduino_c_funcs();
+		declara_auxiliary_c_funcs();
 
 		// call Arduino init
+		#ifdef ENABLE_ARDUINO
 		std::vector<Value*> args;
 		ArrayRef<Value*> argsRef(args);
 		CallInst *call = CallInst::Create(init, argsRef, "", mainblock);
+		#endif
 
 		// generate the program!
 		Value *b = n->generate(mainfunc, mainblock);
@@ -524,7 +534,7 @@ public:
 
 		Int16 ret(0);
 		Value *retv = ret.generate(mainfunc, mainblock);
-		ReturnInst::Create(getGlobalContext(), retv, mainblock);
+		ReturnInst::Create(global_context, retv, mainblock);
 	}
 };
 

@@ -28,10 +28,11 @@ Function *analogWrite;
 Function *analogRead;
 Function *delay;
 Function *delayMicroseconds;
-Function *init;
+Function *initf;
 Function *print;
 Function *i16div;
-
+Function *linearmove;
+Function *arcmove;
 
 int main(int argc, char *argv[]) {
 

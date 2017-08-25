@@ -6,7 +6,7 @@ LLVMLIBS=$(shell llvm-config-3.9 --ldflags --libs all) -lpthread -ldl -lncurses
 COMPILER_NAME=$(shell basename "${PWD}")
  
 FLAGS=-O3 -DYYERROR_VERBOSE -fexceptions -Wno-deprecated-register
-#DFLAGS=-ggdb -O0
+DFLAGS=-ggdb -O0
 
 CPPS=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
 YACS=$(patsubst %.y,%_y.o,$(wildcard *.y))

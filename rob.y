@@ -9,6 +9,7 @@ class Stmts;
 %token TOK_IF TOK_ELSE TOK_WHILE
 %token EQ_OP NE_OP LT_OP GT_OP LE_OP GE_OP TOK_AND TOK_OR
 %token TOK_STRING
+%token TOK_LINE TOK_ARC
 
 %union {
 	char *port;
@@ -20,7 +21,7 @@ class Stmts;
 	Stmts *stmt;
 }
 
-%type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt
+%type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt geom
 %type <stmt> stmts
 %type <port> TOK_OUT TOK_IN
 %type <nint> TOK_INTEIRO
@@ -42,16 +43,19 @@ stmts : stmts stmt			{ $$->append($2); }
 	  | stmt				{ $$ = new Stmts($1); }
 	  ;
 
-stmt : TOK_OUT '=' expr ';'				{ $$ = new OutPort($1, $3); } 
-	 | TOK_IDENT '=' expr ';'			{ $$ = new Variable($1, $3); }
-	 | TOK_DELAY expr';'					{ $$ = new Delay($2); }
-	 | condblock						{ $$ = new Capsule($1); }
-	 | whileblock						{ $$ = new Capsule($1); }
-	 | printstmt ';'						{ $$ = $1; }
+stmt : geom							{ $$ = $1; }
+	 | TOK_IDENT '=' expr ';'		{ $$ = new Variable($1, $3); }
+	 | condblock					{ $$ = new Capsule($1); }
+	 | whileblock					{ $$ = new Capsule($1); }
+	 | printstmt ';'				{ $$ = $1; }
 	 ;
 
-condblock : TOK_IF '(' logicexpr ')' stmt %prec IFX				{ $$ = new If($3, $5, NULL); }
-		  | TOK_IF '(' logicexpr ')' stmt elseblock				{ $$ = new If($3, $5, $6); }
+geom : TOK_LINE expr expr expr ';'	 				{ $$ = new LinearMove($2, $3, $4); } 
+	 | TOK_ARC expr expr expr expr expr ';'			{ $$ = new ArcMove($2, $3, $4, $5, $6); }
+	 ;
+
+condblock : TOK_IF '(' logicexpr ')' stmt %prec IFX					{ $$ = new If($3, $5, NULL); }
+		  | TOK_IF '(' logicexpr ')' stmt elseblock					{ $$ = new If($3, $5, $6); }
 		  | TOK_IF '(' logicexpr ')' '{' stmts '}' %prec IFX		{ $$ = new If($3, $6, NULL); }
 		  | TOK_IF '(' logicexpr ')' '{' stmts '}' elseblock		{ $$ = new If($3, $6, $8); }
 		  ;
@@ -82,7 +86,7 @@ logicfactor : '(' logicexpr ')'		{ $$ = new Capsule($2); }
 
 expr : expr '+' term			{ $$ = new BinaryOp($1, '+', $3); }
 	 | expr '-' term			{ $$ = new BinaryOp($1, '-', $3); }
-	 | term					{ $$ = $1; }
+	 | term						{ $$ = $1; }
 	 ;
 
 term : term '*' factor		{ $$ = new BinaryOp($1, '*', $3); }
@@ -94,7 +98,6 @@ factor : '(' expr ')'		{ $$ = $2; }
 	   | TOK_IDENT			{ $$ = new Load($1); }
 	   | TOK_INTEIRO		{ $$ = new Int16($1); }
 	   | TOK_FLOAT			{ $$ = new Float($1); }
-	   | TOK_IN				{ $$ = new InPort($1); }
 	   ;
 
 printstmt : TOK_PRINT TOK_STRING		{ $$ = new Print(new String($2)); }

@@ -22,15 +22,9 @@ extern void unescape(char *s);
 
 "print"					{ return(TOK_PRINT); }
 
-"in"[0-9]+				{ yylval.port = strndup(yytext+2, yyleng-2);
-						  return(TOK_IN);
-						}
+"line"					{ return(TOK_LINE); }
+"arc"					{ return(TOK_ARC); }
 
-"out"[0-9]+				{ yylval.port = strndup(yytext+3, yyleng-3);
-						  return(TOK_OUT);
-						}
-
-"delay"					{ return(TOK_DELAY); }
 "if"					{ return(TOK_IF); }
 "else"					{ return(TOK_ELSE); }
 "while"					{ return(TOK_WHILE); }

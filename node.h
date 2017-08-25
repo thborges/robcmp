@@ -44,7 +44,10 @@ extern Function *analogRead;
 extern Function *delay;
 extern Function *delayMicroseconds;
 
-extern Function *init;
+extern Function *linearmove;
+extern Function *arcmove;
+
+extern Function *initf;
 extern Function *print;
 extern Function *i16div;
 
@@ -203,6 +206,75 @@ public:
 		return CallInst::Create(delay, argsRef, "", block);
 	}
 };
+
+class ArcMove: public Node {
+private:
+	Node *x;
+	Node *y;
+	Node *z;
+	Node *i;
+	Node *j;
+public:
+	ArcMove(Node *_x, Node *_y, Node *_z, Node *_i, Node *_j) : x(_x), y(_y), z(_z), i(_i), j(_j)  {}
+	Value *generate(Function *func, BasicBlock *block) {
+		Value *myx, *myy, *myz, *myi, *myj;
+		Value *auxfloat = Float(-1).generate(func, block);
+
+		myx = myy = myz = myi = myj = auxfloat;
+		if (x)
+			myx = x->generate(func, block);
+		if (y)
+			myy = y->generate(func, block);
+		if (z)
+			myz = z->generate(func, block);
+		if (i)
+			myi = i->generate(func, block);
+		if (j)
+			myj = j->generate(func, block);
+
+		vector<Value*> args;
+		args.push_back(myx);
+		args.push_back(myy);
+		args.push_back(myz);
+		args.push_back(myi);
+		args.push_back(myj);
+
+		ArrayRef<Value*> argsRef(args);
+		return CallInst::Create(arcmove, argsRef, "", block);
+	}	
+};
+
+
+class LinearMove: public Node {
+private:
+	Node *x;
+	Node *y;
+	Node *z;
+public:
+	LinearMove(Node *_z): x(NULL), y(NULL), z(_z) {}
+	LinearMove(Node *_x, Node *_y) : x(_x), y(_y), z(NULL)  {}
+	LinearMove(Node *_x, Node *_y, Node *_z) : x(_x), y(_y), z(_z)  {}
+	Value *generate(Function *func, BasicBlock *block) {
+		Value *myx, *myy, *myz;
+		Value *auxfloat = Float(-1).generate(func, block);
+
+		myx = myy = myz = auxfloat;
+		if (x)
+			myx = x->generate(func, block);
+		if (y)
+			myy = y->generate(func, block);
+		if (z)
+			myz = z->generate(func, block);
+
+		vector<Value*> args;
+		args.push_back(myx);
+		args.push_back(myy);
+		args.push_back(myz);
+		ArrayRef<Value*> argsRef(args);
+		return CallInst::Create(linearmove, argsRef, "", block);
+	}	
+};
+
 
 class BinaryOp: public Node {
 private:
@@ -453,7 +525,6 @@ public:
 			ArrayRef<Type*>(arg_types), false);
 //		analogWrite = Function::Create(ftype, Function::ExternalLinkage, "analogWrite", mainmodule);
 		analogWrite = Function::Create(ftype, Function::ExternalLinkage, "digitalWrite", mainmodule);
-
 		analogWrite->setCallingConv(CallingConv::C);
 
 		// delay 
@@ -472,11 +543,33 @@ public:
 			ArrayRef<Type*>(arg_types), false);
 		delayMicroseconds = Function::Create(ftype, Function::ExternalLinkage, "delayMicroseconds", mainmodule);
 		delayMicroseconds->setCallingConv(CallingConv::C);
-		
+	
+		// LinearMove 
+		arg_types.clear();
+		arg_types.push_back(Type::getFloatTy(global_context));
+		arg_types.push_back(Type::getFloatTy(global_context));
+		arg_types.push_back(Type::getFloatTy(global_context));
+		ftype = FunctionType::get(Type::getVoidTy(global_context),
+			ArrayRef<Type*>(arg_types), false);
+		linearmove = Function::Create(ftype, Function::ExternalLinkage, "linear_move", mainmodule);
+		linearmove->setCallingConv(CallingConv::C);
+
+		// ArcMove 
+		arg_types.clear();
+		arg_types.push_back(Type::getFloatTy(global_context));
+		arg_types.push_back(Type::getFloatTy(global_context));
+		arg_types.push_back(Type::getFloatTy(global_context));
+		arg_types.push_back(Type::getFloatTy(global_context));
+		arg_types.push_back(Type::getFloatTy(global_context));
+		ftype = FunctionType::get(Type::getVoidTy(global_context),
+			ArrayRef<Type*>(arg_types), false);
+		arcmove = Function::Create(ftype, Function::ExternalLinkage, "arc_move", mainmodule);
+		arcmove->setCallingConv(CallingConv::C);
+	
 		// init
 		ftype = FunctionType::get(Type::getVoidTy(global_context), false);
-		init = Function::Create(ftype, Function::ExternalLinkage, "init", mainmodule);
-		init->setCallingConv(CallingConv::C);
+		initf = Function::Create(ftype, Function::ExternalLinkage, "init", mainmodule);
+		initf->setCallingConv(CallingConv::C);
 		#endif
 
 		#ifdef ENABLE_PRINT
@@ -524,7 +617,7 @@ public:
 		#ifdef ENABLE_ARDUINO
 		std::vector<Value*> args;
 		ArrayRef<Value*> argsRef(args);
-		CallInst *call = CallInst::Create(init, argsRef, "", mainblock);
+		CallInst *call = CallInst::Create(initf, argsRef, "", mainblock);
 		#endif
 
 		// generate the program!

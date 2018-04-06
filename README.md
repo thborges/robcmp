@@ -10,7 +10,7 @@ The purpose of the framework is to provide basic support for academics, taking t
 
 The files [rob.l](/rob.l) and [rob.y](/rob.l) implements a general purpose example language, using the framework in [node.h](/node.h) file. Examples of the language are provided in [test](/test) folder.
 
-Academics has built their own specific language, to run an arduino connect to a robot arm (1). The project file is provided in the [proj](/proj) folder, file [project.pdf](/proj/project.pdf), writen in Brazilian Portuguese.
+Academics has built their own specific language, to run an arduino connected to a robot arm (1). The project file is provided in the [proj](/proj) folder, file [project.pdf](/proj/project.pdf), writen in Brazilian Portuguese.
 
 1:
 ![arm robot](/proj/robotarm.jpg)

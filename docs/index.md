@@ -5,7 +5,7 @@ Usando o código no github associado a esta página (github.com/robcmp), os alun
 Veja alguns vídeos dos projetos finais apresentados pelos alunos. A linguagem criada pode ser vista nos arquivos deste repositório e nos forks do projeto.
 
 # Compiladores 2017
-No ano de 2017 o projeto foi um pouco mais complexo e os alunos não tiveram tempo de usar o hardware disponibilizado (máquina plotter) e as apresentações não foram filmadas. No entanto, o código foi testado em um simulador G-Code. O código e os slides das apresentações estão disponíveis para referência em (https://github.com/thborges/robcmp/tree/master/2017).
+No ano de 2017 o projeto foi um pouco mais complexo e os alunos não tiveram tempo de usar o hardware disponibilizado (máquina plotter) e as apresentações não foram filmadas. No entanto, o código foi testado em um simulador G-Code. O código e os slides das apresentações estão disponíveis para referência no código deste projeto no [Github](https://github.com/thborges/robcmp/tree/master/2017).
 
 Algumas imagens do resultado final dos projetos no simulador:
 

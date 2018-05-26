@@ -4,6 +4,7 @@ Usando o código no github associado a esta página (github.com/robcmp), os alun
 
 Veja alguns vídeos dos projetos finais apresentados pelos alunos. A linguagem criada pode ser vista nos arquivos deste repositório e nos forks do projeto.
 
+
 # Compiladores 2016
 [![Video 1 2016](https://img.youtube.com/vi/a5fkYkQ6bhI/0.jpg)](https://www.youtube.com/watch?v=a5fkYkQ6bhI)
 [![Video 2 2016](https://img.youtube.com/vi/ahtgTIoUnZ0/0.jpg)](https://www.youtube.com/watch?v=ahtgTIoUnZ0)
@@ -18,9 +19,9 @@ Veja alguns vídeos dos projetos finais apresentados pelos alunos. A linguagem c
 
 Alguns vídeos do projeto de Robótica Educacional, ferramentas para auxiliar na construção de robôs e os próprios robôs que estão sendo desenvolvidos:
 
-[![Video RE 1](https://img.youtube.com/vi/a5fkYkQ6bhI/0.jpg)](https://www.youtube.com/watch?v=a5fkYkQ6bhI)
-[![Video RE 2](https://img.youtube.com/vi/a5fkYkQ6bhI/0.jpg)](https://www.youtube.com/watch?v=a5fkYkQ6bhI)
-[![Video RE 3](https://img.youtube.com/vi/a5fkYkQ6bhI/0.jpg)](https://www.youtube.com/watch?v=a5fkYkQ6bhI)
+[![Video RE 3](https://img.youtube.com/vi/-Id48-MvaR4/0.jpg)](https://www.youtube.com/watch?v=-Id48-MvaR4)
+[![Video RE 2](https://img.youtube.com/vi/-zfRB2uEZyY/0.jpg)](https://www.youtube.com/watch?v=-zfRB2uEZyY)
+[![Video RE 1](https://img.youtube.com/vi/-Id48-MvaR4/0.jpg)](https://www.youtube.com/watch?v=-Id48-MvaR4)
 
 
 # Tutorial da construção de frontend usando Robcmp

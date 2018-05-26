@@ -1,0 +1,17 @@
+
+
+
+
+
+linha(0,0,10) a linha(10,10,10); linha(10,10,0) a linha(10,30,0);
+linha(10,30,0) a linha(38,30,0); linha(38,30,0) a linha(38,10,0);
+linha(38,10,0) a linha(12,10,0); linha(12,10,0) a linha(12,28,0);
+linha(12,28,0) a linha(36,28,0); linha(36,28,0) a linha(36,12,0);
+linha(36,12,0) a linha(14,12,0); linha(14,12,0) a linha(14,26,0);
+linha(14,26,0) a linha(34,26,0); linha(34,26,0) a linha(34,14,0);
+linha(34,14,0) a linha(16,14,0); linha(16,14,0) a linha(16,24,0);
+linha(16,24,0) a linha(32,24,0); linha(32,24,0) a linha(32,16,0);
+linha(32,16,0) a linha(18,16,0); linha(18,16,0) a linha(18,22,0);
+linha(18,22,0) a linha(30,22,0); linha(30,22,0) a linha(30,18,0);
+linha(30,18,0) a linha(20,18,0); linha(20,18,0) a linha(20,20,0);
+linha(20,20,0) a linha(28,20,0); linha(28,19,0) a linha(24,19,0);

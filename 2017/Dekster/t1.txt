@@ -1,0 +1,5 @@
+retangulo(0.0 , 0.0) base(15.0) altura(10.0) ;
+losango(0.0 , 0.0) Dm(15.0) dm(10.0) ;
+circulo(4.0 , 5.0) raio(3.5) ;
+linha(4.1 , 5.3) id (10.9 , 5.3) ;
+linha(4.1 , 4.7) id (10.9 , 4.7) ;

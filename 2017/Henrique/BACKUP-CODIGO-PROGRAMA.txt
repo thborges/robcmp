@@ -1,0 +1,12 @@
+iniciarCoords();
+trapezio(((1,3),5),((2,4),3));
+quadrado((6,6),3);
+line((7,7),(8,8));
+retangulo((1,6),2,4);
+triangulo((1,1),(3,3),(6,1));
+losango((2,2),(4,3));
+trapezio(((1,3),5),((2,4),3));
+quadrado((6,6),3);
+retangulo((1,6),2,4);
+arc(5,8,0,5,6);
+circulo((1,1),2,2);

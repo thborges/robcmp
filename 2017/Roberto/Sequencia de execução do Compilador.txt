@@ -1,0 +1,9 @@
+make
+cat t2.txt
+./calccomp t1.txt > exemplo.ll
+lcc-3.9 exemplo.ll
+gcc exemplo.s print.o -o exemplo1
+./exemplo1
+
+
+linha 422 do  node(mostra onde deixa o tamanho da arquitetura)

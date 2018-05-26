@@ -1,0 +1,9 @@
+retangulo(4,1 | largura = 1 | altura = 3);
+retangulo(6,1 | largura = 1 | altura = 3);
+quadrado(4,4 | lado = 3);
+quadrado(5,7 | lado = 1);
+retangulo(4,8 | largura = 3 | altura = 1);
+retangulo(4.4, 8.4 | largura = 0.4 | altura = 0.3);
+retangulo(6.2, 8.4 | largura = 0.4 | altura = 0.3);
+retangulo(5, 8.1 | largura = 1 | altura = 0.2);
+cabelo(4,9 | 7,9 | altura = 1 | 20);

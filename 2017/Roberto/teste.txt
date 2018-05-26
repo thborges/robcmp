@@ -1,0 +1,73 @@
+triangulo(0,10) para (12,10) para (6,14);
+retangulo( (5 ,2) , (7,2) , (7,5) , (5,5);
+circulo(7,6) , (1,1);
+
+
+Sequencia de comandos:
+
+make
+
+rm t1.out
+
+make t1.out
+
+./t1.out
+
+Para testar a gramatica da linguagem é só executar: ./casacomp t1.txt
+
+
+pinta
+	: TOK_PINTA TOK_OPENP coordD TOK_CLOSEP ',' TOK_OPENP coordD TOK_CLOSEP ',' TOK_OPENP TOK_INTEGER TOK_CLOSEP   
+														{  Stmts *bloco = new Stmts(new LinearMove($3->getCoordX(), $3->getCoordY(), new Float(1)));																				
+														   
+														   Node* distPontos = new BinaryOp($7->getCoordY(), '-', $3->getCoordY()); 	// CALCULA A DIFERENÇA ENTRE OS 2 PONTOS
+														   Node* qtd = new Int32($11); 											// TRANSFORMA O NÓ EM INT P/ FAZER O LAÇO
+														   	 
+														   for(int i=1; i<=$11; i+=2){
+														   Node* intervalo = new Int32(i);
+														   bloco->append(new LinearMove(new BinaryOp($3->getCoordX() , '+', intervalo ), $7->getCoordY(), new Float(0) ));
+														   bloco->append( new LinearMove($7->getCoordX(), $7->getCoordY(), new Float(0)  ) );
+														   bloco->append(new LinearMove(new BinaryOp($3->getCoordX() , '+', intervalo ), $3->getCoordY(), new Float(1) ));		
+														   
+															}
+															$$ = bloco;
+														}
+	;
+
+
+
+uadrado
+	: TOK_Q TOK_OPENP factor ',' factor '|' TOK_LADO '=' factor TOK_CLOSEP 	{		Stmts *bloco = new Stmts(new LinearMove($3, $5, new Float(1)));
+																					bloco->append(new LinearMove($3, $5));
+																					bloco->append(new LinearMove($3, new BinaryOp($5, '+', $9)));
+																					bloco->append(new LinearMove(new BinaryOp($3, '+', $9), new BinaryOp($5, '+', $9)));
+																					bloco->append(new LinearMove(new BinaryOp($3, '+', $9), $5));
+																					bloco->append(new LinearMove($3, $5));
+
+																					for(int i=0; i<100; i++){
+																						$9 = new BinaryOp($9, '-', new Float(0.05));
+																						bloco->append(new LinearMove($3, $5));
+																						bloco->append(new LinearMove($3, new BinaryOp($5, '+', $9)));
+																						bloco->append(new LinearMove(new BinaryOp($3, '+', $9), new BinaryOp($5, '+', $9)));
+																						bloco->append(new LinearMove(new BinaryOp($3, '+', $9), $5));
+																						bloco->append(new LinearMove($3, $5));
+																					 }
+																					$$ = bloco;
+																					}
+
+
+
+
+
+Predio:
+retangulo(2,2) , (14,2) , (14,30) , (2,30);
+retangulo(5,2) , (11,2) , (11,6) , (5,6);
+reta(8,2) para (8,6);
+quadrado(3,9) , (6,9) , (6,13) , (3,13);
+quadrado(10,9) , (13,9) , (13,13) , (10,13);
+quadrado(3,20) , (6,20) , (6,24) , (3,24);
+quadrado(10,20) , (13,20) , (13,24) , (10,24);
+pinta(10,30) , (3);
+
+Casa:
+                                                                          

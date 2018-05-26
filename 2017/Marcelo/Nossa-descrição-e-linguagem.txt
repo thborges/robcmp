@@ -1,0 +1,23 @@
+Vamos desenhar um robo; que tb pode desenhar logotipos geometricos;
+
+Vamos ter varios tipos de robos 
+
+Tipo 1 - Quadrado(cabeça, pescoço); Circulo(olhos); Retangulos(Pernas, pes); Linha(Antenas, braços, );
+Tipo 2 - 
+Tipo 3 -
+
+Vamos utilizar retas, quadrados, circulos, numeros e expressões;
+
+Linha(PosIn, PosFin);               /*PosIn = {x1, y1}; PosFin {x2, y2}*/
+Quadrado(PosIn, l);                  /*PosIn = {x1, y1}; l = valor dos lados*/
+Circulo(PosFim, r);                  /*PosFIm = {x1, y1}; r = raio*/
+Triangulo(Pos1, Pos2, Pos3);         /*Pos1 = {x1, y1}; Pos2 {x2, y2}; Pos3 {x3, y3}*/  
+Retangulo(PosIn, l, a);               /*PosIn = {x1, y1}; l = valor no eixo x; a = valor no eixo y*/
+
+
+NOVA SINTAXE:
+linha(1,3 | 3,6);
+quadrado(1,3 | lado = 3);
+circulo(1,1 | raio = 3);
+triangulo(1,1 | 2,4 | 3,1);
+retangulo(1,1 | largura = 5 | altura = 3);

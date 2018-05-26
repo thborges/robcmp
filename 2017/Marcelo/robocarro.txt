@@ -1,0 +1,11 @@
+circulo_p(2,2 | raio = 1);
+circulo_p(5,2 | raio = 1);
+retangulo(0,3 | largura = 9 | altura = 3);
+quadrado(8,6 | lado = 1);
+
+quadrado(7,7 | lado = 3);
+linha(8,10 | 8,12);
+linha(9,10 | 9,12);
+retangulo(8,7.5 | largura = 1 | altura = 0.3);
+quadrado(7.5, 8.5 | lado = 0.5);
+quadrado(9, 8.5 | lado = 0.5);

@@ -1,7 +1,7 @@
-CC=clang++
+CC=/usr/bin/clang++
 
-LLVMFLAGS=$(shell llvm-config-3.9 --cxxflags)
-LLVMLIBS=$(shell llvm-config-3.9 --ldflags --libs all) -lpthread -ldl -lncurses
+LLVMFLAGS=$(shell llvm-config --cxxflags)
+LLVMLIBS=$(shell llvm-config --ldflags --libs all) -lpthread -ldl -lncurses
 
 COMPILER_NAME=$(shell basename "${PWD}")
  
@@ -21,10 +21,10 @@ all: $(COMPILER_NAME)
 	bison --defines=bison.hpp -o $@ $<
 
 $(COMPILER_NAME): ${YACS} ${LEXS} ${CPPS}
-	${CC} ${FLAGS} ${DFLAGS} *.o ${LLVMLIBS} -o $@
+	${CC} -std=c++11 ${FLAGS} ${DFLAGS} *.o ${LLVMLIBS} -o $@
 
 %.o: %.cpp node.h
-	${CC} ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@
+	${CC} -std=c++11 ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@
 
 clean:
 	rm -f *_y.cpp *_l.cpp bison.hpp *.o

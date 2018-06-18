@@ -30,6 +30,10 @@ extern void unescape(char *s);
 						  return(TOK_OUT);
 						}
 
+"stepper"[0-2]+			{ yylval.nint = atoi(strndup(yytext+7, yyleng-7));
+						  return(TOK_STEPPER);
+						}
+
 "delay"					{ return(TOK_DELAY); }
 "if"					{ return(TOK_IF); }
 "else"					{ return(TOK_ELSE); }

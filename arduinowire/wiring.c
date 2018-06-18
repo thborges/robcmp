@@ -404,4 +404,13 @@ void init()
     int i;
     for(i = 0; i <= 13; i++)
         pinMode(i, OUTPUT);
+	pinMode(A0, INPUT);
+	pinMode(A1, INPUT);
+	pinMode(A2, INPUT);
+	pinMode(A3, INPUT);
+	pinMode(A4, INPUT);
+	pinMode(A5, INPUT);
+	pinMode(A6, INPUT);
+	pinMode(A7, INPUT);
+
 }

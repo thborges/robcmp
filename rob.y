@@ -1,5 +1,6 @@
 %{
 #include "node.h"
+#include "2018arm/nodeh_ext.h"
 
 class Node;
 class Stmts;
@@ -9,6 +10,7 @@ class Stmts;
 %token TOK_IF TOK_ELSE TOK_WHILE
 %token EQ_OP NE_OP LT_OP GT_OP LE_OP GE_OP TOK_AND TOK_OR
 %token TOK_STRING
+%token TOK_STEPPER
 
 %union {
 	char *port;
@@ -27,6 +29,7 @@ class Stmts;
 %type <nfloat> TOK_FLOAT
 %type <ident> TOK_IDENT
 %type <str> TOK_STRING
+%type <nint> TOK_STEPPER
 
 %nonassoc IFX
 %nonassoc TOK_ELSE
@@ -44,10 +47,11 @@ stmts : stmts stmt			{ $$->append($2); }
 
 stmt : TOK_OUT '=' expr ';'				{ $$ = new OutPort($1, $3); } 
 	 | TOK_IDENT '=' expr ';'			{ $$ = new Variable($1, $3); }
-	 | TOK_DELAY expr';'					{ $$ = new Delay($2); }
+	 | TOK_DELAY expr';'				{ $$ = new Delay($2); }
 	 | condblock						{ $$ = new Capsule($1); }
 	 | whileblock						{ $$ = new Capsule($1); }
-	 | printstmt ';'						{ $$ = $1; }
+	 | printstmt ';'					{ $$ = $1; }
+     | TOK_STEPPER expr ';'				{ $$ = new StepperGoto($1, $2); }
 	 ;
 
 condblock : TOK_IF '(' logicexpr ')' stmt %prec IFX				{ $$ = new If($3, $5, NULL); }

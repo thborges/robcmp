@@ -134,7 +134,7 @@ public:
 		Value *leftv;
 		Value *exprv = expr->generate(func, block);
 		if (left == tabelasym.end()) {
-			tabelasym[name] = new AllocaInst(exprv->getType(), name, block);
+			tabelasym[name] = new AllocaInst(exprv->getType(), 0, name, block);
 			leftv = tabelasym[name];
 		}
 		else
@@ -417,8 +417,8 @@ public:
 		Int8 prt(cty1);
 		args.push_back(prt.generate(func, block));
 		
-		AllocaInst *ptr_aux = new AllocaInst(lexp->getType(), "", block);
-		StoreInst *st = new StoreInst(lexp, ptr_aux, false, block);
+		AllocaInst *ptr_aux = new AllocaInst(lexp->getType(), 0, "", block);
+		/*StoreInst *st = */ new StoreInst(lexp, ptr_aux, false, block);
 		CastInst *cinst = new BitCastInst(ptr_aux, PointerType::get(IntegerType::get(global_context, 8), 0), "", block);
 		args.push_back(cinst);
 
@@ -451,8 +451,8 @@ public:
 		arg_types.push_back(Type::getInt8Ty(global_context));
 		ftype = FunctionType::get(Type::getVoidTy(global_context),
 			ArrayRef<Type*>(arg_types), false);
-//		analogWrite = Function::Create(ftype, Function::ExternalLinkage, "analogWrite", mainmodule);
-		analogWrite = Function::Create(ftype, Function::ExternalLinkage, "digitalWrite", mainmodule);
+		analogWrite = Function::Create(ftype, Function::ExternalLinkage, "analogWrite", mainmodule);
+		//analogWrite = Function::Create(ftype, Function::ExternalLinkage, "digitalWrite", mainmodule);
 
 		analogWrite->setCallingConv(CallingConv::C);
 
@@ -524,7 +524,7 @@ public:
 		#ifdef ENABLE_ARDUINO
 		std::vector<Value*> args;
 		ArrayRef<Value*> argsRef(args);
-		CallInst *call = CallInst::Create(init, argsRef, "", mainblock);
+		/*CallInst *call =*/ CallInst::Create(init, argsRef, "", mainblock);
 		#endif
 
 		// generate the program!

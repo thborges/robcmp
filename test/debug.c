@@ -4,8 +4,11 @@
 #include <string.h>
 #include <unistd.h>
 
+void onexit(void) __attribute__ ((destructor));
+
 #define ARDUINO_PORTS 14
 char arduino_out_ports[ARDUINO_PORTS];
+int steppers_pos[3] = {0};
 
 #define LCD_ROWS 6
 #define LCD_COLS 14
@@ -14,20 +17,20 @@ char display[LCD_CHARS];
 int display_pos = 0;
 
 char *port_names[ARDUINO_PORTS] = {
-	"LCD DC",
-	"LCD Reset",
-	"Motor 1 Horario",
-	"Motor 1 Anti-horario",
-	"Motor 2 Horario",
-	"Motor 2 Anti-horario",
-	"Motor 3 Horario",
-	"Motor 3 Anti-horario",
-	"Motor 4 Horario",
-	"Motor 4 Anti-horario",
-	"Motor 5 Horario",
-	"LCD MOSI",
-	"Motor 5 Anti-horario",
-	"LCD SCK",
+	"1",
+	"2",
+	"3",
+	"4",
+	"5",
+	"6",
+	"7",
+	"8",
+	"9",
+	"10",
+	"11",
+	"12",
+	"13",
+	"14",
 };
 
 void refresh_screen() {
@@ -38,7 +41,7 @@ void refresh_screen() {
 	mvprintw(6, 1, "Ultima msg:");
 
 	int currow = 10;
-	mvprintw(currow++, 1, "[ Display LCD ]");
+	mvprintw(currow++, 1, "[ Mensagens print ]");
 	mvprintw(currow++, 1, "---------------");
 	attron(COLOR_PAIR(2));
 	for(int r=0; r<LCD_ROWS; r++) {
@@ -132,6 +135,21 @@ void delay(int milis) {
 
 	mvprintw(6, 14, "                   ");
 
+}
+
+void stepper_goto(int stepper, int pos) {
+	attron(COLOR_PAIR(3));
+	mvprintw(6, 14, "Motor %d move para posicao %d.", stepper, pos);
+	attroff(COLOR_PAIR(3));
+	refresh_screen();
+	usleep(1e6);
+}
+
+void onexit(void) {
+	getchar();
+    curs_set(1);
+    clear();
+    endwin();
 }
 
 /*int main() {

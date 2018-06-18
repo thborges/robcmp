@@ -22,13 +22,14 @@ out/%.ll : %.txt
 	llc -march=avr -mcpu=${ARDUINO} $< -o $@ -filetype=asm
 
 out/core.a : $(ARDUINO_OBJS)
+	#$(foreach obj, $(ARDUINO_OBJ), llvm-ar rcs $@ $(obj);)
 	$(foreach obj, $(ARDUINO_OBJ), avr-ar rcs $@ $(obj);)
 
 #% : %.o out/core.a
 #	avr-gcc -mmcu=${ARDUINO} $< out/core.a -o $@
 
-#% : %.s out/core.a
-#	avr-gcc -mmcu=${ARDUINO} $< out/core.a -o $@
+% : %.s out/core.a
+	avr-gcc -mmcu=${ARDUINO} $< out/core.a -o $@
 
-% : %.o out/core.a
-	clang --target=avr -mmcu=${ARDUINO} $< out/core.a -o $@
+#% : %.o out/core.a
+	#clang --target=avr -mmcu=${ARDUINO} $< out/core.a -o $@

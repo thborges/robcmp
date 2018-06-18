@@ -3,6 +3,8 @@
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/IRPrintingPasses.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Transforms/Utils.h>
+#include <llvm/Transforms/InstCombine/InstCombine.h>
 
 #include <llvm/Analysis/Passes.h>
 #include <llvm/Transforms/Scalar.h>

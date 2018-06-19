@@ -1,0 +1,33 @@
+/* blink a set of LEDSs on arduino, based on
+ * the noise in a microphone
+ * thiago 2018/1 compiler course
+ */
+
+noise = 0;
+i = 0;
+while (i < 10) {
+  noise = noise + in3;
+  out9 = 255;
+  delay(100);
+  out9 = 0;
+  delay(100);
+  i = i + 1;
+}
+noise = noise / 10.0;
+
+while (1 > 0) {
+	b = in3 - noise;
+	if (b < 0)
+		b = 0-b;
+	else if (b > 255)
+		b = 255;
+
+	out9 = b;
+	delay(10);
+	out9 = 0;
+	delay(10);
+
+//	out5 = b;
+//	out3 = b;
+}
+

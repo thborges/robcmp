@@ -9,13 +9,13 @@ private:
 public:
 	StepperGoto(int stepper, Node *position): stp(stepper), pos(position) {}
 
-	virtual Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		// value for the two parameters
 		Int16 nstp(stp);
 
 		vector<Value*> args;
-		args.push_back(nstp.generate(func, block));
-		args.push_back(pos->generate(func, block));
+		args.push_back(nstp.generate(func, block, allocblock));
+		args.push_back(pos->generate(func, block, allocblock));
 
 		// get the function signature
 		if (!fstepper_goto) {

@@ -50,7 +50,7 @@ extern Function *i16div;
 
 class Node {
 public:
-	virtual Value *generate(Function *func, BasicBlock *block) = 0;
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) = 0;
 	virtual ~Node() {}
 };
 
@@ -59,7 +59,7 @@ private:
 	char number;
 public:
 	Int8(char n): number(n) {}
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		return ConstantInt::get(Type::getInt8Ty(global_context), number);
 	}
 };
@@ -69,7 +69,7 @@ private:
 	short number;
 public:
 	Int16(short n): number(n) {}
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		return ConstantInt::get(Type::getInt16Ty(global_context), number);
 	}
 };
@@ -79,7 +79,7 @@ private:
 	int number;
 public:
 	Int32(int n): number(n) {}
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		return ConstantInt::get(Type::getInt32Ty(global_context), number);
 	}
 };
@@ -89,7 +89,7 @@ private:
 	float number;
 public:
 	Float(float n): number(n) {}
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		return ConstantFP::get(Type::getFloatTy(global_context), number);
 	}
 };
@@ -98,8 +98,8 @@ class String: public Node {
 private:
 	string str;
 public:
-	String(const char *s): str(s) {}	
-	Value *generate(Function *func, BasicBlock *block) {
+	String(const char *s): str(s) {}
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		return ConstantDataArray::getString(global_context, str, true);;
 	}
 };
@@ -114,7 +114,7 @@ public:
 			yyerror("Variable not declared:");
 	}
 
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		LoadInst *ret = new LoadInst(tabelasym[ident], ident, false, block);
 		return ret;
 	}
@@ -129,18 +129,24 @@ public:
 		symexists[n] = 1; // variable exists!
 	}
 
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		auto left = tabelasym.find(name);
 		Value *leftv;
-		Value *exprv = expr->generate(func, block);
+		Value *exprv = expr->generate(func, block, allocblock);
 		if (left == tabelasym.end()) {
-			tabelasym[name] = new AllocaInst(exprv->getType(), 0, name, block);
+			tabelasym[name] = new AllocaInst(exprv->getType(), 0, name, allocblock);
 			leftv = tabelasym[name];
 		}
 		else
 			leftv = left->second;
 
-		StoreInst *ret = new StoreInst(exprv, leftv, false, block);
+		auto nvalue = exprv;
+		//fprintf(stderr, "; leftv type: %d, exprv type: %d\n", leftv->getType()->getPointerElementType()->getTypeID(), exprv->getType()->getTypeID());
+		if (leftv->getType()->getPointerElementType()->isIntegerTy() && exprv->getType()->isFloatTy()) {
+			nvalue = new FPToSIInst(exprv, leftv->getType()->getPointerElementType(), "truncistore", block);
+			//fprintf(stderr, "; nvalue converted to int.\n");
+		}
+		StoreInst *ret = new StoreInst(nvalue, leftv, false, block);
 		return ret;
 
 	}
@@ -151,11 +157,11 @@ private:
 	string port;
 public:
 	InPort(const char *p): port(p) {}
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		vector<Value*> args;
 		
 		Int8 prt(atoi(port.c_str()));
-		args.push_back(prt.generate(func, block));
+		args.push_back(prt.generate(func, block, allocblock));
 		
 		ArrayRef<Value*> argsRef(args);
 		return CallInst::Create(analogRead, argsRef, "", block);
@@ -168,20 +174,20 @@ private:
 	Node *expr;
 public:
 	OutPort (const char *p, Node *e) : port(p), expr(e) {}
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		vector<Value*> args;
 		
 		Int8 prt(atoi(port.c_str()));
-		args.push_back(prt.generate(func, block));
+		args.push_back(prt.generate(func, block, allocblock));
 
-		Value *value = expr->generate(func, block);
+		Value *value = expr->generate(func, block, allocblock);
 		Value *nvalue = value;
 		if (value->getType()->isFloatTy())
 			nvalue = new FPToSIInst(value, Type::getInt16Ty(global_context), "trunci", block);
 
-		//args.push_back(nvalue);
-        Value *int8v = new TruncInst(value, Type::getInt8Ty(global_context), "", block);
-        args.push_back(int8v);
+		args.push_back(nvalue);
+		//Value *int8v = new TruncInst(value, Type::getInt8Ty(global_context), "", block);
+		//args.push_back(int8v);
 
 		ArrayRef<Value*> argsRef(args);
 		return CallInst::Create(analogWrite, argsRef, "", block);
@@ -193,8 +199,8 @@ private:
 	Node *ms;
 public:
 	Delay (Node *mseg) : ms(mseg) {}
-	Value *generate(Function *func, BasicBlock *block) {
-		Value *msv = ms->generate(func, block);
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+		Value *msv = ms->generate(func, block, allocblock);
 		Value *msv32 = new SExtInst(msv, Type::getInt32Ty(global_context), "conv", block);
 
 		vector<Value*> args;
@@ -214,10 +220,10 @@ public:
 		this->op =op;
 	}
 	Instruction *binary_operator(enum Instruction::BinaryOps opint, 
-		enum Instruction::BinaryOps opflt, Function *func, BasicBlock *block) {
+		enum Instruction::BinaryOps opflt, Function *func, BasicBlock *block, BasicBlock *allocblock) {
 
-		Value *lhs = lhsn->generate(func, block);
-		Value *rhs = rhsn->generate(func, block);
+		Value *lhs = lhsn->generate(func, block, allocblock);
+		Value *rhs = rhsn->generate(func, block, allocblock);
 
 		Type *Ty1 = lhs->getType();
 		Type *Ty2 = rhs->getType();
@@ -243,12 +249,12 @@ public:
 		}
 	}
 
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		switch (op) {
-			case '+' : return binary_operator(Instruction::Add, Instruction::FAdd, func, block);
-			case '-' : return binary_operator(Instruction::Sub, Instruction::FSub, func, block);
-			case '*' : return binary_operator(Instruction::Mul, Instruction::FMul, func, block);
-			case '/' : return binary_operator(Instruction::SDiv, Instruction::FDiv, func, block);
+			case '+' : return binary_operator(Instruction::Add, Instruction::FAdd, func, block, allocblock);
+			case '-' : return binary_operator(Instruction::Sub, Instruction::FSub, func, block, allocblock);
+			case '*' : return binary_operator(Instruction::Mul, Instruction::FMul, func, block, allocblock);
+			case '/' : return binary_operator(Instruction::SDiv, Instruction::FDiv, func, block, allocblock);
 			default: return NULL;
 		}
 	}
@@ -263,11 +269,11 @@ public:
 	CmpOp (Node *l, int op, Node *r) : lexpn(l), rexpn(r) {
 		this->op = op;
 	}
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		CmpInst::Predicate predicate; 
 
-		Value *lexp = lexpn->generate(func, block);
-		Value *rexp = rexpn->generate(func, block);
+		Value *lexp = lexpn->generate(func, block, allocblock);
+		Value *rexp = rexpn->generate(func, block, allocblock);
 
 		Type *Ty1 = lexp->getType();
 		Type *Ty2 = rexp->getType();
@@ -303,8 +309,8 @@ private:
 	Node *node;
 public:
 	Capsule (Node *n) : node(n) {}
-	Value *generate(Function *func, BasicBlock *block) {
-		return node->generate(func, block);
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+		return node->generate(func, block, allocblock);
 	}
 };
 
@@ -315,16 +321,16 @@ private:
 	Node *elsest;
 public:
 	If (Node *e, Node *tst, Node *est) : expr(e), thenst(tst), elsest(est) {}
-	Value *generate(Function *func, BasicBlock *block) {
-		Value *exprv = expr->generate(func, block);
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+		Value *exprv = expr->generate(func, block, allocblock);
 
 		BasicBlock *thenb = BasicBlock::Create(global_context, "if_then", func, 0);
-		Value *thennewb = thenst->generate(func, thenb);
+		Value *thennewb = thenst->generate(func, thenb, allocblock);
 
 		Value *elsenewb = NULL;
 		BasicBlock *elseb = BasicBlock::Create(global_context, "if_else", func, 0);
 		if (elsest != 0) {
-			elsenewb = elsest->generate(func, elseb);
+			elsenewb = elsest->generate(func, elseb, allocblock);
 		}
 	
 		BranchInst::Create(thenb, elseb, exprv, block);
@@ -351,12 +357,14 @@ private:
 	Node *stmts;
 public:
 	While(Node *e, Node *stms) : expr(e), stmts(stms) {}
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		BasicBlock *condwhile = BasicBlock::Create(global_context, "while_cond", func, 0);
-		Value *exprv = expr->generate(func, condwhile);
+		Value *exprv = expr->generate(func, condwhile, allocblock);
 
 		BasicBlock *bodywhile = BasicBlock::Create(global_context, "while_body", func, 0);
-		Value *newb = stmts->generate(func, bodywhile);
+		
+		// alloc instructions inside bodywhile should go to block to prevent repeatedly allocation
+		Value *newb = stmts->generate(func, bodywhile, block); 
 
 		BasicBlock *endwhile = BasicBlock::Create(global_context, "while_end", func, 0);
 	
@@ -384,9 +392,9 @@ public:
 		stmts.push_back(s);
 	}
 
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		for(Node *n: stmts) {
-			Value *b = n->generate(func, block);
+			Value *b = n->generate(func, block, allocblock);
 			if (b->getValueID() == Value::BasicBlockVal) 
 				block = (BasicBlock*)b;
 		}
@@ -399,10 +407,10 @@ private:
 	Node *expr;
 public:
 	Print(Node *e) : expr(e) {}
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		vector<Value*> args;
 
-		Value *lexp = expr->generate(func, block);
+		Value *lexp = expr->generate(func, block, allocblock);
 		Type *ty1 = lexp->getType();
 		char cty1 = 0;
 		if (ty1->isIntegerTy())
@@ -415,7 +423,7 @@ public:
 			yyerror("Type not supported by print.");
 
 		Int8 prt(cty1);
-		args.push_back(prt.generate(func, block));
+		args.push_back(prt.generate(func, block, allocblock));
 		
 		AllocaInst *ptr_aux = new AllocaInst(lexp->getType(), 0, "", block);
 		/*StoreInst *st = */ new StoreInst(lexp, ptr_aux, false, block);
@@ -444,15 +452,22 @@ public:
 		analogRead = Function::Create(ftype, Function::ExternalLinkage, "analogRead", mainmodule);
 		analogRead->setCallingConv(CallingConv::C);
 
-		// analogWrite
+		// analogWrite or digitalWrite
 		arg_types.clear();
 		arg_types.push_back(Type::getInt8Ty(global_context));
-		//arg_types.push_back(Type::getInt16Ty(global_context));
-		arg_types.push_back(Type::getInt8Ty(global_context));
+		arg_types.push_back(Type::getInt16Ty(global_context));
 		ftype = FunctionType::get(Type::getVoidTy(global_context),
 			ArrayRef<Type*>(arg_types), false);
 		analogWrite = Function::Create(ftype, Function::ExternalLinkage, "analogWrite", mainmodule);
-		//analogWrite = Function::Create(ftype, Function::ExternalLinkage, "digitalWrite", mainmodule);
+
+		// digitalWrite instead
+		/*arg_types.clear();
+		arg_types.push_back(Type::getInt8Ty(global_context));
+		arg_types.push_back(Type::getInt8Ty(global_context));
+		ftype = FunctionType::get(Type::getVoidTy(global_context),
+			ArrayRef<Type*>(arg_types), false);
+		analogWrite = Function::Create(ftype, Function::ExternalLinkage, "digitalWrite", mainmodule);
+		*/
 
 		analogWrite->setCallingConv(CallingConv::C);
 
@@ -528,13 +543,13 @@ public:
 		#endif
 
 		// generate the program!
-		Value *b = n->generate(mainfunc, mainblock);
+		Value *b = n->generate(mainfunc, mainblock, mainblock);
 		if (b->getValueID() == Value::BasicBlockVal)  {
 			mainblock = (BasicBlock*)b;
 		}
 
 		Int16 ret(0);
-		Value *retv = ret.generate(mainfunc, mainblock);
+		Value *retv = ret.generate(mainfunc, mainblock, mainblock);
 		ReturnInst::Create(global_context, retv, mainblock);
 	}
 };
@@ -544,7 +559,7 @@ class _: public Node {
 private:
 public:
 	_ () {}
-	Value *generate(Function *func, BasicBlock *block) {
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 	}
 };
 */

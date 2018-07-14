@@ -3,3 +3,7 @@ b = 10;
 stepper1 b+30;
 stepper2 b+40;
 
+if (b - 20 <= 30)
+	servo b;
+
+

@@ -26,8 +26,8 @@ out/%.ll : %.txt ${COMPILER_NAME}
 #% : %.o ../arduinowire/core.a
 #	avr-gcc -mmcu=${ARDUINO} $< ../arduinowire/core.a -o $@
 
-% : %.s out/core.a
-	avr-gcc -flto -Os -mmcu=${ARDUINO} $< out/core.a -o $@
+% : %.s ../arduinowire/core.a
+	avr-gcc -Os -fdata-sections -ffunction-sections -mmcu=${ARDUINO} $< ../arduinowire/core.a ../2018arm/lib.a -o $@ -Wl,--gc-sections
 
 #% : %.o out/core.a
 #	clang --target=avr -mmcu=${ARDUINO} $< out/core.a -o $@

@@ -7,7 +7,7 @@
 void onexit(void) __attribute__ ((destructor));
 
 #define ARDUINO_PORTS 14
-char arduino_out_ports[ARDUINO_PORTS];
+int arduino_out_ports[ARDUINO_PORTS];
 int steppers_pos[3] = {0};
 
 #define LCD_ROWS 6
@@ -15,6 +15,7 @@ int steppers_pos[3] = {0};
 #define LCD_CHARS (LCD_ROWS*LCD_COLS)
 char display[LCD_CHARS];
 int display_pos = 0;
+char last_msg[1000];
 
 char *port_names[ARDUINO_PORTS] = {
 	"1",
@@ -38,7 +39,10 @@ void refresh_screen() {
 	mvprintw(1, 1, "Simulador de E/S para Robcmp");
 	mvprintw(2, 1, "----------------------------");
 
-	mvprintw(6, 1, "Ultima msg:");
+	mvprintw(6, 1, "Ultima msg: ");
+	attron(COLOR_PAIR(3));
+	mvprintw(6, 14, "%s                                     ", last_msg);
+	attroff(COLOR_PAIR(3));
 
 	int currow = 10;
 	mvprintw(currow++, 1, "[ Mensagens print ]");
@@ -71,10 +75,11 @@ void init() {
 	//noecho();
 	keypad(stdscr, TRUE);
 	start_color();
+	last_msg[0] = 0;
 
 	init_pair(1, COLOR_WHITE, COLOR_BLUE);
-	init_pair(2, COLOR_BLUE, COLOR_BLACK);
-	init_pair(3, COLOR_RED, COLOR_BLACK);
+	init_pair(2, COLOR_BLUE, COLOR_WHITE);
+	init_pair(3, COLOR_RED, COLOR_WHITE);
 
 	memset(arduino_out_ports, 0, sizeof arduino_out_ports);
 	memset(display, 0, sizeof display);
@@ -112,10 +117,12 @@ int analogRead(unsigned char t) {
 
 }
 
-void digitalWrite(char port, char value) {
+//void digitalWrite(char port, char value) {
+void analogWrite(char port, short value) {
+
 	if (port > ARDUINO_PORTS) {
 		attron(COLOR_PAIR(3));
-		mvprintw(6, 14, "Erro: porta %d nao existe.",
+		sprintf(last_msg, "Erro: porta %d nao existe.",
 			port);
 		attroff(COLOR_PAIR(3));
 	} else {
@@ -127,19 +134,28 @@ void digitalWrite(char port, char value) {
 
 void delay(int milis) {
 	attron(COLOR_PAIR(3));
-	mvprintw(6, 14, "Delay %d milis", milis);
+	sprintf(last_msg, "Delay %d milis", milis);
 	attroff(COLOR_PAIR(3));
-	
 	refresh_screen();
+	
 	usleep(milis*1000);
-
-	mvprintw(6, 14, "                   ");
-
 }
 
 void stepper_goto(int stepper, int pos) {
 	attron(COLOR_PAIR(3));
-	mvprintw(6, 14, "Motor %d move para posicao %d.", stepper, pos);
+	sprintf(last_msg, "Motor %d move para posicao %d.", stepper, pos);
+	attroff(COLOR_PAIR(3));
+	refresh_screen();
+	usleep(1e6);
+}
+
+void servo_goto(int pos) {
+	attron(COLOR_PAIR(3));
+	if (pos >= 0 && pos <= 30) {
+		sprintf(last_msg, "Servo move para posicao %d.", pos);
+	} else {
+		sprintf(last_msg, "Servo nao pode se mover para posicao %d (0-30).", pos);
+	}
 	attroff(COLOR_PAIR(3));
 	refresh_screen();
 	usleep(1e6);

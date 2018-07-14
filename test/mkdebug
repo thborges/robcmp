@@ -1,0 +1,12 @@
+# compila arquivo auxiliar debug.c, gera debug.o
+/usr/bin/clang -c debug.c
+
+# compila o programa passado no argumento 1, gera .ll
+./robcmp $1 > out/$1.ll
+
+# transforma o .ll em .o (para x86)
+llc out/$1.ll -o out/$1.o -filetype=obj
+
+# chama clang para linkar o arquivo debug.o com o 
+# programa desejado, gerando o binario final
+clang -lncurses debug.o out/$1.o -o out/$1.bin && echo "Arquivo out/$1.bin gerado."

@@ -34,6 +34,8 @@ extern void unescape(char *s);
 						  return(TOK_STEPPER);
 						}
 
+"servo"					{ return(TOK_SERVO); }
+
 "delay"					{ return(TOK_DELAY); }
 "if"					{ return(TOK_IF); }
 "else"					{ return(TOK_ELSE); }
@@ -46,6 +48,8 @@ extern void unescape(char *s);
 "<"						{ return(LT_OP); }
 "and"					{ return(TOK_AND); }
 "or"					{ return(TOK_OR); }
+"function"				{ return(TOK_FUNC); }
+"return"				{ return(TOK_RETURN); }
 
 [a-zA-Z_][a-zA-Z0-9_]*	{ yylval.ident = strndup(yytext, yyleng); 
 						  return(TOK_IDENT); }

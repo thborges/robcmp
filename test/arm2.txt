@@ -1,0 +1,29 @@
+
+b = 0;
+i = 0;
+
+servo 82;
+delay(1000);
+servo 102;
+delay(1000);
+servo 82;
+
+while (i < 10) {
+	b = b + 100;
+	stepper0 b;
+	stepper1 b;
+	stepper2 b;
+	i = i + 1;
+	delay(1000);
+}
+
+i = 0;
+while (i < 10) {
+	b = b - 100;
+	stepper0 b;
+	stepper1 b;
+	stepper2 b;
+	i = i + 1;
+	delay(1000);
+}
+

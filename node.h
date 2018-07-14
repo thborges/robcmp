@@ -31,12 +31,12 @@ extern int yylex();
 
 // Program main module
 extern Module *mainmodule;
+extern BasicBlock *mainblock;
 extern char* build_filename;
 static LLVMContext global_context;
 
 // symbol table
-extern map<string, AllocaInst*> tabelasym;
-extern map<string, int> symexists;
+extern map<BasicBlock*, map<string, Value*>> tabelasym;
 
 // arduino functions
 extern Function *analogWrite;
@@ -47,6 +47,24 @@ extern Function *delayMicroseconds;
 extern Function *init;
 extern Function *print;
 extern Function *i16div;
+
+static int yyerrorcpp(const string& s) {
+	return yyerror(s.c_str());
+}
+
+static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, BasicBlock *secondb = NULL) {
+	BasicBlock *blocks[] = {firstb, secondb, mainblock};
+	for(BasicBlock *b : blocks) {
+		if (b == NULL) 
+			continue;
+		auto blocksym = tabelasym[b];
+		auto var = blocksym.find(ident);
+		if (var != blocksym.end())
+			return var->second;
+	}
+	return NULL;
+}
+
 
 class Node {
 public:
@@ -108,14 +126,11 @@ class Load: public Node {
 private:
 	string ident;
 public:
-	Load(const char *i): ident(i) {
-		auto var = symexists.find(ident);
-		if (var == symexists.end())
-			yyerror("Variable not declared:");
-	}
+	Load(const char *i): ident(i) {}
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-		LoadInst *ret = new LoadInst(tabelasym[ident], ident, false, block);
+		Value *sym = search_symbol(ident, allocblock, block);	
+		LoadInst *ret = new LoadInst(sym, ident, false, block);
 		return ret;
 	}
 };
@@ -125,26 +140,23 @@ private:
 	string name;
 	Node *expr;
 public:
-	Variable(const char *n, Node *e) : name(n), expr(e) {
-		symexists[n] = 1; // variable exists!
-	}
+	Variable(const char *n, Node *e) : name(n), expr(e) { }
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-		auto left = tabelasym.find(name);
-		Value *leftv;
+		// generate code to produce the new variable value
 		Value *exprv = expr->generate(func, block, allocblock);
-		if (left == tabelasym.end()) {
-			tabelasym[name] = new AllocaInst(exprv->getType(), 0, name, allocblock);
-			leftv = tabelasym[name];
+
+		Value *leftv = search_symbol(name, allocblock, block);	
+		if (leftv == NULL) {
+			leftv = new AllocaInst(exprv->getType(), 0, name, allocblock);
+			tabelasym[allocblock][name] = leftv; 
 		}
-		else
-			leftv = left->second;
 
 		auto nvalue = exprv;
-		//fprintf(stderr, "; leftv type: %d, exprv type: %d\n", leftv->getType()->getPointerElementType()->getTypeID(), exprv->getType()->getTypeID());
-		if (leftv->getType()->getPointerElementType()->isIntegerTy() && exprv->getType()->isFloatTy()) {
-			nvalue = new FPToSIInst(exprv, leftv->getType()->getPointerElementType(), "truncistore", block);
-			//fprintf(stderr, "; nvalue converted to int.\n");
+		if (leftv->getType()->getPointerElementType()->isIntegerTy() && 
+			exprv->getType()->isFloatTy()) {
+			nvalue = new FPToSIInst(exprv, leftv->getType()->getPointerElementType(), 
+				"truncistore", block);
 		}
 		StoreInst *ret = new StoreInst(nvalue, leftv, false, block);
 		return ret;
@@ -212,13 +224,22 @@ public:
 
 class BinaryOp: public Node {
 private:
-	char op;
+	int op;
 	Node *lhsn;
 	Node *rhsn;
 public:
-	BinaryOp (Node *l, char op, Node *r) : lhsn(l), rhsn(r) {
+	BinaryOp (Node *l, int op, Node *r) : lhsn(l), rhsn(r) {
 		this->op =op;
 	}
+
+	Instruction *logical_operator(enum Instruction::BinaryOps op, 
+		Function *func, BasicBlock *block, BasicBlock *allocblock) {
+	
+		Value *lhs = lhsn->generate(func, block, allocblock);
+		Value *rhs = rhsn->generate(func, block, allocblock);
+		return BinaryOperator::Create(op, lhs, rhs, "logicop", block);
+	}
+
 	Instruction *binary_operator(enum Instruction::BinaryOps opint, 
 		enum Instruction::BinaryOps opflt, Function *func, BasicBlock *block, BasicBlock *allocblock) {
 
@@ -255,6 +276,8 @@ public:
 			case '-' : return binary_operator(Instruction::Sub, Instruction::FSub, func, block, allocblock);
 			case '*' : return binary_operator(Instruction::Mul, Instruction::FMul, func, block, allocblock);
 			case '/' : return binary_operator(Instruction::SDiv, Instruction::FDiv, func, block, allocblock);
+			case TOK_AND : return logical_operator(BinaryOperator::And, func, block, allocblock);
+			case TOK_OR  : return logical_operator(BinaryOperator::Or, func, block, allocblock);
 			default: return NULL;
 		}
 	}
@@ -285,7 +308,7 @@ public:
 				rexp = new SIToFPInst(rexp, Type::getFloatTy(global_context), "", block);
 		}
 
-		if (op == EQ_OP)		predicate = isFCmp ? FCmpInst::FCMP_OEQ : ICmpInst::ICMP_EQ;
+		if (op == EQ_OP)	  predicate = isFCmp ? FCmpInst::FCMP_OEQ : ICmpInst::ICMP_EQ;
 		else if (op == NE_OP) predicate = isFCmp ? FCmpInst::FCMP_UNE : ICmpInst::ICMP_NE;
 		else if (op == GE_OP) predicate = isFCmp ? FCmpInst::FCMP_OGE : ICmpInst::ICMP_SGE;
 		else if (op == LE_OP) predicate = isFCmp ? FCmpInst::FCMP_OLE : ICmpInst::ICMP_SLE;
@@ -402,6 +425,80 @@ public:
 	}
 };
 
+class FunctionDecl: public Node {
+private:
+	Node *stmts;
+	string name;
+public:
+	FunctionDecl(string name, Node *stmts) {
+		this->name = name;
+		this->stmts = stmts;
+	}
+	
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+
+		Value *sym = search_symbol(name);
+		if (sym != NULL) {
+			yyerrorcpp("Function " + name + " already defined.");
+			return NULL;
+		}
+
+		BasicBlock *fblock = BasicBlock::Create(global_context, "entry");
+		stmts->generate(func, fblock, fblock);
+
+		TerminatorInst *term = fblock->getTerminator();
+		Type *ttype = Type::getVoidTy(global_context);
+		if (term != NULL)
+			ttype = fblock->getTerminator()->getType();
+	
+		std::vector<Type*> arg_types;
+		FunctionType *ftype = FunctionType::get(ttype, ArrayRef<Type*>(arg_types), false);
+
+		Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, name, mainmodule);
+		nfunc->setCallingConv(CallingConv::C);
+		//nfunc->setDoesNotReturn();
+
+		fblock->insertInto(nfunc, 0);
+
+		tabelasym[mainblock][name] = nfunc;
+		return nfunc;
+	}
+};
+
+class FunctionCall: public Node {
+private:
+	string name;
+public:
+	FunctionCall(string name) {
+		this->name = name;
+	}
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+		Function *cfunc = (Function*)search_symbol(name);
+		if (cfunc == NULL) {
+			yyerrorcpp("Function " + name + " not defined.");
+			return NULL;
+		}
+
+		vector<Value*> args;
+		ArrayRef<Value*> argsRef(args);
+		return CallInst::Create(cfunc, argsRef, "", block);
+	}
+};
+
+class Return: public Node {
+private:
+	Node *node;
+public:
+	Return(Node *n) {
+		this->node = n;
+	}
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+		IRBuilder<> builder(block);
+		Value *ret = node->generate(func, block, allocblock);
+		return builder.CreateRet(ret);
+	}
+};
+
 class Print: public Node {
 private:
 	Node *expr;
@@ -420,12 +517,12 @@ public:
 		else if (ty1->isArrayTy())
 			cty1 = 2;
 		else
-			yyerror("Type not supported by print.");
+			yyerrorcpp("Type not supported by print.");
 
 		Int8 prt(cty1);
 		args.push_back(prt.generate(func, block, allocblock));
 		
-		AllocaInst *ptr_aux = new AllocaInst(lexp->getType(), 0, "", block);
+		AllocaInst *ptr_aux = new AllocaInst(lexp->getType(), 0, "", allocblock);
 		/*StoreInst *st = */ new StoreInst(lexp, ptr_aux, false, block);
 		CastInst *cinst = new BitCastInst(ptr_aux, PointerType::get(IntegerType::get(global_context, 8), 0), "", block);
 		args.push_back(cinst);
@@ -531,7 +628,7 @@ public:
 			ArrayRef<Type*>(), false);
 		Function *mainfunc = Function::Create(ftype,GlobalValue::ExternalLinkage, "main", mainmodule);
 
-		BasicBlock *mainblock = BasicBlock::Create(global_context, "entry", mainfunc, 0);
+		mainblock = BasicBlock::Create(global_context, "entry", mainfunc, 0);
 
 		declara_auxiliary_c_funcs();
 

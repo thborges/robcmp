@@ -12,15 +12,16 @@
 
 #include "node.h"
 
+int errorsfound = 0;
 extern int yyparse();
 extern FILE *yyin;
 
 // Program main module
 Module *mainmodule;
+BasicBlock *mainblock;
 
 // symbol table
-map<string, AllocaInst*> tabelasym;
-map<string, int> symexists;
+map<BasicBlock*, map<string, Value*>> tabelasym;
 
 // file name
 char *build_filename;
@@ -49,6 +50,11 @@ int main(int argc, char *argv[]) {
 	yyparse();
 	if (yyin)
 		fclose(yyin);
+
+	if (errorsfound > 0) {
+		fprintf(stderr, "%d error(s) found.\n", errorsfound);
+		return errorsfound;
+	}
 
 	llvm::legacy::PassManager pm;
 

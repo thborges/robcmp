@@ -1,0 +1,11 @@
+
+a = 10;
+b = 30.3;
+
+if (a == b) {
+	print b;
+}
+else if (a > b and b > 40.4) {
+	print a * b;
+}
+

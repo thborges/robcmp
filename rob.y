@@ -57,7 +57,9 @@ stmt : TOK_OUT '=' expr ';'				{ $$ = new OutPort($1, $3); }
 	 | printstmt ';'					{ $$ = $1; }
 	 | TOK_STEPPER expr ';'				{ $$ = new StepperGoto($1, $2); }
 	 | TOK_SERVO expr ';'				{ $$ = new ServoGoto($2); }
-	 | error ';'                        { /* ignora o erro ate o proximo ';' */ }
+	 | error ';'                        { /* ignora o erro ate o proximo ';' */
+										  $$ = new Return(new Int16(0)); // evita falha de segmentacao
+										}
 	 ;
 
 funcblock : TOK_FUNC TOK_IDENT '(' ')' '{' stmts '}'		{ $$ = new FunctionDecl($2, $6); }
@@ -80,15 +82,15 @@ elseblock : TOK_ELSE stmt				{ $$ = $2; }
 whileblock : TOK_WHILE '(' logicexpr ')' '{' stmts '}' { $$ = new While($3, $6); }
 		   ;
 
-logicexpr : logicexpr TOK_OR logicterm		{ $$ = new BinaryOp($1, TOK_OR, $2); }
-		  | logicterm						{ $$ = new Capsule($1); }
+logicexpr : logicexpr TOK_OR logicterm		{ $$ = new BinaryOp($1, TOK_OR, $3); }
+		  | logicterm						{ $$ = $1; }
 		  ;
 
-logicterm : logicterm TOK_AND logicfactor	{ $$ = new BinaryOp($1, TOK_AND, $2); }
-		  | logicfactor						{ $$ = new Capsule($1); }
+logicterm : logicterm TOK_AND logicfactor	{ $$ = new BinaryOp($1, TOK_AND, $3); }
+		  | logicfactor						{ $$ = $1; }
 		  ;
 
-logicfactor : '(' logicexpr ')'		{ $$ = new Capsule($2); }
+logicfactor : '(' logicexpr ')'		{ $$ = $2; }
 			| expr EQ_OP expr		{ $$ = new CmpOp($1, EQ_OP, $3); }
 			| expr NE_OP expr		{ $$ = new CmpOp($1, NE_OP, $3); }
 			| expr LE_OP expr		{ $$ = new CmpOp($1, LE_OP, $3); }
@@ -99,11 +101,12 @@ logicfactor : '(' logicexpr ')'		{ $$ = new Capsule($2); }
 
 expr : expr '+' term			{ $$ = new BinaryOp($1, '+', $3); }
 	 | expr '-' term			{ $$ = new BinaryOp($1, '-', $3); }
-	 | term					{ $$ = $1; }
+	 | term						{ $$ = $1; }
 	 ;
 
 term : term '*' factor		{ $$ = new BinaryOp($1, '*', $3); }
 	 | term '/' factor		{ $$ = new BinaryOp($1, '/', $3); }
+	 | term '%' factor		{ $$ = new BinaryOp($1, '%', $3); }
 	 | factor				{ $$ = $1; }
 	 ;
 

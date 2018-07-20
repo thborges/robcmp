@@ -2,24 +2,22 @@
 b = 0;
 i = 0;
 
-servo 82;
+servo 0;
 delay(1000);
-servo 102;
+servo 38;
 delay(1000);
-servo 82;
+servo 0;
 
+mov = 0;
 while (i < 10) {
-	b = b + 100;
-	stepper0 b;
-	stepper1 b;
-	stepper2 b;
-	i = i + 1;
-	delay(1000);
-}
-
-i = 0;
-while (i < 10) {
-	b = b - 100;
+	if (mov == 0) {
+    	b = b + 500;
+		mov = 1;
+	}
+	else {
+		b = b - 500;
+		mov = 0;
+	}
 	stepper0 b;
 	stepper1 b;
 	stepper2 b;

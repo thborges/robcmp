@@ -35,17 +35,25 @@ Function *init;
 Function *print;
 Function *i16div;
 
+int optimization = 1;
 
 int main(int argc, char *argv[]) {
 
 	// Compila o arquivo passado como parâmetro
-	if (argc > 1) {
-		build_filename = argv[1];
-		yyin = fopen(build_filename, "r");
-		if (yyin == NULL) {
-			fprintf(stderr, "Could not open file %s.\n", build_filename);
-			exit(1);
+	int i = 1;
+	while (i < argc) {
+		if (strncmp(argv[i], "-O", 2) == 0) {
+			optimization = atoi(&argv[i][2]);
 		}
+		else {
+			build_filename = argv[i];
+			yyin = fopen(build_filename, "r");
+			if (yyin == NULL) {
+				fprintf(stderr, "Could not open file %s.\n", build_filename);
+				exit(1);
+			}
+		}
+		i++;
 	}
 	yyparse();
 	if (yyin)
@@ -58,17 +66,22 @@ int main(int argc, char *argv[]) {
 
 	llvm::legacy::PassManager pm;
 
-/*	pm.add(createPromoteMemoryToRegisterPass());
-	pm.add(createInstructionCombiningPass());
-	pm.add(createReassociatePass());
-	pm.add(createCFGSimplificationPass());
-	pm.add(createLICMPass());
-	pm.add(createGVNPass());
-	pm.add(createSCCPPass());
-	pm.add(createCFGSimplificationPass());
-	pm.add(createAggressiveDCEPass());
-	pm.add(createDeadStoreEliminationPass());
-	pm.add(createCFGSimplificationPass()); */
+	if (optimization >= 1) {
+		pm.add(createPromoteMemoryToRegisterPass());
+	}
+
+	if (optimization >= 2) {
+		pm.add(createInstructionCombiningPass());
+		pm.add(createReassociatePass());
+		pm.add(createCFGSimplificationPass());
+		pm.add(createLICMPass());
+		pm.add(createGVNPass());
+		pm.add(createSCCPPass());
+		pm.add(createCFGSimplificationPass());
+		pm.add(createAggressiveDCEPass());
+		pm.add(createDeadStoreEliminationPass());
+		pm.add(createCFGSimplificationPass());
+	}
 
 	// imprime o código intermediário gerado
 	pm.add(createPrintModulePass(outs()));

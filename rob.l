@@ -69,12 +69,16 @@ extern void unescape(char *s);
 "/"						{ return('/'); }
 "+"						{ return('+'); }
 "-"						{ return('-'); }
+"%"						{ return('%'); }
 "="						{ return('='); }
 ";"						{ return(';'); }
 
 \"([^\\\"]|\\.)*\"		{ yylval.str = strndup(yytext+1, yyleng-2);
 						  unescape(yylval.str);
 						  return(TOK_STRING); }
+
+ /* deixar por último. Caractere não reconhecido pelo alfabeto. */
+.						{ yyerror("lexical error, caractere nao pertence ao alfabeto da linguagem:"); }
 
 %%
 

@@ -37,10 +37,11 @@ void stepper_goto(int stepper, int pos) {
 }
 
 void servo_goto(int pos) {
+	#define MIN_POS 82
 	if (!servo_gripper.attached())
 		servo_gripper.attach(SERVO_PORT);
-	if (pos >= 0 && pos <= 30) {
-		servo_gripper.write(pos);
+	if (pos >= 0 && pos <= 38) {
+		servo_gripper.write(pos + MIN_POS);
 		delay(15); // small delay
 	}
 }

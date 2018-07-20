@@ -49,7 +49,8 @@ extern Function *print;
 extern Function *i16div;
 
 static int yyerrorcpp(const string& s) {
-	return yyerror(s.c_str());
+	string e = "semantic error, " + s;
+	return yyerror(e.c_str());
 }
 
 static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, BasicBlock *secondb = NULL) {
@@ -130,6 +131,10 @@ public:
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		Value *sym = search_symbol(ident, allocblock, block);	
+		if (sym == NULL) {
+			yyerrorcpp("Variable " + ident + " not defined.");
+			return NULL;
+		}
 		LoadInst *ret = new LoadInst(sym, ident, false, block);
 		return ret;
 	}
@@ -276,6 +281,7 @@ public:
 			case '-' : return binary_operator(Instruction::Sub, Instruction::FSub, func, block, allocblock);
 			case '*' : return binary_operator(Instruction::Mul, Instruction::FMul, func, block, allocblock);
 			case '/' : return binary_operator(Instruction::SDiv, Instruction::FDiv, func, block, allocblock);
+			case '%' : return binary_operator(Instruction::SRem, Instruction::SRem, func, block, allocblock);
 			case TOK_AND : return logical_operator(BinaryOperator::And, func, block, allocblock);
 			case TOK_OR  : return logical_operator(BinaryOperator::Or, func, block, allocblock);
 			default: return NULL;
@@ -418,7 +424,7 @@ public:
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		for(Node *n: stmts) {
 			Value *b = n->generate(func, block, allocblock);
-			if (b->getValueID() == Value::BasicBlockVal) 
+			if (b && b->getValueID() == Value::BasicBlockVal) 
 				block = (BasicBlock*)b;
 		}
 		return block;
@@ -508,16 +514,20 @@ public:
 		vector<Value*> args;
 
 		Value *lexp = expr->generate(func, block, allocblock);
-		Type *ty1 = lexp->getType();
-		char cty1 = 0;
-		if (ty1->isIntegerTy())
-			cty1 = 0;
-		else if (ty1->isFloatTy())
-			cty1 = 1;
-		else if (ty1->isArrayTy())
-			cty1 = 2;
-		else
+		char cty1 = -1;
+		if (lexp != NULL) {
+			Type *ty1 = lexp->getType();
+			if (ty1->isIntegerTy())
+				cty1 = 0;
+			else if (ty1->isFloatTy())
+				cty1 = 1;
+			else if (ty1->isArrayTy())
+				cty1 = 2;
+		}
+		if (cty1 == -1) {
 			yyerrorcpp("Type not supported by print.");
+			return NULL;
+		}
 
 		Int8 prt(cty1);
 		args.push_back(prt.generate(func, block, allocblock));

@@ -69,6 +69,7 @@ static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, Basi
 
 class Node {
 public:
+	virtual bool isFunctionDecl() { return false; }
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) = 0;
 	virtual ~Node() {}
 };
@@ -409,6 +410,58 @@ public:
 	}
 };
 
+class AttachInterrupt: public Node {
+private:
+	string fname;
+	int port;
+	int event;
+	static Function *fattach;
+public:
+	AttachInterrupt(int _port, string _fname, int _event) {
+		this->fname = _fname;
+		this->port = _port;
+		this->event = _event;
+	}
+
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+
+		Function *cfunc = (Function*)search_symbol(fname);
+		if (cfunc == NULL) {
+			yyerrorcpp("Function " + fname + " not defined.");
+			return NULL;
+		}
+
+		// called func type (the function that is attached to interruption)
+		std::vector<Type*> arg_types;
+		arg_types.push_back(Type::getVoidTy(global_context));
+		FunctionType *fcalledtype = FunctionType::get(Type::getVoidTy(global_context),
+			arg_types, false);
+		
+		// setup arduino attachInterrupt function
+		if (!fattach) {
+			arg_types.clear();
+			arg_types.push_back(Type::getInt8Ty(global_context));
+			arg_types.push_back(fcalledtype->getPointerTo());
+			arg_types.push_back(Type::getInt16Ty(global_context));
+
+			FunctionType *ftype = FunctionType::get(Type::getVoidTy(global_context),
+				ArrayRef<Type*>(arg_types), false);
+
+			fattach = Function::Create(ftype, Function::ExternalLinkage, "attachInterrupt", mainmodule);
+			fattach->setCallingConv(CallingConv::C);
+		}
+
+		vector<Value*> args;
+		args.push_back(ConstantInt::get(Type::getInt8Ty(global_context), port));
+		args.push_back(cfunc);
+		args.push_back(ConstantInt::get(Type::getInt16Ty(global_context), event));
+
+		ArrayRef<Value*> argsRef(args);
+		return CallInst::Create(fattach, argsRef, "", block);
+	}
+};
+
+
 class Stmts: public Node {
 private:
 	std::vector<Node *> stmts;
@@ -419,6 +472,18 @@ public:
 
 	void append(Node *s) {
 		stmts.push_back(s);
+	}
+
+	void prepend(Node *s) {
+		// put after function declarations
+		auto iterator = stmts.begin();
+		while (iterator != stmts.end()) {
+			if (!(*iterator)->isFunctionDecl())
+				break;
+			else
+				iterator = std::next(iterator);
+		}
+		stmts.insert(iterator, s);
 	}
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
@@ -441,6 +506,10 @@ public:
 		this->stmts = stmts;
 	}
 	
+	bool isFunctionDecl() {
+		return true;
+	}
+
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 
 		Value *sym = search_symbol(name);
@@ -453,7 +522,7 @@ public:
 		stmts->generate(func, fblock, fblock);
 
 		TerminatorInst *term = fblock->getTerminator();
-		Type *ttype = Type::getVoidTy(global_context);
+		Type *ttype = Type::getInt16Ty(global_context);
 		if (term != NULL)
 			ttype = fblock->getTerminator()->getType();
 	

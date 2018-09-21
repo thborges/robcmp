@@ -34,6 +34,7 @@ Function *delayMicroseconds;
 Function *init;
 Function *print;
 Function *i16div;
+Function *AttachInterrupt::fattach = NULL;
 
 int optimization = 1;
 

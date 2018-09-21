@@ -40,6 +40,7 @@ class Stmts;
 %%
 
 programa : stmts    { Program p;
+					  $1->prepend(new AttachInterrupt(2, "fa", 0));
                       p.generate($1); }
 		 ;
 
@@ -53,6 +54,7 @@ stmt : TOK_OUT '=' expr ';'				{ $$ = new OutPort($1, $3); }
 	 | condblock						{ $$ = $1; }
 	 | whileblock						{ $$ = $1; }
 	 | funcblock 						{ $$ = $1; } 
+/*	 | eventblock						{ $$ = $1; } */
 	 | returnblock ';'					{ $$ = $1; }
 	 | printstmt ';'					{ $$ = $1; }
 	 | TOK_STEPPER expr ';'				{ $$ = new StepperGoto($1, $2); }
@@ -61,6 +63,12 @@ stmt : TOK_OUT '=' expr ';'				{ $$ = new OutPort($1, $3); }
 										  $$ = new Return(new Int16(0)); // evita falha de segmentacao
 										}
 	 ;
+
+/* 
+eventblock : TOK_QUANDO TOK_INT TOK_INT '{' stmts '}'  {	//vector_global->append(new AttachInterrupt(2, NULL, 0));		   													$$ = new FunctionDecl("nome", $6); }
+
+		   ;
+*/
 
 funcblock : TOK_FUNC TOK_IDENT '(' ')' '{' stmts '}'		{ $$ = new FunctionDecl($2, $6); }
 		  ;

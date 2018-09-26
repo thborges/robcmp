@@ -28,6 +28,7 @@ Algumas imagens do resultado final dos projetos no simulador:
 
 Alguns vídeos do projeto de Robótica Educacional, ferramentas para auxiliar na construção de robôs e os próprios robôs que estão sendo desenvolvidos:
 
+[![Video RE 4](https://img.youtube.com/vi/WiL6HWBrZoA/0.jpg)](https://www.youtube.com/watch?v=WiL6HWBrZoA)
 [![Video RE 3](https://img.youtube.com/vi/-Id48-MvaR4/0.jpg)](https://www.youtube.com/watch?v=-Id48-MvaR4)
 [![Video RE 2](https://img.youtube.com/vi/-zfRB2uEZyY/0.jpg)](https://www.youtube.com/watch?v=-zfRB2uEZyY)
 [![Video RE 1](https://img.youtube.com/vi/g4sYlFEB-1E/0.jpg)](https://www.youtube.com/watch?v=g4sYlFEB-1E)

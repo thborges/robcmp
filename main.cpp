@@ -19,6 +19,7 @@ extern FILE *yyin;
 // Program main module
 Module *mainmodule;
 BasicBlock *mainblock;
+BasicBlock *global_alloc;
 
 // symbol table
 map<BasicBlock*, map<string, Value*>> tabelasym;

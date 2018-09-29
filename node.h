@@ -32,6 +32,8 @@ extern int yylex();
 // Program main module
 extern Module *mainmodule;
 extern BasicBlock *mainblock;
+extern BasicBlock *global_alloc;
+
 extern char* build_filename;
 static LLVMContext global_context;
 
@@ -54,7 +56,7 @@ static int yyerrorcpp(const string& s) {
 }
 
 static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, BasicBlock *secondb = NULL) {
-	BasicBlock *blocks[] = {firstb, secondb, mainblock};
+	BasicBlock *blocks[] = {firstb, secondb, mainblock, global_alloc};
 	for(BasicBlock *b : blocks) {
 		if (b == NULL) 
 			continue;
@@ -154,7 +156,20 @@ public:
 
 		Value *leftv = search_symbol(name, allocblock, block);	
 		if (leftv == NULL) {
-			leftv = new AllocaInst(exprv->getType(), 0, name, allocblock);
+			if (allocblock == global_alloc) {
+				GlobalVariable *gv = new GlobalVariable(*mainmodule, exprv->getType(), 
+					false, GlobalValue::CommonLinkage, NULL, name);
+				if (exprv->getType()->isIntegerTy())
+					gv->setInitializer(ConstantInt::get(exprv->getType(), 0));
+				else if (exprv->getType()->isFloatTy())
+					gv->setInitializer(ConstantFP::get(exprv->getType(), 0.0));
+				else
+					yyerrorcpp("Global variable default initialization not defined.");
+
+				leftv = gv;
+			} else {
+				leftv = new AllocaInst(exprv->getType(), 0, name, allocblock);
+			}
 			tabelasym[allocblock][name] = leftv; 
 		}
 
@@ -433,7 +448,6 @@ public:
 
 		// called func type (the function that is attached to interruption)
 		std::vector<Type*> arg_types;
-		arg_types.push_back(Type::getVoidTy(global_context));
 		FunctionType *fcalledtype = FunctionType::get(Type::getVoidTy(global_context),
 			arg_types, false);
 		
@@ -476,14 +490,15 @@ public:
 
 	void prepend(Node *s) {
 		// put after function declarations
+		auto last_func = stmts.begin();
 		auto iterator = stmts.begin();
 		while (iterator != stmts.end()) {
-			if (!(*iterator)->isFunctionDecl())
-				break;
-			else
-				iterator = std::next(iterator);
+			if ((*iterator)->isFunctionDecl())
+				last_func = iterator;
+			iterator = std::next(iterator);
 		}
-		stmts.insert(iterator, s);
+		last_func = std::next(last_func);
+		stmts.insert(last_func, s);
 	}
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
@@ -522,16 +537,21 @@ public:
 		stmts->generate(func, fblock, fblock);
 
 		TerminatorInst *term = fblock->getTerminator();
-		Type *ttype = Type::getInt16Ty(global_context);
-		if (term != NULL)
-			ttype = fblock->getTerminator()->getType();
+		Type *ttype = Type::getVoidTy(global_context);
+		if (term != NULL && isa<ReturnInst>(term))
+			ttype = ((ReturnInst*)term)->getReturnValue()->getType();
+		else { // return void at the end
+			IRBuilder<> builder(fblock);
+			builder.CreateRet(NULL);
+		}
 	
 		std::vector<Type*> arg_types;
 		FunctionType *ftype = FunctionType::get(ttype, ArrayRef<Type*>(arg_types), false);
 
 		Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, name, mainmodule);
 		nfunc->setCallingConv(CallingConv::C);
-		//nfunc->setDoesNotReturn();
+		if (ttype->isVoidTy())
+			nfunc->setDoesNotReturn();
 
 		fblock->insertInto(nfunc, 0);
 
@@ -707,7 +727,8 @@ public:
 			ArrayRef<Type*>(), false);
 		Function *mainfunc = Function::Create(ftype,GlobalValue::ExternalLinkage, "main", mainmodule);
 
-		mainblock = BasicBlock::Create(global_context, "entry", mainfunc, 0);
+		mainblock = BasicBlock::Create(global_context, "entry", mainfunc);
+		global_alloc = BasicBlock::Create(global_context, "global", NULL, mainblock);
 
 		declara_auxiliary_c_funcs();
 
@@ -719,7 +740,7 @@ public:
 		#endif
 
 		// generate the program!
-		Value *b = n->generate(mainfunc, mainblock, mainblock);
+		Value *b = n->generate(mainfunc, mainblock, global_alloc);
 		if (b->getValueID() == Value::BasicBlockVal)  {
 			mainblock = (BasicBlock*)b;
 		}

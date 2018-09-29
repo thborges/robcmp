@@ -4,6 +4,9 @@
 
 class Node;
 class Stmts;
+
+std::vector<AttachInterrupt *> vectorglobal;
+
 %}
 
 %token TOK_IDENT TOK_IN TOK_OUT TOK_FLOAT TOK_INTEIRO TOK_PRINT TOK_DELAY 
@@ -12,6 +15,7 @@ class Stmts;
 %token TOK_STRING
 %token TOK_STEPPER TOK_SERVO
 %token TOK_FUNC TOK_RETURN
+%token TOK_QUANDO TOK_ESTA
 
 %union {
 	char *port;
@@ -23,7 +27,7 @@ class Stmts;
 	Stmts *stmt;
 }
 
-%type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt
+%type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock
 %type <node> funcblock returnblock
 %type <stmt> stmts
 %type <port> TOK_OUT TOK_IN
@@ -40,21 +44,31 @@ class Stmts;
 %%
 
 programa : stmts    { Program p;
-					  $1->prepend(new AttachInterrupt(2, "fa", 0));
-                      p.generate($1); }
+		 			  // interruptions setup
+					  for(AttachInterrupt *a : vectorglobal) {
+						$1->prepend(a);
+					  }
+					  p.generate($1); 
+                    };
 		 ;
 
-stmts : stmts stmt			{ $$->append($2); }
+stmts : stmts stmt			{ $1->append($2);
+	  						  $$ = $1; 
+							}
 	  | stmt				{ $$ = new Stmts($1); }
 	  ;
+
+fe : funcblock 						{ $$ = $1; } 
+   | eventblock						{ $$ = $1; } 
+   ;
+
 
 stmt : TOK_OUT '=' expr ';'				{ $$ = new OutPort($1, $3); } 
 	 | TOK_IDENT '=' expr ';'			{ $$ = new Variable($1, $3); }
 	 | TOK_DELAY expr';'				{ $$ = new Delay($2); }
 	 | condblock						{ $$ = $1; }
 	 | whileblock						{ $$ = $1; }
-	 | funcblock 						{ $$ = $1; } 
-/*	 | eventblock						{ $$ = $1; } */
+	 | fe								{ $$ = $1; }
 	 | returnblock ';'					{ $$ = $1; }
 	 | printstmt ';'					{ $$ = $1; }
 	 | TOK_STEPPER expr ';'				{ $$ = new StepperGoto($1, $2); }
@@ -64,11 +78,14 @@ stmt : TOK_OUT '=' expr ';'				{ $$ = new OutPort($1, $3); }
 										}
 	 ;
 
-/* 
-eventblock : TOK_QUANDO TOK_INT TOK_INT '{' stmts '}'  {	//vector_global->append(new AttachInterrupt(2, NULL, 0));		   													$$ = new FunctionDecl("nome", $6); }
-
+eventblock : TOK_QUANDO TOK_INTEIRO TOK_ESTA TOK_INTEIRO '{' stmts '}' 
+		     {	
+				char funcname[100];
+				sprintf(funcname, "__callback_int_p%d_e%d", $2, $4);
+				vectorglobal.push_back(new AttachInterrupt($2, funcname, $4));
+				$$ = new FunctionDecl(funcname, $6);
+             }
 		   ;
-*/
 
 funcblock : TOK_FUNC TOK_IDENT '(' ')' '{' stmts '}'		{ $$ = new FunctionDecl($2, $6); }
 		  ;

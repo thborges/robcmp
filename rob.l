@@ -36,6 +36,9 @@ extern void unescape(char *s);
 
 "servo"					{ return(TOK_SERVO); }
 
+"quando"                { return(TOK_QUANDO); }
+"esta"                  { return(TOK_ESTA); }
+
 "delay"					{ return(TOK_DELAY); }
 "if"					{ return(TOK_IF); }
 "else"					{ return(TOK_ELSE); }

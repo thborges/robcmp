@@ -4,6 +4,9 @@ LLVMFLAGS=$(shell llvm-config --cxxflags)
 LLVMLIBS=$(shell llvm-config --ldflags --libs all) -lpthread -ldl -lncurses
 
 COMPILER_NAME=$(shell basename "${PWD}")
+
+SRC = src
+BIN = build
  
 FLAGS=-O3 -DYYERROR_VERBOSE -fexceptions -Wno-deprecated-register -Wno-unused-function
 DFLAGS=-ggdb -O0
@@ -18,10 +21,10 @@ all: $(COMPILER_NAME)
 	lex -o $@ $<
 
 %_y.cpp: %.y
-	bison --defines=bison.hpp -o $@ $<
+	bison --defines=$(SRC)/bison.hpp -o $@ $<
 
 $(COMPILER_NAME): ${YACS} ${LEXS} ${CPPS}
-	${CC} -std=c++11 ${FLAGS} ${DFLAGS} *.o ${LLVMLIBS} -o $@
+	${CC} -std=c++11 ${FLAGS} ${DFLAGS} *.o ${LLVMLIBS} -o $(BIN)/$@
 
 %.o: %.cpp node.h
 	${CC} -std=c++11 ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@

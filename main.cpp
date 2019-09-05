@@ -10,7 +10,7 @@
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
 
-#include "node.h"
+#include "src/Header.h"
 
 int errorsfound = 0;
 extern int yyparse();
@@ -46,6 +46,9 @@ int main(int argc, char *argv[]) {
 	while (i < argc) {
 		if (strncmp(argv[i], "-O", 2) == 0) {
 			optimization = atoi(&argv[i][2]);
+		}
+		else if (strncmp(argv[i], "-A", 2) == 0) {
+			//Arquitecture
 		}
 		else {
 			build_filename = argv[i];

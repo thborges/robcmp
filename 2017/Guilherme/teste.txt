@@ -1,3 +1,0 @@
-print M * 2 ;
-print X + 2 / II ;
-print C * 10 ;

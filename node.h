@@ -536,7 +536,7 @@ public:
 		BasicBlock *fblock = BasicBlock::Create(global_context, "entry");
 		stmts->generate(func, fblock, fblock);
 
-		TerminatorInst *term = fblock->getTerminator();
+		Instruction *term = fblock->getTerminator();
 		Type *ttype = Type::getVoidTy(global_context);
 		if (term != NULL && isa<ReturnInst>(term))
 			ttype = ((ReturnInst*)term)->getReturnValue()->getType();
@@ -723,12 +723,11 @@ public:
 	void generate(Node *n) {
 		mainmodule = new Module(build_filename, global_context);
 	
-		FunctionType *ftype = FunctionType::get(Type::getInt16Ty(global_context),
-			ArrayRef<Type*>(), false);
+		FunctionType *ftype = FunctionType::get(Type::getInt16Ty(global_context), ArrayRef<Type*>(), false);
 		Function *mainfunc = Function::Create(ftype,GlobalValue::ExternalLinkage, "main", mainmodule);
 
 		mainblock = BasicBlock::Create(global_context, "entry", mainfunc);
-		global_alloc = BasicBlock::Create(global_context, "global", NULL, mainblock);
+		global_alloc = BasicBlock::Create(global_context, "maindecls", mainfunc, mainblock);
 
 		declara_auxiliary_c_funcs();
 

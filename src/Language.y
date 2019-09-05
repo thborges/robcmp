@@ -1,6 +1,6 @@
 %{
-#include "src/Header.h"
-#include "src/2018arm/nodeh_ext.h"
+#include "Header.h"
+#include "2018arm/nodeh_ext.h"
 
 class Node;
 class Stmts;

@@ -80,7 +80,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 23 "Language.y" /* yacc.c:1909  */
+#line 23 "src/Language.y" /* yacc.c:1909  */
 
 	char *port;
 	char *ident;

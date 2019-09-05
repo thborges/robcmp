@@ -11,9 +11,9 @@ BIN = build
 FLAGS=-O3 -DYYERROR_VERBOSE -fexceptions -Wno-deprecated-register -Wno-unused-function
 DFLAGS=-ggdb -O0
 
-CPPS=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
-YACS=$(patsubst %.y,%_y.o,$(wildcard *.y))
-LEXS=$(patsubst %.l,%_l.o,$(wildcard *.l))
+CPPS=$(patsubst %.cpp,%.o,$(wildcard ${SRC}/*.cpp))
+YACS=$(patsubst %.y,%_y.o,$(wildcard ${SRC}/*.y))
+LEXS=$(patsubst %.l,%_l.o,$(wildcard ${SRC}/*.l))
 
 all: $(COMPILER_NAME)
 
@@ -24,12 +24,12 @@ all: $(COMPILER_NAME)
 	bison --defines=$(SRC)/bison.hpp -o $@ $<
 
 $(COMPILER_NAME): ${YACS} ${LEXS} ${CPPS}
-	${CC} -std=c++11 ${FLAGS} ${DFLAGS} *.o ${LLVMLIBS} -o $(BIN)/$@
+	${CC} -std=c++11 ${FLAGS} ${DFLAGS} ${SRC}/*.o ${LLVMLIBS} -o $(BIN)/$@
 
-%.o: %.cpp node.h
+%.o: %.cpp
 	${CC} -std=c++11 ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@
 
 clean:
-	rm -f *_y.cpp *_l.cpp bison.hpp *.o
+	rm -f ${SRC}/*_y.cpp ${SRC}/*_l.cpp ${SRC}/bison.hpp ${SRC}/*.o
 
 .SILENT:

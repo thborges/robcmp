@@ -10,7 +10,7 @@
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
 
-#include "src/Header.h"
+#include "Header.h"
 
 int errorsfound = 0;
 extern int yyparse();

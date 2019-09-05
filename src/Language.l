@@ -1,7 +1,7 @@
 %{
 
-#include "src/Header.h"
-#include "src/bison.hpp"
+#include "Header.h"
+#include "bison.hpp"
 
 extern void unescape(char *s);
 

@@ -1,0 +1,16 @@
+-- Get Generate to classes, what is semantic verification. Set to TO-DO.
+-- Pass methods .cpp, and set link on .h files.
+-- Add Vector.cpp/h to src (PENSAR expecissividade de matriz)
+-- Add Matriz.cc/h to src
+-- Node, read Vector position. Add to .y
+-- Create rmultivalue to stmt, removing '['
+-- Rename Variable as Scalar
+-- Compile old tests with code generator.
+
+-- Create SemanticValidation.h
+-- Add children Method to Nodes.
+
+HOW TO GENERATE STATIC VECTOR CODE LLVM. ConstantDataArray, in code generator.
+
+
+READ IR-Builder.

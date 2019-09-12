@@ -1,24 +1,15 @@
-#ifndef __LOAD_H__
-#define __LOAD_H__
+#ifndef __LOAD_VECTOR_H__
+#define __LOAD_VECTOR_H__
 #include "Node.h"
 
-class Load: public Node {
+class LoadVector: public Node {
 private:
 	string ident;
+	int position;
 public:
-	Load(const char *i, int pos): ident(i), position(pos) {}
+	LoadVector(const char *i, int pos): ident(i), position(pos) {}
 
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-		Value *sym = search_symbol(ident, allocblock, block);	
-		/* TODO */
-		/* 
-		if (sym == NULL) {
-			yyerrorcpp("Variable " + ident + " not defined.");
-			return NULL;
-		}*/
-		LoadInst *ret = new LoadInst(sym, ident, false, block);
-		return ret;
-	}
+	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
 };
 
 #endif

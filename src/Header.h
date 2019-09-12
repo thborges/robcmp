@@ -93,6 +93,7 @@ static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, Basi
 #include "Print.h"
 #include "Program.h"
 #include "Vector.h"
+#include "LoadVector.h"
 #include "Grid.h"
 
 #endif

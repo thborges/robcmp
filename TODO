@@ -13,4 +13,4 @@
 HOW TO GENERATE STATIC VECTOR CODE LLVM. ConstantDataArray, in code generator.
 
 
-READ IR-Builder.
+#READ IR-Builder.

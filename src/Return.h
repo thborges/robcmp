@@ -9,11 +9,7 @@ public:
 	Return(Node *n) {
 		this->node = n;
 	}
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-		IRBuilder<> builder(block);
-		Value *ret = node->generate(func, block, allocblock);
-		return builder.CreateRet(ret);
-	}
+	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock); 
 };
 
 #endif

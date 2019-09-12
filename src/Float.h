@@ -7,9 +7,7 @@ private:
 	float number;
 public:
 	Float(float n): number(n) {}
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-		return ConstantFP::get(Type::getFloatTy(global_context), number);
-	}
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
 };
 
 #endif

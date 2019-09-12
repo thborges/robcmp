@@ -6,7 +6,7 @@ class Load: public Node {
 private:
 	string ident;
 public:
-	Load(const char *i): ident(i) {}
+	Load(const char *i, int pos): ident(i), position(pos) {}
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		Value *sym = search_symbol(ident, allocblock, block);	

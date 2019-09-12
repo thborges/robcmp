@@ -1,14 +1,14 @@
-#ifndef __VARIABLE_H__
-#define __VARIABLE_H__
+#ifndef __SCALAR_H__
+#define __SCALAR_H__
 #include "Node.h"
 #include "Float.h"
 
-class Variable: public Node {
+class Scalar: public Node {
 private:
 	string name;
 	Node *expr;
 public:
-	Variable(const char *n, Node *e) : name(n), expr(e) { }
+	Scalar(const char *n, Node *e) : name(n), expr(e) { }
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		// generate code to produce the new variable value
@@ -25,6 +25,7 @@ public:
 					gv->setInitializer(ConstantFP::get(exprv->getType(), 0.0));
 				else
 					yyerrorcpp("Global variable default initialization not defined.");
+					//TO-DO
 
 				leftv = gv;
 			} else {

@@ -34,8 +34,11 @@ public:
 		else if (op == GT_OP) predicate = isFCmp ? FCmpInst::FCMP_OGT : ICmpInst::ICMP_SGT;
 		else if (op == LT_OP) predicate = isFCmp ? FCmpInst::FCMP_OLT : ICmpInst::ICMP_SLT;
 		else {
+			/* TO_DO */
+			/*
 			cerr << "Invalid logical operator" << op << endl;
 			return NULL;
+			*/
 		}
 
 		if (isFCmp)

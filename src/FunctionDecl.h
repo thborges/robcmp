@@ -17,7 +17,7 @@ public:
 	}
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-
+		//TO-DO
 		/*Value *sym = search_symbol(name);
 		if (sym != NULL) {
 			yyerrorcpp("Function " + name + " already defined.");
@@ -48,6 +48,7 @@ public:
 
 		tabelasym[mainblock][name] = nfunc;
 		return nfunc;*/
+		//return false; //Avoiding Error - TO REMOVE
 	}
 };
 

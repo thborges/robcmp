@@ -3,8 +3,9 @@
 
 class Node {
 public:
-	virtual bool isFunctionDecl() { return false; }
+	virtual bool isFunctionDecl();
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) = 0;
-	virtual ~Node() {}
+	virtual ~Node();
 };
+
 #endif

@@ -21,10 +21,12 @@ public:
 			else if (ty1->isArrayTy())
 				cty1 = 2;
 		}
+		/* TODO */
+		/*
 		if (cty1 == -1) {
 			yyerrorcpp("Type not supported by print.");
 			return NULL;
-		}
+		}*/
 
 		Int8 prt(cty1);
 		args.push_back(prt.generate(func, block, allocblock));

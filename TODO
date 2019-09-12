@@ -1,10 +1,10 @@
--- Get Generate to classes, what is semantic verification. Set to TO-DO.
--- Pass methods .cpp, and set link on .h files.
--- Add Vector.cpp/h to src (PENSAR expecissividade de matriz)
--- Add Matriz.cc/h to src
--- Node, read Vector position. Add to .y
--- Create rmultivalue to stmt, removing '['
--- Rename Variable as Scalar
+-- Get Generate to classes, what is semantic verification. Set to TO-DO. (DONE)
+-- Pass methods .cpp, and set link on .h files. (UN-DONE)
+-- Add Vector.cpp/h to src (DONE) 
+-- Add Matriz.cpp/h to src (DONE)
+-- Node, read Vector position. Add to .y (DONE)
+-- Create rmultivalue to stmt, removing '[' (DONE)
+-- Rename Variable as Scalar  (DONE)
 -- Compile old tests with code generator.
 
 -- Create SemanticValidation.h

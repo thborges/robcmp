@@ -18,10 +18,12 @@ public:
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 
 		Function *cfunc = (Function*)search_symbol(fname);
+		/* TODO  */
+		/*
 		if (cfunc == NULL) {
 			yyerrorcpp("Function " + fname + " not defined.");
 			return NULL;
-		}
+		}*/
 
 		// called func type (the function that is attached to interruption)
 		std::vector<Type*> arg_types;

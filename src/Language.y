@@ -32,7 +32,7 @@ std::vector<AttachInterrupt *> vectorglobal;
 
 %type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock
 %type <node> funcblock returnblock
-%type <node> multivalue value
+%type <node> rmultivalue multivalue value
 %type <stmt> stmts
 %type <port> TOK_OUT TOK_IN
 %type <nint> TOK_INTEGER
@@ -68,8 +68,8 @@ fe : funcblock 						{ $$ = $1; }
 
 
 stmt : TOK_OUT '=' expr ';'				{ $$ = new OutPort($1, $3); } 
-	 | TOK_IDENTIFIER '=' expr ';'		{ $$ = new Variable($1, $3); }
-	 | TOK_IDENTIFIER '=' '[' multivalue ']' ';'		{ }
+	 | TOK_IDENTIFIER '=' expr ';'		{ $$ = new Scalar($1, $3); }
+	 | TOK_IDENTIFIER '=' rmultivalue ';'{ $$ = new Vector($1); }
 	 | TOK_DELAY expr';'				{ $$ = new Delay($2); }
 	 | condblock						{ $$ = $1; }
 	 | whileblock						{ $$ = $1; }
@@ -83,6 +83,9 @@ stmt : TOK_OUT '=' expr ';'				{ $$ = new OutPort($1, $3); }
 										}
 	 ;
 	 
+rmultivalue : '[' multivalue ']' { }
+			;
+
 multivalue : multivalue ',' value { }
 		   | value { }
 		   ;
@@ -150,6 +153,7 @@ term : term '*' factor		{ $$ = new BinaryOp($1, '*', $3); }
 
 factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_IDENTIFIER			{ $$ = new Load($1); }
+	   | TOK_IDENTIFIER '[' factor ']'	{ } //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
 	   | TOK_INTEGER			{ $$ = new Int16($1); }
 	   | TOK_FLOAT				{ $$ = new Float($1); }
 	   | TOK_IN					{ $$ = new InPort($1); }

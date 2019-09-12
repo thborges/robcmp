@@ -76,7 +76,7 @@ static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, Basi
 #include "Float.h"
 #include "String.h"
 #include "Load.h"
-#include "Variable.h"
+#include "Scalar.h"
 #include "InPort.h"
 #include "OutPort.h"
 #include "Delay.h"
@@ -92,6 +92,8 @@ static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, Basi
 #include "Return.h"
 #include "Print.h"
 #include "Program.h"
+#include "Vector.h"
+#include "Grid.h"
 
 #endif
 

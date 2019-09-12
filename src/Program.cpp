@@ -92,8 +92,8 @@
 			ArrayRef<Type*>(), false);
 		Function *mainfunc = Function::Create(ftype,GlobalValue::ExternalLinkage, "main", mainmodule);
 
+		global_alloc = BasicBlock::Create(global_context, "global");
 		mainblock = BasicBlock::Create(global_context, "entry", mainfunc);
-		global_alloc = BasicBlock::Create(global_context, "global", NULL, mainblock);
 
 		declara_auxiliary_c_funcs();
 

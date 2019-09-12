@@ -1,5 +1,5 @@
 -- Get Generate to classes, what is semantic verification. Set to TO-DO. (DONE)
--- Pass methods .cpp, and set link on .h files. (UN-DONE)
+-- Pass methods .cpp, and set link on .h files. (DONE)
 -- Add Vector.cpp/h to src (DONE) 
 -- Add Matriz.cpp/h to src (DONE)
 -- Node, read Vector position. Add to .y (DONE)

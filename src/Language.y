@@ -67,31 +67,31 @@ fe : funcblock 						{ $$ = $1; }
    ;
 
 
-stmt : TOK_OUT '=' expr ';'				{ $$ = new OutPort($1, $3); } 
-	 | TOK_IDENTIFIER '=' expr ';'		{ $$ = new Scalar($1, $3); }
-	 | TOK_IDENTIFIER '=' rmultivalue ';'{ $$ = new Vector($1); }
-	 | TOK_DELAY expr';'				{ $$ = new Delay($2); }
-	 | condblock						{ $$ = $1; }
-	 | whileblock						{ $$ = $1; }
-	 | fe								{ $$ = $1; }
-	 | returnblock ';'					{ $$ = $1; }
-	 | printstmt ';'					{ $$ = $1; }
-	 | TOK_STEPPER expr ';'				{ $$ = new StepperGoto($1, $2); }
-	 | TOK_SERVO expr ';'				{ $$ = new ServoGoto($2); }
-	 | error ';'                        { /* ignora o erro ate o proximo ';' */
-										  $$ = new Return(new Int16(0)); // evita falha de segmentacao
-										}
+stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); } 
+	 | TOK_IDENTIFIER '=' expr ';'			{ $$ = new Scalar($1, $3); }
+	 | TOK_IDENTIFIER '=' rmultivalue ';'	{ $$ = new Vector($1, $3); }
+	 | TOK_DELAY expr';'					{ $$ = new Delay($2); }
+	 | condblock							{ $$ = $1; }
+	 | whileblock							{ $$ = $1; }
+	 | fe									{ $$ = $1; }
+	 | returnblock ';'						{ $$ = $1; }
+	 | printstmt ';'						{ $$ = $1; }
+	 | TOK_STEPPER expr ';'					{ $$ = new StepperGoto($1, $2); }
+	 | TOK_SERVO expr ';'					{ $$ = new ServoGoto($2); }
+	 | error ';'						    { /* ignora o erro ate o proximo ';' */
+											  $$ = new Return(new Int16(0)); // evita falha de segmentacao
+											}
 	 ;
 	 
-rmultivalue : '[' multivalue ']' { }
+rmultivalue : '[' multivalue ']' { $$ = $2; }
 			;
 
 multivalue : multivalue ',' value { }
-		   | value { }
+		   | value { $$ = $1; }
 		   ;
 
 value : factor ':' TOK_INTEGER { }
-	  | factor { }
+	  | factor { $$ = $1; }
 	  ;
 
 eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}' 

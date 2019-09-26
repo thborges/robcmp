@@ -2,9 +2,8 @@
 #include "Header.h"
 
 Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-	return NULL;
 	//TO-DO
-	/*Value *sym = search_symbol(name);
+	Value *sym = search_symbol(name);
 	if (sym != NULL) {
 		yyerrorcpp("Function " + name + " already defined.");
 		return NULL;
@@ -13,7 +12,7 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 	BasicBlock *fblock = BasicBlock::Create(global_context, "entry");
 	stmts->generate(func, fblock, fblock);
 
-	TerminatorInst *term = fblock->getTerminator();
+	Instruction *term = fblock->getTerminator();
 	Type *ttype = Type::getVoidTy(global_context);
 	if (term != NULL && isa<ReturnInst>(term))
 		ttype = ((ReturnInst*)term)->getReturnValue()->getType();
@@ -33,7 +32,7 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 	fblock->insertInto(nfunc, 0);
 
 	tabelasym[mainblock][name] = nfunc;
-	return nfunc;*/
+	return nfunc;
 	//return false; //Avoiding Error - TO REMOVE
 }
 

@@ -1,0 +1,24 @@
+#include "Header.h"
+
+	Value *Vector::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+		// generate code to produce the new variable value
+		Value *exprv = expr->generate(func, block, allocblock);
+
+		Type* I = exprv->getType();
+		//Type* I = IntegerType::getInt32Ty(getContext());
+		auto num = size;
+		ArrayType* arrayType = ArrayType::get(I, num);
+		
+		Value* emptyVec = UndefValue::get(arrayType);
+		Constant* element = Constant::getIntegerValue(I, APInt(32,0));
+		Constant* index0 = Constant::getIntegerValue(I, APInt(32,3));
+		//InsertElementInst* insert1 = InsertElementInst(Vec, Elem, Ind, Name, Bloc);
+		//InsertElementInst insert1 = llvm::InsertElementInst(emptyVec, element, index0, name, allocblock);
+
+		AllocaInst* variable = new InsertElementInst(emptyVec, element, index0, name, allocblock);
+		//AllocaInst(arrayType, 0, name, allocblock);
+
+		// Add to table of symbols
+		tabelasym[allocblock][name] = variable;
+		return variable;
+	}

@@ -6,16 +6,26 @@
 
 		Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size);
 		Type* I = exprv->getType();
-		//Type* I = IntegerType::getInt32Ty(getContext());
 		ArrayType* arrayType = ArrayType::get(I, size);
 		
-		Value* emptyVec = UndefValue::get(arrayType);
-		AllocaInst* variable = new AllocaInst(I, 0, name, allocblock);
+		AllocaInst* variable = new AllocaInst(arrayType, 0, name, block);
+		tabelasym[allocblock][name] = variable;
 
 //		StoreInst *ret = new StoreInst(emptyVec, variable, block);
 
-//		Value* indexList[2] = {ConstantInt::get(exprv->getType(), 0), exprv};
-		//		GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, emptyVec, ArrayRef<Value*>(indexList, 2), name, allocblock);
+		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
+		Value *um = ConstantInt::get(Type::getInt8Ty(global_context), 1);
+
+		Value* indexList[2] = {zero, zero};
+		GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, variable, ArrayRef<Value*>(indexList), "", block);
+		StoreInst *ret = new StoreInst(exprv, gep, false, block);
+
+		Value* indexList2[2] = {zero, um};
+		GetElementPtrInst* gep2 = GetElementPtrInst::Create(arrayType, variable, ArrayRef<Value*>(indexList2), "", block);
+		StoreInst *ret2 = new StoreInst(exprv, gep2, false, block);
+
+		return NULL;
+
 		//Constant* element = Constant::getIntegerValue(I, APInt(32,0));
 		//Constant* index0 = Constant::getIntegerValue(I, APInt(32,0));
 		//InsertElementInst* insert1 = InsertElementInst(Vec, Elem, Ind, Name, Bloc);
@@ -27,7 +37,4 @@
 		//AllocaInst* variable = new (emptyVec, element, index0, name, allocblock);
 		//AllocaInst(arrayType, 0, name, allocblock);
 
-		tabelasym[allocblock][name] = variable;
-		return variable;
-		// Add to table of symbols
 	}

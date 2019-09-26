@@ -33,8 +33,10 @@ Instruction *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 		Value *flhs = lhs, *frhs = rhs;
 		if (Ty1->isIntegerTy())
 			flhs = new SIToFPInst(lhs, Type::getFloatTy(global_context), "castitof", block);
+			//ADDCOERSION
 		if (Ty2->isIntegerTy())
 			frhs = new SIToFPInst(rhs, Type::getFloatTy(global_context), "castitof", block);
+			//ADDCOERSION
 		return BinaryOperator::Create(opflt, flhs, frhs, "binop", block);
 	}
 }

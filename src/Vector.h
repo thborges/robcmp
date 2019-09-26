@@ -7,7 +7,7 @@ private:
 	unsigned int size;
 	Node *expr;
 public:
-	Vector(const char *n, Node *e) : name(n), expr(e) { }
+	Vector(const char *n, unsigned int s, Node *e) : name(n), size(s), expr(e) { }
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
 };
 

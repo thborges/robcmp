@@ -69,7 +69,7 @@ fe : funcblock 						{ $$ = $1; }
 
 stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); } 
 	 | TOK_IDENTIFIER '=' expr ';'			{ $$ = new Scalar($1, $3); }
-	 | TOK_IDENTIFIER '=' rmultivalue ';'	{ $$ = new Vector($1, $3); }
+	 | TOK_IDENTIFIER '=' rmultivalue ';'	{ $$ = new Vector($1, 2, $3); } // name, size, expression
 	 | TOK_DELAY expr';'					{ $$ = new Delay($2); }
 	 | condblock							{ $$ = $1; }
 	 | whileblock							{ $$ = $1; }

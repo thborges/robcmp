@@ -1,3 +1,7 @@
+# Swap files
+.*.swp
+*.swp
+
 # Object files
 *.o
 *.ko

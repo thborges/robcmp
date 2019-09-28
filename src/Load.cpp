@@ -10,5 +10,4 @@ Value *Load::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 		}*/
 		LoadInst *ret = new LoadInst(sym, ident, false, block);
 		return ret;
-}
-
+	}

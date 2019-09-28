@@ -20,10 +20,10 @@
 		GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, variable, ArrayRef<Value*>(indexList), "", block);
 		StoreInst *ret = new StoreInst(exprv, gep, false, block);
 
-		Value* indexList2[2] = {zero, um};
+/*		Value* indexList2[2] = {zero, um};
 		GetElementPtrInst* gep2 = GetElementPtrInst::Create(arrayType, variable, ArrayRef<Value*>(indexList2), "", block);
 		StoreInst *ret2 = new StoreInst(exprv, gep2, false, block);
-
+*/
 		return NULL;
 
 		//Constant* element = Constant::getIntegerValue(I, APInt(32,0));

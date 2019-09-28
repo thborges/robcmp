@@ -153,7 +153,7 @@ term : term '*' factor		{ $$ = new BinaryOp($1, '*', $3); }
 
 factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_IDENTIFIER			{ $$ = new Load($1); }
-	   | TOK_IDENTIFIER '[' factor ']'	{ } //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
+	   | TOK_IDENTIFIER '[' TOK_INTEGER ']'	{ $$ = new LoadVector($1, $3);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
 	   | TOK_INTEGER			{ $$ = new Int16($1); }
 	   | TOK_FLOAT				{ $$ = new Float($1); }
 	   | TOK_IN					{ $$ = new InPort($1); }

@@ -5,10 +5,9 @@ class Vector: public Node {
 private:
 	string name;
 	unsigned int size;
-	Node *expr;
-	std::vector<Node *> elements;
+	ArrayElements *elements;
 public:
-	Vector(const char *n, unsigned int s, Node *e) : name(n), size(s), expr(e) { }
+	Vector(const char *n, ArrayElements *aes) : name(n), elements(aes) { }
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
 };
 

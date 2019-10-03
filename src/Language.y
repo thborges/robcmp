@@ -28,11 +28,14 @@ std::vector<AttachInterrupt *> vectorglobal;
 	float nfloat;
 	Node *node;
 	Stmts *stmt;
+	ArrayElement ae;
+	ArrayElements *aes;
 }
 
 %type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock
+%type <ae> value
+%type <aes> multivalue rmultivalue
 %type <node> funcblock returnblock
-%type <node> rmultivalue multivalue value
 %type <stmt> stmts
 %type <port> TOK_OUT TOK_IN
 %type <nint> TOK_INTEGER
@@ -69,7 +72,7 @@ fe : funcblock 						{ $$ = $1; }
 
 stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); } 
 	 | TOK_IDENTIFIER '=' expr ';'			{ $$ = new Scalar($1, $3); }
-	 | TOK_IDENTIFIER '[' TOK_INTEGER ']' '=' rmultivalue ';'	{ $$ = new Vector($1, $3, $6); } // name, size, expression
+	 | TOK_IDENTIFIER '[' TOK_INTEGER ']' '=' rmultivalue ';'	{ $$ = new Vector($1, $6); } // name, size, expression
 	 | TOK_DELAY expr';'					{ $$ = new Delay($2); }
 	 | condblock							{ $$ = $1; }
 	 | whileblock							{ $$ = $1; }
@@ -86,14 +89,21 @@ stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); }
 rmultivalue : '{' multivalue '}'			{ $$ = $2;}
 			;
 
-multivalue : multivalue ',' value			{ //$1->append($3);
-											  //$$ = $1;
+multivalue : multivalue ',' value			{ $1->append($3);
+											  $$ = $1;
 											}
-		   | value							{ $$ = $1; }
+		   | value							{ ArrayElements *aes = new ArrayElements();
+											  aes->append($1);
+											  $$ = aes;
+											}
 		   ;
 
-value : TOK_INTEGER ':' factor				{ }
-       | factor							   	{ $$ = $1; }
+value : factor ':' TOK_INTEGER 				{ ArrayElement ae{$1, (unsigned)$3};
+											  $$ = ae;
+											}
+       | factor							   	{ ArrayElement ae{$1, 1};
+											  $$ = ae;
+											}
 	   ;
 
 eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}' 

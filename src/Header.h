@@ -24,6 +24,13 @@ using namespace llvm;
 
 class Node;
 class Stmts;
+class ArrayElements;
+
+typedef struct {
+	Node *value;
+	unsigned count;
+} ArrayElement;
+
 #include "bison.hpp"
 
 
@@ -69,6 +76,7 @@ static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, Basi
 	return NULL;
 }
 
+#include "ArrayElements.h"
 #include "AttachInterrupt.h"
 #include "BinaryOp.h"
 #include "Capsule.h"

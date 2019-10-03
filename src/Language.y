@@ -69,7 +69,7 @@ fe : funcblock 						{ $$ = $1; }
 
 stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); } 
 	 | TOK_IDENTIFIER '=' expr ';'			{ $$ = new Scalar($1, $3); }
-	 | TOK_IDENTIFIER '=' rmultivalue ';'	{ $$ = new Vector($1, 2, $3); } // name, size, expression
+	 | TOK_IDENTIFIER '[' TOK_INTEGER ']' '=' rmultivalue ';'	{ $$ = new Vector($1, $3, $6); } // name, size, expression
 	 | TOK_DELAY expr';'					{ $$ = new Delay($2); }
 	 | condblock							{ $$ = $1; }
 	 | whileblock							{ $$ = $1; }
@@ -83,16 +83,18 @@ stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); }
 											}
 	 ;
 	 
-rmultivalue : '[' multivalue ']' { $$ = $2; }
+rmultivalue : '{' multivalue '}'			{ $$ = $2;}
 			;
 
-multivalue : multivalue ',' value { }
-		   | value { $$ = $1; }
+multivalue : multivalue ',' value			{ //$1->append($3);
+											  //$$ = $1;
+											}
+		   | value							{ $$ = $1; }
 		   ;
 
-value : factor ':' TOK_INTEGER { }
-	  | factor { $$ = $1; }
-	  ;
+value : TOK_INTEGER ':' factor				{ }
+       | factor							   	{ $$ = $1; }
+	   ;
 
 eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}' 
 		     {	

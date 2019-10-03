@@ -2,39 +2,40 @@
 
 	Value *Vector::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		// generate code to produce the new variable value
+		//CHANGE: Load Vector of elements.
 		Value *exprv = expr->generate(func, block, allocblock);
 
+		//TO-DO: define size as number of elements in vector of elements.
+
+		//Create a Vector of Type Int8, and Size = size.
+		//size = elements.size()
 		Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size);
+		
+		//Get Type of elements in Vector of Elements, and define as I.
 		Type* I = exprv->getType();
+
+		//Declare array type.
 		ArrayType* arrayType = ArrayType::get(I, size);
 		
+		//Allocate vector.
 		AllocaInst* variable = new AllocaInst(arrayType, 0, name, block);
+		
+		//Add vector to table of symbols.
 		tabelasym[allocblock][name] = variable;
 
-//		StoreInst *ret = new StoreInst(emptyVec, variable, block);
-
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
-		Value *um = ConstantInt::get(Type::getInt8Ty(global_context), 1);
 
-		Value* indexList[2] = {zero, zero};
-		GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, variable, ArrayRef<Value*>(indexList), "", block);
-		StoreInst *ret = new StoreInst(exprv, gep, false, block);
+		for (int i=0; i<size; i++)
+		{
+			Value *um = ConstantInt::get(Type::getInt8Ty(global_context), i);
+			Value* indexList[2] = {zero, um};
+			GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, variable, ArrayRef<Value*>(indexList), "", block);
+			//TO-DO: Get element on position X on vector elements.
+			StoreInst *store = new StoreInst(exprv, gep, false, block);
+			//GetElementPtrInst* ngep = GetElementPtrInst::Create(arrayType, variable, ArrayRef<Value*>(indexList), "", block);
+			LoadInst *ret = new LoadInst(arrayType, 0, name, allocblock);
+		}
+		
 
-/*		Value* indexList2[2] = {zero, um};
-		GetElementPtrInst* gep2 = GetElementPtrInst::Create(arrayType, variable, ArrayRef<Value*>(indexList2), "", block);
-		StoreInst *ret2 = new StoreInst(exprv, gep2, false, block);
-*/
 		return NULL;
-
-		//Constant* element = Constant::getIntegerValue(I, APInt(32,0));
-		//Constant* index0 = Constant::getIntegerValue(I, APInt(32,0));
-		//InsertElementInst* insert1 = InsertElementInst(Vec, Elem, Ind, Name, Bloc);
-		//InsertElementInst insert1 = llvm::InsertElementInst(emptyVec, element, index0, name, allocblock);
-
-		//AllocaInst* variable = new AllocaInst(emptyVec, 0, name, allocblock);
-		//InsertElementInst* variable = new InsertElementInst(emptyVec, element, index0, name, allocblock);
-//		InsertValueInst* variable = new InsertValueInst(emptyVec, element, index0, name, allocblock);
-		//AllocaInst* variable = new (emptyVec, element, index0, name, allocblock);
-		//AllocaInst(arrayType, 0, name, allocblock);
-
 	}

@@ -6,6 +6,7 @@ private:
 	string name;
 	unsigned int size;
 	Node *expr;
+	std::vector<Node *> elements;
 public:
 	Vector(const char *n, unsigned int s, Node *e) : name(n), size(s), expr(e) { }
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);

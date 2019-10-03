@@ -15,10 +15,11 @@ Value *LoadVector::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 		Value *um = ConstantInt::get(Type::getInt8Ty(global_context), 1);
 
 		Value* indexList[2] = {zero, um};
-		GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, sym, ArrayRef<Value*>(indexList), "", block);
-		LoadInst *ret = new LoadInst(arrayType, gep, ident, block);
+		//GetElementPtrInst* ptr = GetElementPtrInst::Create(Type *PointeeType, Value *Ptr, ArrayRef<Value*> IdxList, const Twine &NameStr="", Instruction/BasicBlock *Insert)
+//		GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, sym, ArrayRef<Value*>(indexList), "", block);
+		LoadInst *ret = new LoadInst(sym, ident, false, block);
 
-	//	return NULL;
 		return ret;
+	//	return ret;
 }
 

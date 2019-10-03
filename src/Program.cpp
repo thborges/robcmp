@@ -1,4 +1,11 @@
 #include "Header.h"
+
+Program::Program(Stmts *stmts) {
+	this->stmts = stmts;
+	node_children.reserve(1);
+	node_children.push_back(stmts);
+}
+
 	
 	void Program::declara_auxiliary_c_funcs() {
 		std::vector<Type*> arg_types;
@@ -85,7 +92,10 @@
 		i16div->setCallingConv(CallingConv::C);*/
 	}
 
-	void Program::generate(Node *n) {
+    Value *Program::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+	}
+
+	void Program::generate() {
 		mainmodule = new Module(build_filename, global_context);
 	
 		FunctionType *ftype = FunctionType::get(Type::getInt16Ty(global_context),
@@ -105,7 +115,7 @@
 		#endif
 
 		// generate the program!
-		Value *b = n->generate(mainfunc, mainblock, global_alloc);
+		Value *b = stmts->generate(mainfunc, mainblock, global_alloc);
 		if (b->getValueID() == Value::BasicBlockVal)  {
 			mainblock = (BasicBlock*)b;
 		}

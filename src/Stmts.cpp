@@ -1,5 +1,13 @@
 #include "Header.h"
 
+	Stmts::Stmts(Node *s) {
+		this->stmts.push_back(s);
+	}
+
+	std::vector<Node *> const& Stmts::children() const {
+		return stmts;
+	}
+
 	void Stmts::append(Node *s) {
 		stmts.push_back(s);
 	}

@@ -1,14 +1,14 @@
 CC=/usr/bin/clang++
 
-LLVMFLAGS=$(shell llvm-config-9 --cxxflags)
-LLVMLIBS=$(shell llvm-config-9 --ldflags --libs all) -lpthread -ldl -lncurses
+#LLVMFLAGS=$(shell llvm-config --cxxflags)
+LLVMLIBS=$(shell llvm-config --ldflags --libs all) -lpthread -ldl -lncurses
 
 COMPILER_NAME=$(shell basename "${PWD}")
 
 SRC = src
 BIN = build
  
-FLAGS=-O3 -DYYERROR_VERBOSE -fexceptions -Wno-deprecated-register -Wno-unused-function
+FLAGS=-O2 -DYYERROR_VERBOSE -fexceptions -Wno-deprecated-register -Wno-unused-function
 DFLAGS=-ggdb -O0
 
 CPPS=$(patsubst %.cpp,%.o,$(wildcard ${SRC}/*.cpp))
@@ -32,4 +32,4 @@ $(COMPILER_NAME): ${YACS} ${LEXS} ${CPPS}
 clean:
 	rm -f ${SRC}/*_y.cpp ${SRC}/*_l.cpp ${SRC}/bison.hpp ${SRC}/*.o
 
-.SILENT:
+#.SILENT:

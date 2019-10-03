@@ -6,7 +6,9 @@ private:
 	int number;
 public:
 	Int32(int n): number(n) {}
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	int getNumber() const { return number; }
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+	virtual void accept(Visitor &v) override;
 	/*{
 		return ConstantInt::get(Type::getInt32Ty(global_context), number);
 	}*/

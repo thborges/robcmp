@@ -1,6 +1,15 @@
 #include "Header.h"
 #include "Int8.h"
 
+BinaryOp::BinaryOp(Node *l, int op, Node *r) {
+	this->lhsn = l;
+	this->rhsn = r;
+	this->op = op;
+	this->node_children.reserve(2);
+	this->node_children.push_back(lhsn);
+	this->node_children.push_back(rhsn);
+}
+
 Instruction *BinaryOp::logical_operator(enum Instruction::BinaryOps op, 
 	Function *func, BasicBlock *block, BasicBlock *allocblock) {
 
@@ -52,5 +61,9 @@ Value *BinaryOp::generate(Function *func, BasicBlock *block, BasicBlock *allocbl
 		case TOK_OR  : return logical_operator(BinaryOperator::Or, func, block, allocblock);
 		default: return NULL;
 	}
+}
+
+void BinaryOp::accept(Visitor& v) {
+	v.visit(*this);
 }
 

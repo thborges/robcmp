@@ -50,12 +50,18 @@ std::vector<AttachInterrupt *> vectorglobal;
 
 %%
 
-programa : stmts    { Program p;
+programa : stmts    { Program p($1);
 		 			  // interruptions setup
 					  for(AttachInterrupt *a : vectorglobal) {
 						$1->prepend(a);
 					  }
-					  p.generate($1); 
+
+					  std::fstream fs;
+					  fs.open("ast.txt", std::fstream::out);
+					  PrintAstVisitor(fs).visit(p);
+					  fs.close();
+
+					  p.generate(); 
                     };
 		 ;
 

@@ -7,7 +7,9 @@ private:
 	short number;
 public:
 	Int16(short n): number(n) {}
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	short getNumber() const { return number; }
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+	virtual void accept(Visitor &v) override;
 };
 
 #endif

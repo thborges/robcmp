@@ -1,6 +1,15 @@
 
 #include "Header.h"
 
+If::If(Node *e, Node *tst, Node *est) : expr(e), thenst(tst), elsest(est) {
+	node_children.reserve(3);
+	node_children.push_back(expr);
+	node_children.push_back(thenst);
+
+	if (est != NULL)
+		node_children.push_back(elsest);
+}
+
 Value *If::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 	Value *exprv = expr->generate(func, block, allocblock);
 
@@ -28,5 +37,9 @@ Value *If::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		BranchInst::Create(mergb, elseb);
 
 	return mergb;
+}
+
+void If::accept(Visitor& v) {
+	v.visit(*this);
 }
 

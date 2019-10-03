@@ -8,7 +8,11 @@ private:
 public:
 	Load(const char *i): ident(i) {}
 
-	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+
+	string getIdent() const { return ident; };
+
+	virtual void accept(Visitor& v) override;
 
 };
 #endif

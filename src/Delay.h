@@ -7,8 +7,9 @@ class Delay: public Node {
 private:
 	Node *ms;
 public:
-	Delay (Node *mseg) : ms(mseg) {}
-	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	Delay (Node *mseg);
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+	virtual void accept(Visitor& v) override;
 
 };
 

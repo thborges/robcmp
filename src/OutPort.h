@@ -6,10 +6,10 @@
 
 class OutPort: public Node {
 private:
-	string port;
+	Int8 port;
 	Node *expr;
 public:
-	OutPort (const char *p, Node *e) : port(p), expr(e) {}
+	OutPort (const char *p, Node *e);
 	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
 };
 

@@ -6,7 +6,9 @@ class Int8: public Node {
 		char number;
 	public:
 		Int8(char n): number(n) {}
-		Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+		char getNumber() const { return number; }
+		virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+		virtual void accept(Visitor &v) override;
 };
 
 #endif

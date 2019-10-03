@@ -8,9 +8,13 @@ private:
 	string name;
 	Node *expr;
 public:
-	Scalar(const char *n, Node *e) : name(n), expr(e) { }
+	Scalar(const char *n, Node *e);
 
-	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+
+	string getIdent() const { return name; };
+
+	virtual void accept(Visitor& v) override;
 };
 
 #endif

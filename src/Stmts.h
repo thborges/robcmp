@@ -6,15 +6,15 @@ class Stmts: public Node {
 private:
 	std::vector<Node *> stmts;
 public:
-	Stmts(Node *s) {
-		this->stmts.push_back(s);
-	}
+	Stmts(Node *s);
+
+	virtual std::vector<Node *> const& children() const override;
 
 	void append(Node *s);
 
 	void prepend(Node *s);
 
-	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
 };
 
 #endif

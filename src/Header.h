@@ -5,9 +5,11 @@
 #define ENABLE_PRINT
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <map>
 #include <vector>
+#include <cstdlib>
 #include <llvm/IR/Value.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Constant.h>
@@ -43,7 +45,7 @@ extern BasicBlock *mainblock;
 extern BasicBlock *global_alloc;
 
 extern char* build_filename;
-static LLVMContext global_context;
+extern LLVMContext global_context;
 
 // symbol table
 extern map<BasicBlock*, map<string, Value*>> tabelasym;
@@ -105,6 +107,10 @@ static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, Basi
 #include "String.h"
 #include "Vector.h"
 #include "While.h"
+
+#include "Visitor.h"
+#include "RecursiveVisitor.h"
+#include "PrintAstVisitor.h"
 
 #endif
 

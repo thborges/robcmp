@@ -8,9 +8,9 @@ private:
 	Node *thenst;
 	Node *elsest;
 public:
-	If (Node *e, Node *tst, Node *est) : expr(e), thenst(tst), elsest(est) {}
-
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	If(Node *e, Node *tst, Node *est);
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+	virtual void accept(Visitor& v) override;
 };
 
 #endif

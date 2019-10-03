@@ -5,3 +5,8 @@ Value *Int8::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 {
 	return ConstantInt::get(Type::getInt8Ty(global_context), number);
 }
+
+void Int8::accept(Visitor &v) {
+	v.visit(*this); 
+}
+

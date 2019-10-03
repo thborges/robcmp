@@ -7,8 +7,9 @@ private:
 	Node *expr;
 	Node *stmts;
 public:
-	While(Node *e, Node *stms) : expr(e), stmts(stms) {}
-	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	While(Node *e, Node *stms);
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+	virtual void accept(Visitor& v) override;
 };
 
 #endif

@@ -1,6 +1,13 @@
 
 #include "Header.h"
 
+CmpOp::CmpOp (Node *l, int op, Node *r) : lexpn(l), rexpn(r) {
+	this->op = op;
+	node_children.reserve(2);
+	node_children.push_back(lexpn);
+	node_children.push_back(rexpn);
+}
+
 Value *CmpOp::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 	CmpInst::Predicate predicate; 
 
@@ -46,3 +53,6 @@ Value *CmpOp::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 	}
 }
 
+void CmpOp::accept(Visitor& v) {
+	v.visit(*this);
+}

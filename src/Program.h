@@ -2,13 +2,16 @@
 #define __PROGRAM_H__
 #include "Node.h"
 
-class Program {
+class Program : public Node {
+private:
+	Stmts *stmts;
 public:
-	Program() {}
+	Program(Stmts *stmts);
 	
 	void declara_auxiliary_c_funcs();
 
-	void generate(Node *n);
+	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	void generate();
 };
 
 #endif

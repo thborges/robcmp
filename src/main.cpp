@@ -20,6 +20,7 @@ extern FILE *yyin;
 Module *mainmodule;
 BasicBlock *mainblock;
 BasicBlock *global_alloc;
+LLVMContext global_context;
 
 // symbol table
 map<BasicBlock*, map<string, Value*>> tabelasym;

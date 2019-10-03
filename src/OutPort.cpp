@@ -1,10 +1,16 @@
 #include "Header.h"
 
+OutPort::OutPort (const char *p, Node *e) : port(Int8(atoi(p))) {
+	expr = e;
+	node_children.reserve(2);
+	node_children.push_back(&port);
+	node_children.push_back(e);
+}
+
 Value *OutPort::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		vector<Value*> args;
 		
-		Int8 prt(atoi(port.c_str()));
-		args.push_back(prt.generate(func, block, allocblock));
+		args.push_back(port.generate(func, block, allocblock));
 
 		Value *value = expr->generate(func, block, allocblock);
 		Value *nvalue = value;

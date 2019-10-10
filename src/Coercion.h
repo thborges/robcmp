@@ -3,7 +3,7 @@
 
 class Coercion{
 	public:
-		static Value *Convert(Value *v, Type *destty, bool unsig = false);
+		static Value *Convert(Value *v, Type *destty, BasicBlock *block, bool unsig = false);
 };
 
 #endif

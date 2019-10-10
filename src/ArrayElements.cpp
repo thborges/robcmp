@@ -22,13 +22,12 @@ unsigned ArrayElements::getStructSize() const {
 
 Type *ArrayElements::getArrayType(Function *func, BasicBlock *block, BasicBlock *allocblock) const {
 	// TODO:	
-//	for(auto& i : elements){
+	for(auto& i : elements){
 	//Generate Problem
-//		Value* exp = (i.value)->generate(func, block, allocblock);
-//		if (exp->getType()->isFloatTy())
+		if (dynamic_cast<Float*>(i.value))
 			return Type::getFloatTy(global_context);
-//	}
-//	return Type::getInt8Ty(global_context);
+	}
+	return Type::getInt16Ty(global_context);
 }
 
 Node *ArrayElements::getStructElement(int position) const {

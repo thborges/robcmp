@@ -15,16 +15,15 @@
 				cty1 = 2;
 		}
 		/* TODO */
-		/*
 		if (cty1 == -1) {
 			yyerrorcpp("Type not supported by print.");
 			return NULL;
-		}*/
+		}
 
 		Int8 prt(cty1);
 		args.push_back(prt.generate(func, block, allocblock));
 		
-		AllocaInst *ptr_aux = new AllocaInst(lexp->getType(), 0, "", allocblock);
+		AllocaInst *ptr_aux = new AllocaInst(lexp->getType(), 0, "", block);
 		/*StoreInst *st = */ new StoreInst(lexp, ptr_aux, false, block);
 		CastInst *cinst = new BitCastInst(ptr_aux, PointerType::get(IntegerType::get(global_context, 8), 0), "", block);
 		args.push_back(cinst);

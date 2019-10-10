@@ -19,17 +19,17 @@ Value *CmpOp::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 	int isFCmp = !Ty1->isIntegerTy() || !Ty2->isIntegerTy();
 	if (isFCmp) {
 		if (Ty1->isIntegerTy())
-			lexp = Coercion::Convert(lexp, Ty2);
+			lexp = Coercion::Convert(lexp, Ty2, block);
 			//lexp = new SIToFPInst(lexp, Type::getFloatTy(global_context), "", block);
 		if (Ty2->isIntegerTy())
-			lexp = Coercion::Convert(lexp, Ty1);
+			lexp = Coercion::Convert(lexp, Ty1, block);
 			//rexp = new SIToFPInst(rexp, Type::getFloatTy(global_context), "", block);
 	}
 	else{
 		if (dyn_cast<IntegerType>(Ty1)->getBitWidth() > dyn_cast<IntegerType>(Ty2)->getBitWidth())
-			rexp = Coercion::Convert(rexp, Ty1);
+			rexp = Coercion::Convert(rexp, Ty1, block);
 		else
-			lexp = Coercion::Convert(lexp, Ty2);
+			lexp = Coercion::Convert(lexp, Ty2, block);
 	}
 
 	if (op == EQ_OP)	  predicate = isFCmp ? FCmpInst::FCMP_OEQ : ICmpInst::ICMP_EQ;

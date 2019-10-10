@@ -9,15 +9,16 @@ Value *LoadVector::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 			return NULL;
 		}*/
 		Type* I = IntegerType::getInt32Ty(global_context); 
-		ArrayType* arrayType = ArrayType::get(I, 2);
+		ArrayType* arrayType = ArrayType::get(I, 10);
 
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
-		Value *um = ConstantInt::get(Type::getInt8Ty(global_context), 1);
+		Value *indice = ConstantInt::get(Type::getInt8Ty(global_context), 1);
 
-		Value* indexList[2] = {zero, um};
+		Value* indexList[2] = {zero, indice};
 		//GetElementPtrInst* ptr = GetElementPtrInst::Create(Type *PointeeType, Value *Ptr, ArrayRef<Value*> IdxList, const Twine &NameStr="", Instruction/BasicBlock *Insert)
+		GetElementPtrInst* ptr = GetElementPtrInst::Create(arrayType, sym, ArrayRef<Value*>(indexList), "", block);
 //		GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, sym, ArrayRef<Value*>(indexList), "", block);
-		LoadInst *ret = new LoadInst(sym, ident, false, block);
+		LoadInst *ret = new LoadInst(ptr, ident, false, block);
 
 		return ret;
 	//	return ret;

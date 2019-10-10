@@ -7,20 +7,14 @@ class ArrayElements {
 private:
 	std::vector<ArrayElement> elements;
 public:
-	ArrayElements() {};
-	void append(ArrayElement& e) {
-		elements.push_back(e);
-	};
-	unsigned getArraySize() const {
-		unsigned r = 0;
-		for(auto& i : elements)
-			r += i.count;
-		return r;
-	};
-	Type *getArrayType() const {
-		// TODO:
-		return Type::getInt8Ty(global_context);
-	}
+	ArrayElements();
+	void append(ArrayElement& e);
+	
+	unsigned getArraySize() const;
+	unsigned getStructSize() const;
+	unsigned getElementCount(int position) const;
+	Node *getStructElement(int position) const;
+	Type *getArrayType(Function *func, BasicBlock *block, BasicBlock *allocblock) const;
 };
 
 #endif

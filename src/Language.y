@@ -30,11 +30,15 @@ std::vector<AttachInterrupt *> vectorglobal;
 	Stmts *stmt;
 	ArrayElement ae;
 	ArrayElements *aes;
+	MatrixElement me;
+	MatrixElements *mes;
 }
 
 %type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock
-%type <ae> value
-%type <aes> multivalue rmultivalue
+%type <ae> element
+%type <aes> elements relements
+%type <me> melement
+%type <mes> matrix rmatrix
 %type <node> funcblock returnblock
 %type <stmt> stmts
 %type <port> TOK_OUT TOK_IN
@@ -78,7 +82,8 @@ fe : funcblock 						{ $$ = $1; }
 
 stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); } 
 	 | TOK_IDENTIFIER '=' expr ';'			{ $$ = new Scalar($1, $3); }
-	 | TOK_IDENTIFIER '[' TOK_INTEGER ']' '=' rmultivalue ';'	{ $$ = new Vector($1, $6); } // name, size, expression
+	 | TOK_IDENTIFIER '=' relements ';'		{ $$ = new Vector($1, $3); } // name, size, expression
+	 | TOK_IDENTIFIER '[' ']'  '=' rmatrix ';'		{ $$ = new Matrix($1, $5);}
 	 | TOK_DELAY expr';'					{ $$ = new Delay($2); }
 	 | condblock							{ $$ = $1; }
 	 | whileblock							{ $$ = $1; }
@@ -91,20 +96,42 @@ stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); }
 											  $$ = new Return(new Int16(0)); // evita falha de segmentacao
 											}
 	 ;
+
+rmatrix : '{' matrix '}'				{ $$ = $2; }
+	    ;
+
+matrix : matrix ',' melement			{ $1->append($3);
+										  $$ = $1;
+										}
+	   | melement						{ MatrixElements *mes = new MatrixElements();
+										  mes->append($1);
+										  $$ = mes;
+										}
+		
+		;
+
+
+melement : relements ':' TOK_INTEGER			{ MatrixElement me {$1, (unsigned)$3};
+										  $$ = me;
+										}
+	   | relements						{ MatrixElement me {$1, 1};
+										  $$ = me;
+										}
+	   ;
 	 
-rmultivalue : '{' multivalue '}'			{ $$ = $2;}
+relements : '{' elements '}'			{ $$ = $2;}
 			;
 
-multivalue : multivalue ',' value			{ $1->append($3);
+elements : elements ',' element			{ $1->append($3);
 											  $$ = $1;
 											}
-		   | value							{ ArrayElements *aes = new ArrayElements();
+		   | element							{ ArrayElements *aes = new ArrayElements();
 											  aes->append($1);
 											  $$ = aes;
 											}
 		   ;
 
-value : factor ':' TOK_INTEGER 				{ ArrayElement ae{$1, (unsigned)$3};
+element : factor ':' TOK_INTEGER 				{ ArrayElement ae{$1, (unsigned)$3};
 											  $$ = ae;
 											}
        | factor							   	{ ArrayElement ae{$1, 1};
@@ -172,6 +199,7 @@ term : term '*' factor		{ $$ = new BinaryOp($1, '*', $3); }
 factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_IDENTIFIER			{ $$ = new Load($1); }
 	   | TOK_IDENTIFIER '[' TOK_INTEGER ']'	{ $$ = new LoadVector($1, $3);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
+	   | TOK_IDENTIFIER '[' TOK_INTEGER ']' '[' TOK_INTEGER ']'	{ $$ = new LoadMatrix($1, $3, $6);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
 	   | TOK_INTEGER			{ $$ = new Int16($1); }
 	   | TOK_FLOAT				{ $$ = new Float($1); }
 	   | TOK_IN					{ $$ = new InPort($1); }

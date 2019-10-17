@@ -14,10 +14,10 @@ out/%.ll : %.txt ${COMPILER_NAME}
 	${COMPILER_NAME} $< > $@
 
 %.o : %.ll
-	llc $< -o $@ -filetype=obj
+	llc-9 $< -o $@ -filetype=obj
 
 %.s : %.ll
-	llc  $< -o $@ -filetype=asm
+	llc-9  $< -o $@ -filetype=asm
 
 core.o : debug.c
 	gcc debug.c -o core.o -c

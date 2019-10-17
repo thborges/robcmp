@@ -3,8 +3,6 @@
 	Value *Vector::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 		// generate code to produce the new variable value
 
-		//TO-DO: define size as number of elements in vector of elements.
-
 		//Create a Vector of Type Int8, and Size = size.
 		size = elements->getArraySize();
 		Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size);

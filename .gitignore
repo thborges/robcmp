@@ -1,3 +1,6 @@
+#Makefiles
+Makefile
+
 # Swap files
 .*.swp
 *.swp

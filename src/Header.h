@@ -27,11 +27,17 @@ using namespace llvm;
 class Node;
 class Stmts;
 class ArrayElements;
+class MatrixElements;
 
 typedef struct {
 	Node *value;
 	unsigned count;
 } ArrayElement;
+
+typedef struct {
+	ArrayElements *array;
+	unsigned count;
+} MatrixElement;
 
 #include "bison.hpp"
 
@@ -88,14 +94,16 @@ static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, Basi
 #include "Float.h"
 #include "FunctionCall.h"
 #include "FunctionDecl.h"
-#include "Grid.h"
 #include "If.h"
 #include "Int8.h"
 #include "Int16.h"
 #include "Int32.h"
 #include "InPort.h"
 #include "Load.h"
+#include "LoadMatrix.h"
 #include "LoadVector.h"
+#include "Matrix.h"
+#include "MatrixElements.h"
 #include "Node.h"
 #include "OutPort.h"
 #include "Print.h"

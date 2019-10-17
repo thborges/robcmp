@@ -4,8 +4,8 @@
 		// generate code to produce the new variable value
 
 		//Create a Vector of Type Int8, and Size = size.
-		size_l = 2; //arrays->getLineSize();
-		size_c = 3; //arrays->getColumnSize();
+		size_l = arrays->getLineSize();
+		size_c = arrays->getColumnSize();
 		Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size_l);
 		
 		//Get Type of elements in Vector of Elements, and define as I.

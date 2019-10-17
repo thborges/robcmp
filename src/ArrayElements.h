@@ -5,8 +5,8 @@
 
 class ArrayElements {
 private:
-	std::vector<ArrayElement> elements;
 public:
+	std::vector<ArrayElement> elements;
 	ArrayElements();
 	void append(ArrayElement& e);
 	

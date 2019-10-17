@@ -21,7 +21,7 @@ Value *LoadMatrix::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 
 		Value* indexList[2] = {zero, indice};
 		//GetElementPtrInst* ptr = GetElementPtrInst::Create(Type *PointeeType, Value *Ptr, ArrayRef<Value*> IdxList, const Twine &NameStr="", Instruction/BasicBlock *Insert)
-		GetElementPtrInst* ptr = GetElementPtrInst::Create(arrayTy, sym, ArrayRef<Value*>(indexList), "", block);
+		GetElementPtrInst* ptr = GetElementPtrInst::CreateInBounds(arrayTy, sym, ArrayRef<Value*>(indexList), "", block);
 //		GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, sym, ArrayRef<Value*>(indexList), "", block);
 		LoadInst *ret = new LoadInst(ptr, ident, false, block);
 

@@ -5,8 +5,8 @@
 
 class MatrixElements {
 private:
-	std::vector<MatrixElement> elements;
 public:
+	std::vector<MatrixElement> elements;
 	MatrixElements();
 	void append(MatrixElement& m);
 	

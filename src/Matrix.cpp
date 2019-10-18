@@ -23,29 +23,35 @@
 
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 
-		unsigned int index = 3;
-		/*unsigned int struct_size = arrays->getStructSize();
-		for (int i=0; i<struct_size; i++)
+		unsigned int index = 0;
+		for(auto& i: arrays->elements)
 		{
-			unsigned elCount = arrays->getElementCount(i);
+			unsigned elCount = i.count;
 			for (int j=0; j<elCount; j++)
-			{*/
-		//		Node* elValue = arrays->getStructElement(i);
+			{
+				for(auto& k: i.array->elements)
+				{
+					unsigned elCountl = k.count;
+					for (int l=0; l<elCountl; l++)
+					{
+						Node* elValue = k.value;
 				
-				Value *val = ConstantInt::get(Type::getInt16Ty(global_context), 2);//elValue->generate(func, block, allocblock);
-				val = Coercion::Convert(val, I, block);
+						Value *val = elValue->generate(func, block, allocblock);//ConstantInt::get(Type::getInt16Ty(global_context), 2);//elValue->generate(func, block, allocblock);
+						val = Coercion::Convert(val, I, block);
+		
+						Value *idx = ConstantInt::get(Type::getInt8Ty(global_context), index);
+						//index++;
 
-				Value *idx = ConstantInt::get(Type::getInt8Ty(global_context), index);
-				//index++;
-
-				Value* indexList[2] = {zero, idx};
-				GetElementPtrInst* gep = GetElementPtrInst::CreateInBounds(matrixType, variable, ArrayRef<Value*>(indexList), "", block);
-				GetElementPtrInst* gop = GetElementPtrInst::CreateInBounds(arrayType, gep, ArrayRef<Value*>(indexList), "", block);
-				StoreInst *store = new StoreInst(val, gop, false, block);
-				//GetElementPtrInst* ngep = GetElementPtrInst::Create(arrayType, variable, ArrayRef<Value*>(indexList), "", block);
-				//LoadInst *ret = new LoadInst(arrayType, 0, name, allocblock);
-			/*}
-		}*/
+						Value* indexList[2] = {zero, idx};
+						GetElementPtrInst* gep = GetElementPtrInst::CreateInBounds(matrixType, variable, ArrayRef<Value*>(indexList), "", block);
+						GetElementPtrInst* gop = GetElementPtrInst::CreateInBounds(arrayType, gep, ArrayRef<Value*>(indexList), "", block);
+						StoreInst *store = new StoreInst(val, gop, false, block);
+						//GetElementPtrInst* ngep = GetElementPtrInst::Create(arrayType, variable, ArrayRef<Value*>(indexList), "", block);
+						//LoadInst *ret = new LoadInst(arrayType, 0, name, allocblock);
+					}
+				}
+			}
+		}
 		
 
 		return NULL;

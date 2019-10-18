@@ -28,10 +28,11 @@ unsigned MatrixElements::getLineSize() const {
 }
 
 Type *MatrixElements::getMatrixType(Function *func, BasicBlock *block, BasicBlock *allocblock) const {
-/*	for(auto& i : arrays){
-		if (dynamic_cast<Float*>(arrays[i].value))
-			return Type::getFloatTy(global_context);
-	}*/
+	for(auto& i : elements){
+		for (auto& j : i.array->elements)
+			if (dynamic_cast<Float*>(j.value))
+				return Type::getFloatTy(global_context);
+	}
 	return Type::getInt16Ty(global_context);
 }
 

@@ -1,0 +1,4 @@
+matriz_repeticao_externa [] = {
+	{1, 2}:4,
+	{3, 4}
+};

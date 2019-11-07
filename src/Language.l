@@ -21,6 +21,13 @@ extern void unescape(char *s);
 "//".*$					{ fprintf(stderr, "Comentario: %s\n", yytext); /* comentario de linha */}
 
 "function"				{ return TOK_FUNCTION; }
+"int"					{ return TOK_FINT; }
+"float"					{ return TOK_FFLOAT; }
+"double"				{ return TOK_FDOUBLE; }
+"char"					{ return TOK_FCHAR; }
+"long"					{ return TOK_FLONG; }
+"short"					{ return TOK_FSHORT; }
+"unsigned"				{ return TOK_FUNSIGNED; }
 "return"				{ return TOK_RETURN; }
 
 "if"					{ return TOK_IF; }

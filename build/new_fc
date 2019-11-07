@@ -1,0 +1,7 @@
+a = 3;
+
+function b(){
+	return 3;
+}
+
+print b();

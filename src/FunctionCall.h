@@ -5,11 +5,16 @@
 class FunctionCall: public Node {
 private:
 	string name;
+	FunctionParams *parameters;
 public:
-	FunctionCall(string name) {
+	FunctionCall(string names) {
 		this->name = name;
 	}
 
+	FunctionCall(string names, FunctionParams *fp) {
+		this->name = name;
+		this->parameters = fp;
+	}
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
 };
 

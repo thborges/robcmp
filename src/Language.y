@@ -16,6 +16,7 @@ std::vector<AttachInterrupt *> vectorglobal;
 %token TOK_IN TOK_OUT TOK_STEPPER TOK_SERVO
 %token TOK_DELAY TOK_AND TOK_OR
 %token TOK_IDENTIFIER TOK_FLOAT TOK_INTEGER TOK_STRING
+%token TOK_FINT TOK_FFLOAT TOK_FDOUBLE TOK_FCHAR TOK_FLONG TOK_FSHORT TOK_FUNSIGNED
 
 %token TOK_QUANDO TOK_ESTA
 %token EQ_OP NE_OP GE_OP LE_OP GT_OP LT_OP
@@ -32,11 +33,17 @@ std::vector<AttachInterrupt *> vectorglobal;
 	ArrayElements *aes;
 	MatrixElement me;
 	MatrixElements *mes;
+	FunctionParam fp;
+	FunctionParams *fps;
+	ParamsCall pc;
 }
 
 %type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock
 %type <ae> element
 %type <aes> elements relements
+%type <fp> funcparam
+%type <fps> funcparams
+%type <pc> paramscall
 %type <me> melement
 %type <mes> matrix rmatrix
 %type <node> funcblock returnblock
@@ -148,8 +155,27 @@ eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'
              }
 		   ;
 
-funcblock : TOK_FUNCTION TOK_IDENTIFIER '(' ')' '{' stmts '}'		{ $$ = new FunctionDecl($2, $6); }
+funcblock : TOK_FUNCTION TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'		{ $$ = new FunctionDecl($2, $4, $7); }
 		  ;
+
+funcparams: funcparams ',' funcparam {$1 -> append($3);
+									  $$ = $1;
+									  }
+	      | funcparam { FunctionParams *fps = new FunctionParams();
+						fps->append($1);
+						$$ = fps;}
+		  ;
+
+funcparam : TOK_FINT TOK_IDENTIFIER { FunctionParam fp{"a", IntegerType::get(global_context, 0)};
+									$$ = fp;}
+		  ;
+
+paramscall : paramscall ',' expr {$1 -> append($3);
+								  $$ = $1;}
+		   | expr { ParamsCall *pc = new ParamsCall();
+		            pc->append($1);
+				    $$ = pc;}
+		   ;
 
 returnblock : TOK_RETURN expr			{ $$ = new Return($2); }
 			| TOK_RETURN logicexpr		{ $$ = new Return($2); }
@@ -204,6 +230,7 @@ factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_FLOAT				{ $$ = new Float($1); }
 	   | TOK_IN					{ $$ = new InPort($1); }
 	   | TOK_IDENTIFIER '(' ')'	{ $$ = new FunctionCall($1); }
+	   | TOK_IDENTIFIER '(' paramscall ')'	{ $$ = new FunctionCall($1, $3); }
 	   ;
 
 printstmt : TOK_PRINT TOK_STRING		{ $$ = new Print(new String($2)); }

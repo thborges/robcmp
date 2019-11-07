@@ -28,11 +28,18 @@ class Node;
 class Stmts;
 class ArrayElements;
 class MatrixElements;
+class FunctionParams;
+class ParamsCall;
 
 typedef struct {
 	Node *value;
 	unsigned count;
 } ArrayElement;
+
+typedef struct {
+	string name;
+	Type *type;
+} FunctionParam;
 
 typedef struct {
 	ArrayElements *array;
@@ -94,6 +101,7 @@ static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, Basi
 #include "Float.h"
 #include "FunctionCall.h"
 #include "FunctionDecl.h"
+#include "FunctionParams.h"
 #include "If.h"
 #include "Int8.h"
 #include "Int16.h"
@@ -106,6 +114,7 @@ static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, Basi
 #include "MatrixElements.h"
 #include "Node.h"
 #include "OutPort.h"
+#include "ParamsCall.h"
 #include "Print.h"
 #include "Program.h"
 #include "Return.h"

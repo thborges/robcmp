@@ -8,7 +8,7 @@
 		Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size);
 		
 		//Get Type of elements in Vector of Elements, and define as I.
-		Type* I = elements->getArrayType(func, block, allocblock);
+		Type* I = elements->getArrayType();
 
 		//Declare array type.
 		ArrayType* arrayType = ArrayType::get(I, size);

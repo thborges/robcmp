@@ -11,10 +11,10 @@ public:
 	void append(ArrayElement& e);
 	
 	unsigned getArraySize() const;
-	unsigned getStructSize() const;
-	unsigned getElementCount(int position) const;
-	Node *getStructElement(int position) const;
-	Type *getArrayType(Function *func, BasicBlock *block, BasicBlock *allocblock) const;
+	unsigned getStructSize () const;
+	unsigned getElementCount (int position) const;
+	Node *getStructElement (int position) const;
+	Type *getArrayType () const;
 };
 
 #endif

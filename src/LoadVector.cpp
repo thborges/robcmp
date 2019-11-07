@@ -15,7 +15,6 @@ Value *LoadVector::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 			return NULL;
 		}
 
-		Type *I = arrayTy->getElementType();
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 		Value *indice = ConstantInt::get(Type::getInt8Ty(global_context), position);
 

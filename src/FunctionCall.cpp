@@ -10,6 +10,7 @@ Value *FunctionCall::generate(Function *func, BasicBlock *block, BasicBlock *all
 	}
 
 	vector<Value*> args;
+	args.push_back(search_symbol("a"));
 	ArrayRef<Value*> argsRef(args);
 	return CallInst::Create(cfunc, argsRef, "", block);
 }

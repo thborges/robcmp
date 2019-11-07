@@ -1,4 +1,3 @@
-
 #include "Header.h"
 
 Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {

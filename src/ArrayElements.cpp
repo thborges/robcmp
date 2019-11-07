@@ -20,7 +20,7 @@ unsigned ArrayElements::getStructSize() const {
 	return r;
 }
 
-Type *ArrayElements::getArrayType(Function *func, BasicBlock *block, BasicBlock *allocblock) const {
+Type *ArrayElements::getArrayType() const {
 	// TODO:	
 	for(auto& i : elements){
 	//Generate Problem

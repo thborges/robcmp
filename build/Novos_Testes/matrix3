@@ -1,0 +1,4 @@
+matriz_repeticao_interna [] = {
+	{1, 2:3},
+	{3:1, 4}
+};

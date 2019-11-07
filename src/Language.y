@@ -35,7 +35,7 @@ std::vector<AttachInterrupt *> vectorglobal;
 	MatrixElements *mes;
 	FunctionParam fp;
 	FunctionParams *fps;
-	ParamsCall pc;
+	ParamsCall *pc;
 }
 
 %type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock
@@ -166,7 +166,7 @@ funcparams: funcparams ',' funcparam {$1 -> append($3);
 						$$ = fps;}
 		  ;
 
-funcparam : TOK_FINT TOK_IDENTIFIER { FunctionParam fp{"a", IntegerType::get(global_context, 0)};
+	funcparam : TOK_FINT TOK_IDENTIFIER { FunctionParam fp{"a", Type::getInt16Ty(global_context)}; 
 									$$ = fp;}
 		  ;
 

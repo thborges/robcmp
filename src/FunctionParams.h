@@ -12,7 +12,7 @@ public:
 	
 	unsigned getNumParams() const;
 	Type *getParamType (int position) const;
-	Node *getParamElement (int position) const;
+	const char *getParamElement (int position) const;
 };
 
 #endif

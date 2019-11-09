@@ -19,6 +19,6 @@ Type *FunctionParams::getParamType(int position) const {
 	return(parameters[position].type);
 }
 
-String FunctionParams::getParamElement(int position) const {
+const char *FunctionParams::getParamElement(int position) const {
 	return parameters[position].name;
 }

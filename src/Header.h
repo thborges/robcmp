@@ -37,7 +37,7 @@ typedef struct {
 } ArrayElement;
 
 typedef struct {
-	string name;
+	const char *name;
 	Type *type;
 } FunctionParam;
 

@@ -3,7 +3,7 @@
 ParamsCall::ParamsCall() {};
 
 void ParamsCall::append(Node *n) {
-	parameters.push_back(e);
+	parameters.push_back(n);
 };
 	
 unsigned ParamsCall::getNumParams() const {
@@ -16,9 +16,4 @@ unsigned ParamsCall::getNumParams() const {
 Type *ParamsCall::getParamType(int position) const {
 	// TODO:	
 	//Generate Problem
-	return(parameters[position].type);
-}
-
-String ParamsCall::getParamElement(int position) const {
-	return parameters[position].name;
 }

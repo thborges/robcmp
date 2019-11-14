@@ -11,7 +11,7 @@ public:
 	void append(Node *pc);
 	
 	unsigned getNumParams() const;
-	Type *getParamType (int position) const;
+	Node *getParamElement (int position) const;
 };
 
 #endif

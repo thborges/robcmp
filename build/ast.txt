@@ -1,13 +1,13 @@
 graph {
-N7ffe703ef398[label="Program"];
-N1e69860[label="Stmts"];
-N1e697f0[label="Scalar(a)"];
-N1e697c0[label="Int16(3)"];
-N1e697f0--N1e697c0;
-N1e69860--N1e697f0;
-N1e69a30[label="FunctionDecl"];
-N1e69860--N1e69a30;
-N1e69b20[label="Print"];
-N1e69860--N1e69b20;
-N7ffe703ef398--N1e69860;
+N7ffca8584678[label="Program"];
+N978860[label="Stmts"];
+N9787f0[label="Scalar(a)"];
+N9787c0[label="Int16(3)"];
+N9787f0--N9787c0;
+N978860--N9787f0;
+N978b20[label="FunctionDecl"];
+N978860--N978b20;
+N978bf0[label="Print"];
+N978860--N978bf0;
+N7ffca8584678--N978860;
 }

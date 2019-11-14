@@ -19,8 +19,9 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 	unsigned Idx = 0;
 	for (auto &Arg : nfunc->args())
 	{
-		Arg.setName(parameters->getParamElement(Idx++));
-		tabelasym[fblock][name] = &Arg;
+		const char *argname = parameters->getParamElement(Idx++);
+		Arg.setName(argname);
+		tabelasym[fblock][argname] = &Arg;
 	}
 	nfunc->setCallingConv(CallingConv::C);
 	if (tipo->isVoidTy())

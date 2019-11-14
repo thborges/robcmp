@@ -13,7 +13,6 @@ unsigned ParamsCall::getNumParams() const {
 	return r;
 };
 
-Type *ParamsCall::getParamType(int position) const {
-	// TODO:	
-	//Generate Problem
+Node *ParamsCall::getParamElement(int position) const {
+	return parameters[position];
 }

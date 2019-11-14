@@ -7,11 +7,7 @@ private:
 	string name;
 	ParamsCall *parameters;
 public:
-	FunctionCall(string names) {
-		this->name = name;
-	}
-
-	FunctionCall(string names, ParamsCall *pc) {
+	FunctionCall(string name, ParamsCall *pc) {
 		this->name = name;
 		this->parameters = pc;
 	}

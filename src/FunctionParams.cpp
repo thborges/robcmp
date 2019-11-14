@@ -14,8 +14,6 @@ unsigned FunctionParams::getNumParams() const {
 };
 
 Type *FunctionParams::getParamType(int position) const {
-	// TODO:	
-	//Generate Problem
 	return(parameters[position].type);
 }
 

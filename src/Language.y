@@ -151,11 +151,12 @@ eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'
 				char funcname[100];
 				sprintf(funcname, "__callback_int_p%d_e%d", $2, $4);
 				vectorglobal.push_back(new AttachInterrupt($2, funcname, $4));
-				$$ = new FunctionDecl(funcname, $6);
+				FunctionParams *fps = new FunctionParams();
+				$$ = new FunctionDecl(Type::getVoidTy(global_context), funcname, fps, $6);
              }
 		   ;
 
-funcblock : TOK_FUNCTION TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'		{ $$ = new FunctionDecl($2, $4, $7); }
+funcblock : TOK_FUNCTION TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'		{ $$ = new FunctionDecl(Type::getInt16Ty(global_context), $2, $4, $7); }
 		  ;
 
 funcparams: funcparams ',' funcparam {$1 -> append($3);
@@ -164,10 +165,19 @@ funcparams: funcparams ',' funcparam {$1 -> append($3);
 	      | funcparam { FunctionParams *fps = new FunctionParams();
 						fps->append($1);
 						$$ = fps;}
+		  | { FunctionParams *fps = new FunctionParams();
+			  $$ = fps;
+			}
 		  ;
 
-	funcparam : TOK_FINT TOK_IDENTIFIER { FunctionParam fp{"a", Type::getInt16Ty(global_context)}; 
+funcparam : TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$2, Type::getInt16Ty(global_context)}; 
 									$$ = fp;}
+		  | TOK_FFLOAT TOK_IDENTIFIER { FunctionParam fp{$2, Type::getFloatTy(global_context)}; 
+									$$ = fp;
+									}
+		  | TOK_FDOUBLE TOK_IDENTIFIER { FunctionParam fp{$2, Type::getFloatTy(global_context)}; 
+									$$ = fp;
+									}
 		  ;
 
 paramscall : paramscall ',' expr {$1 -> append($3);
@@ -175,6 +185,9 @@ paramscall : paramscall ',' expr {$1 -> append($3);
 		   | expr { ParamsCall *pc = new ParamsCall();
 		            pc->append($1);
 				    $$ = pc;}
+		   | { ParamsCall *pc = new ParamsCall();
+			   $$ = pc;
+			 }
 		   ;
 
 returnblock : TOK_RETURN expr			{ $$ = new Return($2); }
@@ -229,7 +242,6 @@ factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_INTEGER			{ $$ = new Int16($1); }
 	   | TOK_FLOAT				{ $$ = new Float($1); }
 	   | TOK_IN					{ $$ = new InPort($1); }
-	   | TOK_IDENTIFIER '(' ')'	{ $$ = new FunctionCall($1); }
 	   | TOK_IDENTIFIER '(' paramscall ')'	{ $$ = new FunctionCall($1, $3); }
 	   ;
 

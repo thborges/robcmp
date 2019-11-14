@@ -5,15 +5,12 @@
 class FunctionDecl: public Node {
 private:
 	Node *stmts;
+	Type *tipo;
 	string name;
 	FunctionParams *parameters;
 public:
-	FunctionDecl(string name, Node *stmts){
-		this->stmts = stmts;
-		this->name = name;
-	}
-	
-	FunctionDecl(string name, FunctionParams *fp, Node *stmts){
+	FunctionDecl(Type *tipo, string name, FunctionParams *fp, Node *stmts){
+		this->tipo = tipo;
 		this->stmts = stmts;
 		this->name = name;
 		this->parameters = fp;

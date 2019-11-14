@@ -1,6 +1,6 @@
 a = 3;
 
-function b(){
+function b(int c, float d){
 	return 3;
 }
 

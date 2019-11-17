@@ -38,7 +38,7 @@ typedef struct {
 
 typedef struct {
 	const char *name;
-	Type *type;
+	int type;
 } FunctionParam;
 
 typedef struct {

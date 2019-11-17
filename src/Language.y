@@ -170,12 +170,12 @@ funcparams: funcparams ',' funcparam {$1 -> append($3);
 			}
 		  ;
 
-funcparam : TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$2, Type::getInt16Ty(global_context)}; 
+funcparam : TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$2, 1}; 
 									$$ = fp;}
-		  | TOK_FFLOAT TOK_IDENTIFIER { FunctionParam fp{$2, Type::getFloatTy(global_context)}; 
+		  | TOK_FFLOAT TOK_IDENTIFIER { FunctionParam fp{$2, 2}; 
 									$$ = fp;
 									}
-		  | TOK_FDOUBLE TOK_IDENTIFIER { FunctionParam fp{$2, Type::getFloatTy(global_context)}; 
+		  | TOK_FDOUBLE TOK_IDENTIFIER { FunctionParam fp{$2, 3}; 
 									$$ = fp;
 									}
 		  ;

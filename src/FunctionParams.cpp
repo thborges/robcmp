@@ -14,7 +14,13 @@ unsigned FunctionParams::getNumParams() const {
 };
 
 Type *FunctionParams::getParamType(int position) const {
-	return(parameters[position].type);
+	int var = parameters[position].type;
+	if (var == 1)
+		return Type::getInt16Ty(global_context);
+	else if (var == 2)
+		return Type::getFloatTy(global_context);
+	else
+		return Type::getFloatTy(global_context);
 }
 
 const char *FunctionParams::getParamElement(int position) const {

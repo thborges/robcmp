@@ -1,0 +1,172 @@
+// The sequence of control signals for 4 control wires is as follows:
+//
+// Step C0 C1 C2 C3
+//    1  1  0  1  0
+//    2  0  1  1  0
+//    3  0  1  0  1
+//    4  1  0  0  1
+
+PARA_FRENTE = 1.0;
+PARA_TRAS = -1.0;
+STEPS_PER_CLICK = 50;
+
+PIN1 = 0.0;
+PIN2 = 0.0;
+PIN3 = 0.0;
+PIN4 = 0.0;
+CURR_STEP = 0.0;
+CURR_DIR = PARA_FRENTE;
+
+FUNCTION STEP_MOTOR() {
+	IF (CURR_STEP == 0.0) {
+		OUT PIN1 = 255.0;
+		OUT PIN2 = 0.0;
+		OUT PIN3 = 255.0;
+		OUT PIN4 = 0.0;
+	}
+	ELSE IF (CURR_STEP == 1.0) {
+		OUT PIN1 = 0.0;
+		OUT PIN2 = 255.0;
+		OUT PIN3 = 255.0;
+		OUT PIN4 = 0.0;	
+	}
+	ELSE IF (CURR_STEP == 2.0) {
+		OUT PIN1 = 0.0;
+		OUT PIN2 = 255.0;
+		OUT PIN3 = 0.0;
+		OUT PIN4 = 255.0;
+	}
+	ELSE IF (CURR_STEP == 3.0) {
+		OUT PIN1 = 255.0;
+		OUT PIN2 = 0.0;
+		OUT PIN3 = 0.0;
+		OUT PIN4 = 255.0;
+	}
+
+	//MICROS = 60L * 1000L * 1000L / this->number_of_steps / RPM;
+	RPM = (60.0 * 1000.0) / 4096.0 / 4.0;
+	DELAY RPM;
+
+	CURR_STEP = CURR_STEP + CURR_DIR;
+	IF (CURR_STEP == 4.0) {
+		CURR_STEP = 0.0;
+	}
+	ELSE IF (CURR_STEP == -1.0) {
+		CURR_STEP = 3.0;
+	}
+}
+
+FUNCTION MOTOR_SHUTDOWN() {
+	OUT PIN1 = 0.0;
+	OUT PIN2 = 0.0;
+	OUT PIN3 = 0.0;
+	OUT PIN4 = 0.0;
+}
+
+FUNCTION LOOP_STEPS() {
+	I = 0.0;
+	WHILE (I < STEPS_PER_CLICK) {
+		STEP_MOTOR();
+		I = I + 1.0;
+	}
+	MOTOR_SHUTDOWN();
+}
+
+STEP_DE = 0.0;
+FUNCTION STEP_RIGHT_LEFT() {
+
+	CURR_STEP = STEP_DE;
+	PIN1 = 14.0; // A0
+	PIN2 = 4.0;
+	PIN3 = 3.0;
+	PIN4 = 5.0;
+
+	LOOP_STEPS();
+	STEP_DE = CURR_STEP;
+}
+
+STEP_UD = 0.0;
+FUNCTION STEP_UP_DOWN() {
+
+	CURR_STEP = STEP_UD;
+	PIN1 = 10.0;
+	PIN2 = 12.0;
+	PIN3 = 11.0;
+	PIN4 = 13.0;
+
+	LOOP_STEPS();
+	STEP_UD = CURR_STEP;
+}
+
+STEP_FB = 0.0;
+FUNCTION STEP_FRONT_BACK() {
+
+	CURR_STEP = STEP_FB;
+	PIN1 = 6.0;
+	PIN2 = 8.0;
+	PIN3 = 7.0;
+	PIN4 = 9.0;
+
+	LOOP_STEPS();
+	STEP_FB = CURR_STEP;
+}
+
+FUNCTION OPEN_GRIP() {
+	Z = SERVO_POS_INC();
+}
+
+FUNCTION CLOSE_GRIP() {
+	Y = SERVO_POS_DEC();
+}
+
+FUNCTION BLINK_FAST() {
+	OUT 13 = 255.0;
+	DELAY 100.0;
+	OUT 13 = 0.0;
+	DELAY 100.0;
+}
+
+FUNCTION BLINK() {
+	OUT 13 = 255.0;
+	DELAY 500.0;
+	OUT 13 = 0.0;
+	DELAY 500.0;
+}
+
+// MAIN LOOP
+BLINK();
+BLINK();
+TRUE = 1.0;
+WHILE (TRUE >= 1.0) {
+	F = READ_IR();
+	IF (F == 3041526525.0) { // UP
+		CURR_DIR = PARA_FRENTE;
+		STEP_UP_DOWN();
+	}
+	ELSE IF (F == 3041559165.0) { // DOWN
+		CURR_DIR = PARA_TRAS;
+		STEP_UP_DOWN();
+	}
+	ELSE IF (F == 3041542845.0) { // LEFT
+		CURR_DIR = PARA_FRENTE;
+		STEP_RIGHT_LEFT();
+	}
+	ELSE IF (F == 3041575485.0) { // RIGHT
+		CURR_DIR = PARA_TRAS;
+		STEP_RIGHT_LEFT();
+	}
+	ELSE IF (F == 4111076595.0) { // AUDIO
+		CURR_DIR = PARA_FRENTE;
+		STEP_FRONT_BACK();
+	}
+	ELSE IF (F == 3041570895.0) { // RIGHT
+		CURR_DIR = PARA_TRAS;
+		STEP_FRONT_BACK();
+	}
+	ELSE IF (F == 3041546415.0) { // OPEN GRIP
+		OPEN_GRIP();		
+	}
+	ELSE IF (F == 3041579055.0) { // CLOSE GRIP
+		CLOSE_GRIP();
+	}
+}

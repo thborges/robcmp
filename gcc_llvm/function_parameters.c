@@ -1,5 +1,5 @@
 int func(int var){
-	int b = var * 3;
+	return var;
 }
 
 int main(){

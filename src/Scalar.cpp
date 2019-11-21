@@ -20,7 +20,6 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 				gv->setInitializer(ConstantFP::get(exprv->getType(), 0.0));
 			else
 				yyerrorcpp("Global variable default initialization not defined.");
-				//TO-DO
 
 			leftv = gv;
 		} else {

@@ -21,14 +21,16 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 	{
 		const char *argname = parameters->getParamElement(Idx++);
 		Arg.setName(argname);
-		tabelasym[fblock][argname] = &Arg;
+		//Value *valor = search_symbol(argname, fblock, fblock);
+		AllocaInst* variable = new AllocaInst(Type::getInt16Ty(global_context), 0, argname, fblock);
+		tabelasym[fblock][argname] = variable;
+		StoreInst *val = new StoreInst(&Arg, variable, argname, false, fblock);
 	}
 	nfunc->setCallingConv(CallingConv::C);
 	if (tipo->isVoidTy())
 		nfunc->setDoesNotReturn();
 
 	stmts->generate(func, fblock, fblock);
-
 	fblock->insertInto(nfunc, 0);
 
 	tabelasym[mainblock][name] = nfunc;

@@ -5,9 +5,9 @@
 class LoadVector: public Node {
 private:
 	string ident;
-	int position;
+	Node *position;
 public:
-	LoadVector(const char *i, int pos): ident(i), position(pos) {}
+	LoadVector(const char *i, Node *pos): ident(i), position(pos) {}
 
 	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
 };

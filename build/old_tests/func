@@ -1,6 +1,0 @@
-function func(){
-	b = 3;
-}
-
-a = 2;
-c = func();

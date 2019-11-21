@@ -1,8 +1,0 @@
-llc -march=avr $1.ll -o $1.o -filetype=obj
-#avr-ld $1.o -o $1
-
-#llc-mp-3.9 -march=avr -mcpu=avrxmega3 $1.ll -o $1.s -filetype=asm
-#avr-gcc -mmcu=atmega328  $1.s ../arduinowire/*.o -o $1
-
-llc $1.ll -o $1.s -filetype=asm
-

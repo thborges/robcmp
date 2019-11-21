@@ -6,7 +6,7 @@ LLVMLIBS=$(shell llvm-config-9 --ldflags --libs all) -lpthread -ldl -lncurses
 COMPILER_NAME=$(shell basename "${PWD}")
 
 SRC = src
-BIN = build
+BIN = .
  
 FLAGS=-O2 -DYYERROR_VERBOSE -fexceptions -Wno-deprecated-register -Wno-unused-function
 DFLAGS=-ggdb -O0

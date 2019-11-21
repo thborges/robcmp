@@ -1,7 +1,0 @@
-avr-objcopy -O ihex out/$1 out/$1.hex
-
-PART="-v -carduino -patmega328p -b57600"
-#PART="-c avr109 -p atmega32u4 -b57600"
-
-avrdude -P $2 -V $PART -U flash:w:out/$1.hex:i
-

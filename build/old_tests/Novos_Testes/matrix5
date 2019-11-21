@@ -1,5 +1,0 @@
-matriz_repeticao_hibrida [] = {
-	{1, 2}:4,
-	{3:3, 4},
-	{2:4, 1}:3
-};

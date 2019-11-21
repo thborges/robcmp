@@ -1,0 +1,13 @@
+graph {
+N7ffdb7be0cd8[label="Program"];
+Nf1c990[label="Stmts"];
+Nf1c930[label="Matrix"];
+Nf1c990--Nf1c930;
+Nf1ca10[label="Scalar(b)"];
+Nf1c860[label="Int16(1)"];
+Nf1ca10--Nf1c860;
+Nf1c990--Nf1ca10;
+Nf1cbe0[label="Print"];
+Nf1c990--Nf1cbe0;
+N7ffdb7be0cd8--Nf1c990;
+}

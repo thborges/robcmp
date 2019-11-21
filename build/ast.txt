@@ -1,9 +1,0 @@
-graph {
-N7ffe15c3d398[label="Program"];
-N795ba0[label="Stmts"];
-N795b40[label="FunctionDecl"];
-N795ba0--N795b40;
-N795c40[label="Print"];
-N795ba0--N795c40;
-N7ffe15c3d398--N795ba0;
-}

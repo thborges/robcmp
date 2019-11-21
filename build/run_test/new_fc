@@ -1,6 +1,0 @@
-function b(int d){
-	c = 3;
-	return d;
-}
-
-print b(3);

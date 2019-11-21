@@ -1,0 +1,7 @@
+vector = {3:3, 4.2};
+
+i = 0;
+while (i < 4){
+	print vector[i];
+	i = i + 1;
+}

@@ -1,8 +1,0 @@
-float b(int d, float k){
-	c = 3;
-	print d;
-	print k;
-	return d+k;
-}
-
-print b(3, 6.2);

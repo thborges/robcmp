@@ -1,0 +1,5 @@
+int quadrado(int a){
+	return a * a;
+}
+
+print quadrado(3);

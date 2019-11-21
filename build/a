@@ -1,5 +1,0 @@
-int b (short short int a, short int b, int c, long int d, long long int e, long long long int f, short float g, float h, double i, double double k){
-	print 2;
-}
-
-print b();

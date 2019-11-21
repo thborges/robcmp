@@ -1,9 +1,9 @@
 graph {
-N7fffd1545408[label="Program"];
-N7dca60[label="Stmts"];
-N7dca00[label="FunctionDecl"];
-N7dca60--N7dca00;
-N7dcb80[label="Print"];
-N7dca60--N7dcb80;
-N7fffd1545408--N7dca60;
+N7ffdccc58ad8[label="Program"];
+N1258c90[label="Stmts"];
+N1258c30[label="FunctionDecl"];
+N1258c90--N1258c30;
+N1258e20[label="Print"];
+N1258c90--N1258e20;
+N7ffdccc58ad8--N1258c90;
 }

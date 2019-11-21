@@ -156,7 +156,8 @@ eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'
              }
 		   ;
 
-funcblock : TOK_FUNCTION TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'		{ $$ = new FunctionDecl(Type::getInt16Ty(global_context), $2, $4, $7); }
+funcblock : TOK_FINT TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'		{ $$ = new FunctionDecl(Type::getInt16Ty(global_context), $2, $4, $7); }
+		  | TOK_FFLOAT TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'		{ $$ = new FunctionDecl(Type::getFloatTy(global_context), $2, $4, $7); }
 		  ;
 
 funcparams: funcparams ',' funcparam {$1 -> append($3);

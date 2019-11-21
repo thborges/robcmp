@@ -171,12 +171,33 @@ funcparams: funcparams ',' funcparam {$1 -> append($3);
 			}
 		  ;
 
-funcparam : TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$2, 1}; 
+funcparam : TOK_FSHORT TOK_FSHORT TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$4, 1}; 
 									$$ = fp;}
-		  | TOK_FFLOAT TOK_IDENTIFIER { FunctionParam fp{$2, 2}; 
+		  | TOK_FSHORT TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$3, 2}; 
 									$$ = fp;
 									}
-		  | TOK_FDOUBLE TOK_IDENTIFIER { FunctionParam fp{$2, 3}; 
+		  | TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$2, 3}; 
+									$$ = fp;
+									}
+		  | TOK_FLONG TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$3, 4}; 
+									$$ = fp;
+									}
+		  | TOK_FLONG TOK_FLONG TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$4, 5}; 
+									$$ = fp;
+									}
+		  | TOK_FLONG TOK_FLONG TOK_FLONG TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$5, 6}; 
+									$$ = fp;
+									}
+		  | TOK_FSHORT TOK_FFLOAT TOK_IDENTIFIER { FunctionParam fp{$3, 7}; 
+									$$ = fp;
+									}
+		  | TOK_FFLOAT TOK_IDENTIFIER { FunctionParam fp{$2, 8}; 
+									$$ = fp;
+									}
+		  | TOK_FDOUBLE TOK_IDENTIFIER { FunctionParam fp{$2, 9}; 
+									$$ = fp;
+									}
+		  | TOK_FDOUBLE TOK_FDOUBLE TOK_IDENTIFIER { FunctionParam fp{$3, 10}; 
 									$$ = fp;
 									}
 		  ;

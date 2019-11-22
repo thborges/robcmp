@@ -1,9 +1,0 @@
-int teste(bool a){
-	if (a)
-		print (3);
-	return 2;
-}
-c = true;
-if (c)
-	print (2);
-b = teste(true);

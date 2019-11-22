@@ -25,10 +25,13 @@ extern void unescape(char *s);
 "float"					{ return TOK_FFLOAT; }
 "double"				{ return TOK_FDOUBLE; }
 "char"					{ return TOK_FCHAR; }
+"bool"					{ return TOK_FBOOL; }
 "long"					{ return TOK_FLONG; }
 "short"					{ return TOK_FSHORT; }
 "unsigned"				{ return TOK_FUNSIGNED; }
 "return"				{ return TOK_RETURN; }
+"true"					{ return TOK_TRUE; }
+"false"					{ return TOK_FALSE; }
 
 "if"					{ return TOK_IF; }
 "else"					{ return TOK_ELSE; }

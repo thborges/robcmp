@@ -15,8 +15,8 @@ std::vector<AttachInterrupt *> vectorglobal;
 %token TOK_PRINT
 %token TOK_IN TOK_OUT TOK_STEPPER TOK_SERVO
 %token TOK_DELAY TOK_AND TOK_OR
-%token TOK_IDENTIFIER TOK_FLOAT TOK_INTEGER TOK_STRING
-%token TOK_FINT TOK_FFLOAT TOK_FDOUBLE TOK_FCHAR TOK_FLONG TOK_FSHORT TOK_FUNSIGNED
+%token TOK_IDENTIFIER TOK_FLOAT TOK_INTEGER TOK_STRING TOK_TRUE TOK_FALSE
+%token TOK_FINT TOK_FFLOAT TOK_FDOUBLE TOK_FCHAR TOK_FLONG TOK_FSHORT TOK_FUNSIGNED TOK_FBOOL
 
 %token TOK_QUANDO TOK_ESTA
 %token EQ_OP NE_OP GE_OP LE_OP GT_OP LT_OP
@@ -171,7 +171,7 @@ funcparams: funcparams ',' funcparam {$1 -> append($3);
 			}
 		  ;
 
-funcparam : TOK_FSHORT TOK_FSHORT TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$4, 1}; 
+funcparam : TOK_FBOOL TOK_IDENTIFIER { FunctionParam fp{$2, 1}; 
 									$$ = fp;}
 		  | TOK_FSHORT TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$3, 2}; 
 									$$ = fp;
@@ -244,6 +244,7 @@ logicfactor : '(' logicexpr ')'		{ $$ = $2; }
 			| expr '>''=' expr		{ $$ = new CmpOp($1, GE_OP, $4); }
 			| expr '<' expr			{ $$ = new CmpOp($1, LT_OP, $3); }
 			| expr '>' expr			{ $$ = new CmpOp($1, GT_OP, $3); }
+			| expr					{ $$ = new CmpOp($1, EQ_OP, new Int1(1));}
 			;
 
 expr : expr '+' term			{ $$ = new BinaryOp($1, '+', $3); }
@@ -261,6 +262,8 @@ factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_IDENTIFIER			{ $$ = new Load($1); }
 	   | TOK_IDENTIFIER '[' expr ']'	{ $$ = new LoadVector($1, $3);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
 	   | TOK_IDENTIFIER '[' expr ']' '[' expr ']'	{ $$ = new LoadMatrix($1, $3, $6);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
+	   | TOK_TRUE				{ $$ = new Int1(1); }
+	   | TOK_FALSE				{ $$ = new Int1(0); }
 	   | TOK_INTEGER			{ $$ = new Int16($1); }
 	   | TOK_FLOAT				{ $$ = new Float($1); }
 	   | TOK_IN					{ $$ = new InPort($1); }

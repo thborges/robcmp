@@ -54,6 +54,7 @@ std::vector<AttachInterrupt *> vectorglobal;
 %type <ident> TOK_IDENTIFIER
 %type <str> TOK_STRING
 %type <nint> TOK_STEPPER
+%type <nint> type_f
 
 %nonassoc IFX
 %nonassoc TOK_ELSE
@@ -152,12 +153,11 @@ eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'
 				sprintf(funcname, "__callback_int_p%d_e%d", $2, $4);
 				vectorglobal.push_back(new AttachInterrupt($2, funcname, $4));
 				FunctionParams *fps = new FunctionParams();
-				$$ = new FunctionDecl(Type::getVoidTy(global_context), funcname, fps, $6);
+				$$ = new FunctionDecl(0, funcname, fps, $6);
              }
 		   ;
 
-funcblock : TOK_FINT TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'		{ $$ = new FunctionDecl(Type::getInt16Ty(global_context), $2, $4, $7); }
-		  | TOK_FFLOAT TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'		{ $$ = new FunctionDecl(Type::getFloatTy(global_context), $2, $4, $7); }
+funcblock : type_f TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'		{ $$ = new FunctionDecl($1, $2, $4, $7); }
 		  ;
 
 funcparams: funcparams ',' funcparam {$1 -> append($3);
@@ -171,36 +171,20 @@ funcparams: funcparams ',' funcparam {$1 -> append($3);
 			}
 		  ;
 
-funcparam : TOK_FBOOL TOK_IDENTIFIER { FunctionParam fp{$2, 1}; 
+funcparam : type_f TOK_IDENTIFIER { FunctionParam fp{$2, $1}; 
 									$$ = fp;}
-		  | TOK_FSHORT TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$3, 2}; 
-									$$ = fp;
-									}
-		  | TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$2, 3}; 
-									$$ = fp;
-									}
-		  | TOK_FLONG TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$3, 4}; 
-									$$ = fp;
-									}
-		  | TOK_FLONG TOK_FLONG TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$4, 5}; 
-									$$ = fp;
-									}
-		  | TOK_FLONG TOK_FLONG TOK_FLONG TOK_FINT TOK_IDENTIFIER { FunctionParam fp{$5, 6}; 
-									$$ = fp;
-									}
-		  | TOK_FSHORT TOK_FFLOAT TOK_IDENTIFIER { FunctionParam fp{$3, 7}; 
-									$$ = fp;
-									}
-		  | TOK_FFLOAT TOK_IDENTIFIER { FunctionParam fp{$2, 8}; 
-									$$ = fp;
-									}
-		  | TOK_FDOUBLE TOK_IDENTIFIER { FunctionParam fp{$2, 9}; 
-									$$ = fp;
-									}
-		  | TOK_FDOUBLE TOK_FDOUBLE TOK_IDENTIFIER { FunctionParam fp{$3, 10}; 
-									$$ = fp;
-									}
-		  ;
+
+type_f  : TOK_FBOOL { $$ = 1; }
+		| TOK_FSHORT TOK_FINT { $$ = 2; } 
+		| TOK_FINT { $$ = 3; } 
+		| TOK_FLONG TOK_FINT { $$ = 4; } 
+		| TOK_FLONG TOK_FLONG TOK_FINT { $$ = 5; } 
+		| TOK_FLONG TOK_FLONG TOK_FLONG TOK_FINT { $$ = 6; } 
+		| TOK_FSHORT TOK_FFLOAT { $$ = 7; } 
+		| TOK_FFLOAT { $$ = 8; } 
+		| TOK_FDOUBLE { $$ = 9; } 
+		| TOK_FDOUBLE TOK_FDOUBLE { $$ = 10; } 
+	    ;
 
 paramscall : paramscall ',' expr {$1 -> append($3);
 								  $$ = $1;}

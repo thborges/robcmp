@@ -1,0 +1,11 @@
+int func (bool a){
+	if (a){
+		print 1;
+	}
+	else {
+		print 2;
+	}
+	return 0;
+}
+
+b = func(true);

@@ -1,6 +1,6 @@
 int func (){
 	a = true;
-	if (a){
+	if (a == true){
 		print 1;
 	}
 	else {

@@ -228,7 +228,7 @@ logicfactor : '(' logicexpr ')'		{ $$ = $2; }
 			| expr '>''=' expr		{ $$ = new CmpOp($1, GE_OP, $4); }
 			| expr '<' expr			{ $$ = new CmpOp($1, LT_OP, $3); }
 			| expr '>' expr			{ $$ = new CmpOp($1, GT_OP, $3); }
-			| expr					{ $$ = new CmpOp($1, EQ_OP, new Int1(1));}
+ /* 			| expr					{ $$ = new CmpOp($1, EQ_OP, new Int1(1));} */
 			;
 
 expr : expr '+' term			{ $$ = new BinaryOp($1, '+', $3); }

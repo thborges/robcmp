@@ -56,8 +56,8 @@ std::vector<AttachInterrupt *> vectorglobal;
 %type <nint> TOK_STEPPER
 %type <nint> type_f
 
-%nonassoc IFX
-%nonassoc TOK_ELSE
+%precedence IFX
+%precedence TOK_ELSE
 %start programa
 
 %%
@@ -166,7 +166,7 @@ funcparams: funcparams ',' funcparam {$1 -> append($3);
 	      | funcparam { FunctionParams *fps = new FunctionParams();
 						fps->append($1);
 						$$ = fps;}
-		  | { FunctionParams *fps = new FunctionParams();
+		  | %empty { FunctionParams *fps = new FunctionParams();
 			  $$ = fps;
 			}
 		  ;
@@ -191,7 +191,7 @@ paramscall : paramscall ',' expr {$1 -> append($3);
 		   | expr { ParamsCall *pc = new ParamsCall();
 		            pc->append($1);
 				    $$ = pc;}
-		   | { ParamsCall *pc = new ParamsCall();
+		   | %empty { ParamsCall *pc = new ParamsCall();
 			   $$ = pc;
 			 }
 		   ;

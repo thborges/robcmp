@@ -11,10 +11,9 @@ Value *FunctionCall::generate(Function *func, BasicBlock *block, BasicBlock *all
 	vector<Value*> args;	
 	for (int i = 0; i < parameters->getNumParams(); i++){
 		Value *valor = parameters->getParamElement(i)->generate(func, block, allocblock);
-		AllocaInst *ptr_aux = new AllocaInst(valor->getType(), 0, "", block);
 		args.push_back(valor);
 	}
 	ArrayRef<Value*> argsRef(args);
-	return CallInst::Create(cfunc, argsRef, "", block);
+	return CallInst::Create(cfunc, argsRef, "fc", block);
 }
 

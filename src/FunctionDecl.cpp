@@ -53,7 +53,7 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, name, mainmodule);
 	tabelasym[mainblock][name] = nfunc;
 
-	BasicBlock *fblock = BasicBlock::Create(global_context, "entry");
+	BasicBlock *fblock = BasicBlock::Create(global_context, "entry", nfunc);
 	unsigned Idx = 0;
 	for (auto &Arg : nfunc->args())
 	{
@@ -69,7 +69,7 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 	if (xtype->isVoidTy())
 		nfunc->setDoesNotReturn();
 
-	fblock->insertInto(nfunc, 0);
+	//fblock->insertInto(nfunc, 0);
 	stmts->generate(nfunc, fblock, fblock);
 
 	return nfunc;

@@ -69,7 +69,7 @@ programa : stmts    { Program p($1);
 					  }
 
 					  std::fstream fs;
-					  fs.open("ast.txt", std::fstream::out);
+					  fs.open("ast", std::fstream::out);
 					  PrintAstVisitor(fs).visit(p);
 					  fs.close();
 
@@ -89,6 +89,7 @@ fe : funcblock 						{ $$ = $1; }
 
 
 stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); } 
+	 | TOK_IDENTIFIER '(' paramscall ')'	{ $$ = new FunctionCall($1, $3); }
 	 | TOK_IDENTIFIER '=' expr ';'			{ $$ = new Scalar($1, $3); }
 	 | TOK_IDENTIFIER '+' '+' ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '+', new Int16(1))); }
 	 | TOK_IDENTIFIER '+' '=' expr ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '+', $4)); }

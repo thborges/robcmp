@@ -1,19 +1,19 @@
-void motor_shutdown() {
+/*void motor_shutdown() {
 	out PIN1 = 0.0;
 	out PIN2 = 0.0;
 	out PIN3 = 0.0;
 	out PIN4 = 0.0;
-}
+}*/
 
 void blink(float time) {
-	out 13 = 255.0;
+	out13 = 255.0;
 	delay time;
-	out 13 = 0.0;
+	out13 = 0.0;
 	delay time;
 }
 
-blink(500.0);
-blink(500.0);
+a = blink(500.0);
+a = blink(500.0);
 PARA_FRENTE = 1.0;
 PARA_TRAS = 1.0;
 while (true == true) {

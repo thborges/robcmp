@@ -46,8 +46,6 @@
 						GetElementPtrInst* gep = GetElementPtrInst::CreateInBounds(matrixType, variable, ArrayRef<Value*>(indexList), "", block);
 						GetElementPtrInst* gop = GetElementPtrInst::CreateInBounds(arrayType, gep, ArrayRef<Value*>(indexList), "", block);
 						StoreInst *store = new StoreInst(val, gop, false, block);
-						//GetElementPtrInst* ngep = GetElementPtrInst::Create(arrayType, variable, ArrayRef<Value*>(indexList), "", block);
-						//LoadInst *ret = new LoadInst(arrayType, 0, name, allocblock);
 					}
 				}
 			}

@@ -1,0 +1,11 @@
+graph {
+N7fff6da323c8[label="Program"];
+N175c060[label="Stmts"];
+N175c000[label="FunctionDecl"];
+N175c060--N175c000;
+N175c1a0[label="Scalar(b)"];
+N175c150[label="FunctionCall"];
+N175c1a0--N175c150;
+N175c060--N175c1a0;
+N7fff6da323c8--N175c060;
+}

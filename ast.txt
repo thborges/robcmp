@@ -1,0 +1,11 @@
+graph {
+N7ffebd850ed8[label="Program"];
+N1e6cc80[label="Stmts"];
+N1e6cc10[label="Scalar(var)"];
+N1e6cbe0[label="Double"];
+N1e6cc10--N1e6cbe0;
+N1e6cc80--N1e6cc10;
+N1e6cd50[label="Print"];
+N1e6cc80--N1e6cd50;
+N7ffebd850ed8--N1e6cc80;
+}

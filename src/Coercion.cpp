@@ -19,6 +19,8 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, bool unsig){
 		if ((ty->isFloatTy() || destty->isDoubleTy()) && (destty -> isFloatTy() || destty -> isDoubleTy())){
 			r = new FPExtInst(v, destty, "", block);
 		}
+		//TO-DO Create Coersion Double to Int
+
 		//Generic ExtInt to Int
 		else if (destty->isIntegerTy() && ty->isIntegerTy()){
 			unsigned wty = dyn_cast<IntegerType>(ty)->getBitWidth();
@@ -29,8 +31,6 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, bool unsig){
 			else if (wty < wdestty){
 				r = new SExtInst(v, destty, "", block);
 			}
-//			else if (ty != destty)//To solve bug (TEMPORARY)
-//				r = new SExtInst(v, destty);
 		}
 	}
 	return r;

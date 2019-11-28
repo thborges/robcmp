@@ -1,37 +1,41 @@
 a = { 34, -5, 6, 0, 12, 100, 56, 22, 44, -3, -9, 12, 17, 22, 6, 11 };
-void sort (int n)
-{
+int Sort(int n){
 	t = 0;
 	s = 0;
 	print t;
 	temp = 0;
-	while (t < n - 1)
+	while (t < (n - 1))
 	{
+		print 3;
 		s = t + 1;
-		while (s < n)
-		{
-			if ( a[t] > a[s] ) {
+		while (s < n){
+			print 2;
+			if (a[t] > a[s]){
+				print 1;
+				/*
 				temp = a[t];
 				a[t] = a[s];
 				a[s] = temp;
+				*/
 			}
 			s++;
 		}
 		t++;
 	}
+	return 0;
 }
 
-
-sort (16);
+Sort(16);
 i = 0;
 while (i < 16){
 	c = a[i];
 	print c;
 	i++;
 }
-sort (a, 16);
+
+Sort(16);
 i = 0;
-while(i < 16){
+while (i < 16){
 	print c;
 	i++;
 }

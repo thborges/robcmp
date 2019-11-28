@@ -20,6 +20,7 @@ extern void unescape(char *s);
 
 "//".*$					{ fprintf(stderr, "Comentario: %s\n", yytext); /* comentario de linha */}
 
+"void"					{ return TOK_VOID; }
 "function"				{ return TOK_FUNCTION; }
 "int"					{ return TOK_FINT; }
 "float"					{ return TOK_FFLOAT; }

@@ -6,45 +6,44 @@ PIN1 = 0.0;
 PIN2 = 0.0;
 PIN3 = 0.0;
 PIN4 = 0.0;
-CURR_STEP = 0.0;
+curr_step = 0.0;
 CURR_DIR = PARA_FRENTE;
 
-void step_motor() {
-	IF (CURR_STEP == 0.0) {
+void step_motor(float curr_step) {
+	if (curr_step == 0.0) {
 		OUT PIN1 = 255.0;
 		OUT PIN2 = 0.0;
 		OUT PIN3 = 255.0;
 		OUT PIN4 = 0.0;
 	}
-	ELSE IF (CURR_STEP == 1.0) {
+	else if (curr_step == 1.0) {
 		OUT PIN1 = 0.0;
 		OUT PIN2 = 255.0;
 		OUT PIN3 = 255.0;
 		OUT PIN4 = 0.0;	
 	}
-	ELSE IF (CURR_STEP == 2.0) {
+	else if (curr_step == 2.0) {
 		OUT PIN1 = 0.0;
 		OUT PIN2 = 255.0;
 		OUT PIN3 = 0.0;
 		OUT PIN4 = 255.0;
 	}
-	ELSE IF (CURR_STEP == 3.0) {
+	else if (curr_step == 3.0) {
 		OUT PIN1 = 255.0;
 		OUT PIN2 = 0.0;
 		OUT PIN3 = 0.0;
 		OUT PIN4 = 255.0;
 	}
 
-	//MICROS = 60L * 1000L * 1000L / this->number_of_steps / RPM;
 	RPM = (60.0 * 1000.0) / 4096.0 / 4.0;
 	DELAY RPM;
 
-	CURR_STEP = CURR_STEP + CURR_DIR;
-	IF (CURR_STEP == 4.0) {
-		CURR_STEP = 0.0;
+	curr_step = curr_step + curr_dir;
+	if (curr_step == 4.0) {
+		curr_step = 0.0;
 	}
-	ELSE IF (CURR_STEP == -1.0) {
-		CURR_STEP = 3.0;
+	else if (curr_step == -1.0) {
+		curr_step = 3.0;
 	}
 }
 
@@ -58,7 +57,7 @@ void MOTOR_SHUTDOWN() {
 void LOOP_STEPS() {
 	I = 0.0;
 	WHILE (I < STEPS_PER_CLICK) {
-		STEP_MOTOR();
+		step_motor(curr_step);
 		I = I + 1.0;
 	}
 	MOTOR_SHUTDOWN();
@@ -91,16 +90,16 @@ void STEP_UP_DOWN() {
 }
 
 STEP_FB = 0.0;
-void STEP_FRONT_BACK() {
+void STEP_FRONT_BACK(float direcao) {
 
-	CURR_STEP = STEP_FB;
+	direcao = STEP_FB;
 	PIN1 = 6.0;
 	PIN2 = 8.0;
 		PIN3 = 7.0;
 	PIN4 = 9.0;
 
 	LOOP_STEPS();
-	STEP_FB = CURR_STEP;
+	STEP_FB = direcao;
 }
 
 void OPEN_GRIP() {
@@ -111,49 +110,38 @@ void CLOSE_GRIP() {
 	Y = SERVO_POS_DEC();
 }
 
-FUNCTION BLINK_FAST() {
-	OUT 13 = 255.0;
-	DELAY 100.0;
-	OUT 13 = 0.0;
-	DELAY 100.0;
+void blink(float time){
+	out 13 = 255.0;
+	delay time;
+	out 13 = 0.0;
+	delay time;
 }
 
-FUNCTION BLINK() {
-	OUT 13 = 255.0;
-	DELAY 500.0;
-	OUT 13 = 0.0;
-	DELAY 500.0;
-}
-
+// BLINK_FAST = blink(100.0);
 // MAIN LOOP
-BLINK();
-BLINK();
-TRUE = 1.0;
-WHILE (TRUE >= 1.0) {
+blink(500.0);
+blink(500.0);
+var = 1.0;
+
+while (var >= 1.0) {
 	F = READ_IR();
 	IF (F == 3041526525.0) { // UP
-		CURR_DIR = PARA_FRENTE;
-		STEP_UP_DOWN();
+		STEP_UP_DOWN(PARA_FRENTE);
 	}
 	ELSE IF (F == 3041559165.0) { // DOWN
-		CURR_DIR = PARA_TRAS;
-		STEP_UP_DOWN();
+		STEP_UP_DOWN(PARA_TRAS);
 	}
 	ELSE IF (F == 3041542845.0) { // LEFT
-		CURR_DIR = PARA_FRENTE;
-		STEP_RIGHT_LEFT();
+		STEP_RIGHT_LEFT(PARA_FRENTE);
 	}
 	ELSE IF (F == 3041575485.0) { // RIGHT
-		CURR_DIR = PARA_TRAS;
-		STEP_RIGHT_LEFT();
+		STEP_RIGHT_LEFT(PARA_TRAS);
 	}
 	ELSE IF (F == 4111076595.0) { // AUDIO
-		CURR_DIR = PARA_FRENTE;
-		STEP_FRONT_BACK();
+		STEP_FRONT_BACK(PARA_FRENTE);
 	}
 	ELSE IF (F == 3041570895.0) { // RIGHT
-		CURR_DIR = PARA_TRAS;
-		STEP_FRONT_BACK();
+		STEP_FRONT_BACK(PARA_TRAS);
 	}
 	ELSE IF (F == 3041546415.0) { // OPEN GRIP
 		OPEN_GRIP();		

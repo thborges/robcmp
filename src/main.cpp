@@ -72,6 +72,9 @@ int main(int argc, char *argv[]) {
 
 	llvm::legacy::PassManager pm;
 
+	if (optimization == 0){
+		pm.add(createDeadStoreEliminationPass());
+	}
 	if (optimization >= 1) {
 		pm.add(createPromoteMemoryToRegisterPass());
 	}

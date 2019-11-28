@@ -68,199 +68,201 @@ Grammar
 
    38 funcparam: type_f TOK_IDENTIFIER
 
-   39 type_f: TOK_FBOOL
-   40       | TOK_FSHORT TOK_FINT
-   41       | TOK_FINT
-   42       | TOK_FLONG TOK_FINT
-   43       | TOK_FLONG TOK_FLONG TOK_FINT
-   44       | TOK_FLONG TOK_FLONG TOK_FLONG TOK_FINT
-   45       | TOK_FSHORT TOK_FFLOAT
-   46       | TOK_FFLOAT
-   47       | TOK_FDOUBLE
-   48       | TOK_FDOUBLE TOK_FDOUBLE
+   39 type_f: TOK_VOID
+   40       | TOK_FBOOL
+   41       | TOK_FSHORT TOK_FINT
+   42       | TOK_FINT
+   43       | TOK_FLONG TOK_FINT
+   44       | TOK_FLONG TOK_FLONG TOK_FINT
+   45       | TOK_FLONG TOK_FLONG TOK_FLONG TOK_FINT
+   46       | TOK_FSHORT TOK_FFLOAT
+   47       | TOK_FFLOAT
+   48       | TOK_FDOUBLE
+   49       | TOK_FDOUBLE TOK_FDOUBLE
 
-   49 paramscall: paramscall ',' expr
-   50           | expr
-   51           | %empty
+   50 paramscall: paramscall ',' expr
+   51           | expr
+   52           | %empty
 
-   52 returnblock: TOK_RETURN expr
-   53            | TOK_RETURN logicexpr
+   53 returnblock: TOK_RETURN expr
+   54            | TOK_RETURN logicexpr
 
-   54 condblock: TOK_IF '(' logicexpr ')' stmt
-   55          | TOK_IF '(' logicexpr ')' stmt elseblock
-   56          | TOK_IF '(' logicexpr ')' '{' stmts '}'
-   57          | TOK_IF '(' logicexpr ')' '{' stmts '}' elseblock
+   55 condblock: TOK_IF '(' logicexpr ')' stmt
+   56          | TOK_IF '(' logicexpr ')' stmt elseblock
+   57          | TOK_IF '(' logicexpr ')' '{' stmts '}'
+   58          | TOK_IF '(' logicexpr ')' '{' stmts '}' elseblock
 
-   58 elseblock: TOK_ELSE stmt
-   59          | TOK_ELSE '{' stmts '}'
+   59 elseblock: TOK_ELSE stmt
+   60          | TOK_ELSE '{' stmts '}'
 
-   60 whileblock: TOK_WHILE '(' logicexpr ')' '{' stmts '}'
+   61 whileblock: TOK_WHILE '(' logicexpr ')' '{' stmts '}'
 
-   61 logicexpr: logicexpr TOK_OR logicterm
-   62          | logicterm
+   62 logicexpr: logicexpr TOK_OR logicterm
+   63          | logicterm
 
-   63 logicterm: logicterm TOK_AND logicfactor
-   64          | logicfactor
+   64 logicterm: logicterm TOK_AND logicfactor
+   65          | logicfactor
 
-   65 logicfactor: '(' logicexpr ')'
-   66            | expr '=' '=' expr
-   67            | expr '!' '=' expr
-   68            | expr '<' '=' expr
-   69            | expr '>' '=' expr
-   70            | expr '<' expr
-   71            | expr '>' expr
+   66 logicfactor: '(' logicexpr ')'
+   67            | expr '=' '=' expr
+   68            | expr '!' '=' expr
+   69            | expr '<' '=' expr
+   70            | expr '>' '=' expr
+   71            | expr '<' expr
+   72            | expr '>' expr
 
-   72 expr: expr '+' term
-   73     | expr '-' term
-   74     | term
+   73 expr: expr '+' term
+   74     | expr '-' term
+   75     | term
 
-   75 term: term '*' factor
-   76     | term '/' factor
-   77     | term '%' factor
-   78     | factor
+   76 term: term '*' factor
+   77     | term '/' factor
+   78     | term '%' factor
+   79     | factor
 
-   79 factor: '(' expr ')'
-   80       | TOK_IDENTIFIER
-   81       | TOK_IDENTIFIER '[' expr ']'
-   82       | TOK_IDENTIFIER '[' expr ']' '[' expr ']'
-   83       | TOK_TRUE
-   84       | TOK_FALSE
-   85       | TOK_INTEGER
-   86       | TOK_FLOAT
-   87       | '(' TOK_FSHORT TOK_FINT ')' TOK_INTEGER
-   88       | '(' TOK_FLONG TOK_FINT ')' TOK_INTEGER
-   89       | '(' TOK_FLONG TOK_FLONG TOK_FINT ')' TOK_INTEGER
-   90       | '(' TOK_FFLOAT ')' TOK_FLOAT
-   91       | '(' TOK_FDOUBLE ')' TOK_FLOAT
-   92       | TOK_IN
-   93       | TOK_IDENTIFIER '(' paramscall ')'
+   80 factor: '(' expr ')'
+   81       | TOK_IDENTIFIER
+   82       | TOK_IDENTIFIER '[' expr ']'
+   83       | TOK_IDENTIFIER '[' expr ']' '[' expr ']'
+   84       | TOK_TRUE
+   85       | TOK_FALSE
+   86       | TOK_INTEGER
+   87       | TOK_FLOAT
+   88       | '(' TOK_FSHORT TOK_FINT ')' TOK_INTEGER
+   89       | '(' TOK_FLONG TOK_FINT ')' TOK_INTEGER
+   90       | '(' TOK_FLONG TOK_FLONG TOK_FINT ')' TOK_INTEGER
+   91       | '(' TOK_FFLOAT ')' TOK_FLOAT
+   92       | '(' TOK_FDOUBLE ')' TOK_FLOAT
+   93       | TOK_IN
+   94       | TOK_IDENTIFIER '(' paramscall ')'
 
-   94 printstmt: TOK_PRINT TOK_STRING
-   95          | TOK_PRINT expr
+   95 printstmt: TOK_PRINT TOK_STRING
+   96          | TOK_PRINT expr
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
-'!' (33) 67
-'%' (37) 77
-'(' (40) 34 54 55 56 57 60 65 79 87 88 89 90 91 93
-')' (41) 34 54 55 56 57 60 65 79 87 88 89 90 91 93
-'*' (42) 11 75
-'+' (43) 8 9 72
-',' (44) 24 29 35 49
-'-' (45) 10 73
-'/' (47) 76
+'!' (33) 68
+'%' (37) 78
+'(' (40) 34 55 56 57 58 61 66 80 88 89 90 91 92 94
+')' (41) 34 55 56 57 58 61 66 80 88 89 90 91 92 94
+'*' (42) 11 76
+'+' (43) 8 9 73
+',' (44) 24 29 35 50
+'-' (45) 10 74
+'/' (47) 77
 ':' (58) 26 31
 ';' (59) 6 7 8 9 10 11 12 13 14 18 19 20 21 22
-'<' (60) 68 70
-'=' (61) 6 7 9 10 11 12 13 66 67 68 69
-'>' (62) 69 71
-'[' (91) 81 82
-']' (93) 81 82
-'{' (123) 23 28 33 34 56 57 59 60
-'}' (125) 23 28 33 34 56 57 59 60
+'<' (60) 69 71
+'=' (61) 6 7 9 10 11 12 13 67 68 69 70
+'>' (62) 70 72
+'[' (91) 82 83
+']' (93) 82 83
+'{' (123) 23 28 33 34 57 58 60 61
+'}' (125) 23 28 33 34 57 58 60 61
 error (256) 22
-TOK_FUNCTION (258)
-TOK_RETURN (259) 52 53
-TOK_IF (260) 54 55 56 57
-TOK_ELSE (261) 58 59
-TOK_FOR (262)
-TOK_WHILE (263) 60
-TOK_PRINT (264) 94 95
-TOK_IN (265) 92
-TOK_OUT (266) 6
-TOK_STEPPER (267) 20
-TOK_SERVO (268) 21
-TOK_DELAY (269) 14
-TOK_AND (270) 63
-TOK_OR (271) 61
-TOK_IDENTIFIER (272) 7 8 9 10 11 12 13 34 38 80 81 82 93
-TOK_FLOAT (273) 86 90 91
-TOK_INTEGER (274) 26 31 33 85 87 88 89
-TOK_STRING (275) 94
-TOK_TRUE (276) 83
-TOK_FALSE (277) 84
-TOK_FINT (278) 40 41 42 43 44 87 88 89
-TOK_FFLOAT (279) 45 46 90
-TOK_FDOUBLE (280) 47 48 91
-TOK_FCHAR (281)
-TOK_FLONG (282) 42 43 44 88 89
-TOK_FSHORT (283) 40 45 87
-TOK_FUNSIGNED (284)
-TOK_FBOOL (285) 39
-TOK_QUANDO (286) 33
-TOK_ESTA (287) 33
-EQ_OP (288)
-NE_OP (289)
-GE_OP (290)
-LE_OP (291)
-GT_OP (292)
-LT_OP (293)
-IFX (294)
+TOK_VOID (258) 39
+TOK_FUNCTION (259)
+TOK_RETURN (260) 53 54
+TOK_IF (261) 55 56 57 58
+TOK_ELSE (262) 59 60
+TOK_FOR (263)
+TOK_WHILE (264) 61
+TOK_PRINT (265) 95 96
+TOK_IN (266) 93
+TOK_OUT (267) 6
+TOK_STEPPER (268) 20
+TOK_SERVO (269) 21
+TOK_DELAY (270) 14
+TOK_AND (271) 64
+TOK_OR (272) 62
+TOK_IDENTIFIER (273) 7 8 9 10 11 12 13 34 38 81 82 83 94
+TOK_FLOAT (274) 87 91 92
+TOK_INTEGER (275) 26 31 33 86 88 89 90
+TOK_STRING (276) 95
+TOK_TRUE (277) 84
+TOK_FALSE (278) 85
+TOK_FINT (279) 41 42 43 44 45 88 89 90
+TOK_FFLOAT (280) 46 47 91
+TOK_FDOUBLE (281) 48 49 92
+TOK_FCHAR (282)
+TOK_FLONG (283) 43 44 45 89 90
+TOK_FSHORT (284) 41 46 88
+TOK_FUNSIGNED (285)
+TOK_FBOOL (286) 40
+TOK_QUANDO (287) 33
+TOK_ESTA (288) 33
+EQ_OP (289)
+NE_OP (290)
+GE_OP (291)
+LE_OP (292)
+GT_OP (293)
+LT_OP (294)
+IFX (295)
 
 
 Nonterminals, with rules where they appear
 
-$accept (58)
+$accept (59)
     on left: 0
-programa (59)
+programa (60)
     on left: 1, on right: 0
-stmts (60)
-    on left: 2 3, on right: 1 2 33 34 56 57 59 60
-fe (61)
+stmts (61)
+    on left: 2 3, on right: 1 2 33 34 57 58 60 61
+fe (62)
     on left: 4 5, on right: 17
-stmt (62)
+stmt (63)
     on left: 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22, on right:
-    2 3 54 55 58
-rmatrix (63)
+    2 3 55 56 59
+rmatrix (64)
     on left: 23, on right: 13
-matrix (64)
+matrix (65)
     on left: 24 25, on right: 23 24
-melement (65)
+melement (66)
     on left: 26 27, on right: 24 25
-relements (66)
+relements (67)
     on left: 28, on right: 12 26 27
-elements (67)
+elements (68)
     on left: 29 30, on right: 28 29
-element (68)
+element (69)
     on left: 31 32, on right: 29 30
-eventblock (69)
+eventblock (70)
     on left: 33, on right: 5
-funcblock (70)
+funcblock (71)
     on left: 34, on right: 4
-funcparams (71)
+funcparams (72)
     on left: 35 36 37, on right: 34 35
-funcparam (72)
+funcparam (73)
     on left: 38, on right: 35 36
-type_f (73)
-    on left: 39 40 41 42 43 44 45 46 47 48, on right: 34 38
-paramscall (74)
-    on left: 49 50 51, on right: 49 93
-returnblock (75)
-    on left: 52 53, on right: 18
-condblock (76)
-    on left: 54 55 56 57, on right: 15
-elseblock (77)
-    on left: 58 59, on right: 55 57
-whileblock (78)
-    on left: 60, on right: 16
-logicexpr (79)
-    on left: 61 62, on right: 53 54 55 56 57 60 61 65
-logicterm (80)
-    on left: 63 64, on right: 61 62 63
-logicfactor (81)
-    on left: 65 66 67 68 69 70 71, on right: 63 64
-expr (82)
-    on left: 72 73 74, on right: 6 7 9 10 11 14 20 21 49 50 52 66 67
-    68 69 70 71 72 73 79 81 82 95
-term (83)
-    on left: 75 76 77 78, on right: 72 73 74 75 76 77
-factor (84)
-    on left: 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93, on right:
-    31 32 75 76 77 78
-printstmt (85)
-    on left: 94 95, on right: 19
+type_f (74)
+    on left: 39 40 41 42 43 44 45 46 47 48 49, on right: 34 38
+paramscall (75)
+    on left: 50 51 52, on right: 50 94
+returnblock (76)
+    on left: 53 54, on right: 18
+condblock (77)
+    on left: 55 56 57 58, on right: 15
+elseblock (78)
+    on left: 59 60, on right: 56 58
+whileblock (79)
+    on left: 61, on right: 16
+logicexpr (80)
+    on left: 62 63, on right: 54 55 56 57 58 61 62 66
+logicterm (81)
+    on left: 64 65, on right: 62 63 64
+logicfactor (82)
+    on left: 66 67 68 69 70 71 72, on right: 64 65
+expr (83)
+    on left: 73 74 75, on right: 6 7 9 10 11 14 20 21 50 51 53 67 68
+    69 70 71 72 73 74 80 82 83 96
+term (84)
+    on left: 76 77 78 79, on right: 73 74 75 76 77 78
+factor (85)
+    on left: 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94, on right:
+    31 32 76 77 78 79
+printstmt (86)
+    on left: 95 96, on right: 19
 
 
 State 0
@@ -268,159 +270,167 @@ State 0
     0 $accept: . programa $end
 
     error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
 
-    programa     go to state 18
-    stmts        go to state 19
-    fe           go to state 20
-    stmt         go to state 21
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
+    programa     go to state 19
+    stmts        go to state 20
+    fe           go to state 21
+    stmt         go to state 22
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
 
 
 State 1
 
    22 stmt: error . ';'
 
-    ';'  shift, and go to state 29
+    ';'  shift, and go to state 30
 
 
 State 2
 
-   52 returnblock: TOK_RETURN . expr
-   53            | TOK_RETURN . logicexpr
+   39 type_f: TOK_VOID .
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 36
-
-    logicexpr    go to state 37
-    logicterm    go to state 38
-    logicfactor  go to state 39
-    expr         go to state 40
-    term         go to state 41
-    factor       go to state 42
+    $default  reduce using rule 39 (type_f)
 
 
 State 3
 
-   54 condblock: TOK_IF . '(' logicexpr ')' stmt
-   55          | TOK_IF . '(' logicexpr ')' stmt elseblock
-   56          | TOK_IF . '(' logicexpr ')' '{' stmts '}'
-   57          | TOK_IF . '(' logicexpr ')' '{' stmts '}' elseblock
+   53 returnblock: TOK_RETURN . expr
+   54            | TOK_RETURN . logicexpr
 
-    '('  shift, and go to state 43
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 37
+
+    logicexpr    go to state 38
+    logicterm    go to state 39
+    logicfactor  go to state 40
+    expr         go to state 41
+    term         go to state 42
+    factor       go to state 43
 
 
 State 4
 
-   60 whileblock: TOK_WHILE . '(' logicexpr ')' '{' stmts '}'
+   55 condblock: TOK_IF . '(' logicexpr ')' stmt
+   56          | TOK_IF . '(' logicexpr ')' stmt elseblock
+   57          | TOK_IF . '(' logicexpr ')' '{' stmts '}'
+   58          | TOK_IF . '(' logicexpr ')' '{' stmts '}' elseblock
 
     '('  shift, and go to state 44
 
 
 State 5
 
-   94 printstmt: TOK_PRINT . TOK_STRING
-   95          | TOK_PRINT . expr
+   61 whileblock: TOK_WHILE . '(' logicexpr ')' '{' stmts '}'
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_STRING      shift, and go to state 45
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
-
-    expr    go to state 47
-    term    go to state 41
-    factor  go to state 42
+    '('  shift, and go to state 45
 
 
 State 6
 
-    6 stmt: TOK_OUT . '=' expr ';'
+   95 printstmt: TOK_PRINT . TOK_STRING
+   96          | TOK_PRINT . expr
 
-    '='  shift, and go to state 48
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_STRING      shift, and go to state 46
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
+
+    expr    go to state 48
+    term    go to state 42
+    factor  go to state 43
 
 
 State 7
 
-   20 stmt: TOK_STEPPER . expr ';'
+    6 stmt: TOK_OUT . '=' expr ';'
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
-
-    expr    go to state 49
-    term    go to state 41
-    factor  go to state 42
+    '='  shift, and go to state 49
 
 
 State 8
 
-   21 stmt: TOK_SERVO . expr ';'
+   20 stmt: TOK_STEPPER . expr ';'
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
 
     expr    go to state 50
-    term    go to state 41
-    factor  go to state 42
+    term    go to state 42
+    factor  go to state 43
 
 
 State 9
 
-   14 stmt: TOK_DELAY . expr ';'
+   21 stmt: TOK_SERVO . expr ';'
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
 
     expr    go to state 51
-    term    go to state 41
-    factor  go to state 42
+    term    go to state 42
+    factor  go to state 43
 
 
 State 10
+
+   14 stmt: TOK_DELAY . expr ';'
+
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
+
+    expr    go to state 52
+    term    go to state 42
+    factor  go to state 43
+
+
+State 11
 
     7 stmt: TOK_IDENTIFIER . '=' expr ';'
     8     | TOK_IDENTIFIER . '+' '+' ';'
@@ -430,2322 +440,2337 @@ State 10
    12     | TOK_IDENTIFIER . '=' relements ';'
    13     | TOK_IDENTIFIER . '=' rmatrix ';'
 
-    '='  shift, and go to state 52
-    '+'  shift, and go to state 53
-    '-'  shift, and go to state 54
-    '*'  shift, and go to state 55
-
-
-State 11
-
-   41 type_f: TOK_FINT .
-
-    $default  reduce using rule 41 (type_f)
+    '='  shift, and go to state 53
+    '+'  shift, and go to state 54
+    '-'  shift, and go to state 55
+    '*'  shift, and go to state 56
 
 
 State 12
 
-   46 type_f: TOK_FFLOAT .
+   42 type_f: TOK_FINT .
 
-    $default  reduce using rule 46 (type_f)
+    $default  reduce using rule 42 (type_f)
 
 
 State 13
 
-   47 type_f: TOK_FDOUBLE .
-   48       | TOK_FDOUBLE . TOK_FDOUBLE
-
-    TOK_FDOUBLE  shift, and go to state 56
+   47 type_f: TOK_FFLOAT .
 
     $default  reduce using rule 47 (type_f)
 
 
 State 14
 
-   42 type_f: TOK_FLONG . TOK_FINT
-   43       | TOK_FLONG . TOK_FLONG TOK_FINT
-   44       | TOK_FLONG . TOK_FLONG TOK_FLONG TOK_FINT
+   48 type_f: TOK_FDOUBLE .
+   49       | TOK_FDOUBLE . TOK_FDOUBLE
 
-    TOK_FINT   shift, and go to state 57
-    TOK_FLONG  shift, and go to state 58
+    TOK_FDOUBLE  shift, and go to state 57
+
+    $default  reduce using rule 48 (type_f)
 
 
 State 15
 
-   40 type_f: TOK_FSHORT . TOK_FINT
-   45       | TOK_FSHORT . TOK_FFLOAT
+   43 type_f: TOK_FLONG . TOK_FINT
+   44       | TOK_FLONG . TOK_FLONG TOK_FINT
+   45       | TOK_FLONG . TOK_FLONG TOK_FLONG TOK_FINT
 
-    TOK_FINT    shift, and go to state 59
-    TOK_FFLOAT  shift, and go to state 60
+    TOK_FINT   shift, and go to state 58
+    TOK_FLONG  shift, and go to state 59
 
 
 State 16
 
-   39 type_f: TOK_FBOOL .
+   41 type_f: TOK_FSHORT . TOK_FINT
+   46       | TOK_FSHORT . TOK_FFLOAT
 
-    $default  reduce using rule 39 (type_f)
+    TOK_FINT    shift, and go to state 60
+    TOK_FFLOAT  shift, and go to state 61
 
 
 State 17
 
-   33 eventblock: TOK_QUANDO . TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'
+   40 type_f: TOK_FBOOL .
 
-    TOK_INTEGER  shift, and go to state 61
+    $default  reduce using rule 40 (type_f)
 
 
 State 18
 
-    0 $accept: programa . $end
+   33 eventblock: TOK_QUANDO . TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'
 
-    $end  shift, and go to state 62
+    TOK_INTEGER  shift, and go to state 62
 
 
 State 19
+
+    0 $accept: programa . $end
+
+    $end  shift, and go to state 63
+
+
+State 20
 
     1 programa: stmts .
     2 stmts: stmts . stmt
 
     error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
 
     $end  reduce using rule 1 (programa)
 
-    fe           go to state 20
-    stmt         go to state 63
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
+    fe           go to state 21
+    stmt         go to state 64
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
 
 
-State 20
+State 21
 
    17 stmt: fe .
 
     $default  reduce using rule 17 (stmt)
 
 
-State 21
+State 22
 
     3 stmts: stmt .
 
     $default  reduce using rule 3 (stmts)
 
 
-State 22
+State 23
 
     5 fe: eventblock .
 
     $default  reduce using rule 5 (fe)
 
 
-State 23
+State 24
 
     4 fe: funcblock .
 
     $default  reduce using rule 4 (fe)
 
 
-State 24
+State 25
 
    34 funcblock: type_f . TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'
 
-    TOK_IDENTIFIER  shift, and go to state 64
-
-
-State 25
-
-   18 stmt: returnblock . ';'
-
-    ';'  shift, and go to state 65
+    TOK_IDENTIFIER  shift, and go to state 65
 
 
 State 26
+
+   18 stmt: returnblock . ';'
+
+    ';'  shift, and go to state 66
+
+
+State 27
 
    15 stmt: condblock .
 
     $default  reduce using rule 15 (stmt)
 
 
-State 27
+State 28
 
    16 stmt: whileblock .
 
     $default  reduce using rule 16 (stmt)
 
 
-State 28
+State 29
 
    19 stmt: printstmt . ';'
 
-    ';'  shift, and go to state 66
+    ';'  shift, and go to state 67
 
 
-State 29
+State 30
 
    22 stmt: error ';' .
 
     $default  reduce using rule 22 (stmt)
 
 
-State 30
-
-   92 factor: TOK_IN .
-
-    $default  reduce using rule 92 (factor)
-
-
 State 31
 
-   80 factor: TOK_IDENTIFIER .
-   81       | TOK_IDENTIFIER . '[' expr ']'
-   82       | TOK_IDENTIFIER . '[' expr ']' '[' expr ']'
-   93       | TOK_IDENTIFIER . '(' paramscall ')'
+   93 factor: TOK_IN .
 
-    '('  shift, and go to state 67
-    '['  shift, and go to state 68
-
-    $default  reduce using rule 80 (factor)
+    $default  reduce using rule 93 (factor)
 
 
 State 32
 
-   86 factor: TOK_FLOAT .
+   81 factor: TOK_IDENTIFIER .
+   82       | TOK_IDENTIFIER . '[' expr ']'
+   83       | TOK_IDENTIFIER . '[' expr ']' '[' expr ']'
+   94       | TOK_IDENTIFIER . '(' paramscall ')'
 
-    $default  reduce using rule 86 (factor)
+    '('  shift, and go to state 68
+    '['  shift, and go to state 69
+
+    $default  reduce using rule 81 (factor)
 
 
 State 33
 
-   85 factor: TOK_INTEGER .
+   87 factor: TOK_FLOAT .
 
-    $default  reduce using rule 85 (factor)
+    $default  reduce using rule 87 (factor)
 
 
 State 34
 
-   83 factor: TOK_TRUE .
+   86 factor: TOK_INTEGER .
 
-    $default  reduce using rule 83 (factor)
+    $default  reduce using rule 86 (factor)
 
 
 State 35
 
-   84 factor: TOK_FALSE .
+   84 factor: TOK_TRUE .
 
     $default  reduce using rule 84 (factor)
 
 
 State 36
 
-   65 logicfactor: '(' . logicexpr ')'
-   79 factor: '(' . expr ')'
-   87       | '(' . TOK_FSHORT TOK_FINT ')' TOK_INTEGER
-   88       | '(' . TOK_FLONG TOK_FINT ')' TOK_INTEGER
-   89       | '(' . TOK_FLONG TOK_FLONG TOK_FINT ')' TOK_INTEGER
-   90       | '(' . TOK_FFLOAT ')' TOK_FLOAT
-   91       | '(' . TOK_FDOUBLE ')' TOK_FLOAT
+   85 factor: TOK_FALSE .
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    TOK_FFLOAT      shift, and go to state 69
-    TOK_FDOUBLE     shift, and go to state 70
-    TOK_FLONG       shift, and go to state 71
-    TOK_FSHORT      shift, and go to state 72
-    '('             shift, and go to state 36
-
-    logicexpr    go to state 73
-    logicterm    go to state 38
-    logicfactor  go to state 39
-    expr         go to state 74
-    term         go to state 41
-    factor       go to state 42
+    $default  reduce using rule 85 (factor)
 
 
 State 37
 
-   53 returnblock: TOK_RETURN logicexpr .
-   61 logicexpr: logicexpr . TOK_OR logicterm
+   66 logicfactor: '(' . logicexpr ')'
+   80 factor: '(' . expr ')'
+   88       | '(' . TOK_FSHORT TOK_FINT ')' TOK_INTEGER
+   89       | '(' . TOK_FLONG TOK_FINT ')' TOK_INTEGER
+   90       | '(' . TOK_FLONG TOK_FLONG TOK_FINT ')' TOK_INTEGER
+   91       | '(' . TOK_FFLOAT ')' TOK_FLOAT
+   92       | '(' . TOK_FDOUBLE ')' TOK_FLOAT
 
-    TOK_OR  shift, and go to state 75
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    TOK_FFLOAT      shift, and go to state 70
+    TOK_FDOUBLE     shift, and go to state 71
+    TOK_FLONG       shift, and go to state 72
+    TOK_FSHORT      shift, and go to state 73
+    '('             shift, and go to state 37
 
-    $default  reduce using rule 53 (returnblock)
+    logicexpr    go to state 74
+    logicterm    go to state 39
+    logicfactor  go to state 40
+    expr         go to state 75
+    term         go to state 42
+    factor       go to state 43
 
 
 State 38
 
-   62 logicexpr: logicterm .
-   63 logicterm: logicterm . TOK_AND logicfactor
+   54 returnblock: TOK_RETURN logicexpr .
+   62 logicexpr: logicexpr . TOK_OR logicterm
 
-    TOK_AND  shift, and go to state 76
+    TOK_OR  shift, and go to state 76
 
-    $default  reduce using rule 62 (logicexpr)
+    $default  reduce using rule 54 (returnblock)
 
 
 State 39
 
-   64 logicterm: logicfactor .
+   63 logicexpr: logicterm .
+   64 logicterm: logicterm . TOK_AND logicfactor
 
-    $default  reduce using rule 64 (logicterm)
+    TOK_AND  shift, and go to state 77
+
+    $default  reduce using rule 63 (logicexpr)
 
 
 State 40
 
-   52 returnblock: TOK_RETURN expr .
-   66 logicfactor: expr . '=' '=' expr
-   67            | expr . '!' '=' expr
-   68            | expr . '<' '=' expr
-   69            | expr . '>' '=' expr
-   70            | expr . '<' expr
-   71            | expr . '>' expr
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   65 logicterm: logicfactor .
 
-    '='  shift, and go to state 77
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
-    '!'  shift, and go to state 80
-    '<'  shift, and go to state 81
-    '>'  shift, and go to state 82
-
-    $default  reduce using rule 52 (returnblock)
+    $default  reduce using rule 65 (logicterm)
 
 
 State 41
 
-   74 expr: term .
-   75 term: term . '*' factor
-   76     | term . '/' factor
-   77     | term . '%' factor
+   53 returnblock: TOK_RETURN expr .
+   67 logicfactor: expr . '=' '=' expr
+   68            | expr . '!' '=' expr
+   69            | expr . '<' '=' expr
+   70            | expr . '>' '=' expr
+   71            | expr . '<' expr
+   72            | expr . '>' expr
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
-    '*'  shift, and go to state 83
-    '/'  shift, and go to state 84
-    '%'  shift, and go to state 85
+    '='  shift, and go to state 78
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
+    '!'  shift, and go to state 81
+    '<'  shift, and go to state 82
+    '>'  shift, and go to state 83
 
-    $default  reduce using rule 74 (expr)
+    $default  reduce using rule 53 (returnblock)
 
 
 State 42
 
-   78 term: factor .
+   75 expr: term .
+   76 term: term . '*' factor
+   77     | term . '/' factor
+   78     | term . '%' factor
 
-    $default  reduce using rule 78 (term)
+    '*'  shift, and go to state 84
+    '/'  shift, and go to state 85
+    '%'  shift, and go to state 86
+
+    $default  reduce using rule 75 (expr)
 
 
 State 43
 
-   54 condblock: TOK_IF '(' . logicexpr ')' stmt
-   55          | TOK_IF '(' . logicexpr ')' stmt elseblock
-   56          | TOK_IF '(' . logicexpr ')' '{' stmts '}'
-   57          | TOK_IF '(' . logicexpr ')' '{' stmts '}' elseblock
+   79 term: factor .
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 36
-
-    logicexpr    go to state 86
-    logicterm    go to state 38
-    logicfactor  go to state 39
-    expr         go to state 87
-    term         go to state 41
-    factor       go to state 42
+    $default  reduce using rule 79 (term)
 
 
 State 44
 
-   60 whileblock: TOK_WHILE '(' . logicexpr ')' '{' stmts '}'
+   55 condblock: TOK_IF '(' . logicexpr ')' stmt
+   56          | TOK_IF '(' . logicexpr ')' stmt elseblock
+   57          | TOK_IF '(' . logicexpr ')' '{' stmts '}'
+   58          | TOK_IF '(' . logicexpr ')' '{' stmts '}' elseblock
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 36
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 37
 
-    logicexpr    go to state 88
-    logicterm    go to state 38
-    logicfactor  go to state 39
-    expr         go to state 87
-    term         go to state 41
-    factor       go to state 42
+    logicexpr    go to state 87
+    logicterm    go to state 39
+    logicfactor  go to state 40
+    expr         go to state 88
+    term         go to state 42
+    factor       go to state 43
 
 
 State 45
 
-   94 printstmt: TOK_PRINT TOK_STRING .
+   61 whileblock: TOK_WHILE '(' . logicexpr ')' '{' stmts '}'
 
-    $default  reduce using rule 94 (printstmt)
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 37
+
+    logicexpr    go to state 89
+    logicterm    go to state 39
+    logicfactor  go to state 40
+    expr         go to state 88
+    term         go to state 42
+    factor       go to state 43
 
 
 State 46
 
-   79 factor: '(' . expr ')'
-   87       | '(' . TOK_FSHORT TOK_FINT ')' TOK_INTEGER
-   88       | '(' . TOK_FLONG TOK_FINT ')' TOK_INTEGER
-   89       | '(' . TOK_FLONG TOK_FLONG TOK_FINT ')' TOK_INTEGER
-   90       | '(' . TOK_FFLOAT ')' TOK_FLOAT
-   91       | '(' . TOK_FDOUBLE ')' TOK_FLOAT
-
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    TOK_FFLOAT      shift, and go to state 69
-    TOK_FDOUBLE     shift, and go to state 70
-    TOK_FLONG       shift, and go to state 71
-    TOK_FSHORT      shift, and go to state 72
-    '('             shift, and go to state 46
-
-    expr    go to state 89
-    term    go to state 41
-    factor  go to state 42
-
-
-State 47
-
-   72 expr: expr . '+' term
-   73     | expr . '-' term
-   95 printstmt: TOK_PRINT expr .
-
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
+   95 printstmt: TOK_PRINT TOK_STRING .
 
     $default  reduce using rule 95 (printstmt)
 
 
-State 48
+State 47
 
-    6 stmt: TOK_OUT '=' . expr ';'
+   80 factor: '(' . expr ')'
+   88       | '(' . TOK_FSHORT TOK_FINT ')' TOK_INTEGER
+   89       | '(' . TOK_FLONG TOK_FINT ')' TOK_INTEGER
+   90       | '(' . TOK_FLONG TOK_FLONG TOK_FINT ')' TOK_INTEGER
+   91       | '(' . TOK_FFLOAT ')' TOK_FLOAT
+   92       | '(' . TOK_FDOUBLE ')' TOK_FLOAT
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    TOK_FFLOAT      shift, and go to state 70
+    TOK_FDOUBLE     shift, and go to state 71
+    TOK_FLONG       shift, and go to state 72
+    TOK_FSHORT      shift, and go to state 73
+    '('             shift, and go to state 47
 
     expr    go to state 90
-    term    go to state 41
-    factor  go to state 42
+    term    go to state 42
+    factor  go to state 43
+
+
+State 48
+
+   73 expr: expr . '+' term
+   74     | expr . '-' term
+   96 printstmt: TOK_PRINT expr .
+
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
+
+    $default  reduce using rule 96 (printstmt)
 
 
 State 49
 
-   20 stmt: TOK_STEPPER expr . ';'
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+    6 stmt: TOK_OUT '=' . expr ';'
 
-    ';'  shift, and go to state 91
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
+
+    expr    go to state 91
+    term    go to state 42
+    factor  go to state 43
 
 
 State 50
 
-   21 stmt: TOK_SERVO expr . ';'
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   20 stmt: TOK_STEPPER expr . ';'
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
     ';'  shift, and go to state 92
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
 
 
 State 51
 
-   14 stmt: TOK_DELAY expr . ';'
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   21 stmt: TOK_SERVO expr . ';'
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
     ';'  shift, and go to state 93
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
 
 
 State 52
+
+   14 stmt: TOK_DELAY expr . ';'
+   73 expr: expr . '+' term
+   74     | expr . '-' term
+
+    ';'  shift, and go to state 94
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
+
+
+State 53
 
     7 stmt: TOK_IDENTIFIER '=' . expr ';'
    12     | TOK_IDENTIFIER '=' . relements ';'
    13     | TOK_IDENTIFIER '=' . rmatrix ';'
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '{'             shift, and go to state 94
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '{'             shift, and go to state 95
+    '('             shift, and go to state 47
 
-    rmatrix    go to state 95
-    relements  go to state 96
-    expr       go to state 97
-    term       go to state 41
-    factor     go to state 42
-
-
-State 53
-
-    8 stmt: TOK_IDENTIFIER '+' . '+' ';'
-    9     | TOK_IDENTIFIER '+' . '=' expr ';'
-
-    '='  shift, and go to state 98
-    '+'  shift, and go to state 99
+    rmatrix    go to state 96
+    relements  go to state 97
+    expr       go to state 98
+    term       go to state 42
+    factor     go to state 43
 
 
 State 54
 
-   10 stmt: TOK_IDENTIFIER '-' . '=' expr ';'
+    8 stmt: TOK_IDENTIFIER '+' . '+' ';'
+    9     | TOK_IDENTIFIER '+' . '=' expr ';'
 
-    '='  shift, and go to state 100
+    '='  shift, and go to state 99
+    '+'  shift, and go to state 100
 
 
 State 55
 
-   11 stmt: TOK_IDENTIFIER '*' . '=' expr ';'
+   10 stmt: TOK_IDENTIFIER '-' . '=' expr ';'
 
     '='  shift, and go to state 101
 
 
 State 56
 
-   48 type_f: TOK_FDOUBLE TOK_FDOUBLE .
+   11 stmt: TOK_IDENTIFIER '*' . '=' expr ';'
 
-    $default  reduce using rule 48 (type_f)
+    '='  shift, and go to state 102
 
 
 State 57
 
-   42 type_f: TOK_FLONG TOK_FINT .
+   49 type_f: TOK_FDOUBLE TOK_FDOUBLE .
 
-    $default  reduce using rule 42 (type_f)
+    $default  reduce using rule 49 (type_f)
 
 
 State 58
 
-   43 type_f: TOK_FLONG TOK_FLONG . TOK_FINT
-   44       | TOK_FLONG TOK_FLONG . TOK_FLONG TOK_FINT
+   43 type_f: TOK_FLONG TOK_FINT .
 
-    TOK_FINT   shift, and go to state 102
-    TOK_FLONG  shift, and go to state 103
+    $default  reduce using rule 43 (type_f)
 
 
 State 59
 
-   40 type_f: TOK_FSHORT TOK_FINT .
+   44 type_f: TOK_FLONG TOK_FLONG . TOK_FINT
+   45       | TOK_FLONG TOK_FLONG . TOK_FLONG TOK_FINT
 
-    $default  reduce using rule 40 (type_f)
+    TOK_FINT   shift, and go to state 103
+    TOK_FLONG  shift, and go to state 104
 
 
 State 60
 
-   45 type_f: TOK_FSHORT TOK_FFLOAT .
+   41 type_f: TOK_FSHORT TOK_FINT .
 
-    $default  reduce using rule 45 (type_f)
+    $default  reduce using rule 41 (type_f)
 
 
 State 61
 
-   33 eventblock: TOK_QUANDO TOK_INTEGER . TOK_ESTA TOK_INTEGER '{' stmts '}'
+   46 type_f: TOK_FSHORT TOK_FFLOAT .
 
-    TOK_ESTA  shift, and go to state 104
+    $default  reduce using rule 46 (type_f)
 
 
 State 62
+
+   33 eventblock: TOK_QUANDO TOK_INTEGER . TOK_ESTA TOK_INTEGER '{' stmts '}'
+
+    TOK_ESTA  shift, and go to state 105
+
+
+State 63
 
     0 $accept: programa $end .
 
     $default  accept
 
 
-State 63
+State 64
 
     2 stmts: stmts stmt .
 
     $default  reduce using rule 2 (stmts)
 
 
-State 64
+State 65
 
    34 funcblock: type_f TOK_IDENTIFIER . '(' funcparams ')' '{' stmts '}'
 
-    '('  shift, and go to state 105
+    '('  shift, and go to state 106
 
 
-State 65
+State 66
 
    18 stmt: returnblock ';' .
 
     $default  reduce using rule 18 (stmt)
 
 
-State 66
+State 67
 
    19 stmt: printstmt ';' .
 
     $default  reduce using rule 19 (stmt)
 
 
-State 67
-
-   93 factor: TOK_IDENTIFIER '(' . paramscall ')'
-
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
-
-    $default  reduce using rule 51 (paramscall)
-
-    paramscall  go to state 106
-    expr        go to state 107
-    term        go to state 41
-    factor      go to state 42
-
-
 State 68
 
-   81 factor: TOK_IDENTIFIER '[' . expr ']'
-   82       | TOK_IDENTIFIER '[' . expr ']' '[' expr ']'
+   94 factor: TOK_IDENTIFIER '(' . paramscall ')'
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
 
-    expr    go to state 108
-    term    go to state 41
-    factor  go to state 42
+    $default  reduce using rule 52 (paramscall)
+
+    paramscall  go to state 107
+    expr        go to state 108
+    term        go to state 42
+    factor      go to state 43
 
 
 State 69
 
-   90 factor: '(' TOK_FFLOAT . ')' TOK_FLOAT
+   82 factor: TOK_IDENTIFIER '[' . expr ']'
+   83       | TOK_IDENTIFIER '[' . expr ']' '[' expr ']'
 
-    ')'  shift, and go to state 109
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
+
+    expr    go to state 109
+    term    go to state 42
+    factor  go to state 43
 
 
 State 70
 
-   91 factor: '(' TOK_FDOUBLE . ')' TOK_FLOAT
+   91 factor: '(' TOK_FFLOAT . ')' TOK_FLOAT
 
     ')'  shift, and go to state 110
 
 
 State 71
 
-   88 factor: '(' TOK_FLONG . TOK_FINT ')' TOK_INTEGER
-   89       | '(' TOK_FLONG . TOK_FLONG TOK_FINT ')' TOK_INTEGER
+   92 factor: '(' TOK_FDOUBLE . ')' TOK_FLOAT
 
-    TOK_FINT   shift, and go to state 111
-    TOK_FLONG  shift, and go to state 112
+    ')'  shift, and go to state 111
 
 
 State 72
 
-   87 factor: '(' TOK_FSHORT . TOK_FINT ')' TOK_INTEGER
+   89 factor: '(' TOK_FLONG . TOK_FINT ')' TOK_INTEGER
+   90       | '(' TOK_FLONG . TOK_FLONG TOK_FINT ')' TOK_INTEGER
 
-    TOK_FINT  shift, and go to state 113
+    TOK_FINT   shift, and go to state 112
+    TOK_FLONG  shift, and go to state 113
 
 
 State 73
 
-   61 logicexpr: logicexpr . TOK_OR logicterm
-   65 logicfactor: '(' logicexpr . ')'
+   88 factor: '(' TOK_FSHORT . TOK_FINT ')' TOK_INTEGER
 
-    TOK_OR  shift, and go to state 75
-    ')'     shift, and go to state 114
+    TOK_FINT  shift, and go to state 114
 
 
 State 74
 
-   66 logicfactor: expr . '=' '=' expr
-   67            | expr . '!' '=' expr
-   68            | expr . '<' '=' expr
-   69            | expr . '>' '=' expr
-   70            | expr . '<' expr
-   71            | expr . '>' expr
-   72 expr: expr . '+' term
-   73     | expr . '-' term
-   79 factor: '(' expr . ')'
+   62 logicexpr: logicexpr . TOK_OR logicterm
+   66 logicfactor: '(' logicexpr . ')'
 
-    '='  shift, and go to state 77
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
-    ')'  shift, and go to state 115
-    '!'  shift, and go to state 80
-    '<'  shift, and go to state 81
-    '>'  shift, and go to state 82
+    TOK_OR  shift, and go to state 76
+    ')'     shift, and go to state 115
 
 
 State 75
 
-   61 logicexpr: logicexpr TOK_OR . logicterm
+   67 logicfactor: expr . '=' '=' expr
+   68            | expr . '!' '=' expr
+   69            | expr . '<' '=' expr
+   70            | expr . '>' '=' expr
+   71            | expr . '<' expr
+   72            | expr . '>' expr
+   73 expr: expr . '+' term
+   74     | expr . '-' term
+   80 factor: '(' expr . ')'
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 36
-
-    logicterm    go to state 116
-    logicfactor  go to state 39
-    expr         go to state 87
-    term         go to state 41
-    factor       go to state 42
+    '='  shift, and go to state 78
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
+    ')'  shift, and go to state 116
+    '!'  shift, and go to state 81
+    '<'  shift, and go to state 82
+    '>'  shift, and go to state 83
 
 
 State 76
 
-   63 logicterm: logicterm TOK_AND . logicfactor
+   62 logicexpr: logicexpr TOK_OR . logicterm
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 36
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 37
 
-    logicfactor  go to state 117
-    expr         go to state 87
-    term         go to state 41
-    factor       go to state 42
+    logicterm    go to state 117
+    logicfactor  go to state 40
+    expr         go to state 88
+    term         go to state 42
+    factor       go to state 43
 
 
 State 77
 
-   66 logicfactor: expr '=' . '=' expr
+   64 logicterm: logicterm TOK_AND . logicfactor
 
-    '='  shift, and go to state 118
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 37
+
+    logicfactor  go to state 118
+    expr         go to state 88
+    term         go to state 42
+    factor       go to state 43
 
 
 State 78
 
-   72 expr: expr '+' . term
+   67 logicfactor: expr '=' . '=' expr
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
-
-    term    go to state 119
-    factor  go to state 42
+    '='  shift, and go to state 119
 
 
 State 79
 
-   73 expr: expr '-' . term
+   73 expr: expr '+' . term
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
 
     term    go to state 120
-    factor  go to state 42
+    factor  go to state 43
 
 
 State 80
 
-   67 logicfactor: expr '!' . '=' expr
+   74 expr: expr '-' . term
 
-    '='  shift, and go to state 121
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
+
+    term    go to state 121
+    factor  go to state 43
 
 
 State 81
 
-   68 logicfactor: expr '<' . '=' expr
-   70            | expr '<' . expr
+   68 logicfactor: expr '!' . '=' expr
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '='             shift, and go to state 122
-    '('             shift, and go to state 46
-
-    expr    go to state 123
-    term    go to state 41
-    factor  go to state 42
+    '='  shift, and go to state 122
 
 
 State 82
 
-   69 logicfactor: expr '>' . '=' expr
-   71            | expr '>' . expr
+   69 logicfactor: expr '<' . '=' expr
+   71            | expr '<' . expr
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '='             shift, and go to state 124
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '='             shift, and go to state 123
+    '('             shift, and go to state 47
 
-    expr    go to state 125
-    term    go to state 41
-    factor  go to state 42
+    expr    go to state 124
+    term    go to state 42
+    factor  go to state 43
 
 
 State 83
 
-   75 term: term '*' . factor
+   70 logicfactor: expr '>' . '=' expr
+   72            | expr '>' . expr
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '='             shift, and go to state 125
+    '('             shift, and go to state 47
 
-    factor  go to state 126
+    expr    go to state 126
+    term    go to state 42
+    factor  go to state 43
 
 
 State 84
 
-   76 term: term '/' . factor
+   76 term: term '*' . factor
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
 
     factor  go to state 127
 
 
 State 85
 
-   77 term: term '%' . factor
+   77 term: term '/' . factor
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
 
     factor  go to state 128
 
 
 State 86
 
-   54 condblock: TOK_IF '(' logicexpr . ')' stmt
-   55          | TOK_IF '(' logicexpr . ')' stmt elseblock
-   56          | TOK_IF '(' logicexpr . ')' '{' stmts '}'
-   57          | TOK_IF '(' logicexpr . ')' '{' stmts '}' elseblock
-   61 logicexpr: logicexpr . TOK_OR logicterm
+   78 term: term '%' . factor
 
-    TOK_OR  shift, and go to state 75
-    ')'     shift, and go to state 129
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
+
+    factor  go to state 129
 
 
 State 87
 
-   66 logicfactor: expr . '=' '=' expr
-   67            | expr . '!' '=' expr
-   68            | expr . '<' '=' expr
-   69            | expr . '>' '=' expr
-   70            | expr . '<' expr
-   71            | expr . '>' expr
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   55 condblock: TOK_IF '(' logicexpr . ')' stmt
+   56          | TOK_IF '(' logicexpr . ')' stmt elseblock
+   57          | TOK_IF '(' logicexpr . ')' '{' stmts '}'
+   58          | TOK_IF '(' logicexpr . ')' '{' stmts '}' elseblock
+   62 logicexpr: logicexpr . TOK_OR logicterm
 
-    '='  shift, and go to state 77
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
-    '!'  shift, and go to state 80
-    '<'  shift, and go to state 81
-    '>'  shift, and go to state 82
+    TOK_OR  shift, and go to state 76
+    ')'     shift, and go to state 130
 
 
 State 88
 
-   60 whileblock: TOK_WHILE '(' logicexpr . ')' '{' stmts '}'
-   61 logicexpr: logicexpr . TOK_OR logicterm
+   67 logicfactor: expr . '=' '=' expr
+   68            | expr . '!' '=' expr
+   69            | expr . '<' '=' expr
+   70            | expr . '>' '=' expr
+   71            | expr . '<' expr
+   72            | expr . '>' expr
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
-    TOK_OR  shift, and go to state 75
-    ')'     shift, and go to state 130
+    '='  shift, and go to state 78
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
+    '!'  shift, and go to state 81
+    '<'  shift, and go to state 82
+    '>'  shift, and go to state 83
 
 
 State 89
 
-   72 expr: expr . '+' term
-   73     | expr . '-' term
-   79 factor: '(' expr . ')'
+   61 whileblock: TOK_WHILE '(' logicexpr . ')' '{' stmts '}'
+   62 logicexpr: logicexpr . TOK_OR logicterm
 
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
-    ')'  shift, and go to state 115
+    TOK_OR  shift, and go to state 76
+    ')'     shift, and go to state 131
 
 
 State 90
 
-    6 stmt: TOK_OUT '=' expr . ';'
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   73 expr: expr . '+' term
+   74     | expr . '-' term
+   80 factor: '(' expr . ')'
 
-    ';'  shift, and go to state 131
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
+    ')'  shift, and go to state 116
 
 
 State 91
+
+    6 stmt: TOK_OUT '=' expr . ';'
+   73 expr: expr . '+' term
+   74     | expr . '-' term
+
+    ';'  shift, and go to state 132
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
+
+
+State 92
 
    20 stmt: TOK_STEPPER expr ';' .
 
     $default  reduce using rule 20 (stmt)
 
 
-State 92
+State 93
 
    21 stmt: TOK_SERVO expr ';' .
 
     $default  reduce using rule 21 (stmt)
 
 
-State 93
+State 94
 
    14 stmt: TOK_DELAY expr ';' .
 
     $default  reduce using rule 14 (stmt)
 
 
-State 94
+State 95
 
    23 rmatrix: '{' . matrix '}'
    28 relements: '{' . elements '}'
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '{'             shift, and go to state 132
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '{'             shift, and go to state 133
+    '('             shift, and go to state 47
 
-    matrix     go to state 133
-    melement   go to state 134
-    relements  go to state 135
-    elements   go to state 136
-    element    go to state 137
-    factor     go to state 138
-
-
-State 95
-
-   13 stmt: TOK_IDENTIFIER '=' rmatrix . ';'
-
-    ';'  shift, and go to state 139
+    matrix     go to state 134
+    melement   go to state 135
+    relements  go to state 136
+    elements   go to state 137
+    element    go to state 138
+    factor     go to state 139
 
 
 State 96
 
-   12 stmt: TOK_IDENTIFIER '=' relements . ';'
+   13 stmt: TOK_IDENTIFIER '=' rmatrix . ';'
 
     ';'  shift, and go to state 140
 
 
 State 97
 
-    7 stmt: TOK_IDENTIFIER '=' expr . ';'
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   12 stmt: TOK_IDENTIFIER '=' relements . ';'
 
     ';'  shift, and go to state 141
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
 
 
 State 98
 
-    9 stmt: TOK_IDENTIFIER '+' '=' . expr ';'
+    7 stmt: TOK_IDENTIFIER '=' expr . ';'
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
-
-    expr    go to state 142
-    term    go to state 41
-    factor  go to state 42
+    ';'  shift, and go to state 142
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
 
 
 State 99
 
-    8 stmt: TOK_IDENTIFIER '+' '+' . ';'
+    9 stmt: TOK_IDENTIFIER '+' '=' . expr ';'
 
-    ';'  shift, and go to state 143
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
+
+    expr    go to state 143
+    term    go to state 42
+    factor  go to state 43
 
 
 State 100
 
-   10 stmt: TOK_IDENTIFIER '-' '=' . expr ';'
+    8 stmt: TOK_IDENTIFIER '+' '+' . ';'
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
-
-    expr    go to state 144
-    term    go to state 41
-    factor  go to state 42
+    ';'  shift, and go to state 144
 
 
 State 101
 
-   11 stmt: TOK_IDENTIFIER '*' '=' . expr ';'
+   10 stmt: TOK_IDENTIFIER '-' '=' . expr ';'
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
 
     expr    go to state 145
-    term    go to state 41
-    factor  go to state 42
+    term    go to state 42
+    factor  go to state 43
 
 
 State 102
 
-   43 type_f: TOK_FLONG TOK_FLONG TOK_FINT .
+   11 stmt: TOK_IDENTIFIER '*' '=' . expr ';'
 
-    $default  reduce using rule 43 (type_f)
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
+
+    expr    go to state 146
+    term    go to state 42
+    factor  go to state 43
 
 
 State 103
 
-   44 type_f: TOK_FLONG TOK_FLONG TOK_FLONG . TOK_FINT
+   44 type_f: TOK_FLONG TOK_FLONG TOK_FINT .
 
-    TOK_FINT  shift, and go to state 146
+    $default  reduce using rule 44 (type_f)
 
 
 State 104
 
-   33 eventblock: TOK_QUANDO TOK_INTEGER TOK_ESTA . TOK_INTEGER '{' stmts '}'
+   45 type_f: TOK_FLONG TOK_FLONG TOK_FLONG . TOK_FINT
 
-    TOK_INTEGER  shift, and go to state 147
+    TOK_FINT  shift, and go to state 147
 
 
 State 105
 
-   34 funcblock: type_f TOK_IDENTIFIER '(' . funcparams ')' '{' stmts '}'
+   33 eventblock: TOK_QUANDO TOK_INTEGER TOK_ESTA . TOK_INTEGER '{' stmts '}'
 
-    TOK_FINT     shift, and go to state 11
-    TOK_FFLOAT   shift, and go to state 12
-    TOK_FDOUBLE  shift, and go to state 13
-    TOK_FLONG    shift, and go to state 14
-    TOK_FSHORT   shift, and go to state 15
-    TOK_FBOOL    shift, and go to state 16
-
-    $default  reduce using rule 37 (funcparams)
-
-    funcparams  go to state 148
-    funcparam   go to state 149
-    type_f      go to state 150
+    TOK_INTEGER  shift, and go to state 148
 
 
 State 106
 
-   49 paramscall: paramscall . ',' expr
-   93 factor: TOK_IDENTIFIER '(' paramscall . ')'
+   34 funcblock: type_f TOK_IDENTIFIER '(' . funcparams ')' '{' stmts '}'
 
-    ','  shift, and go to state 151
-    ')'  shift, and go to state 152
+    TOK_VOID     shift, and go to state 2
+    TOK_FINT     shift, and go to state 12
+    TOK_FFLOAT   shift, and go to state 13
+    TOK_FDOUBLE  shift, and go to state 14
+    TOK_FLONG    shift, and go to state 15
+    TOK_FSHORT   shift, and go to state 16
+    TOK_FBOOL    shift, and go to state 17
+
+    $default  reduce using rule 37 (funcparams)
+
+    funcparams  go to state 149
+    funcparam   go to state 150
+    type_f      go to state 151
 
 
 State 107
 
-   50 paramscall: expr .
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   50 paramscall: paramscall . ',' expr
+   94 factor: TOK_IDENTIFIER '(' paramscall . ')'
 
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
-
-    $default  reduce using rule 50 (paramscall)
+    ','  shift, and go to state 152
+    ')'  shift, and go to state 153
 
 
 State 108
 
-   72 expr: expr . '+' term
-   73     | expr . '-' term
-   81 factor: TOK_IDENTIFIER '[' expr . ']'
-   82       | TOK_IDENTIFIER '[' expr . ']' '[' expr ']'
+   51 paramscall: expr .
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
-    ']'  shift, and go to state 153
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
+
+    $default  reduce using rule 51 (paramscall)
 
 
 State 109
 
-   90 factor: '(' TOK_FFLOAT ')' . TOK_FLOAT
+   73 expr: expr . '+' term
+   74     | expr . '-' term
+   82 factor: TOK_IDENTIFIER '[' expr . ']'
+   83       | TOK_IDENTIFIER '[' expr . ']' '[' expr ']'
 
-    TOK_FLOAT  shift, and go to state 154
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
+    ']'  shift, and go to state 154
 
 
 State 110
 
-   91 factor: '(' TOK_FDOUBLE ')' . TOK_FLOAT
+   91 factor: '(' TOK_FFLOAT ')' . TOK_FLOAT
 
     TOK_FLOAT  shift, and go to state 155
 
 
 State 111
 
-   88 factor: '(' TOK_FLONG TOK_FINT . ')' TOK_INTEGER
+   92 factor: '(' TOK_FDOUBLE ')' . TOK_FLOAT
 
-    ')'  shift, and go to state 156
+    TOK_FLOAT  shift, and go to state 156
 
 
 State 112
 
-   89 factor: '(' TOK_FLONG TOK_FLONG . TOK_FINT ')' TOK_INTEGER
+   89 factor: '(' TOK_FLONG TOK_FINT . ')' TOK_INTEGER
 
-    TOK_FINT  shift, and go to state 157
+    ')'  shift, and go to state 157
 
 
 State 113
 
-   87 factor: '(' TOK_FSHORT TOK_FINT . ')' TOK_INTEGER
+   90 factor: '(' TOK_FLONG TOK_FLONG . TOK_FINT ')' TOK_INTEGER
 
-    ')'  shift, and go to state 158
+    TOK_FINT  shift, and go to state 158
 
 
 State 114
 
-   65 logicfactor: '(' logicexpr ')' .
+   88 factor: '(' TOK_FSHORT TOK_FINT . ')' TOK_INTEGER
 
-    $default  reduce using rule 65 (logicfactor)
+    ')'  shift, and go to state 159
 
 
 State 115
 
-   79 factor: '(' expr ')' .
+   66 logicfactor: '(' logicexpr ')' .
 
-    $default  reduce using rule 79 (factor)
+    $default  reduce using rule 66 (logicfactor)
 
 
 State 116
 
-   61 logicexpr: logicexpr TOK_OR logicterm .
-   63 logicterm: logicterm . TOK_AND logicfactor
+   80 factor: '(' expr ')' .
 
-    TOK_AND  shift, and go to state 76
-
-    $default  reduce using rule 61 (logicexpr)
+    $default  reduce using rule 80 (factor)
 
 
 State 117
 
-   63 logicterm: logicterm TOK_AND logicfactor .
+   62 logicexpr: logicexpr TOK_OR logicterm .
+   64 logicterm: logicterm . TOK_AND logicfactor
 
-    $default  reduce using rule 63 (logicterm)
+    TOK_AND  shift, and go to state 77
+
+    $default  reduce using rule 62 (logicexpr)
 
 
 State 118
 
-   66 logicfactor: expr '=' '=' . expr
+   64 logicterm: logicterm TOK_AND logicfactor .
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
-
-    expr    go to state 159
-    term    go to state 41
-    factor  go to state 42
+    $default  reduce using rule 64 (logicterm)
 
 
 State 119
 
-   72 expr: expr '+' term .
-   75 term: term . '*' factor
-   76     | term . '/' factor
-   77     | term . '%' factor
+   67 logicfactor: expr '=' '=' . expr
 
-    '*'  shift, and go to state 83
-    '/'  shift, and go to state 84
-    '%'  shift, and go to state 85
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
 
-    $default  reduce using rule 72 (expr)
+    expr    go to state 160
+    term    go to state 42
+    factor  go to state 43
 
 
 State 120
 
-   73 expr: expr '-' term .
-   75 term: term . '*' factor
-   76     | term . '/' factor
-   77     | term . '%' factor
+   73 expr: expr '+' term .
+   76 term: term . '*' factor
+   77     | term . '/' factor
+   78     | term . '%' factor
 
-    '*'  shift, and go to state 83
-    '/'  shift, and go to state 84
-    '%'  shift, and go to state 85
+    '*'  shift, and go to state 84
+    '/'  shift, and go to state 85
+    '%'  shift, and go to state 86
 
     $default  reduce using rule 73 (expr)
 
 
 State 121
 
-   67 logicfactor: expr '!' '=' . expr
+   74 expr: expr '-' term .
+   76 term: term . '*' factor
+   77     | term . '/' factor
+   78     | term . '%' factor
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    '*'  shift, and go to state 84
+    '/'  shift, and go to state 85
+    '%'  shift, and go to state 86
 
-    expr    go to state 160
-    term    go to state 41
-    factor  go to state 42
+    $default  reduce using rule 74 (expr)
 
 
 State 122
 
-   68 logicfactor: expr '<' '=' . expr
+   68 logicfactor: expr '!' '=' . expr
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
 
     expr    go to state 161
-    term    go to state 41
-    factor  go to state 42
+    term    go to state 42
+    factor  go to state 43
 
 
 State 123
 
-   70 logicfactor: expr '<' expr .
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   69 logicfactor: expr '<' '=' . expr
 
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
 
-    $default  reduce using rule 70 (logicfactor)
+    expr    go to state 162
+    term    go to state 42
+    factor  go to state 43
 
 
 State 124
 
-   69 logicfactor: expr '>' '=' . expr
+   71 logicfactor: expr '<' expr .
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
-
-    expr    go to state 162
-    term    go to state 41
-    factor  go to state 42
-
-
-State 125
-
-   71 logicfactor: expr '>' expr .
-   72 expr: expr . '+' term
-   73     | expr . '-' term
-
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
 
     $default  reduce using rule 71 (logicfactor)
 
 
+State 125
+
+   70 logicfactor: expr '>' '=' . expr
+
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
+
+    expr    go to state 163
+    term    go to state 42
+    factor  go to state 43
+
+
 State 126
 
-   75 term: term '*' factor .
+   72 logicfactor: expr '>' expr .
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
-    $default  reduce using rule 75 (term)
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
+
+    $default  reduce using rule 72 (logicfactor)
 
 
 State 127
 
-   76 term: term '/' factor .
+   76 term: term '*' factor .
 
     $default  reduce using rule 76 (term)
 
 
 State 128
 
-   77 term: term '%' factor .
+   77 term: term '/' factor .
 
     $default  reduce using rule 77 (term)
 
 
 State 129
 
-   54 condblock: TOK_IF '(' logicexpr ')' . stmt
-   55          | TOK_IF '(' logicexpr ')' . stmt elseblock
-   56          | TOK_IF '(' logicexpr ')' . '{' stmts '}'
-   57          | TOK_IF '(' logicexpr ')' . '{' stmts '}' elseblock
+   78 term: term '%' factor .
 
-    error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
-    '{'             shift, and go to state 163
-
-    fe           go to state 20
-    stmt         go to state 164
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
+    $default  reduce using rule 78 (term)
 
 
 State 130
 
-   60 whileblock: TOK_WHILE '(' logicexpr ')' . '{' stmts '}'
+   55 condblock: TOK_IF '(' logicexpr ')' . stmt
+   56          | TOK_IF '(' logicexpr ')' . stmt elseblock
+   57          | TOK_IF '(' logicexpr ')' . '{' stmts '}'
+   58          | TOK_IF '(' logicexpr ')' . '{' stmts '}' elseblock
 
-    '{'  shift, and go to state 165
+    error           shift, and go to state 1
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
+    '{'             shift, and go to state 164
+
+    fe           go to state 21
+    stmt         go to state 165
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
 
 
 State 131
+
+   61 whileblock: TOK_WHILE '(' logicexpr ')' . '{' stmts '}'
+
+    '{'  shift, and go to state 166
+
+
+State 132
 
     6 stmt: TOK_OUT '=' expr ';' .
 
     $default  reduce using rule 6 (stmt)
 
 
-State 132
+State 133
 
    28 relements: '{' . elements '}'
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
 
-    elements  go to state 136
-    element   go to state 137
-    factor    go to state 138
+    elements  go to state 137
+    element   go to state 138
+    factor    go to state 139
 
 
-State 133
+State 134
 
    23 rmatrix: '{' matrix . '}'
    24 matrix: matrix . ',' melement
 
-    '}'  shift, and go to state 166
-    ','  shift, and go to state 167
+    '}'  shift, and go to state 167
+    ','  shift, and go to state 168
 
 
-State 134
+State 135
 
    25 matrix: melement .
 
     $default  reduce using rule 25 (matrix)
 
 
-State 135
+State 136
 
    26 melement: relements . ':' TOK_INTEGER
    27         | relements .
 
-    ':'  shift, and go to state 168
+    ':'  shift, and go to state 169
 
     $default  reduce using rule 27 (melement)
 
 
-State 136
+State 137
 
    28 relements: '{' elements . '}'
    29 elements: elements . ',' element
 
-    '}'  shift, and go to state 169
-    ','  shift, and go to state 170
+    '}'  shift, and go to state 170
+    ','  shift, and go to state 171
 
 
-State 137
+State 138
 
    30 elements: element .
 
     $default  reduce using rule 30 (elements)
 
 
-State 138
+State 139
 
    31 element: factor . ':' TOK_INTEGER
    32        | factor .
 
-    ':'  shift, and go to state 171
+    ':'  shift, and go to state 172
 
     $default  reduce using rule 32 (element)
 
 
-State 139
+State 140
 
    13 stmt: TOK_IDENTIFIER '=' rmatrix ';' .
 
     $default  reduce using rule 13 (stmt)
 
 
-State 140
+State 141
 
    12 stmt: TOK_IDENTIFIER '=' relements ';' .
 
     $default  reduce using rule 12 (stmt)
 
 
-State 141
+State 142
 
     7 stmt: TOK_IDENTIFIER '=' expr ';' .
 
     $default  reduce using rule 7 (stmt)
 
 
-State 142
+State 143
 
     9 stmt: TOK_IDENTIFIER '+' '=' expr . ';'
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
-    ';'  shift, and go to state 172
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
+    ';'  shift, and go to state 173
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
 
 
-State 143
+State 144
 
     8 stmt: TOK_IDENTIFIER '+' '+' ';' .
 
     $default  reduce using rule 8 (stmt)
 
 
-State 144
-
-   10 stmt: TOK_IDENTIFIER '-' '=' expr . ';'
-   72 expr: expr . '+' term
-   73     | expr . '-' term
-
-    ';'  shift, and go to state 173
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
-
-
 State 145
 
-   11 stmt: TOK_IDENTIFIER '*' '=' expr . ';'
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   10 stmt: TOK_IDENTIFIER '-' '=' expr . ';'
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
     ';'  shift, and go to state 174
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
 
 
 State 146
 
-   44 type_f: TOK_FLONG TOK_FLONG TOK_FLONG TOK_FINT .
+   11 stmt: TOK_IDENTIFIER '*' '=' expr . ';'
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
-    $default  reduce using rule 44 (type_f)
+    ';'  shift, and go to state 175
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
 
 
 State 147
 
-   33 eventblock: TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER . '{' stmts '}'
+   45 type_f: TOK_FLONG TOK_FLONG TOK_FLONG TOK_FINT .
 
-    '{'  shift, and go to state 175
+    $default  reduce using rule 45 (type_f)
 
 
 State 148
 
-   34 funcblock: type_f TOK_IDENTIFIER '(' funcparams . ')' '{' stmts '}'
-   35 funcparams: funcparams . ',' funcparam
+   33 eventblock: TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER . '{' stmts '}'
 
-    ','  shift, and go to state 176
-    ')'  shift, and go to state 177
+    '{'  shift, and go to state 176
 
 
 State 149
+
+   34 funcblock: type_f TOK_IDENTIFIER '(' funcparams . ')' '{' stmts '}'
+   35 funcparams: funcparams . ',' funcparam
+
+    ','  shift, and go to state 177
+    ')'  shift, and go to state 178
+
+
+State 150
 
    36 funcparams: funcparam .
 
     $default  reduce using rule 36 (funcparams)
 
 
-State 150
+State 151
 
    38 funcparam: type_f . TOK_IDENTIFIER
 
-    TOK_IDENTIFIER  shift, and go to state 178
-
-
-State 151
-
-   49 paramscall: paramscall ',' . expr
-
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
-
-    expr    go to state 179
-    term    go to state 41
-    factor  go to state 42
+    TOK_IDENTIFIER  shift, and go to state 179
 
 
 State 152
 
-   93 factor: TOK_IDENTIFIER '(' paramscall ')' .
+   50 paramscall: paramscall ',' . expr
 
-    $default  reduce using rule 93 (factor)
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
+
+    expr    go to state 180
+    term    go to state 42
+    factor  go to state 43
 
 
 State 153
 
-   81 factor: TOK_IDENTIFIER '[' expr ']' .
-   82       | TOK_IDENTIFIER '[' expr ']' . '[' expr ']'
+   94 factor: TOK_IDENTIFIER '(' paramscall ')' .
 
-    '['  shift, and go to state 180
-
-    $default  reduce using rule 81 (factor)
+    $default  reduce using rule 94 (factor)
 
 
 State 154
 
-   90 factor: '(' TOK_FFLOAT ')' TOK_FLOAT .
+   82 factor: TOK_IDENTIFIER '[' expr ']' .
+   83       | TOK_IDENTIFIER '[' expr ']' . '[' expr ']'
 
-    $default  reduce using rule 90 (factor)
+    '['  shift, and go to state 181
+
+    $default  reduce using rule 82 (factor)
 
 
 State 155
 
-   91 factor: '(' TOK_FDOUBLE ')' TOK_FLOAT .
+   91 factor: '(' TOK_FFLOAT ')' TOK_FLOAT .
 
     $default  reduce using rule 91 (factor)
 
 
 State 156
 
-   88 factor: '(' TOK_FLONG TOK_FINT ')' . TOK_INTEGER
+   92 factor: '(' TOK_FDOUBLE ')' TOK_FLOAT .
 
-    TOK_INTEGER  shift, and go to state 181
+    $default  reduce using rule 92 (factor)
 
 
 State 157
 
-   89 factor: '(' TOK_FLONG TOK_FLONG TOK_FINT . ')' TOK_INTEGER
+   89 factor: '(' TOK_FLONG TOK_FINT ')' . TOK_INTEGER
 
-    ')'  shift, and go to state 182
+    TOK_INTEGER  shift, and go to state 182
 
 
 State 158
 
-   87 factor: '(' TOK_FSHORT TOK_FINT ')' . TOK_INTEGER
+   90 factor: '(' TOK_FLONG TOK_FLONG TOK_FINT . ')' TOK_INTEGER
 
-    TOK_INTEGER  shift, and go to state 183
+    ')'  shift, and go to state 183
 
 
 State 159
 
-   66 logicfactor: expr '=' '=' expr .
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   88 factor: '(' TOK_FSHORT TOK_FINT ')' . TOK_INTEGER
 
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
-
-    $default  reduce using rule 66 (logicfactor)
+    TOK_INTEGER  shift, and go to state 184
 
 
 State 160
 
-   67 logicfactor: expr '!' '=' expr .
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   67 logicfactor: expr '=' '=' expr .
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
 
     $default  reduce using rule 67 (logicfactor)
 
 
 State 161
 
-   68 logicfactor: expr '<' '=' expr .
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   68 logicfactor: expr '!' '=' expr .
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
 
     $default  reduce using rule 68 (logicfactor)
 
 
 State 162
 
-   69 logicfactor: expr '>' '=' expr .
-   72 expr: expr . '+' term
-   73     | expr . '-' term
+   69 logicfactor: expr '<' '=' expr .
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
 
     $default  reduce using rule 69 (logicfactor)
 
 
 State 163
 
-   56 condblock: TOK_IF '(' logicexpr ')' '{' . stmts '}'
-   57          | TOK_IF '(' logicexpr ')' '{' . stmts '}' elseblock
+   70 logicfactor: expr '>' '=' expr .
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
-    error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
 
-    stmts        go to state 184
-    fe           go to state 20
-    stmt         go to state 21
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
+    $default  reduce using rule 70 (logicfactor)
 
 
 State 164
 
-   54 condblock: TOK_IF '(' logicexpr ')' stmt .
-   55          | TOK_IF '(' logicexpr ')' stmt . elseblock
+   57 condblock: TOK_IF '(' logicexpr ')' '{' . stmts '}'
+   58          | TOK_IF '(' logicexpr ')' '{' . stmts '}' elseblock
 
-    TOK_ELSE  shift, and go to state 185
+    error           shift, and go to state 1
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
 
-    $default  reduce using rule 54 (condblock)
-
-    elseblock  go to state 186
+    stmts        go to state 185
+    fe           go to state 21
+    stmt         go to state 22
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
 
 
 State 165
 
-   60 whileblock: TOK_WHILE '(' logicexpr ')' '{' . stmts '}'
+   55 condblock: TOK_IF '(' logicexpr ')' stmt .
+   56          | TOK_IF '(' logicexpr ')' stmt . elseblock
 
-    error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
+    TOK_ELSE  shift, and go to state 186
 
-    stmts        go to state 187
-    fe           go to state 20
-    stmt         go to state 21
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
+    $default  reduce using rule 55 (condblock)
+
+    elseblock  go to state 187
 
 
 State 166
+
+   61 whileblock: TOK_WHILE '(' logicexpr ')' '{' . stmts '}'
+
+    error           shift, and go to state 1
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
+
+    stmts        go to state 188
+    fe           go to state 21
+    stmt         go to state 22
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
+
+
+State 167
 
    23 rmatrix: '{' matrix '}' .
 
     $default  reduce using rule 23 (rmatrix)
 
 
-State 167
+State 168
 
    24 matrix: matrix ',' . melement
 
-    '{'  shift, and go to state 132
+    '{'  shift, and go to state 133
 
-    melement   go to state 188
-    relements  go to state 135
-
-
-State 168
-
-   26 melement: relements ':' . TOK_INTEGER
-
-    TOK_INTEGER  shift, and go to state 189
+    melement   go to state 189
+    relements  go to state 136
 
 
 State 169
+
+   26 melement: relements ':' . TOK_INTEGER
+
+    TOK_INTEGER  shift, and go to state 190
+
+
+State 170
 
    28 relements: '{' elements '}' .
 
     $default  reduce using rule 28 (relements)
 
 
-State 170
+State 171
 
    29 elements: elements ',' . element
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
 
-    element  go to state 190
-    factor   go to state 138
-
-
-State 171
-
-   31 element: factor ':' . TOK_INTEGER
-
-    TOK_INTEGER  shift, and go to state 191
+    element  go to state 191
+    factor   go to state 139
 
 
 State 172
+
+   31 element: factor ':' . TOK_INTEGER
+
+    TOK_INTEGER  shift, and go to state 192
+
+
+State 173
 
     9 stmt: TOK_IDENTIFIER '+' '=' expr ';' .
 
     $default  reduce using rule 9 (stmt)
 
 
-State 173
+State 174
 
    10 stmt: TOK_IDENTIFIER '-' '=' expr ';' .
 
     $default  reduce using rule 10 (stmt)
 
 
-State 174
+State 175
 
    11 stmt: TOK_IDENTIFIER '*' '=' expr ';' .
 
     $default  reduce using rule 11 (stmt)
 
 
-State 175
+State 176
 
    33 eventblock: TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' . stmts '}'
 
     error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
 
-    stmts        go to state 192
-    fe           go to state 20
-    stmt         go to state 21
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
-
-
-State 176
-
-   35 funcparams: funcparams ',' . funcparam
-
-    TOK_FINT     shift, and go to state 11
-    TOK_FFLOAT   shift, and go to state 12
-    TOK_FDOUBLE  shift, and go to state 13
-    TOK_FLONG    shift, and go to state 14
-    TOK_FSHORT   shift, and go to state 15
-    TOK_FBOOL    shift, and go to state 16
-
-    funcparam  go to state 193
-    type_f     go to state 150
+    stmts        go to state 193
+    fe           go to state 21
+    stmt         go to state 22
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
 
 
 State 177
 
-   34 funcblock: type_f TOK_IDENTIFIER '(' funcparams ')' . '{' stmts '}'
+   35 funcparams: funcparams ',' . funcparam
 
-    '{'  shift, and go to state 194
+    TOK_VOID     shift, and go to state 2
+    TOK_FINT     shift, and go to state 12
+    TOK_FFLOAT   shift, and go to state 13
+    TOK_FDOUBLE  shift, and go to state 14
+    TOK_FLONG    shift, and go to state 15
+    TOK_FSHORT   shift, and go to state 16
+    TOK_FBOOL    shift, and go to state 17
+
+    funcparam  go to state 194
+    type_f     go to state 151
 
 
 State 178
+
+   34 funcblock: type_f TOK_IDENTIFIER '(' funcparams ')' . '{' stmts '}'
+
+    '{'  shift, and go to state 195
+
+
+State 179
 
    38 funcparam: type_f TOK_IDENTIFIER .
 
     $default  reduce using rule 38 (funcparam)
 
 
-State 179
-
-   49 paramscall: paramscall ',' expr .
-   72 expr: expr . '+' term
-   73     | expr . '-' term
-
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
-
-    $default  reduce using rule 49 (paramscall)
-
-
 State 180
 
-   82 factor: TOK_IDENTIFIER '[' expr ']' '[' . expr ']'
+   50 paramscall: paramscall ',' expr .
+   73 expr: expr . '+' term
+   74     | expr . '-' term
 
-    TOK_IN          shift, and go to state 30
-    TOK_IDENTIFIER  shift, and go to state 31
-    TOK_FLOAT       shift, and go to state 32
-    TOK_INTEGER     shift, and go to state 33
-    TOK_TRUE        shift, and go to state 34
-    TOK_FALSE       shift, and go to state 35
-    '('             shift, and go to state 46
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
 
-    expr    go to state 195
-    term    go to state 41
-    factor  go to state 42
+    $default  reduce using rule 50 (paramscall)
 
 
 State 181
 
-   88 factor: '(' TOK_FLONG TOK_FINT ')' TOK_INTEGER .
+   83 factor: TOK_IDENTIFIER '[' expr ']' '[' . expr ']'
 
-    $default  reduce using rule 88 (factor)
+    TOK_IN          shift, and go to state 31
+    TOK_IDENTIFIER  shift, and go to state 32
+    TOK_FLOAT       shift, and go to state 33
+    TOK_INTEGER     shift, and go to state 34
+    TOK_TRUE        shift, and go to state 35
+    TOK_FALSE       shift, and go to state 36
+    '('             shift, and go to state 47
+
+    expr    go to state 196
+    term    go to state 42
+    factor  go to state 43
 
 
 State 182
 
-   89 factor: '(' TOK_FLONG TOK_FLONG TOK_FINT ')' . TOK_INTEGER
+   89 factor: '(' TOK_FLONG TOK_FINT ')' TOK_INTEGER .
 
-    TOK_INTEGER  shift, and go to state 196
+    $default  reduce using rule 89 (factor)
 
 
 State 183
 
-   87 factor: '(' TOK_FSHORT TOK_FINT ')' TOK_INTEGER .
+   90 factor: '(' TOK_FLONG TOK_FLONG TOK_FINT ')' . TOK_INTEGER
 
-    $default  reduce using rule 87 (factor)
+    TOK_INTEGER  shift, and go to state 197
 
 
 State 184
 
-    2 stmts: stmts . stmt
-   56 condblock: TOK_IF '(' logicexpr ')' '{' stmts . '}'
-   57          | TOK_IF '(' logicexpr ')' '{' stmts . '}' elseblock
+   88 factor: '(' TOK_FSHORT TOK_FINT ')' TOK_INTEGER .
 
-    error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
-    '}'             shift, and go to state 197
-
-    fe           go to state 20
-    stmt         go to state 63
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
+    $default  reduce using rule 88 (factor)
 
 
 State 185
 
-   58 elseblock: TOK_ELSE . stmt
-   59          | TOK_ELSE . '{' stmts '}'
+    2 stmts: stmts . stmt
+   57 condblock: TOK_IF '(' logicexpr ')' '{' stmts . '}'
+   58          | TOK_IF '(' logicexpr ')' '{' stmts . '}' elseblock
 
     error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
-    '{'             shift, and go to state 198
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
+    '}'             shift, and go to state 198
 
-    fe           go to state 20
-    stmt         go to state 199
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
+    fe           go to state 21
+    stmt         go to state 64
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
 
 
 State 186
 
-   55 condblock: TOK_IF '(' logicexpr ')' stmt elseblock .
+   59 elseblock: TOK_ELSE . stmt
+   60          | TOK_ELSE . '{' stmts '}'
 
-    $default  reduce using rule 55 (condblock)
+    error           shift, and go to state 1
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
+    '{'             shift, and go to state 199
+
+    fe           go to state 21
+    stmt         go to state 200
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
 
 
 State 187
 
-    2 stmts: stmts . stmt
-   60 whileblock: TOK_WHILE '(' logicexpr ')' '{' stmts . '}'
+   56 condblock: TOK_IF '(' logicexpr ')' stmt elseblock .
 
-    error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
-    '}'             shift, and go to state 200
-
-    fe           go to state 20
-    stmt         go to state 63
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
+    $default  reduce using rule 56 (condblock)
 
 
 State 188
+
+    2 stmts: stmts . stmt
+   61 whileblock: TOK_WHILE '(' logicexpr ')' '{' stmts . '}'
+
+    error           shift, and go to state 1
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
+    '}'             shift, and go to state 201
+
+    fe           go to state 21
+    stmt         go to state 64
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
+
+
+State 189
 
    24 matrix: matrix ',' melement .
 
     $default  reduce using rule 24 (matrix)
 
 
-State 189
+State 190
 
    26 melement: relements ':' TOK_INTEGER .
 
     $default  reduce using rule 26 (melement)
 
 
-State 190
+State 191
 
    29 elements: elements ',' element .
 
     $default  reduce using rule 29 (elements)
 
 
-State 191
+State 192
 
    31 element: factor ':' TOK_INTEGER .
 
     $default  reduce using rule 31 (element)
 
 
-State 192
+State 193
 
     2 stmts: stmts . stmt
    33 eventblock: TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts . '}'
 
     error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
-    '}'             shift, and go to state 201
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
+    '}'             shift, and go to state 202
 
-    fe           go to state 20
-    stmt         go to state 63
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
+    fe           go to state 21
+    stmt         go to state 64
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
 
 
-State 193
+State 194
 
    35 funcparams: funcparams ',' funcparam .
 
     $default  reduce using rule 35 (funcparams)
 
 
-State 194
+State 195
 
    34 funcblock: type_f TOK_IDENTIFIER '(' funcparams ')' '{' . stmts '}'
 
     error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
 
-    stmts        go to state 202
-    fe           go to state 20
-    stmt         go to state 21
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
-
-
-State 195
-
-   72 expr: expr . '+' term
-   73     | expr . '-' term
-   82 factor: TOK_IDENTIFIER '[' expr ']' '[' expr . ']'
-
-    '+'  shift, and go to state 78
-    '-'  shift, and go to state 79
-    ']'  shift, and go to state 203
+    stmts        go to state 203
+    fe           go to state 21
+    stmt         go to state 22
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
 
 
 State 196
 
-   89 factor: '(' TOK_FLONG TOK_FLONG TOK_FINT ')' TOK_INTEGER .
+   73 expr: expr . '+' term
+   74     | expr . '-' term
+   83 factor: TOK_IDENTIFIER '[' expr ']' '[' expr . ']'
 
-    $default  reduce using rule 89 (factor)
+    '+'  shift, and go to state 79
+    '-'  shift, and go to state 80
+    ']'  shift, and go to state 204
 
 
 State 197
 
-   56 condblock: TOK_IF '(' logicexpr ')' '{' stmts '}' .
-   57          | TOK_IF '(' logicexpr ')' '{' stmts '}' . elseblock
+   90 factor: '(' TOK_FLONG TOK_FLONG TOK_FINT ')' TOK_INTEGER .
 
-    TOK_ELSE  shift, and go to state 185
-
-    $default  reduce using rule 56 (condblock)
-
-    elseblock  go to state 204
+    $default  reduce using rule 90 (factor)
 
 
 State 198
 
-   59 elseblock: TOK_ELSE '{' . stmts '}'
+   57 condblock: TOK_IF '(' logicexpr ')' '{' stmts '}' .
+   58          | TOK_IF '(' logicexpr ')' '{' stmts '}' . elseblock
 
-    error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
+    TOK_ELSE  shift, and go to state 186
 
-    stmts        go to state 205
-    fe           go to state 20
-    stmt         go to state 21
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
+    $default  reduce using rule 57 (condblock)
+
+    elseblock  go to state 205
 
 
 State 199
 
-   58 elseblock: TOK_ELSE stmt .
+   60 elseblock: TOK_ELSE '{' . stmts '}'
 
-    $default  reduce using rule 58 (elseblock)
+    error           shift, and go to state 1
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
+
+    stmts        go to state 206
+    fe           go to state 21
+    stmt         go to state 22
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
 
 
 State 200
 
-   60 whileblock: TOK_WHILE '(' logicexpr ')' '{' stmts '}' .
+   59 elseblock: TOK_ELSE stmt .
 
-    $default  reduce using rule 60 (whileblock)
+    $default  reduce using rule 59 (elseblock)
 
 
 State 201
+
+   61 whileblock: TOK_WHILE '(' logicexpr ')' '{' stmts '}' .
+
+    $default  reduce using rule 61 (whileblock)
+
+
+State 202
 
    33 eventblock: TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}' .
 
     $default  reduce using rule 33 (eventblock)
 
 
-State 202
+State 203
 
     2 stmts: stmts . stmt
    34 funcblock: type_f TOK_IDENTIFIER '(' funcparams ')' '{' stmts . '}'
 
     error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
-    '}'             shift, and go to state 206
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
+    '}'             shift, and go to state 207
 
-    fe           go to state 20
-    stmt         go to state 63
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
-
-
-State 203
-
-   82 factor: TOK_IDENTIFIER '[' expr ']' '[' expr ']' .
-
-    $default  reduce using rule 82 (factor)
+    fe           go to state 21
+    stmt         go to state 64
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
 
 
 State 204
 
-   57 condblock: TOK_IF '(' logicexpr ')' '{' stmts '}' elseblock .
+   83 factor: TOK_IDENTIFIER '[' expr ']' '[' expr ']' .
 
-    $default  reduce using rule 57 (condblock)
+    $default  reduce using rule 83 (factor)
 
 
 State 205
 
-    2 stmts: stmts . stmt
-   59 elseblock: TOK_ELSE '{' stmts . '}'
+   58 condblock: TOK_IF '(' logicexpr ')' '{' stmts '}' elseblock .
 
-    error           shift, and go to state 1
-    TOK_RETURN      shift, and go to state 2
-    TOK_IF          shift, and go to state 3
-    TOK_WHILE       shift, and go to state 4
-    TOK_PRINT       shift, and go to state 5
-    TOK_OUT         shift, and go to state 6
-    TOK_STEPPER     shift, and go to state 7
-    TOK_SERVO       shift, and go to state 8
-    TOK_DELAY       shift, and go to state 9
-    TOK_IDENTIFIER  shift, and go to state 10
-    TOK_FINT        shift, and go to state 11
-    TOK_FFLOAT      shift, and go to state 12
-    TOK_FDOUBLE     shift, and go to state 13
-    TOK_FLONG       shift, and go to state 14
-    TOK_FSHORT      shift, and go to state 15
-    TOK_FBOOL       shift, and go to state 16
-    TOK_QUANDO      shift, and go to state 17
-    '}'             shift, and go to state 207
-
-    fe           go to state 20
-    stmt         go to state 63
-    eventblock   go to state 22
-    funcblock    go to state 23
-    type_f       go to state 24
-    returnblock  go to state 25
-    condblock    go to state 26
-    whileblock   go to state 27
-    printstmt    go to state 28
+    $default  reduce using rule 58 (condblock)
 
 
 State 206
+
+    2 stmts: stmts . stmt
+   60 elseblock: TOK_ELSE '{' stmts . '}'
+
+    error           shift, and go to state 1
+    TOK_VOID        shift, and go to state 2
+    TOK_RETURN      shift, and go to state 3
+    TOK_IF          shift, and go to state 4
+    TOK_WHILE       shift, and go to state 5
+    TOK_PRINT       shift, and go to state 6
+    TOK_OUT         shift, and go to state 7
+    TOK_STEPPER     shift, and go to state 8
+    TOK_SERVO       shift, and go to state 9
+    TOK_DELAY       shift, and go to state 10
+    TOK_IDENTIFIER  shift, and go to state 11
+    TOK_FINT        shift, and go to state 12
+    TOK_FFLOAT      shift, and go to state 13
+    TOK_FDOUBLE     shift, and go to state 14
+    TOK_FLONG       shift, and go to state 15
+    TOK_FSHORT      shift, and go to state 16
+    TOK_FBOOL       shift, and go to state 17
+    TOK_QUANDO      shift, and go to state 18
+    '}'             shift, and go to state 208
+
+    fe           go to state 21
+    stmt         go to state 64
+    eventblock   go to state 23
+    funcblock    go to state 24
+    type_f       go to state 25
+    returnblock  go to state 26
+    condblock    go to state 27
+    whileblock   go to state 28
+    printstmt    go to state 29
+
+
+State 207
 
    34 funcblock: type_f TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}' .
 
     $default  reduce using rule 34 (funcblock)
 
 
-State 207
+State 208
 
-   59 elseblock: TOK_ELSE '{' stmts '}' .
+   60 elseblock: TOK_ELSE '{' stmts '}' .
 
-    $default  reduce using rule 59 (elseblock)
+    $default  reduce using rule 60 (elseblock)

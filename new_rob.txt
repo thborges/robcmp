@@ -1,0 +1,51 @@
+void motor_shutdown() {
+	out PIN1 = 0.0;
+	out PIN2 = 0.0;
+	out PIN3 = 0.0;
+	out PIN4 = 0.0;
+}
+
+void blink(float time) {
+	out 13 = 255.0;
+	delay time;
+	out 13 = 0.0;
+	delay time;
+}
+
+blink(500.0);
+blink(500.0);
+PARA_FRENTE = 1.0;
+PARA_TRAS = 1.0;
+while (true == true) {
+	F = READ_IR();
+	if (F == 3041526525.0) { // UP
+		CURR_DIR = PARA_FRENTE;
+		STEP_UP_DOWN();
+	}
+	else if (F == 3041559165.0) { // DOWN
+		CURR_DIR = PARA_TRAS;
+		STEP_UP_DOWN();
+	}
+	else if (F == 3041542845.0) { // LEFT
+		CURR_DIR = PARA_FRENTE;
+		STEP_RIGHT_LEFT();
+	}
+	else if (F == 3041575485.0) { // RIGHT
+		CURR_DIR = PARA_TRAS;
+		STEP_RIGHT_LEFT();
+	}
+	else if (F == 4111076595.0) { // AUDIO
+		CURR_DIR = PARA_FRENTE;
+		STEP_FRONT_BACK();
+	}
+	else if (F == 3041570895.0) { // RIGHT
+		CURR_DIR = PARA_TRAS;
+		STEP_FRONT_BACK();
+	}
+	else if (F == 3041546415.0) { // OPEN GRIP
+		OPEN_GRIP();		
+	}
+	else if (F == 3041579055.0) { // CLOSE GRIP
+		CLOSE_GRIP();
+	}
+}

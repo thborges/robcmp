@@ -9,7 +9,7 @@ std::vector<AttachInterrupt *> vectorglobal;
 
 %}
 
-%token TOK_FUNCTION TOK_RETURN
+%token TOK_VOID TOK_FUNCTION TOK_RETURN
 %token TOK_IF TOK_ELSE
 %token TOK_FOR TOK_WHILE
 %token TOK_PRINT
@@ -178,7 +178,8 @@ funcparams: funcparams ',' funcparam {$1 -> append($3);
 funcparam : type_f TOK_IDENTIFIER { FunctionParam fp{$2, $1}; 
 									$$ = fp;}
 
-type_f  : TOK_FBOOL { $$ = 1; }
+type_f  : TOK_VOID { $$ = 0; }
+		| TOK_FBOOL { $$ = 1; }
 		| TOK_FSHORT TOK_FINT { $$ = 2; } 
 		| TOK_FINT { $$ = 3; } 
 		| TOK_FLONG TOK_FINT { $$ = 4; } 

@@ -127,6 +127,7 @@ static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, Basi
 #include "Scalar.h"
 #include "Semantic.h"
 #include "String.h"
+#include "UpdateVector.h"
 #include "Vector.h"
 #include "While.h"
 

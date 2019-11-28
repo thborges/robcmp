@@ -90,6 +90,10 @@ fe : funcblock 						{ $$ = $1; }
 
 stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); } 
 	 | TOK_IDENTIFIER '=' expr ';'			{ $$ = new Scalar($1, $3); }
+	 | TOK_IDENTIFIER '+' '+' ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '+', new Int16(1))); }
+	 | TOK_IDENTIFIER '+' '=' expr ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '+', $4)); }
+	 | TOK_IDENTIFIER '-' '=' expr ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '-', $4)); }
+	 | TOK_IDENTIFIER '*' '=' expr ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '*', $4)); }
 	 | TOK_IDENTIFIER '=' relements ';'		{ $$ = new Vector($1, $3); } // name, size, expression
 	 | TOK_IDENTIFIER '=' rmatrix ';'		{ $$ = new Matrix($1, $3);}
 	 | TOK_DELAY expr';'					{ $$ = new Delay($2); }
@@ -250,13 +254,11 @@ factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_FALSE				{ $$ = new Int1(0); }
 	   | TOK_INTEGER			{ $$ = new Int16($1); }
 	   | TOK_FLOAT				{ $$ = new Float($1); }
-	   | TOK_FSHORT TOK_FINT TOK_INTEGER	{ $$ = new Int8($3); }
-	   | TOK_FLONG TOK_FINT TOK_INTEGER	{ $$ = new Int32($3); }
-	   | TOK_FLONG TOK_FLONG TOK_FINT TOK_INTEGER	{ $$ = new Int64($4); }
-/* 	   | TOK_FLONG TOK_FLONG TOK_FLONG TOK_FINT TOK_INTEGER	{ $$ = new Int128($5); }*/
-	/*    | TOK_FSHORT TOK_FLOAT TOK_INTEGER	{ $$ = new Float8($3); }*/
-       | TOK_FDOUBLE TOK_INTEGER	{ $$ = new Double($2); } 
-	  /* | TOK_FDOUBLE TOK_FDOUBLE TOK_INTEGER	{ $$ = new Float64($3); } */
+	   | '(' TOK_FSHORT TOK_FINT ')' TOK_INTEGER	{ $$ = new Int8($5); } //Generate, Destty($2, $3), block, $5 .Make coersion
+	   | '(' TOK_FLONG TOK_FINT ')' TOK_INTEGER	{ $$ = new Int32($5); } //Make coersion
+	   | '(' TOK_FLONG TOK_FLONG TOK_FINT ')' TOK_INTEGER	{ $$ = new Int64($6); } //Make coersion
+	   | '(' TOK_FFLOAT ')' TOK_FLOAT	{ $$ = new Float($4); } //Make coersion
+       | '(' TOK_FDOUBLE ')' TOK_FLOAT	{ $$ = new Double($4); }  //Make coersion
 	   | TOK_IN					{ $$ = new InPort($1); }
 	   | TOK_IDENTIFIER '(' paramscall ')'	{ $$ = new FunctionCall($1, $3); }
 	   ;

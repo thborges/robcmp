@@ -51,6 +51,7 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 	FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
 
 	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, name, mainmodule);
+	tabelasym[mainblock][name] = nfunc;
 
 	BasicBlock *fblock = BasicBlock::Create(global_context, "entry");
 	unsigned Idx = 0;
@@ -71,7 +72,6 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 	fblock->insertInto(nfunc, 0);
 	stmts->generate(nfunc, fblock, fblock);
 
-	tabelasym[mainblock][name] = nfunc;
 	return nfunc;
 }
 

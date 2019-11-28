@@ -1,0 +1,15 @@
+int function_name (int a){
+	if (a == 1){
+		print a;
+		return 1;
+	}
+	else{
+		print a;
+		a = a - 1;
+		c = function_name(a);
+		return c;
+	}
+	return 1;
+}
+
+b = function_name(3);

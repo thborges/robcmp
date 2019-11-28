@@ -1,0 +1,60 @@
+; ModuleID = 'recursive.txt'
+source_filename = "recursive.txt"
+
+@b = common global i16 0
+
+define i16 @main() {
+entry:
+  call void @init()
+  %0 = call i16 @function_name(i16 3)
+  store i16 %0, i16* @b
+  ret i16 0
+}
+
+declare i16 @analogRead(i8)
+
+declare void @analogWrite(i8, i16)
+
+declare void @delay(i32)
+
+declare void @delayMicroseconds(i32)
+
+declare void @init()
+
+declare void @print(i8, i8*)
+
+define i16 @function_name(i16 %a) {
+entry:
+  %a1 = alloca i16
+  store volatile i16 %a, i16* %a1
+  %a2 = load i16, i16* %a1
+  %cmpi = icmp eq i16 %a2, 1
+  br i1 %cmpi, label %if_then, label %if_else
+
+if_then:                                          ; preds = %entry
+  %a3 = load i16, i16* %a1
+  %0 = alloca i16
+  store i16 %a3, i16* %0
+  %1 = bitcast i16* %0 to i8*
+  call void @print(i8 0, i8* %1)
+  ret i16 1
+  br label %if_cont
+
+if_else:                                          ; preds = %entry
+  %a4 = load i16, i16* %a1
+  %3 = alloca i16
+  store i16 %a4, i16* %3
+  %4 = bitcast i16* %3 to i8*
+  call void @print(i8 0, i8* %4)
+  %a5 = load i16, i16* %a1
+  %5 = sub i16 %a5, 1
+  store i16 %5, i16* %a1
+  %a6 = load i16, i16* %a1
+  %6 = alloca i16
+  %7 = call i16 @function_name(i16 %a6)
+  ret i16 %7
+  br label %if_cont
+
+if_cont:                                          ; preds = %if_else, %if_then
+  ret i16 1
+}

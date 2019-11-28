@@ -91,7 +91,7 @@ fe : funcblock 						{ $$ = $1; }
 stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); } 
 	 | TOK_IDENTIFIER '=' expr ';'			{ $$ = new Scalar($1, $3); }
 	 | TOK_IDENTIFIER '=' relements ';'		{ $$ = new Vector($1, $3); } // name, size, expression
-	 | TOK_IDENTIFIER '[' ']'  '=' rmatrix ';'		{ $$ = new Matrix($1, $5);}
+	 | TOK_IDENTIFIER '=' rmatrix ';'		{ $$ = new Matrix($1, $3);}
 	 | TOK_DELAY expr';'					{ $$ = new Delay($2); }
 	 | condblock							{ $$ = $1; }
 	 | whileblock							{ $$ = $1; }

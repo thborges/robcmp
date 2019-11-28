@@ -6,7 +6,7 @@ void MatrixElements::append(MatrixElement& m) {
 	elements.push_back(m);
 };
 	
-unsigned MatrixElements::getColumnSize() const {
+unsigned MatrixElements::getLineSize() const {
 	unsigned r = 0;
 	unsigned biggest_r = 0;
 	for(auto& j : elements)
@@ -20,7 +20,7 @@ unsigned MatrixElements::getColumnSize() const {
 	return biggest_r;
 };
 
-unsigned MatrixElements::getLineSize() const {
+unsigned MatrixElements::getColumnSize() const {
 	unsigned r = 0;
 	for(auto& i : elements)
 		r += i.count;

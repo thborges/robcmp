@@ -11,5 +11,8 @@ int fibonacci (int n){
 	return 1;
 }
 
-b = fibonacci(5);
-print b;
+print (fibonacci(1));
+print (fibonacci(2));
+print (fibonacci(3));
+print (fibonacci(4));
+print (fibonacci(5));

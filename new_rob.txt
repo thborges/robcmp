@@ -5,6 +5,22 @@
 	out PIN4 = 0.0;
 }*/
 
+int read_ir(){
+	return 1;
+}
+
+void step_up_down(){
+	print "oi";
+}
+
+void step_right_left(){
+	print "oi";
+}
+
+void step_front_back(){
+	print "oi";
+}
+
 void blink(float time) {
 	out13 = 255.0;
 	delay time;
@@ -12,40 +28,59 @@ void blink(float time) {
 	delay time;
 }
 
-a = blink(500.0);
-a = blink(500.0);
+curr_dir = 1.0;
+blink(500.0);
+blink(500.0);
 PARA_FRENTE = 1.0;
 PARA_TRAS = 1.0;
+
+void SERVO_POS_INC(){
+	print "Abre";
+}
+
+void SERVO_POS_DEC(){
+	print "Fecha";
+}
+
+void open_grip (bool open){
+	if (open == true){
+		SERVO_POS_INC();
+	}
+	else{
+		SERVO_POS_DEC();
+	}
+}
+
 while (true == true) {
-	F = READ_IR();
+	F = read_ir();
 	if (F == 3041526525.0) { // UP
-		CURR_DIR = PARA_FRENTE;
-		STEP_UP_DOWN();
+		SENTIDO = 1.0;
+		step_up_down();
 	}
 	else if (F == 3041559165.0) { // DOWN
-		CURR_DIR = PARA_TRAS;
-		STEP_UP_DOWN();
+		SENTIDO = -1.0;
+		step_up_down();
 	}
 	else if (F == 3041542845.0) { // LEFT
-		CURR_DIR = PARA_FRENTE;
-		STEP_RIGHT_LEFT();
+		SENTIDO = 1.0;
+		step_right_left();
 	}
 	else if (F == 3041575485.0) { // RIGHT
-		CURR_DIR = PARA_TRAS;
-		STEP_RIGHT_LEFT();
+		SENTIDO = -1.0;
+		step_right_left();
 	}
 	else if (F == 4111076595.0) { // AUDIO
-		CURR_DIR = PARA_FRENTE;
-		STEP_FRONT_BACK();
+		SENTIDO = 1.0;
+		step_front_back();
 	}
 	else if (F == 3041570895.0) { // RIGHT
-		CURR_DIR = PARA_TRAS;
-		STEP_FRONT_BACK();
+		SENTIDO = -1.0;
+		step_front_back();
 	}
 	else if (F == 3041546415.0) { // OPEN GRIP
-		OPEN_GRIP();		
+		open_grip(true);		
 	}
 	else if (F == 3041579055.0) { // CLOSE GRIP
-		CLOSE_GRIP();
+		open_grip(false);
 	}
 }

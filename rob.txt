@@ -11,28 +11,28 @@ CURR_DIR = PARA_FRENTE;
 
 void step_motor(float curr_step) {
 	if (curr_step == 0.0) {
-		OUT PIN1 = 255.0;
-		OUT PIN2 = 0.0;
-		OUT PIN3 = 255.0;
-		OUT PIN4 = 0.0;
+		OUTPIN1 = 255.0;
+		OUTPIN2 = 0.0;
+		OUTPIN3 = 255.0;
+		OUTPIN4 = 0.0;
 	}
 	else if (curr_step == 1.0) {
-		OUT PIN1 = 0.0;
-		OUT PIN2 = 255.0;
-		OUT PIN3 = 255.0;
-		OUT PIN4 = 0.0;	
+		OUTPIN1 = 0.0;
+		OUTPIN2 = 255.0;
+		OUTPIN3 = 255.0;
+		OUTPIN4 = 0.0;	
 	}
 	else if (curr_step == 2.0) {
-		OUT PIN1 = 0.0;
-		OUT PIN2 = 255.0;
-		OUT PIN3 = 0.0;
-		OUT PIN4 = 255.0;
+		OUTPIN1 = 0.0;
+		OUTPIN2 = 255.0;
+		OUTPIN3 = 0.0;
+		OUTPIN4 = 255.0;
 	}
 	else if (curr_step == 3.0) {
-		OUT PIN1 = 255.0;
-		OUT PIN2 = 0.0;
-		OUT PIN3 = 0.0;
-		OUT PIN4 = 255.0;
+		OUTPIN1 = 255.0;
+		OUTPIN2 = 0.0;
+		OUTPIN3 = 0.0;
+		OUTPIN4 = 255.0;
 	}
 
 	RPM = (60.0 * 1000.0) / 4096.0 / 4.0;
@@ -48,10 +48,10 @@ void step_motor(float curr_step) {
 }
 
 void MOTOR_SHUTDOWN() {
-	OUT PIN1 = 0.0;
-	OUT PIN2 = 0.0;
-	OUT PIN3 = 0.0;
-	OUT PIN4 = 0.0;
+	OUTPIN1 = 0.0;
+	OUTPIN2 = 0.0;
+	OUTPIN3 = 0.0;
+	OUTPIN4 = 0.0;
 }
 
 void LOOP_STEPS() {

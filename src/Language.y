@@ -89,8 +89,8 @@ fe : funcblock 						{ $$ = $1; }
 
 
 stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); } 
-	 | TOK_IDENTIFIER '(' paramscall ')'	{ $$ = new FunctionCall($1, $3); }
 	 | TOK_IDENTIFIER '=' expr ';'			{ $$ = new Scalar($1, $3); }
+	 | TOK_IDENTIFIER '(' paramscall ')' ';'	{ $$ = new FunctionCall($1, $3); }
 	 | TOK_IDENTIFIER '+' '+' ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '+', new Int16(1))); }
 	 | TOK_IDENTIFIER '+' '=' expr ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '+', $4)); }
 	 | TOK_IDENTIFIER '-' '=' expr ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '-', $4)); }
@@ -251,6 +251,7 @@ term : term '*' factor		{ $$ = new BinaryOp($1, '*', $3); }
 factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_IDENTIFIER			{ $$ = new Load($1); }
 	   | TOK_IDENTIFIER '[' expr ']'	{ $$ = new LoadVector($1, $3);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
+	   | TOK_IDENTIFIER '[' expr ']' '=' expr ';'	{ $$ = new LoadVector($1, $3);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
 	   | TOK_IDENTIFIER '[' expr ']' '[' expr ']'	{ $$ = new LoadMatrix($1, $3, $6);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
 	   | TOK_TRUE				{ $$ = new Int1(1); }
 	   | TOK_FALSE				{ $$ = new Int1(0); }

@@ -10,6 +10,10 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, bool unsig){
 		if ((ty->isFloatTy() || destty->isDoubleTy()) && destty -> isIntegerTy()){
 			r = new FPToSIInst(v, destty, "fptosi", block);
 		}
+		
+		if ((ty->isHalfTy() || destty->isDoubleTy()) && destty -> isIntegerTy()){
+			r = new FPToSIInst(v, destty, "", block);
+		}
 		//Integer to Float
 		else if ((destty->isFloatTy() || destty->isDoubleTy())&& ty->isIntegerTy()){
 			r = new SIToFPInst(v, destty, "sitofp", block);

@@ -11,7 +11,7 @@ int arduino_out_ports[ARDUINO_PORTS];
 int steppers_pos[3] = {0};
 
 #define LCD_ROWS 6
-#define LCD_COLS 14
+#define LCD_COLS 80
 #define LCD_CHARS (LCD_ROWS*LCD_COLS)
 char display[LCD_CHARS];
 int display_pos = 0;
@@ -91,14 +91,19 @@ void print(char t, void *data) {
 	char buff[1024];
 
 	switch (t) {
-		case 0: sprintf(buff, "%d\n", *(short*)data); break;
-		case 1: sprintf(buff, "%f\n", *(float*)data); break;
-		case 2: sprintf(buff, "%s\n", (char*)data); break;
+		case 0: sprintf(buff, "%d ", *(short*)data); break;
+		case 1: sprintf(buff, "%f ", *(float*)data); break;
+		case 2: sprintf(buff, "%s ", (char*)data); break;
 	}
 
 	for(int i=0; i < strlen(buff); i++) {
-		display[display_pos] = buff[i] == '\n' ? ' ' : buff[i];
-		display_pos = (display_pos + 1) % LCD_CHARS;	
+		if (buff[i] == '\n')
+			display_pos = display_pos + (LCD_COLS - display_pos % LCD_COLS); // next line
+		else {
+			display[display_pos] = buff[i];
+			display_pos++;
+		}
+		display_pos = display_pos % LCD_CHARS;	
 	}
 
 	refresh_screen();

@@ -4,6 +4,7 @@
 # Swap files
 .*.swp
 *.swp
+*.swo
 
 # Object files
 *.o
@@ -43,3 +44,5 @@
 # Generated
 robcmp
 bison.hpp
+run_test/out/*
+src/Language_y.output

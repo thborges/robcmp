@@ -48,20 +48,22 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 				xtype = Type::getFP128Ty(global_context);
 			break;			
 	}
+
 	FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
 
 	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, name, mainmodule);
 	tabelasym[mainblock][name] = nfunc;
 
-	BasicBlock *fblock = BasicBlock::Create(global_context, "entry", nfunc);
+	BasicBlock *falloc = BasicBlock::Create(global_context, "entry", nfunc);
+	BasicBlock *fblock = BasicBlock::Create(global_context, "body", nfunc);
 	unsigned Idx = 0;
 	for (auto &Arg : nfunc->args())
 	{
 		const char *argname = parameters->getParamElement(Idx);
 		Arg.setName(argname);
 		//Value *valor = search_symbol(argname, fblock, fblock);
-		AllocaInst* variable = new AllocaInst(parameters->getParamType(Idx), 0, argname, fblock);
-		tabelasym[fblock][argname] = variable;
+		AllocaInst* variable = new AllocaInst(parameters->getParamType(Idx), 0, argname, falloc);
+		tabelasym[falloc][argname] = variable;
 		StoreInst *val = new StoreInst(&Arg, variable, argname, false, fblock);
 		Idx++;
 	}
@@ -69,7 +71,16 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 	if (xtype->isVoidTy())
 		nfunc->setDoesNotReturn();
 
-	stmts->generate(nfunc, fblock, fblock);
+	Value *last_block = stmts->generate(nfunc, fblock, falloc);
+
+	// prevent mallformed block at the end without proper return instruction 
+	if (last_block && last_block->getValueID() == Value::BasicBlockVal) {
+		if (((BasicBlock*)last_block)->getTerminator() == NULL)
+			if (!xtype->isVoidTy())
+				yyerrorcpp("Function " + name + " end block empty. Check return.");
+	}
+
+	BranchInst::Create(fblock, falloc);
 
 	return nfunc;
 }

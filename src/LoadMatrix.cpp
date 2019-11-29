@@ -7,12 +7,20 @@ Value *LoadMatrix::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 			yyerrorcpp("Variable " + ident + " not defined.");
 			return NULL;
 		}
-		
-		AllocaInst *allocInst = dyn_cast<AllocaInst>(sym);
-		ArrayType *arrayTy = dyn_cast<ArrayType>(allocInst->getAllocatedType());
-		Type *matrixTy = dyn_cast<Type>(arrayTy->getElementType());
-		if (arrayTy == NULL) {
-			yyerrorcpp("Matrix " + ident + " is not an array type.");
+
+		// sym type can be GlobalVariable or AllocInst
+		Type *ty = sym->getType();
+		if (ty->isPointerTy()) // global variable is always pointer
+			ty = ((PointerType*)ty)->getElementType();
+	
+		ArrayType *arrayTy = NULL;
+		Type *matrixTy = NULL;
+		if (ty->isArrayTy()) {
+			arrayTy = (ArrayType*)ty;
+			matrixTy = arrayTy->getElementType();
+		}
+		else {
+			yyerrorcpp("Symbol " + ident + " is not of matrix or array type.");
 			return NULL;
 		}
 		
@@ -34,15 +42,14 @@ Value *LoadMatrix::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 
 		Value* indexList[2] = {zero, indice};
-		GetElementPtrInst* ptr = GetElementPtrInst::CreateInBounds(arrayTy, sym, ArrayRef<Value*>(indexList), "", block);
+		GetElementPtrInst* ptr = GetElementPtrInst::CreateInBounds(arrayTy, sym, ArrayRef<Value*>(indexList), "gepl"+ident, block);
 //		LoadInst *l = new LoadInst(ptr, ident, false, block);
 
 		//Get Element in Vector
 		Value* indexList2[2] = {zero, indice_2};
-		GetElementPtrInst* gep = GetElementPtrInst::Create(matrixTy, ptr, ArrayRef<Value*>(indexList2), "", block);
-		LoadInst *ret = new LoadInst(gep, ident, false, block);
+		GetElementPtrInst* gep = GetElementPtrInst::Create(matrixTy, ptr, ArrayRef<Value*>(indexList2), "gepc"+ident, block);
+		LoadInst *ret = new LoadInst(gep, "lc"+ident, false, block);
 
 		return ret;
-	//	return ret;
 }
 

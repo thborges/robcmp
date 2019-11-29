@@ -16,35 +16,53 @@
 		ArrayType* matrixType = ArrayType::get(arrayType, size_c);
 		
 		//Allocate matrix.
-		AllocaInst* variable = new AllocaInst(matrixType, 0, name, block);
+		Value* variable;
+		if (allocblock == global_alloc) { // when alloc is on main, global
+			GlobalVariable *gv = new GlobalVariable(*mainmodule, matrixType, 
+				false, GlobalValue::ExternalLinkage, NULL, name);
+			ConstantAggregateZero* const_array = ConstantAggregateZero::get(matrixType);
+			gv->setInitializer(const_array);
+			variable = gv;
+		} else {
+			variable = new AllocaInst(matrixType, 0, name, allocblock);
+		}
 		
 		//Add matrix to table of symbols.
 		tabelasym[allocblock][name] = variable;
 
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 
-		unsigned int index = 0;
+		// {{1:3}:3, {1:2,2}:2}
+		// {{1,1,1},{1,1,1},{1,1,1},
+		//  {1,1,2},{1,1,2}
+		int idxline = -1;
 		for(auto& i: arrays->elements)
 		{
 			unsigned elCount = i.count;
 			for (int j=0; j<elCount; j++)
 			{
+				idxline++;
+				Value *vidxline = ConstantInt::get(Type::getInt8Ty(global_context), idxline);
+				Value* linelist[2] = {zero, vidxline};
+				GetElementPtrInst* gep = GetElementPtrInst::CreateInBounds(matrixType, 
+					variable, ArrayRef<Value*>(linelist), "gepline", block);
+
+				int idxcol = -1;
 				for(auto& k: i.array->elements)
 				{
+					Node* elValue = k.value;
+					Value *val = elValue->generate(func, block, allocblock);
+					val = Coercion::Convert(val, I, block);
+
 					unsigned elCountl = k.count;
 					for (int l=0; l<elCountl; l++)
 					{
-						Node* elValue = k.value;
-				
-						Value *val = elValue->generate(func, block, allocblock);//ConstantInt::get(Type::getInt16Ty(global_context), 2);//elValue->generate(func, block, allocblock);
-						val = Coercion::Convert(val, I, block);
+						idxcol++;
+						Value *vidxcol = ConstantInt::get(Type::getInt8Ty(global_context), idxcol);
+						Value* collist[2] = {zero, vidxcol};
 		
-						Value *idx = ConstantInt::get(Type::getInt8Ty(global_context), index);
-						//index++;
-
-						Value* indexList[2] = {zero, idx};
-						GetElementPtrInst* gep = GetElementPtrInst::CreateInBounds(matrixType, variable, ArrayRef<Value*>(indexList), "", block);
-						GetElementPtrInst* gop = GetElementPtrInst::CreateInBounds(arrayType, gep, ArrayRef<Value*>(indexList), "", block);
+						GetElementPtrInst* gop = GetElementPtrInst::CreateInBounds(arrayType, 
+							gep, ArrayRef<Value*>(collist), "gepcol", block);
 						StoreInst *store = new StoreInst(val, gop, false, block);
 					}
 				}

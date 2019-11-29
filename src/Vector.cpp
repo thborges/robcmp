@@ -12,13 +12,23 @@
 		ArrayType* arrayType = ArrayType::get(I, size);
 		
 		//Allocate vector.
-		AllocaInst* variable = new AllocaInst(arrayType, 0, name, block);
-		
+		Value* variable;
+		if (allocblock == global_alloc) { // when alloc is on main, global
+			GlobalVariable *gv = new GlobalVariable(*mainmodule, arrayType, 
+				false, GlobalValue::ExternalLinkage, NULL, name);
+			ConstantAggregateZero* const_array = ConstantAggregateZero::get(arrayType);
+			gv->setInitializer(const_array);
+			variable = gv;
+		} else {
+			variable = new AllocaInst(arrayType, 0, name, allocblock);
+		}
+
 		//Add vector to table of symbols.
 		tabelasym[allocblock][name] = variable;
 
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 
+		StoreInst *store = NULL;
 		unsigned int struct_size = elements->getStructSize();
 		unsigned int index = 0;
 		for (int i=0; i<struct_size; i++)
@@ -35,12 +45,10 @@
 
 				Value* indexList[2] = {zero, idx};
 				GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, variable, ArrayRef<Value*>(indexList), "", block);
-				StoreInst *store = new StoreInst(val, gep, false, block);
-				//GetElementPtrInst* ngep = GetElementPtrInst::Create(arrayType, variable, ArrayRef<Value*>(indexList), "", block);
-				//LoadInst *ret = new LoadInst(arrayType, 0, name, allocblock);
+				store = new StoreInst(val, gep, false, block);
 			}
 		}
 		
 
-		return NULL;
+		return store;
 	}

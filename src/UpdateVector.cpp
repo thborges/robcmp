@@ -30,7 +30,6 @@ Value *UpdateVector::generate(Function *func, BasicBlock *block, BasicBlock *all
 		Value *val = exprs->generate(func, block, allocblock);
 		StoreInst *store = new StoreInst(val, ptr, false, block);
 
-		return NULL;
-	//	return ret;
+		return store;
 }
 

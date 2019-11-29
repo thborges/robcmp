@@ -8,12 +8,20 @@ Value *LoadVector::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 			return NULL;
 		}
 
-		AllocaInst *allocInst = dyn_cast<AllocaInst>(sym);
-		ArrayType *arrayTy = dyn_cast<ArrayType>(allocInst->getAllocatedType());
-		if (arrayTy == NULL) {
-			yyerrorcpp("Variable " + ident + " is not an array type.");
+		// sym type can be GlobalVariable or AllocInst
+		Type *ty = sym->getType();
+		if (ty->isPointerTy()) // global variable is always pointer
+			ty = ((PointerType*)ty)->getElementType();
+	
+		ArrayType *arrayTy = NULL;
+		if (ty->isArrayTy()) {
+			arrayTy = (ArrayType*)ty;
+		}
+		else {
+			yyerrorcpp("Symbol " + ident + " is not of array type.");
 			return NULL;
 		}
+
 		Value *indice = position->generate(func, block, allocblock);
 		if (!indice->getType()->isIntegerTy()){
 			yyerrorcpp("Index for " + ident + " vector should be of integer type.");

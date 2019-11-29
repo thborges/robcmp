@@ -16,7 +16,7 @@ Value *LoadVector::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 		}
 		Value *indice = position->generate(func, block, allocblock);
 		if (!indice->getType()->isIntegerTy()){
-			yyerrorcpp("Not Allowed");
+			yyerrorcpp("Not Allowed"); //TO-DO
 			return NULL;
 		}
 
@@ -25,7 +25,7 @@ Value *LoadVector::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 
 		Value* indexList[2] = {zero, indice};
 		//GetElementPtrInst* ptr = GetElementPtrInst::Create(Type *PointeeType, Value *Ptr, ArrayRef<Value*> IdxList, const Twine &NameStr="", Instruction/BasicBlock *Insert)
-		GetElementPtrInst* ptr = GetElementPtrInst::Create(arrayTy, sym, ArrayRef<Value*>(indexList), "", block);
+		GetElementPtrInst* ptr = GetElementPtrInst::Create(arrayTy, sym, ArrayRef<Value*>(indexList), "load_v", block);
 //		GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, sym, ArrayRef<Value*>(indexList), "", block);
 		LoadInst *ret = new LoadInst(ptr, ident, false, block);
 

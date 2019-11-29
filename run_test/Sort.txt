@@ -3,20 +3,18 @@ int sort (int n)
 {
 	t = 0;
 	s = 0;
-	print t;
 	temp = 0;
 	while (t < n - 1)
 	{
 		s = t + 1;
 		while (s < n)
 		{
-			/*if ( a[t] > a[s] ) {
+			if ( a[t] > a[s] ) {
 				temp = a[t];
 				a[t] = a[s];
 				a[s] = temp;
-			}*/
-			print s;
-			//s++;
+			}
+			s++;
 		}
 		t++;
 		print t;

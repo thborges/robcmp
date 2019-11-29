@@ -18,6 +18,8 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 				gv->setInitializer(ConstantInt::get(exprv->getType(), 0));
 			else if (exprv->getType()->isFloatTy())
 				gv->setInitializer(ConstantFP::get(exprv->getType(), 0.0));
+			else if (exprv->getType()->isHalfTy())
+				gv->setInitializer(ConstantFP::get(exprv->getType(), 0.0));
 			else
 				yyerrorcpp("Global variable default initialization not defined.");
 

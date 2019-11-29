@@ -8,12 +8,20 @@ Value *UpdateVector::generate(Function *func, BasicBlock *block, BasicBlock *all
 			return NULL;
 		}
 
-		AllocaInst *allocInst = dyn_cast<AllocaInst>(sym);
-		ArrayType *arrayTy = dyn_cast<ArrayType>(allocInst->getAllocatedType());
-		if (arrayTy == NULL) {
-			yyerrorcpp("Variable " + ident + " is not an array type.");
+		// sym type can be GlobalVariable or AllocInst
+		Type *ty = sym->getType();
+		if (ty->isPointerTy()) // global variable is always pointer
+			ty = ((PointerType*)ty)->getElementType();
+	
+		ArrayType *arrayTy = NULL;
+		if (ty->isArrayTy()) {
+			arrayTy = (ArrayType*)ty;
+		}
+		else {
+			yyerrorcpp("Symbol " + ident + " is not of array type.");
 			return NULL;
 		}
+
 		Value *indice = position->generate(func, block, allocblock);
 		if (!indice->getType()->isIntegerTy()){
 			yyerrorcpp("Index for " + ident + " vector should be of integer type.");
@@ -21,12 +29,9 @@ Value *UpdateVector::generate(Function *func, BasicBlock *block, BasicBlock *all
 		}
 
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
-		//Value *indice = ConstantInt::get(Type::getInt8Ty(global_context), npos);
 
 		Value* indexList[2] = {zero, indice};
-		//GetElementPtrInst* ptr = GetElementPtrInst::Create(Type *PointeeType, Value *Ptr, ArrayRef<Value*> IdxList, const Twine &NameStr="", Instruction/BasicBlock *Insert)
 		GetElementPtrInst* ptr = GetElementPtrInst::Create(arrayTy, sym, ArrayRef<Value*>(indexList), "", block);
-//		GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, sym, ArrayRef<Value*>(indexList), "", block);
 		Value *val = exprs->generate(func, block, allocblock);
 		StoreInst *store = new StoreInst(val, ptr, false, block);
 

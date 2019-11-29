@@ -11,5 +11,5 @@ int fb(int b) {
 }
 
 fa(1);
-fb(2);
+print fb(2);
 

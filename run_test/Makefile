@@ -11,7 +11,7 @@ clean:
 	rm -f ${ALLBIN} ${ALLASM} ${ALLOBJS} ${ALL_LL}
 
 out/%.ll : %.txt ${COMPILER_NAME}
-	${COMPILER_NAME} $< > $@
+	${COMPILER_NAME} -O0 $< > $@
 
 %.o : %.ll
 	llc-9 $< -o $@ -filetype=obj

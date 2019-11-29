@@ -68,16 +68,17 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 		Idx++;
 	}
 	nfunc->setCallingConv(CallingConv::C);
-	if (xtype->isVoidTy())
-		nfunc->setDoesNotReturn();
 
 	Value *last_block = stmts->generate(nfunc, fblock, falloc);
 
 	// prevent mallformed block at the end without proper return instruction 
 	if (last_block && last_block->getValueID() == Value::BasicBlockVal) {
-		if (((BasicBlock*)last_block)->getTerminator() == NULL)
+		if (((BasicBlock*)last_block)->getTerminator() == NULL) {
 			if (!xtype->isVoidTy())
 				yyerrorcpp("Function " + name + " end block empty. Check return.");
+			else
+				ReturnInst::Create(global_context, NULL, fblock);
+		}
 	}
 
 	BranchInst::Create(fblock, falloc);

@@ -17,22 +17,22 @@ int sort (int n)
 			s++;
 		}
 		t++;
-		print t;
+		//print t;
 	}
 	return 0;
 }
 
 
-sort (16);
 i = 0;
 while (i < 16){
-	c = a[i];
-	print c;
+	print a[i];
 	i++;
 }
+print "\n";
+
 sort (16);
 i = 0;
 while(i < 16){
-	print c;
+	print a[i];
 	i++;
 }

@@ -14,6 +14,11 @@ Value *FunctionCall::generate(Function *func, BasicBlock *block, BasicBlock *all
 		args.push_back(valor);
 	}
 	ArrayRef<Value*> argsRef(args);
-	return CallInst::Create(cfunc, argsRef, "fc", block);
+
+	bool isVoidReturn = cfunc->getReturnType()->isVoidTy();
+	if (isVoidReturn)
+		return CallInst::Create(cfunc, argsRef, "", block);
+	else
+		return CallInst::Create(cfunc, argsRef, "fc", block);
 }
 

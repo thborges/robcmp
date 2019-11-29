@@ -8,16 +8,16 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, bool unsig){
 	if (ty != destty){
 		//Float to Integer
 		if ((ty->isFloatTy() || destty->isDoubleTy()) && destty -> isIntegerTy()){
-			r = new FPToSIInst(v, destty, "", block);
+			r = new FPToSIInst(v, destty, "fptosi", block);
 		}
 		//Integer to Float
 		else if ((destty->isFloatTy() || destty->isDoubleTy())&& ty->isIntegerTy()){
-			r = new SIToFPInst(v, destty, "", block);
+			r = new SIToFPInst(v, destty, "sitofp", block);
 		}
 		//Float/Double to Float/Double
 		
 		if ((ty->isFloatTy() || destty->isDoubleTy()) && (destty -> isFloatTy() || destty -> isDoubleTy())){
-			r = new FPExtInst(v, destty, "", block);
+			r = new FPExtInst(v, destty, "fpext", block);
 		}
 		//TO-DO Create Coersion Double to Int
 
@@ -26,10 +26,10 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, bool unsig){
 			unsigned wty = dyn_cast<IntegerType>(ty)->getBitWidth();
 			unsigned wdestty = dyn_cast<IntegerType>(destty)->getBitWidth();
 			if (wty > wdestty){
-				r = new TruncInst(v, destty, "", block);
+				r = new TruncInst(v, destty, "trunc", block);
 			}
 			else if (wty < wdestty){
-				r = new SExtInst(v, destty, "", block);
+				r = new SExtInst(v, destty, "sext", block);
 			}
 		}
 	}

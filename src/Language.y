@@ -38,7 +38,7 @@ std::vector<AttachInterrupt *> vectorglobal;
 	ParamsCall *pc;
 }
 
-%type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock
+%type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock unary
 %type <ae> element
 %type <aes> elements relements
 %type <fp> funcparam
@@ -68,10 +68,10 @@ programa : stmts    { Program p($1);
 						$1->prepend(a);
 					  }
 
-					  std::fstream fs;
-					  fs.open("ast", std::fstream::out);
+					  /*std::fstream fs;
+					  fs.open("ast.txt", std::fstream::out);
 					  PrintAstVisitor(fs).visit(p);
-					  fs.close();
+					  fs.close();*/
 
 					  p.generate(); 
                     };
@@ -264,7 +264,11 @@ factor : '(' expr ')'			{ $$ = $2; }
        | '(' TOK_FDOUBLE ')' TOK_FLOAT	{ $$ = new Double($4); }  //Make coersion
 	   | TOK_IN					{ $$ = new InPort($1); }
 	   | TOK_IDENTIFIER '(' paramscall ')'	{ $$ = new FunctionCall($1, $3); }
+       | unary					{ $$ = $1; }
 	   ;
+
+unary	: '-' factor		{ $$ = new BinaryOp($2, '*', new Int16(-1)); }
+		;
 
 printstmt : TOK_PRINT TOK_STRING		{ $$ = new Print(new String($2)); }
 		  | TOK_PRINT expr				{ $$ = new Print($2); }

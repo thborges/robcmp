@@ -90,10 +90,10 @@ extern void unescape(char *s);
 [a-zA-Z_][a-zA-Z0-9_]*	{ yylval.ident = strndup(yytext, yyleng); 
 						  return TOK_IDENTIFIER; }
 
--?[0-9]+\.[0-9]+		{ yylval.nfloat = atof(yytext); 
+[0-9]+\.[0-9]+			{ yylval.nfloat = atof(yytext); 
 						  return TOK_FLOAT; }
 
--?[0-9]+				{ yylval.nint = atoi(yytext);
+[0-9]+					{ yylval.nint = atoi(yytext);
 						  return TOK_INTEGER; }
 
 \"([^\\\"]|\\.)*\"		{ yylval.str = strndup(yytext+1, yyleng-2);

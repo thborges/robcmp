@@ -16,7 +16,7 @@ Value *LoadVector::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 		}
 		Value *indice = position->generate(func, block, allocblock);
 		if (!indice->getType()->isIntegerTy()){
-			yyerrorcpp("Not Allowed");
+			yyerrorcpp("Index for " + ident + " vector should be of integer type.");
 			return NULL;
 		}
 

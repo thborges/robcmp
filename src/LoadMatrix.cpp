@@ -10,7 +10,7 @@ Value *LoadMatrix::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 		
 		AllocaInst *allocInst = dyn_cast<AllocaInst>(sym);
 		ArrayType *arrayTy = dyn_cast<ArrayType>(allocInst->getAllocatedType());
-		//ArrayType *matrixTy = dyn_cast<ArrayType *>(arrayTy->classOf());
+		Type *matrixTy = dyn_cast<Type>(arrayTy->getElementType());
 		if (arrayTy == NULL) {
 			yyerrorcpp("Matrix " + ident + " is not an array type.");
 			return NULL;
@@ -19,14 +19,14 @@ Value *LoadMatrix::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 		//Generate first param.
 		Value *indice = position_1->generate(func, block, allocblock);
 		if (!indice->getType()->isIntegerTy()){
-			yyerrorcpp("Not Allowed");
+			yyerrorcpp("Index for " + ident + " line should be of integer type.");
 			return NULL;
 		}
 
 		//Generate second param.
 		Value *indice_2 = position_2->generate(func, block, allocblock);
 		if (!indice_2->getType()->isIntegerTy()){
-			yyerrorcpp("Not Allowed");
+			yyerrorcpp("Index for " + ident + " column should be of integer type.");
 			return NULL;
 		}
 
@@ -39,8 +39,8 @@ Value *LoadMatrix::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 
 		//Get Element in Vector
 		Value* indexList2[2] = {zero, indice_2};
-		//GetElementPtrInst* gep = GetElementPtrInst::Create(matrixTy, ptr, ArrayRef<Value*>(indexList2), "", block);
-		LoadInst *ret = new LoadInst(ptr, ident, false, block);
+		GetElementPtrInst* gep = GetElementPtrInst::Create(matrixTy, ptr, ArrayRef<Value*>(indexList2), "", block);
+		LoadInst *ret = new LoadInst(gep, ident, false, block);
 
 		return ret;
 	//	return ret;

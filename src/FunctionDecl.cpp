@@ -69,7 +69,6 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 	if (xtype->isVoidTy())
 		nfunc->setDoesNotReturn();
 
-	//fblock->insertInto(nfunc, 0);
 	stmts->generate(nfunc, fblock, fblock);
 
 	return nfunc;

@@ -23,9 +23,9 @@
 		Int8 prt(cty1);
 		args.push_back(prt.generate(func, block, allocblock));
 		
-		AllocaInst *ptr_aux = new AllocaInst(lexp->getType(), 0, "", block);
+		AllocaInst *ptr_aux = new AllocaInst(lexp->getType(), 0, "prntaux", block);
 		/*StoreInst *st = */ new StoreInst(lexp, ptr_aux, false, block);
-		CastInst *cinst = new BitCastInst(ptr_aux, PointerType::get(IntegerType::get(global_context, 8), 0), "", block);
+		CastInst *cinst = new BitCastInst(ptr_aux, PointerType::get(IntegerType::get(global_context, 8), 0), "bitcast", block);
 		args.push_back(cinst);
 
 		ArrayRef<Value*> argsRef(args);

@@ -36,7 +36,7 @@ Instruction *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 			ArrayRef<Value*> argsRef(args);
 			return CallInst::Create(i16div, argsRef, "", block);
 		}*/
-		return BinaryOperator::Create(opint, lhs, rhs, "", block);
+		return BinaryOperator::Create(opint, lhs, rhs, "binop", block);
 	}
 	else {
 		Value *flhs = lhs, *frhs = rhs;

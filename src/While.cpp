@@ -13,7 +13,7 @@ Value *While::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 	BasicBlock *bodywhile = BasicBlock::Create(global_context, "while_body", func, 0);
 		
 	// alloc instructions inside bodywhile should go to block to prevent repeatedly allocation
-	Value *newb = stmts->generate(func, bodywhile, block); 
+	Value *newb = stmts->generate(func, bodywhile, allocblock); 
 
 	BasicBlock *endwhile = BasicBlock::Create(global_context, "while_end", func, 0);
 	

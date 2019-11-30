@@ -68,10 +68,10 @@ programa : stmts    { Program p($1);
 						$1->prepend(a);
 					  }
 
-					  std::fstream fs;
+					  /*std::fstream fs;
 					  fs.open("ast", std::fstream::out);
 					  PrintAstVisitor(fs).visit(p);
-					  fs.close();
+					  fs.close();*/
 
 					  p.generate(); 
                     };

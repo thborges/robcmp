@@ -70,14 +70,19 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 	nfunc->setCallingConv(CallingConv::C);
 
 	Value *last_block = stmts->generate(nfunc, fblock, falloc);
+	if (!last_block)
+		last_block = fblock;
 
 	// prevent mallformed block at the end without proper return instruction 
 	if (last_block && last_block->getValueID() == Value::BasicBlockVal) {
-		if (((BasicBlock*)last_block)->getTerminator() == NULL) {
-			if (!xtype->isVoidTy())
-				yyerrorcpp("Function " + name + " end block empty. Check return.");
-			else
-				ReturnInst::Create(global_context, NULL, fblock);
+		BasicBlock *lb = (BasicBlock*)last_block;
+		if (lb->getTerminator() == NULL) {
+			if (!xtype->isVoidTy()) {
+				Value *ret = ConstantInt::get(Type::getInt8Ty(global_context), 0);
+				ret = Coercion::Convert(ret, xtype, lb);
+				ReturnInst::Create(global_context, ret, lb);
+			} else
+				ReturnInst::Create(global_context, NULL, lb);
 		}
 	}
 

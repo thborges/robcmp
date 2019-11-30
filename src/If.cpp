@@ -26,15 +26,23 @@ Value *If::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 
 	BasicBlock *mergb = BasicBlock::Create(global_context, "if_cont", func, 0);
 		
-	if (thennewb->getValueID() == Value::BasicBlockVal) 
-		BranchInst::Create(mergb, (BasicBlock*)thennewb);
-	else
-		BranchInst::Create(mergb, thenb);
+	// identify last then block
+	BasicBlock *lastthen = thenb;
+	if (thennewb && thennewb->getValueID() == Value::BasicBlockVal)
+		lastthen = (BasicBlock*)thennewb;
+
+	// if then block already has a terminator, don't generate branch
+	if (!lastthen->getTerminator())
+		BranchInst::Create(mergb, lastthen); 
 		
+	// identify last else block
+	BasicBlock *lastelse = elseb;
 	if (elsenewb && elsenewb->getValueID() == Value::BasicBlockVal) 
-		BranchInst::Create(mergb, (BasicBlock*)elsenewb);
-	else
-		BranchInst::Create(mergb, elseb);
+		lastelse = (BasicBlock*)elsenewb;
+
+	// if else block already has a terminator, don't generate branch
+	if (!lastelse->getTerminator())
+		BranchInst::Create(mergb, lastelse); 
 
 	return mergb;
 }

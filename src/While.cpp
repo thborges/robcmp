@@ -12,7 +12,7 @@ Value *While::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 
 	BasicBlock *bodywhile = BasicBlock::Create(global_context, "while_body", func, 0);
 		
-	// alloc instructions inside bodywhile should go to block to prevent repeatedly allocation
+	// alloc instructions inside bodywhile should go to allocblock to prevent repeatedly allocation
 	Value *newb = stmts->generate(func, bodywhile, allocblock); 
 
 	BasicBlock *endwhile = BasicBlock::Create(global_context, "while_end", func, 0);
@@ -20,10 +20,14 @@ Value *While::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 	BranchInst::Create(condwhile, block);
 	BranchInst::Create(bodywhile, endwhile, exprv, condwhile);
 		
+	// identify last while body block
+	BasicBlock *endbody = bodywhile;
 	if (newb->getValueID() == Value::BasicBlockVal)
-		BranchInst::Create(condwhile, (BasicBlock*)newb);
-	else
-		BranchInst::Create(condwhile, bodywhile);
+		endbody = (BasicBlock*)newb;
+	
+	// if end block already has a terminator, don't generate branch
+	if (!((BasicBlock*)endbody)->getTerminator())
+		BranchInst::Create(condwhile, endbody);
 
 	return endwhile;
 }

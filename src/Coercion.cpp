@@ -10,8 +10,7 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, bool unsig){
 		if ((ty->isFloatTy() || destty->isDoubleTy()) && destty -> isIntegerTy()){
 			r = new FPToSIInst(v, destty, "fptosi", block);
 		}
-		
-		if ((ty->isHalfTy() || destty->isDoubleTy()) && destty -> isIntegerTy()){
+		else if ((ty->isHalfTy() || destty->isDoubleTy()) && destty -> isIntegerTy()){
 			r = new FPToSIInst(v, destty, "", block);
 		}
 		//Integer to Float
@@ -19,12 +18,9 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, bool unsig){
 			r = new SIToFPInst(v, destty, "sitofp", block);
 		}
 		//Float/Double to Float/Double
-		
-		if ((ty->isFloatTy() || destty->isDoubleTy()) && (destty -> isFloatTy() || destty -> isDoubleTy())){
+		else if ((ty->isFloatTy() || destty->isDoubleTy()) && (destty -> isFloatTy() || destty -> isDoubleTy())){
 			r = new FPExtInst(v, destty, "fpext", block);
 		}
-		//TO-DO Create Coersion Double to Int
-
 		//Generic ExtInt to Int
 		else if (destty->isIntegerTy() && ty->isIntegerTy()){
 			unsigned wty = dyn_cast<IntegerType>(ty)->getBitWidth();

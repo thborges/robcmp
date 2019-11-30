@@ -3,7 +3,7 @@ layout: page
 title: About
 permalink: /about/
 ---
-This is a site for documenting the Robcmp project (https://github.com/thborges/robcmp). Robcmp is a frontend compiler, based on LLVM, developed to help students taking the Compiler course in the Computer Science bachelor. The programming language is engineered around Educational Robotics and we plan to introduce it in our research projects. The compiler is not feature-complete yet but was used already to code some robots using AVR processors.
+This site documents the Robcmp project (https://github.com/thborges/robcmp). Robcmp is a frontend compiler, based on LLVM, developed to help students taking the Compiler course in the Computer Science bachelor. The programming language is engineered around Educational Robotics and we plan to introduce it in our research projects. The compiler is not feature-complete yet but was used already to code some robots using AVR processors.
 
 I'm a professor at a Brazilian university called UFJ (Former Jataí Regional, UFG, GO, Brazil). My research is focused on distributed spatial data processing, computer science algorithms and compilers. I do electronics and 3d printing as hobbies.
 

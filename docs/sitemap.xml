@@ -8,18 +8,48 @@
 
 
 <url>
-  <loc>https://thborges.github.io/blog/</loc>
-  <lastmod>2019-02-11T20:44:06+00:00</lastmod>
+  <loc>http://thborges.github.io/robcmp/</loc>
+  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
   <priority>1.00</priority>
 </url>
 <url>
-  <loc>https://thborges.github.io/blog/about/</loc>
-  <lastmod>2019-02-11T20:44:06+00:00</lastmod>
+  <loc>http://thborges.github.io/robcmp/about/</loc>
+  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
-  <loc>https://thborges.github.io/blog/marlin/2019/01/07/reducing-marlin-binary-size.html</loc>
-  <lastmod>2019-02-11T20:44:06+00:00</lastmod>
+  <loc>http://thborges.github.io/robcmp/teaching/research/2019/11/29/compilers-refactoring-new-language-features.html</loc>
+  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>http://thborges.github.io/robcmp/research/2018/12/01/compilers-pfc-lre.html</loc>
+  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>http://thborges.github.io/robcmp/research/2018/10/01/robo-basquetebol.html</loc>
+  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>http://thborges.github.io/robcmp/research/2018/10/01/espaco-das-profissoes.html</loc>
+  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>http://thborges.github.io/robcmp/teaching/2017/07/01/language-for-small-cnc-plotter.html</loc>
+  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>http://thborges.github.io/robcmp/teaching/2016/07/01/project-videos.html</loc>
+  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>http://thborges.github.io/robcmp/teaching/2015/07/01/project-videos.html</loc>
+  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 

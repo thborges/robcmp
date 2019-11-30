@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="http://localhost:4000/robcmp/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/robcmp/" rel="alternate" type="text/html" /><updated>2019-11-30T12:55:47-03:00</updated><id>http://localhost:4000/robcmp/feed.xml</id><title type="html">Robcmp, a compiler frontend</title><subtitle>Documentação dos projetos desenvolvidos na disciplina Compiladores, na Universidade Federal de Jataí (UFG - Regional Jataí), https://computacao.jatai.ufg.br. Obrigado por ler e sinta-se à vontade para me contatar.</subtitle><entry><title type="html">Compiladores 2018: Linguagem Orientada a Eventos para Robótica Educacional</title><link href="http://localhost:4000/robcmp/research/2018/12/01/compilers-pfc-lre.html" rel="alternate" type="text/html" title="Compiladores 2018: Linguagem Orientada a Eventos para Robótica Educacional" /><published>2018-12-01T18:44:14-02:00</published><updated>2018-12-01T18:44:14-02:00</updated><id>http://localhost:4000/robcmp/research/2018/12/01/compilers-pfc-lre</id><content type="html" xml:base="http://localhost:4000/robcmp/research/2018/12/01/compilers-pfc-lre.html">&lt;p&gt;Durante o ano de 2018, o aluno Danilo Martins Rodrigues &lt;a href=&quot;https://github.com/bccdanilo&quot;&gt;@bccdanilo&lt;/a&gt;, no desenvolvimento de seu projeto de final de curso (PFC), acrescentou recursos de orientação à eventos na linguagem, suportando eventos acionados com base em relógios do AVR e também em interrupções de borda em portas lógicas. A implementação foi realizada através da modificação dos parsers léxico e sintático. A biblioteca &lt;a href=&quot;https://www.arduinolibraries.info/libraries/timer-one&quot;&gt;TimerOne&lt;/a&gt;, em C, foi empregada para prover a funcionalidade de eventos baseados em relógio. O código implementado em seu trabalho pode ser visto no branch &lt;a href=&quot;https://github.com/thborges/robcmp/tree/pfc_danilo&quot;&gt;robcmp-danilo&lt;/a&gt;. O texto final do PFC pode ser obtido em &lt;a href=&quot;https://github.com/thborges/robcmp/raw/pfc_danilo/docs/pfc2%20danilo%20banca_.pdf&quot;&gt;Monografia Danilo Martins&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Exemplo de código com eventos:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;x = 0;
+quando porta1 esta crescendo {
+	//evento acionado quando porta 1 cresce (RISING)
+    x = (1-x);
+}
+a cada 0.5 segundos {
+	//evento acionado a cada 500ms
+}
+// pisca led no loop principal
+enquanto(1&amp;gt;0) {
+	saida13 = 255;
+	espera(500);
+	saida13 = 0;
+	espera(500);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div style=&quot;border-bottom: 1px solid #e8e8e8;&quot;&gt;Obrigado por visitar! Deixe um comentário abaixo.&lt;p /&gt;&lt;/div&gt;
+&lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  var disqus_config = function () {
+    this.page.url = document.location.href;
+    this.page.identifier = document.location.pathname;
+  };
+
+  (function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://thborges.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+  })();
+&lt;/script&gt;
+
+&lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;https://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;</content><author><name></name></author><summary type="html">Durante o ano de 2018, o aluno Danilo Martins Rodrigues @bccdanilo, no desenvolvimento de seu projeto de final de curso (PFC), acrescentou recursos de orientação à eventos na linguagem, suportando eventos acionados com base em relógios do AVR e também em interrupções de borda em portas lógicas. A implementação foi realizada através da modificação dos parsers léxico e sintático. A biblioteca TimerOne, em C, foi empregada para prover a funcionalidade de eventos baseados em relógio. O código implementado em seu trabalho pode ser visto no branch robcmp-danilo. O texto final do PFC pode ser obtido em Monografia Danilo Martins.</summary></entry><entry><title type="html">Espaço das Profissões 2018 na UFG/UFJ e em outras instituições</title><link href="http://localhost:4000/robcmp/research/2018/10/01/espaco-das-profissoes.html" rel="alternate" type="text/html" title="Espaço das Profissões 2018 na UFG/UFJ e em outras instituições" /><published>2018-10-01T17:44:14-03:00</published><updated>2018-10-01T17:44:14-03:00</updated><id>http://localhost:4000/robcmp/research/2018/10/01/espaco-das-profissoes</id><content type="html" xml:base="http://localhost:4000/robcmp/research/2018/10/01/espaco-das-profissoes.html">&lt;p&gt;Alguns vídeos do projeto de Robótica Educacional, ferramentas para auxiliar na construção de robôs e os próprios robôs que estão sendo desenvolvidos:&lt;/p&gt;
+
+&lt;p&gt;Vídeo do espaço das profissões 2018, clique para assistir.
+&lt;a href=&quot;https://www.youtube.com/watch?v=WiL6HWBrZoA&quot;&gt;&lt;img src=&quot;https://img.youtube.com/vi/WiL6HWBrZoA/0.jpg&quot; alt=&quot;Video RE 4&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pequena máquina CNC plotter construída com sucata de computadores. Clique para assistir o vídeo.
+&lt;a href=&quot;https://www.youtube.com/watch?v=-Id48-MvaR4&quot;&gt;&lt;img src=&quot;https://img.youtube.com/vi/-Id48-MvaR4/0.jpg&quot; alt=&quot;Video RE 3&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Construção de placas de circuito impresso (PCB) usando adaptação em impressora 3D.
+&lt;a href=&quot;https://www.youtube.com/watch?v=-zfRB2uEZyY&quot;&gt;&lt;img src=&quot;https://img.youtube.com/vi/-zfRB2uEZyY/0.jpg&quot; alt=&quot;Video RE 2&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Robô pega moeda, espaço das profissões 2017. Clique para assistir.
+&lt;a href=&quot;https://www.youtube.com/watch?v=g4sYlFEB-1E&quot;&gt;&lt;img src=&quot;https://img.youtube.com/vi/g4sYlFEB-1E/0.jpg&quot; alt=&quot;Video RE 1&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Fotos do dia das profissões na Raízen.
+&lt;img src=&quot;https://github.com/thborges/robcmp/raw/master/videos/IMG_2523.JPG&quot; alt=&quot;Foto 1&quot; /&gt;
+&lt;img src=&quot;https://github.com/thborges/robcmp/raw/master/videos/IMG_2524.JPG&quot; alt=&quot;Foto 2&quot; /&gt;
+&lt;img src=&quot;https://github.com/thborges/robcmp/raw/master/videos/IMG_2525.JPG&quot; alt=&quot;Foto 3&quot; /&gt;
+&lt;img src=&quot;https://github.com/thborges/robcmp/raw/master/videos/IMG_2526.JPG&quot; alt=&quot;Foto 4&quot; /&gt;&lt;/p&gt;
+
+&lt;div style=&quot;border-bottom: 1px solid #e8e8e8;&quot;&gt;Obrigado por visitar! Deixe um comentário abaixo.&lt;p /&gt;&lt;/div&gt;
+&lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  var disqus_config = function () {
+    this.page.url = document.location.href;
+    this.page.identifier = document.location.pathname;
+  };
+
+  (function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://thborges.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+  })();
+&lt;/script&gt;
+
+&lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;https://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;</content><author><name></name></author><summary type="html">Alguns vídeos do projeto de Robótica Educacional, ferramentas para auxiliar na construção de robôs e os próprios robôs que estão sendo desenvolvidos:</summary></entry><entry><title type="html">Referência Visual para o Projeto Robô Basquetebol</title><link href="http://localhost:4000/robcmp/research/2018/10/01/robo-basquetebol.html" rel="alternate" type="text/html" title="Referência Visual para o Projeto Robô Basquetebol" /><published>2018-10-01T17:44:14-03:00</published><updated>2018-10-01T17:44:14-03:00</updated><id>http://localhost:4000/robcmp/research/2018/10/01/robo-basquetebol</id><content type="html" xml:base="http://localhost:4000/robcmp/research/2018/10/01/robo-basquetebol.html">&lt;p&gt;Projeto:
+&lt;em&gt;ESPECIFICAÇÃO E CONSTRUÇÃO DE PROTÓTIPOS FUNCIONAIS DE KITS ROBÓTICOS DE BAIXO CUSTO PARA USO EM PROCESSOS DE ENSINO-APRENDIZAGEM&lt;/em&gt;
+UNIVERSIDADE FEDERAL DE GOIÁS REGIONAL JATAÍ
+UAE DE CIÊNCIAS EXATAS E TECNOLÓGICAS
+BACHARELADO EM CIÊNCIAS DA COMPUTAÇÃO&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://raw.githubusercontent.com/thborges/robcmp/master/docs/_includes/robobasq1.png&quot; alt=&quot;Protótipo Arremessador e Cesta de Basquete. Teste de protótipo executado em laboratório.&quot; /&gt;
+&lt;img src=&quot;https://raw.githubusercontent.com/thborges/robcmp/master/docs/_includes/robobasq2.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;div style=&quot;border-bottom: 1px solid #e8e8e8;&quot;&gt;Obrigado por visitar! Deixe um comentário abaixo.&lt;p /&gt;&lt;/div&gt;
+&lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  var disqus_config = function () {
+    this.page.url = document.location.href;
+    this.page.identifier = document.location.pathname;
+  };
+
+  (function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://thborges.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+  })();
+&lt;/script&gt;
+
+&lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;https://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;</content><author><name></name></author><summary type="html">Projeto: ESPECIFICAÇÃO E CONSTRUÇÃO DE PROTÓTIPOS FUNCIONAIS DE KITS ROBÓTICOS DE BAIXO CUSTO PARA USO EM PROCESSOS DE ENSINO-APRENDIZAGEM UNIVERSIDADE FEDERAL DE GOIÁS REGIONAL JATAÍ UAE DE CIÊNCIAS EXATAS E TECNOLÓGICAS BACHARELADO EM CIÊNCIAS DA COMPUTAÇÃO</summary></entry><entry><title type="html">Compiladores 2017/1: Linguagem para uma pequena máquina CNC plotter</title><link href="http://localhost:4000/robcmp/teaching/2017/07/01/language-for-small-cnc-plotter.html" rel="alternate" type="text/html" title="Compiladores 2017/1: Linguagem para uma pequena máquina CNC plotter" /><published>2017-07-01T17:44:14-03:00</published><updated>2017-07-01T17:44:14-03:00</updated><id>http://localhost:4000/robcmp/teaching/2017/07/01/language-for-small-cnc-plotter</id><content type="html" xml:base="http://localhost:4000/robcmp/teaching/2017/07/01/language-for-small-cnc-plotter.html">&lt;p&gt;No ano de 2017, devido à complexida do projeto, os alunos não tiveram tempo de usar o hardware disponibilizado (máquina plotter) e as apresentações não foram filmadas. No entanto, o código foi testado em um simulador G-Code. O código e os slides das apresentações estão disponíveis para referência no código deste projeto no &lt;a href=&quot;https://github.com/thborges/robcmp/tree/master/2017&quot;&gt;Github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Algumas imagens do resultado final dos projetos no simulador:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://raw.githubusercontent.com/thborges/robcmp/master/2017/Guilherme/exemplo.jpg&quot; alt=&quot;Código de Calculadora de Números Romanos e resposta usando G-Code&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://raw.githubusercontent.com/thborges/robcmp/master/2017/Roberto/exemplo.jpg&quot; alt=&quot;Código e Desenho de um Robô usando G-Code&quot; /&gt;&lt;/p&gt;
+
+&lt;div style=&quot;border-bottom: 1px solid #e8e8e8;&quot;&gt;Obrigado por visitar! Deixe um comentário abaixo.&lt;p /&gt;&lt;/div&gt;
+&lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  var disqus_config = function () {
+    this.page.url = document.location.href;
+    this.page.identifier = document.location.pathname;
+  };
+
+  (function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://thborges.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+  })();
+&lt;/script&gt;
+
+&lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;https://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;</content><author><name></name></author><summary type="html">No ano de 2017, devido à complexida do projeto, os alunos não tiveram tempo de usar o hardware disponibilizado (máquina plotter) e as apresentações não foram filmadas. No entanto, o código foi testado em um simulador G-Code. O código e os slides das apresentações estão disponíveis para referência no código deste projeto no Github.</summary></entry><entry><title type="html">Vídeos da disciplina compiladores 2016/1</title><link href="http://localhost:4000/robcmp/teaching/2016/07/01/project-videos.html" rel="alternate" type="text/html" title="Vídeos da disciplina compiladores 2016/1" /><published>2016-07-01T17:44:14-03:00</published><updated>2016-07-01T17:44:14-03:00</updated><id>http://localhost:4000/robcmp/teaching/2016/07/01/project-videos</id><content type="html" xml:base="http://localhost:4000/robcmp/teaching/2016/07/01/project-videos.html">&lt;p&gt;Apresentação de projeto prático da disciplina Compiladores 2016 na Universidade Federal de Goiás (UFG, Regional Jataí). Neste projeto, os alunos construíram sua própria linguagem de programação para o braço robótico. O vídeo demonstra um programa sendo executado em uma placa Arduino, compilado com o frontend criado pelo aluno (usando Flex, Yacc e o código em &lt;a href=&quot;https://github.com/thborges/robcmp&quot;&gt;https://github.com/thborges/robcmp&lt;/a&gt;) integrado ao backend LLVM Arduino disponível originalmente em &lt;a href=&quot;https://github.com/avr-llvm/llvm&quot;&gt;https://github.com/avr-llvm/llvm&lt;/a&gt; e hoje em dia (2018) já integrado (merged) na suíte LLVM.&lt;/p&gt;
+
+&lt;p&gt;Esta foi uma das linguagens mais bem elaboradas, baseada nas falas do personagem brasileiro Mussum. Veja os detalhes em: https://grisotto.github.io/MUSSUM-Compilis/&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=a5fkYkQ6bhI&quot;&gt;&lt;img src=&quot;https://img.youtube.com/vi/a5fkYkQ6bhI/0.jpg&quot; alt=&quot;Video 1 2016&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Apesar do braço robótico usar motores DC, que não possuem controle de movimento, os alunos conseguiram fazer o robô escrever algumas letras usando sua própria linguagem de programação!&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=ahtgTIoUnZ0&quot;&gt;&lt;img src=&quot;https://img.youtube.com/vi/ahtgTIoUnZ0/0.jpg&quot; alt=&quot;Video 2 2016&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;div style=&quot;border-bottom: 1px solid #e8e8e8;&quot;&gt;Obrigado por visitar! Deixe um comentário abaixo.&lt;p /&gt;&lt;/div&gt;
+&lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  var disqus_config = function () {
+    this.page.url = document.location.href;
+    this.page.identifier = document.location.pathname;
+  };
+
+  (function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://thborges.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+  })();
+&lt;/script&gt;
+
+&lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;https://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;</content><author><name></name></author><summary type="html">Apresentação de projeto prático da disciplina Compiladores 2016 na Universidade Federal de Goiás (UFG, Regional Jataí). Neste projeto, os alunos construíram sua própria linguagem de programação para o braço robótico. O vídeo demonstra um programa sendo executado em uma placa Arduino, compilado com o frontend criado pelo aluno (usando Flex, Yacc e o código em https://github.com/thborges/robcmp) integrado ao backend LLVM Arduino disponível originalmente em https://github.com/avr-llvm/llvm e hoje em dia (2018) já integrado (merged) na suíte LLVM.</summary></entry><entry><title type="html">Vídeos da disciplina compiladores 2015/1</title><link href="http://localhost:4000/robcmp/teaching/2015/07/01/project-videos.html" rel="alternate" type="text/html" title="Vídeos da disciplina compiladores 2015/1" /><published>2015-07-01T17:44:14-03:00</published><updated>2015-07-01T17:44:14-03:00</updated><id>http://localhost:4000/robcmp/teaching/2015/07/01/project-videos</id><content type="html" xml:base="http://localhost:4000/robcmp/teaching/2015/07/01/project-videos.html">&lt;p&gt;Apresentação de projeto prático da disciplina Compiladores 2015 na Universidade Federal de Goiás (UFG, Regional Jataí). Neste projeto, os alunos construíram sua própria linguagem de programação para o braço robótico. O vídeo demonstra um programa sendo executado em uma placa Arduino, compilado com o frontend criado pelo aluno (usando Flex, Yacc e o código em &lt;a href=&quot;https://github.com/thborges/robcmp&quot;&gt;https://github.com/thborges/robcmp&lt;/a&gt;) integrado ao backend LLVM Arduino disponível originalmente em &lt;a href=&quot;https://github.com/avr-llvm/llvm&quot;&gt;https://github.com/avr-llvm/llvm&lt;/a&gt; e hoje em dia (2018) já integrado (merged) na suíte LLVM.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=N4Rxfpfs7k0&quot;&gt;&lt;img src=&quot;https://img.youtube.com/vi/N4Rxfpfs7k0/0.jpg&quot; alt=&quot;Video 1 2015&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=YoPKFKp7MBE&quot;&gt;&lt;img src=&quot;https://img.youtube.com/vi/YoPKFKp7MBE/0.jpg&quot; alt=&quot;Video 2 2015&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=PuXYiVzmQs4&quot;&gt;&lt;img src=&quot;https://img.youtube.com/vi/PuXYiVzmQs4/0.jpg&quot; alt=&quot;Video 3 2015&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;div style=&quot;border-bottom: 1px solid #e8e8e8;&quot;&gt;Obrigado por visitar! Deixe um comentário abaixo.&lt;p /&gt;&lt;/div&gt;
+&lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  var disqus_config = function () {
+    this.page.url = document.location.href;
+    this.page.identifier = document.location.pathname;
+  };
+
+  (function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://thborges.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+  })();
+&lt;/script&gt;
+
+&lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;https://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;</content><author><name></name></author><summary type="html">Apresentação de projeto prático da disciplina Compiladores 2015 na Universidade Federal de Goiás (UFG, Regional Jataí). Neste projeto, os alunos construíram sua própria linguagem de programação para o braço robótico. O vídeo demonstra um programa sendo executado em uma placa Arduino, compilado com o frontend criado pelo aluno (usando Flex, Yacc e o código em https://github.com/thborges/robcmp) integrado ao backend LLVM Arduino disponível originalmente em https://github.com/avr-llvm/llvm e hoje em dia (2018) já integrado (merged) na suíte LLVM.</summary></entry></feed>

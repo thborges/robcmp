@@ -5,7 +5,9 @@ date:   2016-07-01 18:44:14 -0200
 categories: teaching 
 ---
 
-Apresentação de projeto prático da disciplina Compiladores 2016 na Universidade Federal de Goiás (UFG, Regional Jataí). Neste projeto, os alunos construíram sua própria linguagem de programação para o braço robótico. O vídeo demonstra um programa sendo executado em uma placa Arduino, compilado com o frontend criado pelo aluno (usando Flex, Yacc e o código em <https://github.com/thborges/robcmp>) integrado ao backend LLVM Arduino disponível originalmente em <https://github.com/avr-llvm/llvm> e hoje em dia (2018) já integrado (merged) na suíte LLVM.
+Apresentação de projeto prático da disciplina Compiladores 2016 na Universidade Federal de Goiás (UFG, Regional Jataí). 
+
+Neste projeto, os alunos construíram sua própria linguagem de programação para o braço robótico. O vídeo demonstra um programa sendo executado em uma placa Arduino, compilado com o frontend criado pelo aluno (usando Flex, Yacc e o código em <https://github.com/thborges/robcmp>) integrado ao backend LLVM Arduino disponível originalmente em <https://github.com/avr-llvm/llvm> e hoje em dia (2018) já integrado (merged) na suíte LLVM.
 
 
 Esta foi uma das linguagens mais bem elaboradas, baseada nas falas do personagem brasileiro Mussum. Veja os detalhes em: https://grisotto.github.io/MUSSUM-Compilis/

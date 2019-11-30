@@ -5,7 +5,7 @@ date:   2018-10-01 18:44:14 -0200
 categories: research
 ---
 
-Alguns vídeos do projeto de Robótica Educacional, ferramentas para auxiliar na construção de robôs e os próprios robôs que estão sendo desenvolvidos:
+Alguns vídeos do projeto de Robótica Educacional, ferramentas para auxiliar na construção de robôs e os próprios robôs que estão sendo desenvolvidos.
 
 Vídeo do espaço das profissões 2018, clique para assistir.
 [![Video RE 4](https://img.youtube.com/vi/WiL6HWBrZoA/0.jpg)](https://www.youtube.com/watch?v=WiL6HWBrZoA)

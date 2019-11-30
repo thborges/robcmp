@@ -5,6 +5,8 @@ date:   2017-07-01 18:44:14 -0200
 categories: teaching 
 ---
 
+Apresentação de projeto prático da disciplina Compiladores 2017 na Universidade Federal de Goiás (UFG, Regional Jataí). 
+
 No ano de 2017, devido à complexida do projeto, os alunos não tiveram tempo de usar o hardware disponibilizado (máquina plotter) e as apresentações não foram filmadas. No entanto, o código foi testado em um simulador G-Code. O código e os slides das apresentações estão disponíveis para referência no código deste projeto no [Github](https://github.com/thborges/robcmp/tree/master/2017).
 
 Algumas imagens do resultado final dos projetos no simulador:

@@ -13,7 +13,7 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: Robcmp, a compiler frontend
+title: Robcmp, an LLVM Compiler Frontend
 email: thborges@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
   Documentação dos projetos desenvolvidos na disciplina Compiladores, na Universidade Federal de Jataí (UFG - Regional Jataí), https://computacao.jatai.ufg.br. Obrigado por ler e sinta-se à vontade para me contatar.
@@ -26,6 +26,9 @@ github_username:  thborges
 markdown: kramdown
 #theme: jekyll-theme-hacker
 theme: minima 
+
+show_excerpts: true
+
 plugins:
   - jekyll-feed
   - jekyll-sitemap

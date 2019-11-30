@@ -2,7 +2,7 @@
 layout: post
 title:  "Compiladores 2017/1: Linguagem para uma pequena máquina CNC plotter"
 date:   2017-07-01 18:44:14 -0200
-categories: teaching 
+categories: Teaching 
 ---
 
 Apresentação de projeto prático da disciplina Compiladores 2017 na Universidade Federal de Goiás (UFG, Regional Jataí). 

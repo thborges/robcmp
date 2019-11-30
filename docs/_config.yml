@@ -19,6 +19,7 @@ description: >- # this means to ignore newlines until "baseurl:"
   Documentação dos projetos desenvolvidos na disciplina Compiladores, na Universidade Federal de Jataí (UFG - Regional Jataí), https://computacao.jatai.ufg.br. Obrigado por ler e sinta-se à vontade para me contatar.
 baseurl: "/robcmp" # the subpath of your site, e.g. /blog
 url: "https://thborges.github.io" # the base hostname & protocol for your site, e.g. http://example.com
+sitemapurl: "https://thborges.github.io/robcmp"
 twitter_username: thborges
 github_username:  thborges
 

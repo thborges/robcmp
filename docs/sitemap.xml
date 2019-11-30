@@ -1,57 +1,56 @@
+---
+layout: null
+sitemap:
+  exclude: 'yes'
+---
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset
-      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
-
-
-<url>
-  <loc>http://thborges.github.io/robcmp/</loc>
-  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
-  <priority>1.00</priority>
-</url>
-<url>
-  <loc>http://thborges.github.io/robcmp/about/</loc>
-  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>http://thborges.github.io/robcmp/teaching/research/2019/11/29/compilers-refactoring-new-language-features.html</loc>
-  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>http://thborges.github.io/robcmp/research/2018/12/01/compilers-pfc-lre.html</loc>
-  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>http://thborges.github.io/robcmp/research/2018/10/01/robo-basquetebol.html</loc>
-  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>http://thborges.github.io/robcmp/research/2018/10/01/espaco-das-profissoes.html</loc>
-  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>http://thborges.github.io/robcmp/teaching/2017/07/01/language-for-small-cnc-plotter.html</loc>
-  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>http://thborges.github.io/robcmp/teaching/2016/07/01/project-videos.html</loc>
-  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>http://thborges.github.io/robcmp/teaching/2015/07/01/project-videos.html</loc>
-  <lastmod>2019-11-30T18:13:27+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-
-
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  {% for post in site.posts %}
+    {% unless post.published == false %}
+    <url>
+      <loc>{{ site.sitemapurl }}{{ post.url }}</loc>
+      {% if post.sitemap.lastmod %}
+        <lastmod>{{ post.sitemap.lastmod | date: "%Y-%m-%d" }}</lastmod>
+      {% elsif post.date %}
+        <lastmod>{{ post.date | date_to_xmlschema }}</lastmod>
+      {% else %}
+        <lastmod>{{ site.time | date_to_xmlschema }}</lastmod>
+      {% endif %}
+      {% if post.sitemap.changefreq %}
+        <changefreq>{{ post.sitemap.changefreq }}</changefreq>
+      {% else %}
+        <changefreq>monthly</changefreq>
+      {% endif %}
+      {% if post.sitemap.priority %}
+        <priority>{{ post.sitemap.priority }}</priority>
+      {% else %}
+        <priority>0.5</priority>
+      {% endif %}
+    </url>
+    {% endunless %}
+  {% endfor %}
+  {% for page in site.pages %}
+    {% unless page.sitemap.exclude == "yes" or page.name == "feed.xml" %}
+    <url>
+      <loc>{{ site.sitemapurl }}{{ page.url | remove: "index.html" }}</loc>
+      {% if page.sitemap.lastmod %}
+        <lastmod>{{ page.sitemap.lastmod | date: "%Y-%m-%d" }}</lastmod>
+      {% elsif page.date %}
+        <lastmod>{{ page.date | date_to_xmlschema }}</lastmod>
+      {% else %}
+        <lastmod>{{ site.time | date_to_xmlschema }}</lastmod>
+      {% endif %}
+      {% if page.sitemap.changefreq %}
+        <changefreq>{{ page.sitemap.changefreq }}</changefreq>
+      {% else %}
+        <changefreq>monthly</changefreq>
+      {% endif %}
+      {% if page.sitemap.priority %}
+        <priority>{{ page.sitemap.priority }}</priority>
+      {% else %}
+        <priority>0.3</priority>
+      {% endif %}
+    </url>
+    {% endunless %}
+  {% endfor %}
 </urlset>

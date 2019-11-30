@@ -2,7 +2,7 @@
 layout: post
 title:  "Espaço das Profissões 2018 na UFG/UFJ e em outras instituições"
 date:   2018-10-01 18:44:14 -0200
-categories: research
+categories: Presentations
 ---
 
 Alguns vídeos do projeto de Robótica Educacional, ferramentas para auxiliar na construção de robôs e os próprios robôs que estão sendo desenvolvidos.

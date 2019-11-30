@@ -2,7 +2,7 @@
 layout: post
 title:  "Compiladores 2019: Refatoração e Novos Recursos na Linguagem"
 date:   2019-11-29 18:44:14 -0200
-categories: [teaching, research]
+categories: [Teaching, Research]
 ---
 
 Atualização do projeto no ano de 2019: novos recursos na linguagem e refactoring do código.

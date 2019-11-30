@@ -2,7 +2,7 @@
 layout: post
 title:  "Compiladores 2018: Linguagem Orientada a Eventos para Robótica Educacional"
 date:   2018-12-01 18:44:14 -0200
-categories: research 
+categories: Research 
 ---
 
 Atualização do projeto no ano de 2018: orientação a eventos com interrupções de tempo e em portas lógicas.

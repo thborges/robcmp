@@ -2,7 +2,7 @@
 layout: post
 title:  "Vídeos da disciplina compiladores 2015/1"
 date:   2015-07-01 18:44:14 -0200
-categories: teaching 
+categories: Teaching 
 ---
 
 Apresentação de projeto prático da disciplina Compiladores 2015 na Universidade Federal de Goiás (UFG, Regional Jataí). 

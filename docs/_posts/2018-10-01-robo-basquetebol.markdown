@@ -2,7 +2,7 @@
 layout: post
 title:  "Referência Visual para o Projeto Robô Basquetebol"
 date:   2018-10-01 18:44:14 -0200
-categories: research
+categories: Research
 ---
 
 Fotos e protótipos do robô basquetebol em construção.

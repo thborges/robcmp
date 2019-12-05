@@ -9,7 +9,7 @@ SRC = src
 BIN = .
  
 FLAGS=-O2 -DYYERROR_VERBOSE -fexceptions -Wno-deprecated-register -Wno-unused-function
-DFLAGS=-ggdb -O0
+#DFLAGS=-ggdb -O0
 
 CPPS=$(patsubst %.cpp,%.o,$(wildcard ${SRC}/*.cpp))
 YACS=$(patsubst %.y,%_y.o,$(wildcard ${SRC}/*.y))

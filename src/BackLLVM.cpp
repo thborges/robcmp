@@ -20,6 +20,8 @@
 
 using namespace llvm;
 
+extern char *build_filename;
+
 // Program main module
 Module *mainmodule;
 BasicBlock *mainblock;
@@ -113,9 +115,9 @@ void print_llvm_ir(const char *target, char opt_level) {
 		modulePassManager.run(*mainmodule, moduleAnalysisManager);
 	}
 
-	//#define ENABLE_STDOUT
+	#define ENABLE_STDOUT
 	#ifdef ENABLE_STDOUT
-	std::string outfilename = filename;
+	std::string outfilename = build_filename;
 	outfilename += ".o";
 	std::error_code ec;
 	raw_fd_ostream dest(outfilename, ec);
@@ -127,9 +129,9 @@ void print_llvm_ir(const char *target, char opt_level) {
 	targetMachine->addPassesToEmitFile(pass_codegen, dest, nullptr, TargetMachine::CGFT_ObjectFile);
 	pass_codegen.run(*mainmodule);
 	dest.flush();
-	#endif
-
+	#else
 	// print IR to stdout
 	mainmodule->print(outs(), nullptr);
+	#endif
 }
 

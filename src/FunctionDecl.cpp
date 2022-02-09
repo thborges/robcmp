@@ -64,7 +64,7 @@ Value *FunctionDecl::generate(Function *func, BasicBlock *block, BasicBlock *all
 		//Value *valor = search_symbol(argname, fblock, fblock);
 		AllocaInst* variable = new AllocaInst(parameters->getParamType(Idx), 0, argname, falloc);
 		tabelasym[falloc][argname] = variable;
-		StoreInst *val = new StoreInst(&Arg, variable, argname, false, fblock);
+		StoreInst *val = new StoreInst(&Arg, variable, false, fblock);
 		Idx++;
 	}
 	nfunc->setCallingConv(CallingConv::C);

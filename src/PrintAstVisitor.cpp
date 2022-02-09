@@ -76,7 +76,7 @@ void PrintAstVisitor::visit(While const& n) {
 	PrintAstVisitorNode::visit(n);
 }
 
-const char *PrintAstVisitor::getOperatorName(int op) {
+const string PrintAstVisitor::getOperatorName(int op) {
 	switch (op) {
 		case EQ_OP: return "=";
 		case NE_OP: return "!=";
@@ -91,7 +91,7 @@ const char *PrintAstVisitor::getOperatorName(int op) {
 		case '%' :  return "%";
 		case TOK_AND : return "and";
 		case TOK_OR  : return "or";
-		default: return std::to_string(op).c_str();
+		default: return std::to_string(op);
 	}
 }
 

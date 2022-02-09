@@ -13,6 +13,7 @@
 #include <llvm/Passes/PassBuilder.h>
 #include "llvm/IR/LegacyPassManager.h"
 
+#include "llvm/Support/Host.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetMachine.h"
@@ -84,10 +85,10 @@ void print_llvm_ir(const char *target, char opt_level) {
 	mainmodule->setTargetTriple(ai.triple);
 
 	PassBuilder passBuilder(targetMachine);
-	LoopAnalysisManager loopAnalysisManager(false); // true is just to output debug info
-	FunctionAnalysisManager functionAnalysisManager(false);
-	CGSCCAnalysisManager cGSCCAnalysisManager(false);
-	ModuleAnalysisManager moduleAnalysisManager(false);
+	auto loopAnalysisManager = LoopAnalysisManager{};
+	auto functionAnalysisManager = FunctionAnalysisManager{};
+	auto cGSCCAnalysisManager = CGSCCAnalysisManager{};
+	auto moduleAnalysisManager = ModuleAnalysisManager{};
 
 	passBuilder.registerModuleAnalyses(moduleAnalysisManager);
 	passBuilder.registerCGSCCAnalyses(cGSCCAnalysisManager);

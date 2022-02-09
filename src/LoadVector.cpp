@@ -24,7 +24,7 @@ Value *LoadVector::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 
 		Value *indice = position->generate(func, block, allocblock);
 		if (!indice->getType()->isIntegerTy()){
-			yyerrorcpp("Index for " + ident + " vector should be of integer type.");
+			yyerrorcpp("Index for loading " + ident + " vector should be of integer type.");
 			return NULL;
 		}
 
@@ -35,7 +35,7 @@ Value *LoadVector::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 		//GetElementPtrInst* ptr = GetElementPtrInst::Create(Type *PointeeType, Value *Ptr, ArrayRef<Value*> IdxList, const Twine &NameStr="", Instruction/BasicBlock *Insert)
 		GetElementPtrInst* ptr = GetElementPtrInst::Create(arrayTy, sym, ArrayRef<Value*>(indexList), "", block);
 //		GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, sym, ArrayRef<Value*>(indexList), "", block);
-		LoadInst *ret = new LoadInst(ptr, ident, false, block);
+		LoadInst *ret = new LoadInst(ptr->getResultElementType(), ptr, ident, false, block);
 
 		return ret;
 	//	return ret;

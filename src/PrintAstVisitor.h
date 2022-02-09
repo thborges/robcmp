@@ -25,7 +25,7 @@ public:
 	virtual void visit(Int32 const& n) override;
 	virtual void visit(While const& n) override;
 
-	const char *getOperatorName(int op);
+	const string getOperatorName(int op);
 	virtual void visit(CmpOp const& n) override;
 	virtual void visit(BinaryOp const& n) override;
 

@@ -24,7 +24,7 @@ Value *UpdateVector::generate(Function *func, BasicBlock *block, BasicBlock *all
 
 		Value *indice = position->generate(func, block, allocblock);
 		if (!indice->getType()->isIntegerTy()){
-			yyerrorcpp("Index for " + ident + " vector should be of integer type.");
+			yyerrorcpp("Index to update " + ident + " vector should be of integer type.");
 			return NULL;
 		}
 

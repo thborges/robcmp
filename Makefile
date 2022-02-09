@@ -1,7 +1,7 @@
 CC=/usr/bin/clang++
 
-LLVMFLAGS=$(shell llvm-config-9 --cxxflags)
-LLVMLIBS=$(shell llvm-config-9 --ldflags --libs all) -lpthread -ldl -lncurses -lz
+LLVMFLAGS=$(shell llvm-config --cxxflags)
+LLVMLIBS=$(shell llvm-config --ldflags --libs all) -lpthread -ldl -lncurses -lz
 
 COMPILER_NAME=$(shell basename "${PWD}")
 

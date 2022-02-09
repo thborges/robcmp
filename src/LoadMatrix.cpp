@@ -48,7 +48,7 @@ Value *LoadMatrix::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 		//Get Element in Vector
 		Value* indexList2[2] = {zero, indice_2};
 		GetElementPtrInst* gep = GetElementPtrInst::Create(matrixTy, ptr, ArrayRef<Value*>(indexList2), "gepc"+ident, block);
-		LoadInst *ret = new LoadInst(gep, "lc"+ident, false, block);
+		LoadInst *ret = new LoadInst(gep->getResultElementType(), gep, "lc"+ident, false, block);
 
 		return ret;
 }

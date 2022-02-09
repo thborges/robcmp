@@ -115,7 +115,7 @@ public:
 	}
 
 	Value *generate(Function *func, BasicBlock *block) {
-		LoadInst *ret = new LoadInst(tabelasym[ident], ident, false, block);
+		LoadInst *ret = new LoadInst(tabelasym[ident]->getAllocatedType(), tabelasym[ident], ident, false, block);
 		return ret;
 	}
 };
@@ -134,7 +134,7 @@ public:
 		Value *leftv;
 		Value *exprv = expr->generate(func, block);
 		if (left == tabelasym.end()) {
-			tabelasym[name] = new AllocaInst(exprv->getType(), name, block);
+			tabelasym[name] = new AllocaInst(exprv->getType(), 0, name, block);
 			leftv = tabelasym[name];
 		}
 		else
@@ -279,7 +279,7 @@ public:
 				rexp = new SIToFPInst(rexp, Type::getFloatTy(global_context), "", block);
 		}
 
-		if (op == EQ_OP)		predicate = isFCmp ? FCmpInst::FCMP_OEQ : ICmpInst::ICMP_EQ;
+		if (op == EQ_OP)	  predicate = isFCmp ? FCmpInst::FCMP_OEQ : ICmpInst::ICMP_EQ;
 		else if (op == NE_OP) predicate = isFCmp ? FCmpInst::FCMP_UNE : ICmpInst::ICMP_NE;
 		else if (op == GE_OP) predicate = isFCmp ? FCmpInst::FCMP_OGE : ICmpInst::ICMP_SGE;
 		else if (op == LE_OP) predicate = isFCmp ? FCmpInst::FCMP_OLE : ICmpInst::ICMP_SLE;
@@ -417,7 +417,7 @@ public:
 		Int8 prt(cty1);
 		args.push_back(prt.generate(func, block));
 		
-		AllocaInst *ptr_aux = new AllocaInst(lexp->getType(), "", block);
+		AllocaInst *ptr_aux = new AllocaInst(lexp->getType(), 0, "", block);
 		StoreInst *st = new StoreInst(lexp, ptr_aux, false, block);
 		CastInst *cinst = new BitCastInst(ptr_aux, PointerType::get(IntegerType::get(global_context, 8), 0), "", block);
 		args.push_back(cinst);

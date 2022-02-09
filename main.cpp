@@ -7,6 +7,7 @@
 #include <llvm/Analysis/Passes.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
+#include <llvm/LinkAllPasses.h>
 
 #include "node.h"
 
@@ -50,7 +51,7 @@ int main(int argc, char *argv[]) {
 
 	llvm::legacy::PassManager pm;
 
-	pm.add(createPromoteMemoryToRegisterPass());
+	/*pm.add(createPromoteMemoryToRegisterPass());
 	pm.add(createInstructionCombiningPass());
 	pm.add(createReassociatePass());
 	pm.add(createCFGSimplificationPass());
@@ -60,7 +61,7 @@ int main(int argc, char *argv[]) {
 	pm.add(createCFGSimplificationPass());
 	pm.add(createAggressiveDCEPass());
 	pm.add(createDeadStoreEliminationPass());
-	pm.add(createCFGSimplificationPass());
+	pm.add(createCFGSimplificationPass());*/
 
 	// imprime o código intermediário gerado
 	pm.add(createPrintModulePass(outs()));

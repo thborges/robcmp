@@ -1,12 +1,12 @@
 CC=clang++
 
-LLVMFLAGS=$(shell llvm-config-3.9 --cxxflags)
-LLVMLIBS=$(shell llvm-config-3.9 --ldflags --libs all) -lpthread -ldl -lncurses
+LLVMFLAGS=$(shell llvm-config --cxxflags)
+LLVMLIBS=$(shell llvm-config --ldflags --libs all) -lpthread -ldl -lncurses
 
 COMPILER_NAME=$(shell basename "${PWD}")
  
-FLAGS=-O3 -DYYERROR_VERBOSE -fexceptions -Wno-deprecated-register
-#DFLAGS=-ggdb -O0
+#FLAGS=-O3 -DYYERROR_VERBOSE -fexceptions -Wno-deprecated-register
+DFLAGS=-ggdb -O0
 
 CPPS=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
 YACS=$(patsubst %.y,%_y.o,$(wildcard *.y))
@@ -29,5 +29,5 @@ $(COMPILER_NAME): ${YACS} ${LEXS} ${CPPS}
 clean:
 	rm -f *_y.cpp *_l.cpp bison.hpp *.o
 
-.SILENT:
+#.SILENT:
 

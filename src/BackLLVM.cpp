@@ -14,7 +14,7 @@
 #include "llvm/IR/LegacyPassManager.h"
 
 #include "llvm/Support/Host.h"
-#include "llvm/Support/TargetRegistry.h"
+#include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
@@ -97,15 +97,15 @@ void print_llvm_ir(const char *target, char opt_level) {
 	passBuilder.crossRegisterProxies(
 	    loopAnalysisManager, functionAnalysisManager, cGSCCAnalysisManager, moduleAnalysisManager);
 
-	PassBuilder::OptimizationLevel ol;
+	OptimizationLevel ol;
 	switch (opt_level) {
-		//case '0': ol = PassBuilder::OptimizationLevel::O0; break;
-		case '1': ol = PassBuilder::OptimizationLevel::O1; break;
-		case '2': ol = PassBuilder::OptimizationLevel::O2; break;
-		case '3': ol = PassBuilder::OptimizationLevel::O3; break;
-		case 's': ol = PassBuilder::OptimizationLevel::Os; break;
+		//case '0': ol = OptimizationLevel::O0; break;
+		case '1': ol = OptimizationLevel::O1; break;
+		case '2': ol = OptimizationLevel::O2; break;
+		case '3': ol = OptimizationLevel::O3; break;
+		case 's': ol = OptimizationLevel::Os; break;
 		case 'z':
-		default : ol = PassBuilder::OptimizationLevel::Oz; break;
+		default : ol = OptimizationLevel::Oz; break;
 	}
 
 	if (opt_level != '0') {

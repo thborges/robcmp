@@ -18,7 +18,7 @@ extern void unescape(char *s);
 <COMMENT>"*"/[^/]		{ yymore(); }
 <COMMENT>"*/"			{ BEGIN(INITIAL); }
 
-"//".*$					{ fprintf(stderr, "Comentario: %s\n", yytext); /* comentario de linha */}
+"//".*$					{ /*fprintf(stderr, "Comentario: %s\n", yytext); */ /* comentario de linha */}
 
 "void"					{ return TOK_VOID; }
 "function"				{ return TOK_FUNCTION; }

@@ -9,10 +9,12 @@ Value *LoadVector::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 		}
 
 		// sym type can be GlobalVariable or AllocInst
-		Type *ty = sym->getType();
-		if (ty->isPointerTy()) // global variable is always pointer
-			ty = ((PointerType*)ty)->getElementType();
-	
+		Type *ty = NULL;
+		if (auto *aux = dyn_cast<AllocaInst>(sym))
+			ty = aux->getAllocatedType();
+		else if (auto *aux = dyn_cast<GlobalVariable>(sym))
+			ty = aux->getValueType();
+
 		ArrayType *arrayTy = NULL;
 		if (ty->isArrayTy()) {
 			arrayTy = (ArrayType*)ty;
@@ -29,15 +31,9 @@ Value *LoadVector::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 		}
 
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
-		//Value *indice = ConstantInt::get(Type::getInt8Ty(global_context), npos);
-
 		Value* indexList[2] = {zero, indice};
-		//GetElementPtrInst* ptr = GetElementPtrInst::Create(Type *PointeeType, Value *Ptr, ArrayRef<Value*> IdxList, const Twine &NameStr="", Instruction/BasicBlock *Insert)
 		GetElementPtrInst* ptr = GetElementPtrInst::Create(arrayTy, sym, ArrayRef<Value*>(indexList), "", block);
-//		GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, sym, ArrayRef<Value*>(indexList), "", block);
 		LoadInst *ret = new LoadInst(ptr->getResultElementType(), ptr, ident, false, block);
-
 		return ret;
-	//	return ret;
 }
 

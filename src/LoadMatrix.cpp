@@ -9,10 +9,12 @@ Value *LoadMatrix::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 		}
 
 		// sym type can be GlobalVariable or AllocInst
-		Type *ty = sym->getType();
-		if (ty->isPointerTy()) // global variable is always pointer
-			ty = ((PointerType*)ty)->getElementType();
-	
+		Type *ty = NULL;
+		if (auto *aux = dyn_cast<AllocaInst>(sym))
+			ty = aux->getAllocatedType();
+		else if (auto *aux = dyn_cast<GlobalVariable>(sym))
+			ty = aux->getValueType();
+		
 		ArrayType *arrayTy = NULL;
 		Type *matrixTy = NULL;
 		if (ty->isArrayTy()) {

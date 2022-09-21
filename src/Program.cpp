@@ -93,6 +93,7 @@ Program::Program(Stmts *stmts) {
 	}
 
     Value *Program::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+		return NULL;
 	}
 
 	void Program::generate() {

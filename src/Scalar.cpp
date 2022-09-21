@@ -10,6 +10,7 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 	Value *exprv = expr->generate(func, block, allocblock);
 
 	Value *leftv = search_symbol(name, allocblock, block);	
+	Type *leftvty = exprv->getType();
 	if (leftv == NULL) {
 		if (allocblock == global_alloc) {
 			GlobalVariable *gv = new GlobalVariable(*mainmodule, exprv->getType(), 
@@ -20,8 +21,10 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 				gv->setInitializer(ConstantFP::get(exprv->getType(), 0.0));
 			else if (exprv->getType()->isHalfTy())
 				gv->setInitializer(ConstantFP::get(exprv->getType(), 0.0));
-			else
-				yyerrorcpp("Global variable default initialization not defined.");
+			else {
+				yyerrorcpp("Global variable default initialization not defined: " + 
+					getTypeName(exprv->getType()));
+			}
 
 			leftv = gv;
 		} else {
@@ -30,12 +33,11 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 		tabelasym[allocblock][name] = leftv; 
 	}
 
-	auto nvalue = exprv;
-	if (leftv->getType()->getPointerElementType()->isIntegerTy() && 
+	/*if (leftv->getLoadStoreType()->isIntegerTy() && 
 		exprv->getType()->isFloatTy()) {
-		nvalue = new FPToSIInst(exprv, leftv->getType()->getPointerElementType(), 
-			"truncistore", block);
-	}
+		nvalue = new FPToSIInst(exprv, leftv->getLoadStoreType(), "truncistore", block);
+	}*/
+	auto nvalue = Coercion::Convert(exprv, leftvty, block);
 	StoreInst *ret = new StoreInst(nvalue, leftv, false, block);
 	return ret;
 

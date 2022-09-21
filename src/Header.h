@@ -73,6 +73,13 @@ extern Function *init;
 extern Function *print;
 extern Function *i16div;
 
+static string getTypeName(Type *ty) {
+	string type_str;
+	llvm::raw_string_ostream rso(type_str);
+	ty->print(rso);
+	return rso.str();
+}
+
 static int yyerrorcpp(const string& s) {
 	string e = "semantic error, " + s;
 	return yyerror(e.c_str());

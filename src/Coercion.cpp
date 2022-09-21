@@ -1,24 +1,24 @@
 #include "Header.h"
 	
-Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, bool unsig){
+Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block){
 
 	Value *r = v;
 	Type *ty = v->getType();
 
 	if (ty != destty){
 		//Float to Integer
-		if ((ty->isFloatTy() || destty->isDoubleTy()) && destty -> isIntegerTy()){
+		if ((ty->isFloatTy() || ty->isDoubleTy()) && destty -> isIntegerTy()){
 			r = new FPToSIInst(v, destty, "fptosi", block);
 		}
-		else if ((ty->isHalfTy() || destty->isDoubleTy()) && destty -> isIntegerTy()){
+		else if ((ty->isHalfTy() || ty->isDoubleTy()) && destty -> isIntegerTy()){
 			r = new FPToSIInst(v, destty, "", block);
 		}
 		//Integer to Float
-		else if ((destty->isFloatTy() || destty->isDoubleTy())&& ty->isIntegerTy()){
+		else if ((destty->isFloatTy() || destty->isDoubleTy()) && ty->isIntegerTy()){
 			r = new SIToFPInst(v, destty, "sitofp", block);
 		}
 		//Float/Double to Float/Double
-		else if ((ty->isFloatTy() || destty->isDoubleTy()) && (destty -> isFloatTy() || destty -> isDoubleTy())){
+		else if ((ty->isFloatTy() || ty->isDoubleTy()) && (destty -> isFloatTy() || destty -> isDoubleTy())){
 			r = new FPExtInst(v, destty, "fpext", block);
 		}
 		//Generic ExtInt to Int

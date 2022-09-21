@@ -46,6 +46,8 @@ Type *FunctionParams::getParamType(int position) const {
 		case 10:
 			return Type::getFP128Ty(global_context); //Long Double - 128 bits
 			break;
+		default:
+			return NULL;
 	}
 }
 

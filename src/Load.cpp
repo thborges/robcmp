@@ -10,7 +10,7 @@ Value *Load::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 		if (auto *lvalue = dyn_cast<AllocaInst>(sym))
 			ret = new LoadInst(lvalue->getAllocatedType(), sym, ident, false, block);
 		else if (auto *lvalue = dyn_cast<GlobalVariable>(sym)) {
-			ret = new LoadInst(((PointerType*)sym->getType())->getElementType(), sym, ident, false, block);
+			ret = new LoadInst(lvalue->getValueType(), sym, ident, false, block);
 		} else {
 			printf("ERR: Going to return NULL!\n");
 		}

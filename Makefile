@@ -1,8 +1,8 @@
-CC=/usr/bin/clang++
+CC=/usr/bin/clang++-15
 #CC=/usr/local/bin/clang++
 
 #if your llvm has a sufix, llvm-config-9, put -9 here
-LLVMVERSIONNR=""
+LLVMVERSIONNR="-15"
 
 LLVMFLAGS=$(shell llvm-config${LLVMVERSIONNR} --cxxflags) -frtti
 LLVMLIBS=$(shell llvm-config${LLVMVERSIONNR} --ldflags --libs all) -lpthread -ldl -lncurses -lz

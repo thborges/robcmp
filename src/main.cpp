@@ -3,8 +3,8 @@
 #include "Header.h"
 
 int errorsfound = 0;
-extern int yyparse();
-extern FILE *yyin;
+extern int mainparse();
+extern FILE *mainin;
 void print_llvm_ir(const char *target, char opt_level);
 Function *AttachInterrupt::fattach = NULL;
 
@@ -29,17 +29,17 @@ int main(int argc, char *argv[]) {
 		}
 		else {
 			build_filename = argv[i];
-			yyin = fopen(build_filename, "r");
-			if (yyin == NULL) {
+			mainin = fopen(build_filename, "r");
+			if (mainin == NULL) {
 				fprintf(stderr, "Could not open file %s.\n", build_filename);
 				exit(1);
 			}
 		}
 		i++;
 	}
-	yyparse();
-	if (yyin)
-		fclose(yyin);
+	mainparse();
+	if (mainin)
+		fclose(mainin);
 
 	if (errorsfound > 0) {
 		fprintf(stderr, "%d error(s) found.\n", errorsfound);
@@ -50,4 +50,3 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
-

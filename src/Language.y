@@ -8,6 +8,7 @@ class Stmts;
 std::vector<AttachInterrupt *> vectorglobal;
 
 %}
+%define api.prefix {main}
 
 %token TOK_VOID TOK_FUNCTION TOK_RETURN
 %token TOK_IF TOK_ELSE
@@ -73,22 +74,22 @@ programa : stmts    { Program p($1);
 					  PrintAstVisitor(fs).visit(p);
 					  fs.close();*/
 
-					  p.generate(); 
+					  p.generate();
                     };
 		 ;
 
 stmts : stmts stmt			{ $1->append($2);
-	  						  $$ = $1; 
+	  						  $$ = $1;
 							}
 	  | stmt				{ $$ = new Stmts($1); }
 	  ;
 
-fe : funcblock 						{ $$ = $1; } 
-   | eventblock						{ $$ = $1; } 
+fe : funcblock 						{ $$ = $1; }
+   | eventblock						{ $$ = $1; }
    ;
 
 
-stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); } 
+stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); }
 	 | TOK_IDENTIFIER '=' expr ';'			{ $$ = new Scalar($1, $3); }
 	 | TOK_IDENTIFIER '[' expr ']' '=' expr ';'	{ $$ = new UpdateVector($1, $3, $6);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
 	 | TOK_IDENTIFIER '(' paramscall ')' ';'	{ $$ = new FunctionCall($1, $3); }
@@ -121,7 +122,7 @@ matrix : matrix ',' melement			{ $1->append($3);
 										  mes->append($1);
 										  $$ = mes;
 										}
-		
+
 		;
 
 
@@ -132,7 +133,7 @@ melement : relements ':' TOK_INTEGER			{ MatrixElement me {$1, (unsigned)$3};
 										  $$ = me;
 										}
 	   ;
-	 
+
 relements : '{' elements '}'			{ $$ = $2;}
 			;
 
@@ -153,8 +154,8 @@ element : factor ':' TOK_INTEGER 				{ ArrayElement ae{$1, (unsigned)$3};
 											}
 	   ;
 
-eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}' 
-		     {	
+eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'
+		     {
 				char funcname[100];
 				sprintf(funcname, "__callback_int_p%d_e%d", $2, $4);
 				vectorglobal.push_back(new AttachInterrupt($2, funcname, $4));
@@ -177,20 +178,20 @@ funcparams: funcparams ',' funcparam {$1 -> append($3);
 			}
 		  ;
 
-funcparam : type_f TOK_IDENTIFIER { FunctionParam fp{$2, $1}; 
+funcparam : type_f TOK_IDENTIFIER { FunctionParam fp{$2, $1};
 									$$ = fp;}
 
 type_f  : TOK_VOID { $$ = 0; }
 		| TOK_FBOOL { $$ = 1; }
-		| TOK_FSHORT TOK_FINT { $$ = 2; } 
-		| TOK_FINT { $$ = 3; } 
-		| TOK_FLONG TOK_FINT { $$ = 4; } 
-		| TOK_FLONG TOK_FLONG TOK_FINT { $$ = 5; } 
-		| TOK_FLONG TOK_FLONG TOK_FLONG TOK_FINT { $$ = 6; } 
-		| TOK_FSHORT TOK_FFLOAT { $$ = 7; } 
-		| TOK_FFLOAT { $$ = 8; } 
-		| TOK_FDOUBLE { $$ = 9; } 
-		| TOK_FDOUBLE TOK_FDOUBLE { $$ = 10; } 
+		| TOK_FSHORT TOK_FINT { $$ = 2; }
+		| TOK_FINT { $$ = 3; }
+		| TOK_FLONG TOK_FINT { $$ = 4; }
+		| TOK_FLONG TOK_FLONG TOK_FINT { $$ = 5; }
+		| TOK_FLONG TOK_FLONG TOK_FLONG TOK_FINT { $$ = 6; }
+		| TOK_FSHORT TOK_FFLOAT { $$ = 7; }
+		| TOK_FFLOAT { $$ = 8; }
+		| TOK_FDOUBLE { $$ = 9; }
+		| TOK_FDOUBLE TOK_FDOUBLE { $$ = 10; }
 	    ;
 
 paramscall : paramscall ',' expr {$1 -> append($3);
@@ -251,18 +252,18 @@ term : term '*' factor		{ $$ = new BinaryOp($1, '*', $3); }
 
 factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_IDENTIFIER			{ $$ = new Load($1); }
-	   | TOK_IDENTIFIER '[' expr ']'	{ $$ = new LoadVector($1, $3);} 
-	   | TOK_IDENTIFIER '[' expr ']' '[' expr ']'	{ $$ = new LoadMatrix($1, $3, $6);} 
+	   | TOK_IDENTIFIER '[' expr ']'	{ $$ = new LoadVector($1, $3);}
+	   | TOK_IDENTIFIER '[' expr ']' '[' expr ']'	{ $$ = new LoadMatrix($1, $3, $6);}
 	   | TOK_TRUE				{ $$ = new Int1(1); }
 	   | TOK_FALSE				{ $$ = new Int1(0); }
 	   | TOK_INTEGER			{ $$ = new Int16($1); }
 	   | TOK_FLOAT				{ $$ = new Float($1); }
-	   | '(' TOK_FSHORT TOK_FINT ')' TOK_INTEGER	{ $$ = new Int8($5); } 
-	   | '(' TOK_FLONG TOK_FINT ')' TOK_INTEGER	{ $$ = new Int32($5); } 
-	   | '(' TOK_FLONG TOK_FLONG TOK_FINT ')' TOK_INTEGER	{ $$ = new Int64($6); } 
-	   | '(' TOK_FSHORT TOK_FFLOAT ')' TOK_FLOAT	{ $$ = new Half($5); } 
-	   | '(' TOK_FFLOAT ')' TOK_FLOAT	{ $$ = new Float($4); } 
-       | '(' TOK_FDOUBLE ')' TOK_FLOAT	{ $$ = new Double($4); } 
+	   | '(' TOK_FSHORT TOK_FINT ')' TOK_INTEGER	{ $$ = new Int8($5); }
+	   | '(' TOK_FLONG TOK_FINT ')' TOK_INTEGER	{ $$ = new Int32($5); }
+	   | '(' TOK_FLONG TOK_FLONG TOK_FINT ')' TOK_INTEGER	{ $$ = new Int64($6); }
+	   | '(' TOK_FSHORT TOK_FFLOAT ')' TOK_FLOAT	{ $$ = new Half($5); }
+	   | '(' TOK_FFLOAT ')' TOK_FLOAT	{ $$ = new Float($4); }
+       | '(' TOK_FDOUBLE ')' TOK_FLOAT	{ $$ = new Double($4); }
 	   | TOK_IN					{ $$ = new InPort($1); }
 	   | TOK_IDENTIFIER '(' paramscall ')'	{ $$ = new FunctionCall($1, $3); }
 	   | unary { $$ = $1; }
@@ -275,21 +276,20 @@ printstmt : TOK_PRINT TOK_STRING		{ $$ = new Print(new String($2)); }
 		  | TOK_PRINT expr				{ $$ = new Print($2); }
 %%
 
-extern int yylineno;
-extern char *yytext;
+extern int mainlineno;
+extern char *maintext;
 extern char *build_filename;
 extern int errorsfound;
 
-int yyerror(const char *s)
+int mainerror(const char *s)
 {
-	fprintf(stderr, "%s:%d: error: %s %s\n", 
-		build_filename, yylineno, s, yytext);
+	fprintf(stderr, "%s:%d: error: %s %s\n",
+		build_filename, mainlineno, s, maintext);
 	errorsfound++;
 	return 0;
 	//exit(1);
 }
 
-extern "C" int yywrap() {
+extern "C" int mainwrap() {
 	return 1;
 }
-

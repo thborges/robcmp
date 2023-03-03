@@ -1,0 +1,10 @@
+
+port:
+  - port_name: A0
+    digital: True
+    pwm: False
+    name: LED
+  - port_name: A12
+    digital: False
+    pwm: True
+    name: Servomotor

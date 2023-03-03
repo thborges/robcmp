@@ -49,8 +49,8 @@ typedef struct {
 #include "bison.hpp"
 
 
-extern int yyerror(const char *s);
-extern int yylex();
+extern int mainerror(const char *s);
+extern int mainlex();
 
 // Program main module
 extern Module *mainmodule;
@@ -82,13 +82,13 @@ static string getTypeName(Type *ty) {
 
 static int yyerrorcpp(const string& s) {
 	string e = "semantic error, " + s;
-	return yyerror(e.c_str());
+	return mainerror(e.c_str());
 }
 
 static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, BasicBlock *secondb = NULL) {
 	BasicBlock *blocks[] = {firstb, secondb, mainblock, global_alloc};
 	for(BasicBlock *b : blocks) {
-		if (b == NULL) 
+		if (b == NULL)
 			continue;
 		auto blocksym = tabelasym[b];
 		auto var = blocksym.find(ident);
@@ -143,4 +143,3 @@ static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, Basi
 #include "PrintAstVisitor.h"
 
 #endif
-

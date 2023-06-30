@@ -9,7 +9,7 @@ std::vector<AttachInterrupt *> vectorglobal;
 
 %}
 
-%token TOK_VOID TOK_FUNCTION TOK_RETURN
+%token TOK_VOID TOK_RETURN
 %token TOK_IF TOK_ELSE
 %token TOK_FOR TOK_WHILE
 %token TOK_PRINT
@@ -163,7 +163,10 @@ eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'
              }
 		   ;
 
-funcblock : type_f TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'		{ $$ = new FunctionDecl($1, $2, $4, $7); }
+funcblock : type_f TOK_IDENTIFIER '(' funcparams ')' ';' {
+				$$ = new FunctionDeclExtern($1, $2, $4);
+			}
+		  | type_f TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'		{ $$ = new FunctionDecl($1, $2, $4, $7); }
 		  ;
 
 funcparams: funcparams ',' funcparam {$1 -> append($3);
@@ -190,7 +193,7 @@ type_f  : TOK_VOID { $$ = 0; }
 		| TOK_FSHORT TOK_FFLOAT { $$ = 7; } 
 		| TOK_FFLOAT { $$ = 8; } 
 		| TOK_FDOUBLE { $$ = 9; } 
-		| TOK_FDOUBLE TOK_FDOUBLE { $$ = 10; } 
+		| TOK_FLONG TOK_FDOUBLE { $$ = 10; } 
 	    ;
 
 paramscall : paramscall ',' expr {$1 -> append($3);

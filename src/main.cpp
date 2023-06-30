@@ -10,12 +10,23 @@ Function *AttachInterrupt::fattach = NULL;
 
 // file name
 char *build_filename;
+char *build_outputfilename;
 
 int main(int argc, char *argv[]) {
 
 	char optimization = 'z';
-	char targetarch[20];
-	targetarch[0] = 0;
+	const char *targetarch;
+	build_outputfilename = NULL;
+
+	if (argc <= 1) {
+		fprintf(stderr, "Syntax: %s -O{1,2,3,s,z} -a{", argv[0]);
+		for(int t = 1; t < (sizeof(supportedTargets)/sizeof(TargetInfo)); t++) {
+			if (t > 1) fprintf(stderr, ",");
+			fprintf(stderr, "%s", supportedTargets[t].name);
+		}
+		fprintf(stderr, "} -o output_file input_file\n");
+		return 1;
+	}
 
 	// Compila o arquivo passado como parâmetro
 	int i = 1;
@@ -25,7 +36,10 @@ int main(int argc, char *argv[]) {
 				optimization = argv[i][2];
 		}
 		else if (strncmp(argv[i], "-a", 2) == 0) {
-			strcpy(targetarch, &argv[i][2]);
+			targetarch = &argv[i][2];
+		}
+		else if (strncmp(argv[i], "-o", 2) == 0) {
+			build_outputfilename = argv[++i];
 		}
 		else {
 			build_filename = argv[i];

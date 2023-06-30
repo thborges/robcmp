@@ -1,22 +1,19 @@
-#ifndef __FUNCTIONDECL_H__
-#define __FUNCTIONDECL_H__
+#ifndef __FUNCTIONDECLEXTERN_H__
+#define __FUNCTIONDECLEXTERN_H__
 
 #include "Node.h"
 
-class FunctionDecl: public Node {
+class FunctionDeclExtern: public Node {
 private:
-	Node *stmts;
 	int tipo;
 	string name;
 	FunctionParams *parameters;
 public:
-	FunctionDecl(int tipo, string name, FunctionParams *fp, Node *stmts){
+	FunctionDeclExtern(int tipo, string name, FunctionParams *fp){
 		this->tipo = tipo;
-		this->stmts = stmts;
 		this->name = name;
 		this->parameters = fp;
 	}
-	
 	
 	bool isFunctionDecl() {
 		return true;
@@ -27,3 +24,4 @@ public:
 };
 
 #endif
+

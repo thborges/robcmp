@@ -11,13 +11,15 @@
 #include <llvm/IR/InlineAsm.h>
 
 #include <llvm/Passes/PassBuilder.h>
-#include "llvm/IR/LegacyPassManager.h"
+#include <llvm/IR/LegacyPassManager.h>
 
-#include "llvm/Support/Host.h"
-#include "llvm/MC/TargetRegistry.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetOptions.h"
+#include <llvm/Support/Host.h>
+#include <llvm/MC/TargetRegistry.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetOptions.h>
+
+#include "Header.h"
 
 using namespace llvm;
 
@@ -39,18 +41,6 @@ Function *delayMicroseconds;
 Function *init;
 Function *print;
 Function *i16div;
-
-typedef struct {
-	const char *name;
-	const char *triple;
-	const char *cpu;
-	const char *features;
-} TargetInfo;
-
-TargetInfo supportedTargets[] = {
-	{"", "", "", ""}, // default target
-	{"avr328p", "avr-atmel-none", "atmega328p", "+avr5"},
-};
 
 void print_llvm_ir(const char *target, char opt_level) {
 	
@@ -78,7 +68,7 @@ void print_llvm_ir(const char *target, char opt_level) {
 	}	
 
 	TargetOptions opt;
-	auto RM = Optional<Reloc::Model>();
+	auto RM = optional<Reloc::Model>();
 	auto targetMachine = Target->createTargetMachine(ai.triple, ai.cpu, ai.features, opt, RM);
 
 	mainmodule->setDataLayout(targetMachine->createDataLayout());
@@ -99,7 +89,7 @@ void print_llvm_ir(const char *target, char opt_level) {
 
 	OptimizationLevel ol;
 	switch (opt_level) {
-		//case '0': ol = OptimizationLevel::O0; break;
+		case '0': ol = OptimizationLevel::O0; break;
 		case '1': ol = OptimizationLevel::O1; break;
 		case '2': ol = OptimizationLevel::O2; break;
 		case '3': ol = OptimizationLevel::O3; break;
@@ -114,23 +104,20 @@ void print_llvm_ir(const char *target, char opt_level) {
 		modulePassManager.run(*mainmodule, moduleAnalysisManager);
 	}
 
-	//#define ENABLE_STDOUT
-	#ifdef ENABLE_STDOUT
-	std::string outfilename = filename;
-	outfilename += ".o";
-	std::error_code ec;
-	raw_fd_ostream dest(outfilename, ec);
-	if (ec) {
-		printf("Error writing to %s.\n", outfilename.c_str());
-		exit(1);
+	if (build_outputfilename) {
+		std::error_code ec;
+		raw_fd_ostream dest(build_outputfilename, ec);
+		if (ec) {
+			printf("Error writing to %s.\n", build_outputfilename);
+			exit(1);
+		}
+		legacy::PassManager pass_codegen;
+		targetMachine->addPassesToEmitFile(pass_codegen, dest, nullptr, llvm::CGFT_ObjectFile);
+		pass_codegen.run(*mainmodule);
+		dest.flush();
+	} else {
+		// print IR to stdout
+		mainmodule->print(outs(), nullptr);
 	}
-	legacy::PassManager pass_codegen;
-	targetMachine->addPassesToEmitFile(pass_codegen, dest, nullptr, TargetMachine::CGFT_ObjectFile);
-	pass_codegen.run(*mainmodule);
-	dest.flush();
-	#endif
-
-	// print IR to stdout
-	mainmodule->print(outs(), nullptr);
 }
 

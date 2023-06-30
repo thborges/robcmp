@@ -1,18 +1,17 @@
-CC=/usr/bin/clang++
-#CC=/usr/local/bin/clang++
+LLVM_LDFLAGS=-L/usr/local/lib
+CC=/usr/local/robllvm/bin/clang++
+LLVMCONFIG=/usr/local/robllvm/bin/llvm-config
+SYSROOT=-isysroot `xcrun -sdk macosx --show-sdk-path`
 
-#if your llvm has a sufix, llvm-config-9, put -9 here
-LLVMVERSIONNR=""
-
-LLVMFLAGS=$(shell llvm-config${LLVMVERSIONNR} --cxxflags) -frtti
-LLVMLIBS=$(shell llvm-config${LLVMVERSIONNR} --ldflags --libs all) -lpthread -ldl -lncurses -lz
+LLVMFLAGS=$(shell ${LLVMCONFIG} --cxxflags) -frtti ${SYSROOT}
+LLVMLIBS=$(shell ${LLVMCONFIG} --ldflags --libs all) -lpthread -ldl -lncurses -lz -lzstd ${LLVM_LDFLAGS} ${SYSROOT}
 
 COMPILER_NAME=$(shell basename "${PWD}")
 
 SRC = src
 BIN = .
  
-FLAGS=-O2 -DYYERROR_VERBOSE -fexceptions -Wno-deprecated-register -Wno-unused-function
+FLAGS=-O2 -DYYERROR_VERBOSE -fexceptions
 DFLAGS=-ggdb -O0
 
 CPPS=$(patsubst %.cpp,%.o,$(wildcard ${SRC}/*.cpp))

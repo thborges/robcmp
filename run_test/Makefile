@@ -20,8 +20,8 @@ out/%.ll : %.txt ${COMPILER_NAME}
 	llc  $< -o $@ -filetype=asm
 
 core.o : debug.c
-	gcc debug.c -o core.o -c
+	clang debug.c -o core.o -c
 
 % : %.s core.o
-	gcc core.o $< -o $@ -lncurses
+	clang core.o $< -o $@ -lncurses
 

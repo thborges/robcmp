@@ -58,6 +58,7 @@ extern BasicBlock *mainblock;
 extern BasicBlock *global_alloc;
 
 extern char* build_filename;
+extern char* build_outputfilename;
 extern LLVMContext global_context;
 
 // symbol table
@@ -72,6 +73,20 @@ extern Function *delayMicroseconds;
 extern Function *init;
 extern Function *print;
 extern Function *i16div;
+
+typedef struct {
+	const char *name;
+	const char *triple;
+	const char *cpu;
+	const char *features;
+} TargetInfo;
+
+static TargetInfo supportedTargets[] = {
+	{"", "", "", ""}, // default target
+	{"avr328p", "avr-atmel-none", "atmega328p", "+avr5"},
+	{"stm32",   "arm-none-eabi",  "cortex-m3", ""}, 
+	{"esp32",   "xtensa",  "", ""}, 	
+};
 
 static string getTypeName(Type *ty) {
 	string type_str;
@@ -110,6 +125,7 @@ static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, Basi
 #include "Float128.h"
 #include "FunctionCall.h"
 #include "FunctionDecl.h"
+#include "FunctionDeclExtern.h"
 #include "FunctionParams.h"
 #include "Half.h"
 #include "If.h"

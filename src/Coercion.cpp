@@ -4,7 +4,7 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block){
 
 	Value *r = v;
 	Type *ty = v->getType();
-
+	
 	if (ty != destty){
 		//Float to Integer
 		if ((ty->isFloatTy() || ty->isDoubleTy()) && destty -> isIntegerTy()){

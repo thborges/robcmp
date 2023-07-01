@@ -36,6 +36,12 @@ Instruction *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 			ArrayRef<Value*> argsRef(args);
 			return CallInst::Create(i16div, argsRef, "", block);
 		}*/
+
+		if (dyn_cast<IntegerType>(Ty1)->getBitWidth() > dyn_cast<IntegerType>(Ty2)->getBitWidth())
+			rhs = Coercion::Convert(rhs, Ty1, block);
+		else
+			lhs = Coercion::Convert(lhs, Ty2, block);
+
 		return BinaryOperator::Create(opint, lhs, rhs, "binop", block);
 	}
 	else {
@@ -57,6 +63,9 @@ Value *BinaryOp::generate(Function *func, BasicBlock *block, BasicBlock *allocbl
 		case '*' : return binary_operator(Instruction::Mul, Instruction::FMul, func, block, allocblock);
 		case '/' : return binary_operator(Instruction::SDiv, Instruction::FDiv, func, block, allocblock);
 		case '%' : return binary_operator(Instruction::SRem, Instruction::SRem, func, block, allocblock);
+		case '|' : return binary_operator(Instruction::Or, Instruction::Or, func, block, allocblock);
+		case '&' : return binary_operator(Instruction::And, Instruction::And, func, block, allocblock);
+		case '^' : return binary_operator(Instruction::Xor, Instruction::Xor, func, block, allocblock);
 		case TOK_AND : return logical_operator(BinaryOperator::And, func, block, allocblock);
 		case TOK_OR  : return logical_operator(BinaryOperator::Or, func, block, allocblock);
 		default: return NULL;

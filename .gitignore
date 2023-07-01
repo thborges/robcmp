@@ -46,3 +46,4 @@ robcmp
 bison.hpp
 run_test/out/*
 src/Language_y.output
+.vscode/**

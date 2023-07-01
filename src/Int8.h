@@ -4,8 +4,9 @@
 class Int8: public Node {
 	private:
 		char number;
+		bool IsSigned;
 	public:
-		Int8(char n): number(n) {}
+		Int8(char n, bool IsSigned = false): number(n), IsSigned(IsSigned) {}
 		char getNumber() const { return number; }
 		virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
 		virtual void accept(Visitor &v) override;

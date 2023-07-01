@@ -1,7 +1,7 @@
 #include "Header.h"
 
 Value *Int64::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-	return ConstantInt::get(Type::getInt64Ty(global_context), number);
+	return ConstantInt::get(Type::getInt64Ty(global_context), number, IsSigned);
 }
 
 void Int64::accept(Visitor &v) {

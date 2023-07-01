@@ -1,22 +1,27 @@
 %{
+
+#include <stdlib.h>
+#include <limits.h>
 #include "Header.h"
 #include "2018arm/nodeh_ext.h"
 
 class Node;
 class Stmts;
 
+Node* getNodeForIntConst(int64_t i);
 std::vector<AttachInterrupt *> vectorglobal;
 
 %}
 
-%token TOK_VOID TOK_RETURN
+%token TOK_VOID TOK_RETURN TOK_REGISTER TOK_AT TOK_VOLATILE
 %token TOK_IF TOK_ELSE
-%token TOK_FOR TOK_WHILE
+%token TOK_LOOP TOK_WHILE
 %token TOK_PRINT
 %token TOK_IN TOK_OUT TOK_STEPPER TOK_SERVO
 %token TOK_DELAY TOK_AND TOK_OR
 %token TOK_IDENTIFIER TOK_FLOAT TOK_INTEGER TOK_STRING TOK_TRUE TOK_FALSE
-%token TOK_FINT TOK_FFLOAT TOK_FDOUBLE TOK_FCHAR TOK_FLONG TOK_FSHORT TOK_FUNSIGNED TOK_FBOOL
+%token TOK_FINT8 TOK_FINT16 TOK_FINT32 TOK_FINT64
+%token TOK_FHALF TOK_FFLOAT TOK_FDOUBLE TOK_FCHAR TOK_FLONG TOK_FUNSIGNED TOK_FBOOL
 
 %token TOK_QUANDO TOK_ESTA
 %token EQ_OP NE_OP GE_OP LE_OP GT_OP LT_OP
@@ -25,8 +30,8 @@ std::vector<AttachInterrupt *> vectorglobal;
 	char *port;
 	char *ident;
 	char *str;
-	int nint;
-	float nfloat;
+	int64_t nint;
+	double ndouble;
 	Node *node;
 	Stmts *stmt;
 	ArrayElement ae;
@@ -36,9 +41,12 @@ std::vector<AttachInterrupt *> vectorglobal;
 	FunctionParam fp;
 	FunctionParams *fps;
 	ParamsCall *pc;
+	LanguageDataType dt;
 }
 
-%type <node> term expr factor stmt condblock elseblock whileblock logicexpr logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock unary
+%type <node> term term2 expr factor stmt gstmt condblock elseblock whileblock logicexpr
+%type <node> logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock unary
+%type <node> funcblock returnblock registerstmt
 %type <ae> element
 %type <aes> elements relements
 %type <fp> funcparam
@@ -46,15 +54,14 @@ std::vector<AttachInterrupt *> vectorglobal;
 %type <pc> paramscall
 %type <me> melement
 %type <mes> matrix rmatrix
-%type <node> funcblock returnblock
-%type <stmt> stmts
+%type <stmt> stmts gstmts
 %type <port> TOK_OUT TOK_IN
 %type <nint> TOK_INTEGER
-%type <nfloat> TOK_FLOAT
+%type <ndouble> TOK_FLOAT
 %type <ident> TOK_IDENTIFIER
 %type <str> TOK_STRING
 %type <nint> TOK_STEPPER
-%type <nint> type_f
+%type <dt> type_f registertype
 
 %precedence IFX
 %precedence TOK_ELSE
@@ -62,7 +69,7 @@ std::vector<AttachInterrupt *> vectorglobal;
 
 %%
 
-programa : stmts    { Program p($1);
+programa : gstmts	{ Program p($1);
 		 			  // interruptions setup
 					  for(AttachInterrupt *a : vectorglobal) {
 						$1->prepend(a);
@@ -77,123 +84,137 @@ programa : stmts    { Program p($1);
                     };
 		 ;
 
-stmts : stmts stmt			{ $1->append($2);
-	  						  $$ = $1; 
-							}
-	  | stmt				{ $$ = new Stmts($1); }
+gstmts : gstmts gstmt       { $1->append($2); }
+	   | gstmt				{ $$ = new Stmts($1); }
+	   ;
+
+gstmt : TOK_IDENTIFIER '=' expr ';'					{ $$ = new Scalar($1, $3); }
+	  | TOK_VOLATILE TOK_IDENTIFIER '=' expr ';'	{ $$ = new Scalar($2, $4, true); }
+	  | TOK_IDENTIFIER '[' expr ']' '=' expr ';'	{ $$ = new UpdateVector($1, $3, $6);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
+	  | TOK_IDENTIFIER '=' relements ';'			{ $$ = new Vector($1, $3); } // name, size, expression
+	  | TOK_IDENTIFIER '=' rmatrix ';'				{ $$ = new Matrix($1, $3);}
+	  | registerstmt ';'							{ $$ = $1; }
+	  | fe											{ $$ = $1; }
 	  ;
 
-fe : funcblock 						{ $$ = $1; } 
-   | eventblock						{ $$ = $1; } 
+fe : funcblock	{ $$ = $1; } 
+   | eventblock	{ $$ = $1; } 
    ;
 
+funcblock : type_f TOK_IDENTIFIER '(' funcparams ')' ';' {
+				$$ = new FunctionDeclExtern($1, $2, $4);
+			}
+		  | type_f TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}' {
+				$$ = new FunctionDecl($1, $2, $4, $7); 
+			}
+		  ;
 
-stmt : TOK_OUT '=' expr ';'					{ $$ = new OutPort($1, $3); } 
-	 | TOK_IDENTIFIER '=' expr ';'			{ $$ = new Scalar($1, $3); }
-	 | TOK_IDENTIFIER '[' expr ']' '=' expr ';'	{ $$ = new UpdateVector($1, $3, $6);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
+eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}' {	
+				char funcname[100];
+				snprintf(funcname, 100, "__callback_int_p%lld_e%lld", $2, $4);
+				vectorglobal.push_back(new AttachInterrupt($2, funcname, $4));
+				FunctionParams *fps = new FunctionParams();
+				$$ = new FunctionDecl(tvoid, funcname, fps, $6);
+             }
+		   ;
+
+stmts : stmts stmt	{ $1->append($2);
+	  				  $$ = $1; }
+	  | stmt		{ $$ = new Stmts($1); }
+	  ;
+
+stmt : gstmt									{ $$ = $1; }
+	 | TOK_OUT '=' expr ';'						{ $$ = new OutPort($1, $3); } 
 	 | TOK_IDENTIFIER '(' paramscall ')' ';'	{ $$ = new FunctionCall($1, $3); }
-	 | TOK_IDENTIFIER '+' '+' ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '+', new Int16(1))); }
+	 | TOK_IDENTIFIER '+' '+' ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1), '+', new Int8(1))); }
+	 | TOK_IDENTIFIER '-' '-' ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1), '-', new Int8(1))); }
 	 | TOK_IDENTIFIER '+' '=' expr ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '+', $4)); }
 	 | TOK_IDENTIFIER '-' '=' expr ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '-', $4)); }
 	 | TOK_IDENTIFIER '*' '=' expr ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '*', $4)); }
-	 | TOK_IDENTIFIER '=' relements ';'		{ $$ = new Vector($1, $3); } // name, size, expression
-	 | TOK_IDENTIFIER '=' rmatrix ';'		{ $$ = new Matrix($1, $3);}
-	 | TOK_DELAY expr';'					{ $$ = new Delay($2); }
-	 | condblock							{ $$ = $1; }
-	 | whileblock							{ $$ = $1; }
-	 | fe									{ $$ = $1; }
-	 | returnblock ';'						{ $$ = $1; }
-	 | printstmt ';'						{ $$ = $1; }
-	 | TOK_STEPPER expr ';'					{ $$ = new StepperGoto($1, $2); }
-	 | TOK_SERVO expr ';'					{ $$ = new ServoGoto($2); }
-	 | error ';'						    { /* ignora o erro ate o proximo ';' */
-											  $$ = new Return(new Int16(0)); // evita falha de segmentacao
-											}
+	 | TOK_IDENTIFIER '/' '=' expr ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '/', $4)); }
+	 | TOK_IDENTIFIER '|' '=' expr ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '|', $4)); }
+	 | TOK_IDENTIFIER '&' '=' expr ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '&', $4)); }
+	 | TOK_IDENTIFIER '^' '=' expr ';'			{ $$ = new Scalar($1, new BinaryOp(new Load($1), '^', $4)); }
+	 | TOK_DELAY expr';'						{ $$ = new Delay($2); }
+	 | condblock								{ $$ = $1; }
+	 | whileblock								{ $$ = $1; }
+	 | returnblock ';'							{ $$ = $1; }
+	 | printstmt ';'							{ $$ = $1; }
+	 | TOK_STEPPER expr ';'						{ $$ = new StepperGoto($1, $2); }
+	 | TOK_SERVO expr ';'						{ $$ = new ServoGoto($2); }
+	 | error ';'						    	{ /* ignora o erro ate o proximo ';' */
+												  $$ = new Return(new Int8(0)); // evita falha de segmentacao
+												}
 	 ;
 
 rmatrix : '{' matrix '}'				{ $$ = $2; }
 	    ;
 
 matrix : matrix ',' melement			{ $1->append($3);
-										  $$ = $1;
-										}
+										  $$ = $1; }
 	   | melement						{ MatrixElements *mes = new MatrixElements();
 										  mes->append($1);
-										  $$ = mes;
-										}
-		
-		;
-
-
-melement : relements ':' TOK_INTEGER			{ MatrixElement me {$1, (unsigned)$3};
-										  $$ = me;
-										}
-	   | relements						{ MatrixElement me {$1, 1};
-										  $$ = me;
-										}
+										  $$ = mes; }
 	   ;
+
+
+melement : relements ':' TOK_INTEGER	{ MatrixElement me {$1, (unsigned)$3};
+										  $$ = me; }
+	     | relements					{ MatrixElement me {$1, 1};
+										  $$ = me; }
+	     ;
 	 
-relements : '{' elements '}'			{ $$ = $2;}
-			;
+relements : '{' elements '}'			{ $$ = $2; }
+		  ;
 
 elements : elements ',' element			{ $1->append($3);
-											  $$ = $1;
-											}
-		   | element							{ ArrayElements *aes = new ArrayElements();
-											  aes->append($1);
-											  $$ = aes;
-											}
-		   ;
+										  $$ = $1; }
+		 | element						{ ArrayElements *aes = new ArrayElements();
+										  aes->append($1);
+										  $$ = aes; }
+		 ;
 
-element : factor ':' TOK_INTEGER 				{ ArrayElement ae{$1, (unsigned)$3};
-											  $$ = ae;
-											}
-       | factor							   	{ ArrayElement ae{$1, 1};
-											  $$ = ae;
-											}
-	   ;
+element : factor ':' TOK_INTEGER		{ ArrayElement ae{$1, (unsigned)$3};
+										  $$ = ae; }
+        | factor						{ ArrayElement ae{$1, 1};
+										  $$ = ae; }
+	    ;
 
-eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}' 
-		     {	
-				char funcname[100];
-				sprintf(funcname, "__callback_int_p%d_e%d", $2, $4);
-				vectorglobal.push_back(new AttachInterrupt($2, funcname, $4));
+funcparams: funcparams ',' funcparam {
+				$1 -> append($3);
+				$$ = $1; 
+			}
+	      | funcparam {
 				FunctionParams *fps = new FunctionParams();
-				$$ = new FunctionDecl(0, funcname, fps, $6);
-             }
-		   ;
-
-funcblock : type_f TOK_IDENTIFIER '(' funcparams ')' ';' {
-				$$ = new FunctionDeclExtern($1, $2, $4);
+				fps->append($1);
+				$$ = fps; 
 			}
-		  | type_f TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'		{ $$ = new FunctionDecl($1, $2, $4, $7); }
-		  ;
-
-funcparams: funcparams ',' funcparam {$1 -> append($3);
-									  $$ = $1;
-									  }
-	      | funcparam { FunctionParams *fps = new FunctionParams();
-						fps->append($1);
-						$$ = fps;}
-		  | %empty { FunctionParams *fps = new FunctionParams();
-			  $$ = fps;
+		  | %empty {
+				FunctionParams *fps = new FunctionParams();
+				$$ = fps;
 			}
 		  ;
 
-funcparam : type_f TOK_IDENTIFIER { FunctionParam fp{$2, $1}; 
-									$$ = fp;}
+funcparam : type_f TOK_IDENTIFIER {
+				FunctionParam fp{$2, $1}; 
+				$$ = fp;
+			}
 
-type_f  : TOK_VOID { $$ = 0; }
-		| TOK_FBOOL { $$ = 1; }
-		| TOK_FSHORT TOK_FINT { $$ = 2; } 
-		| TOK_FINT { $$ = 3; } 
-		| TOK_FLONG TOK_FINT { $$ = 4; } 
-		| TOK_FLONG TOK_FLONG TOK_FINT { $$ = 5; } 
-		| TOK_FLONG TOK_FLONG TOK_FLONG TOK_FINT { $$ = 6; } 
-		| TOK_FSHORT TOK_FFLOAT { $$ = 7; } 
-		| TOK_FFLOAT { $$ = 8; } 
-		| TOK_FDOUBLE { $$ = 9; } 
-		| TOK_FLONG TOK_FDOUBLE { $$ = 10; } 
+type_f  : TOK_VOID { $$ = tvoid; }
+		| TOK_FCHAR { $$ = tchar; }
+		| TOK_FBOOL { $$ = tbool; }
+		| TOK_FINT8 { $$ = tint8; } 
+		| TOK_FINT16 { $$ = tint16; } 
+		| TOK_FINT32 { $$ = tint32; } 
+		| TOK_FINT64 { $$ = tint64; } 
+		| TOK_FUNSIGNED TOK_FINT8 { $$ = tint8u; } 
+		| TOK_FUNSIGNED TOK_FINT16 { $$ = tint16u; } 
+		| TOK_FUNSIGNED TOK_FINT32 { $$ = tint32u; } 
+		| TOK_FUNSIGNED TOK_FINT64 { $$ = tint64u; } 
+		| TOK_FHALF { $$ = thalf; } 
+		| TOK_FFLOAT { $$ = tfloat; } 
+		| TOK_FDOUBLE { $$ = tdouble; } 
+		| TOK_FLONG TOK_FDOUBLE { $$ = tldouble; } 
 	    ;
 
 paramscall : paramscall ',' expr {$1 -> append($3);
@@ -220,7 +241,8 @@ elseblock : TOK_ELSE stmt				{ $$ = $2; }
 		  | TOK_ELSE '{' stmts '}'		{ $$ = $3; }
 		  ;
 
-whileblock : TOK_WHILE '(' logicexpr ')' '{' stmts '}' { $$ = new While($3, $6); }
+whileblock : TOK_WHILE '(' logicexpr ')' '{' stmts '}'	{ $$ = new While($3, $6); }
+		   | TOK_LOOP '{' stmts '}' 					{ $$ = new Loop($3); }
 		   ;
 
 logicexpr : logicexpr TOK_OR logicterm		{ $$ = new BinaryOp($1, TOK_OR, $3); }
@@ -243,39 +265,62 @@ logicfactor : '(' logicexpr ')'		{ $$ = $2; }
 
 expr : expr '+' term			{ $$ = new BinaryOp($1, '+', $3); }
 	 | expr '-' term			{ $$ = new BinaryOp($1, '-', $3); }
+	 | expr '|' term			{ $$ = new BinaryOp($1, '|', $3); }
 	 | term						{ $$ = $1; }
 	 ;
 
-term : term '*' factor		{ $$ = new BinaryOp($1, '*', $3); }
-	 | term '/' factor		{ $$ = new BinaryOp($1, '/', $3); }
-	 | term '%' factor		{ $$ = new BinaryOp($1, '%', $3); }
-	 | factor				{ $$ = $1; }
+term : term '*' term2		{ $$ = new BinaryOp($1, '*', $3); }
+	 | term '/' term2		{ $$ = new BinaryOp($1, '/', $3); }
+	 | term '%' term2		{ $$ = new BinaryOp($1, '%', $3); }
+	 | term '^' term2		{ $$ = new BinaryOp($1, '^', $3); }
+	 | term2				{ $$ = $1; }
 	 ;
+
+term2 : term2 '&' factor    { $$ = new BinaryOp($1, '&', $3); }
+	  | factor				{ $$ = $1; }
+	  ;
 
 factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_IDENTIFIER			{ $$ = new Load($1); }
-	   | TOK_IDENTIFIER '[' expr ']'	{ $$ = new LoadVector($1, $3);} 
+	   | TOK_IDENTIFIER '[' expr ']'				{ $$ = new LoadVector($1, $3);} 
 	   | TOK_IDENTIFIER '[' expr ']' '[' expr ']'	{ $$ = new LoadMatrix($1, $3, $6);} 
 	   | TOK_TRUE				{ $$ = new Int1(1); }
 	   | TOK_FALSE				{ $$ = new Int1(0); }
-	   | TOK_INTEGER			{ $$ = new Int16($1); }
+	   | TOK_INTEGER			{ $$ = getNodeForIntConst($1); }
 	   | TOK_FLOAT				{ $$ = new Float($1); }
-	   | '(' TOK_FSHORT TOK_FINT ')' TOK_INTEGER	{ $$ = new Int8($5); } 
-	   | '(' TOK_FLONG TOK_FINT ')' TOK_INTEGER	{ $$ = new Int32($5); } 
-	   | '(' TOK_FLONG TOK_FLONG TOK_FINT ')' TOK_INTEGER	{ $$ = new Int64($6); } 
-	   | '(' TOK_FSHORT TOK_FFLOAT ')' TOK_FLOAT	{ $$ = new Half($5); } 
-	   | '(' TOK_FFLOAT ')' TOK_FLOAT	{ $$ = new Float($4); } 
-       | '(' TOK_FDOUBLE ')' TOK_FLOAT	{ $$ = new Double($4); } 
 	   | TOK_IN					{ $$ = new InPort($1); }
+	   | '(' TOK_FINT8 ')' TOK_INTEGER	{ $$ = new Int8($4); } 
+	   | '(' TOK_FINT16 ')' TOK_INTEGER	{ $$ = new Int16($4); } 
+	   | '(' TOK_FINT32 ')' TOK_INTEGER	{ $$ = new Int32($4); } 
+	   | '(' TOK_FINT64 ')' TOK_INTEGER	{ $$ = new Int64($4); } 
+	   | '(' TOK_FUNSIGNED TOK_FINT8 ')' TOK_INTEGER	{ $$ = new Int8($5, true); } 
+	   | '(' TOK_FUNSIGNED TOK_FINT16 ')' TOK_INTEGER	{ $$ = new Int16($5, true); } 
+	   | '(' TOK_FUNSIGNED TOK_FINT32 ')' TOK_INTEGER	{ $$ = new Int32($5, true); } 
+	   | '(' TOK_FUNSIGNED TOK_FINT64 ')' TOK_INTEGER	{ $$ = new Int64($5, true); } 
+	   | '(' TOK_FHALF ')' TOK_FLOAT				{ $$ = new Half($4); } 
+	   | '(' TOK_FFLOAT ')' TOK_FLOAT				{ $$ = new Float($4); } 
+       | '(' TOK_FDOUBLE ')' TOK_FLOAT				{ $$ = new Double($4); }
+	   | '(' TOK_FLONG TOK_FDOUBLE ')' TOK_FLOAT	{ $$ = new Double($5); }
 	   | TOK_IDENTIFIER '(' paramscall ')'	{ $$ = new FunctionCall($1, $3); }
 	   | unary { $$ = $1; }
 	   ;
 
-unary : '-' factor { $$ = new BinaryOp($2, '*', new Int16(-1)); }
+unary : '-' factor { $$ = new BinaryOp($2, '*', getNodeForIntConst(-1)); }
       ;
 
 printstmt : TOK_PRINT TOK_STRING		{ $$ = new Print(new String($2)); }
 		  | TOK_PRINT expr				{ $$ = new Print($2); }
+
+registerstmt : TOK_REGISTER registertype TOK_IDENTIFIER TOK_AT TOK_INTEGER {
+				 $$ = new Pointer($3, $2, $5, true);
+			   }
+			 ;
+
+registertype : TOK_FINT8	{ $$ = tint8; }
+			 | TOK_FINT16	{ $$ = tint16; }
+			 | TOK_FINT32	{ $$ = tint32; }
+			 | TOK_FINT64	{ $$ = tint64; }
+			 ;
 %%
 
 extern int yylineno;
@@ -290,6 +335,19 @@ int yyerror(const char *s)
 	errorsfound++;
 	return 0;
 	//exit(1);
+}
+
+Node* getNodeForIntConst(int64_t i) {
+	if (i <= 1 && i >= 0)
+		return new Int1(i);
+	else if (i >= SCHAR_MIN && i <= SCHAR_MAX)
+		return new Int8(i);
+	else if (i >= SHRT_MIN && i <= SHRT_MAX)
+		return new Int16(i);
+	else if (i >= INT_MIN && i <= INT_MAX)
+		return new Int32(i);
+	else
+		return new Int64(i);
 }
 
 extern "C" int yywrap() {

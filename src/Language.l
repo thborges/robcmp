@@ -12,31 +12,38 @@ extern void unescape(char *s);
 
 %%
 
-[ \t\n\r]				{ /* espaços */ }
+[ \t\n\r]				{ /* ignore spaces */ }
 "/*"					{ yymore(); BEGIN COMMENT; }
 <COMMENT>[^*]			{ yymore(); }
 <COMMENT>"*"/[^/]		{ yymore(); }
 <COMMENT>"*/"			{ BEGIN(INITIAL); }
 
-"//".*$					{ /*fprintf(stderr, "Comentario: %s\n", yytext); */ /* comentario de linha */}
+"//".*$					{ /* line comment */}
 
+"register"				{ return TOK_REGISTER; }
+"volatile"				{ return TOK_VOLATILE; }
 "void"					{ return TOK_VOID; }
-"int"					{ return TOK_FINT; }
+"bool"					{ return TOK_FBOOL; }
+"char"					{ return TOK_FCHAR; }
+"int8"					{ return TOK_FINT8; }
+"int16"					{ return TOK_FINT16; }
+"int32"					{ return TOK_FINT32; }
+"int64"					{ return TOK_FINT64; }
+"half"					{ return TOK_FHALF; }
 "float"					{ return TOK_FFLOAT; }
 "double"				{ return TOK_FDOUBLE; }
-"char"					{ return TOK_FCHAR; }
-"bool"					{ return TOK_FBOOL; }
 "long"					{ return TOK_FLONG; }
-"short"					{ return TOK_FSHORT; }
 "unsigned"				{ return TOK_FUNSIGNED; }
 "return"				{ return TOK_RETURN; }
 "true"					{ return TOK_TRUE; }
 "false"					{ return TOK_FALSE; }
+"at"					{ return TOK_AT; }
 
 "if"					{ return TOK_IF; }
 "else"					{ return TOK_ELSE; }
 
 "while"					{ return TOK_WHILE; }
+"loop"					{ return TOK_LOOP; }
 
 "print"					{ return TOK_PRINT; }
 
@@ -82,6 +89,10 @@ extern void unescape(char *s);
 "%"						{ return '%'; }
 "="						{ return '='; }
 
+"|"						{ return '|'; }
+"&"						{ return '&'; }
+"^"						{ return '^'; }
+
 ":"						{ return ':'; }
 ","						{ return ','; }
 ";"						{ return ';'; }
@@ -89,10 +100,19 @@ extern void unescape(char *s);
 [a-zA-Z_][a-zA-Z0-9_]*	{ yylval.ident = strndup(yytext, yyleng); 
 						  return TOK_IDENTIFIER; }
 
-[0-9]+\.[0-9]+			{ yylval.nfloat = atof(yytext); 
+[0-9]+\.[0-9]+			{ char *aux = strndup(yytext, yyleng);
+						  yylval.ndouble = strtod(aux, NULL);
+						  free(aux);
 						  return TOK_FLOAT; }
 
-[0-9]+					{ yylval.nint = atoi(yytext);
+"0x"[0-9a-fA-F]+		{ char *aux = strndup(yytext, yyleng);
+						  yylval.nint = strtoll(aux, NULL, 16);
+						  free(aux);
+						  return TOK_INTEGER; }
+
+[0-9]+					{ char *aux = strndup(yytext, yyleng);
+						  yylval.nint = strtoll(aux, NULL, 10);
+						  free(aux);
 						  return TOK_INTEGER; }
 
 \"([^\\\"]|\\.)*\"		{ yylval.str = strndup(yytext+1, yyleng-2);

@@ -25,13 +25,14 @@ using namespace llvm;
 
 // Program main module
 Module *mainmodule;
-BasicBlock *mainblock;
 BasicBlock *global_alloc;
 LLVMContext global_context;
 static IRBuilder<> builder(global_context);
 
 // symbol table
-std::map<BasicBlock*, std::map<std::string, Value*>> tabelasym;
+std::map<BasicBlock*, std::map<std::string, RobSymbol*>> tabelasym;
+
+Type* robTollvmDataType[__ldt_last];
 
 // arduino functions
 Function *analogWrite;

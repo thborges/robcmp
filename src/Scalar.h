@@ -7,8 +7,9 @@ class Scalar: public Node {
 private:
 	string name;
 	Node *expr;
+	bool isVolatile;
 public:
-	Scalar(const char *n, Node *e);
+	Scalar(const char *n, Node *e, bool volatile = false);
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
 

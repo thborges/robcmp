@@ -15,7 +15,7 @@ char *build_outputfilename;
 int main(int argc, char *argv[]) {
 
 	char optimization = 'z';
-	const char *targetarch;
+	const char *targetarch = "";
 	build_outputfilename = NULL;
 
 	if (argc <= 1) {

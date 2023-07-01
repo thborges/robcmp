@@ -1,12 +1,13 @@
 #include "Header.h"
 
 Value *LoadMatrix::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-		Value *sym = search_symbol(ident, allocblock, block);	
+		auto rsym = search_symbol(ident, allocblock, block);	
 		/* TODO */
-		if (sym == NULL) {
+		if (rsym == NULL) {
 			yyerrorcpp("Variable " + ident + " not defined.");
 			return NULL;
 		}
+		auto sym = rsym->value;
 
 		// sym type can be GlobalVariable or AllocInst
 		Type *ty = NULL;

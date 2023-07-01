@@ -28,7 +28,7 @@
 		}
 		
 		//Add matrix to table of symbols.
-		tabelasym[allocblock][name] = variable;
+		tabelasym[allocblock][name] = new RobSymbol(variable);
 
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 

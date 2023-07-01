@@ -1,8 +1,8 @@
 #ifndef __HEADER_H__
 #define __HEADER_H__
 
-#define ENABLE_ARDUINO
-#define ENABLE_PRINT
+//#define ENABLE_ARDUINO
+//#define ENABLE_PRINT
 
 #include <iostream>
 #include <fstream>
@@ -24,6 +24,14 @@
 using namespace std;
 using namespace llvm;
 
+/* After adding new types here, go to Program::generate to fill
+ * the robTollvmDataType vector */
+enum LanguageDataType {tvoid, tbool, tchar, tint8, tint16, tint32, tint64, 
+  tint8u, tint16u, tint32u, tint64u, thalf, tfloat, tdouble, tldouble,
+  __ldt_last};
+
+extern Type* robTollvmDataType[];
+
 class Node;
 class Stmts;
 class ArrayElements;
@@ -38,7 +46,7 @@ typedef struct {
 
 typedef struct {
 	const char *name;
-	int type;
+	LanguageDataType type;
 } FunctionParam;
 
 typedef struct {
@@ -48,13 +56,11 @@ typedef struct {
 
 #include "bison.hpp"
 
-
 extern int yyerror(const char *s);
 extern int yylex();
 
 // Program main module
 extern Module *mainmodule;
-extern BasicBlock *mainblock;
 extern BasicBlock *global_alloc;
 
 extern char* build_filename;
@@ -62,14 +68,14 @@ extern char* build_outputfilename;
 extern LLVMContext global_context;
 
 // symbol table
-extern map<BasicBlock*, map<string, Value*>> tabelasym;
+#include "RobSymbol.h"
+extern map<BasicBlock*, map<string, RobSymbol*>> tabelasym;
 
 // arduino functions
 extern Function *analogWrite;
 extern Function *analogRead;
 extern Function *delay;
 extern Function *delayMicroseconds;
-
 extern Function *init;
 extern Function *print;
 extern Function *i16div;
@@ -100,8 +106,8 @@ static int yyerrorcpp(const string& s) {
 	return yyerror(e.c_str());
 }
 
-static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, BasicBlock *secondb = NULL) {
-	BasicBlock *blocks[] = {firstb, secondb, mainblock, global_alloc};
+static RobSymbol *search_symbol(const string& ident, BasicBlock *firstb = NULL, BasicBlock *secondb = NULL) {
+	BasicBlock *blocks[] = {firstb, secondb, global_alloc};
 	for(BasicBlock *b : blocks) {
 		if (b == NULL) 
 			continue;
@@ -153,6 +159,8 @@ static Value *search_symbol(const string& ident, BasicBlock *firstb = NULL, Basi
 #include "UpdateVector.h"
 #include "Vector.h"
 #include "While.h"
+#include "Loop.h"
+#include "Pointer.h"
 
 #include "Visitor.h"
 #include "RecursiveVisitor.h"

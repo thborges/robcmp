@@ -25,7 +25,7 @@ Value *CmpOp::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 			lexp = Coercion::Convert(lexp, Ty1, block);
 			//rexp = new SIToFPInst(rexp, Type::getFloatTy(global_context), "", block);
 	}
-	else{
+	else {
 		if (dyn_cast<IntegerType>(Ty1)->getBitWidth() > dyn_cast<IntegerType>(Ty2)->getBitWidth())
 			rexp = Coercion::Convert(rexp, Ty1, block);
 		else

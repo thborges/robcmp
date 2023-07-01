@@ -1,6 +1,7 @@
 #include "Header.h"
 
-Scalar::Scalar(const char *n, Node *e) : name(n), expr(e) {
+Scalar::Scalar(const char *n, Node *e, bool vol) : 
+	name(n), expr(e), isVolatile(vol) {
 	node_children.reserve(1);
 	node_children.push_back(e);
 }
@@ -9,41 +10,43 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 	// generate code to produce the new variable value
 	Value *exprv = expr->generate(func, block, allocblock);
 
-	Value *leftv = search_symbol(name, allocblock, block);	
-	Type *leftvty = exprv->getType();
-	if (leftv == NULL) {
+	auto symbol = search_symbol(name, allocblock, block);
+
+	// variable doesn't exists
+	if (symbol == NULL) {
+		Value *ret, *leftv;
+		bool initialized = false;
+
 		if (allocblock == global_alloc) {
 			GlobalVariable *gv = new GlobalVariable(*mainmodule, exprv->getType(), 
 				false, GlobalValue::CommonLinkage, NULL, name);
-			if (exprv->getType()->isIntegerTy())
-				gv->setInitializer(ConstantInt::get(exprv->getType(), 0));
-			else if (exprv->getType()->isFloatTy())
-				gv->setInitializer(ConstantFP::get(exprv->getType(), 0.0));
-			else if (exprv->getType()->isHalfTy())
-				gv->setInitializer(ConstantFP::get(exprv->getType(), 0.0));
-			else {
-				yyerrorcpp("Global variable default initialization not defined: " + 
-					getTypeName(exprv->getType()));
+			Constant *c = dyn_cast<Constant>(exprv);
+			if (c) {
+				gv->setInitializer(c);
+				initialized = true;
 			}
-
-			leftv = gv;
+			ret = leftv = gv;
 		} else {
 			leftv = new AllocaInst(exprv->getType(), 0, name, allocblock);
 		}
-		tabelasym[allocblock][name] = leftv; 
+
+		if (!initialized)
+			ret = new StoreInst(exprv, leftv, isVolatile, block);
+
+		tabelasym[allocblock][name] = new RobSymbol(leftv, isVolatile);
+		return ret;
+
+	} else {
+		// variable already exists
+		Type *leftvty = symbol->value->getType();
+		isVolatile = symbol->isVolatile;
+		if (symbol->pointerType)
+			leftvty = symbol->pointerType;
+		auto nvalue = Coercion::Convert(exprv, leftvty, block);
+		return new StoreInst(nvalue, symbol->value, isVolatile, block);
 	}
-
-	/*if (leftv->getLoadStoreType()->isIntegerTy() && 
-		exprv->getType()->isFloatTy()) {
-		nvalue = new FPToSIInst(exprv, leftv->getLoadStoreType(), "truncistore", block);
-	}*/
-	auto nvalue = Coercion::Convert(exprv, leftvty, block);
-	StoreInst *ret = new StoreInst(nvalue, leftv, false, block);
-	return ret;
-
 }
 
 void Scalar::accept(Visitor& v) {
 	v.visit(*this);
 }
-

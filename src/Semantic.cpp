@@ -1,4 +1,5 @@
 #include "Header.h"
 	
-Value *Semantic::Verification(){
+Value *Semantic::Verification() {
+    return NULL;
 }

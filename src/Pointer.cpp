@@ -3,11 +3,37 @@
 
 Value *Pointer::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 {
+	auto sym = search_symbol(name);
+	if (sym != NULL) {
+		yyerrorcpp("Register/pointer " + name + " already defined.", this);
+		yyerrorcpp(name + " was first defined here.", sym);
+		return NULL;
+	}
+
+    // generate code to produce the address
+    Value *addri = NULL;
+    if (block == NULL && allocblock == global_alloc) {
+        addri = Scalar::tryToGenerateAsConstant(address);
+        if (addri == NULL)
+            return NULL;
+    } else {
+        addri = address->generate(func, allocblock, allocblock);
+        if (addri == NULL) {
+            yyerrorcpp("Unable to compute the address for '" + name + "' register.", this);
+            return NULL;
+        }
+    }
+
+    Value *addrp = NULL;
+    if (Constant *addrc = dyn_cast<Constant>(addri))
+        addrp = ConstantExpr::getIntToPtr(addrc, Type::getInt64PtrTy(global_context)); // FIXME: What is the method to get an opaque pointer type?
+    else
+        addrp = new IntToPtrInst(addri, Type::getInt64PtrTy(global_context), name, allocblock);
+        
     Type *ty = robTollvmDataType[type];
-    ConstantInt* addr = ConstantInt::get(Type::getInt64Ty(global_context), address);
-    auto leftv = ConstantExpr::getIntToPtr(addr, Type::getInt64PtrTy(global_context)); // TODO: What is the method to get an opaque pointer type?
-    tabelasym[allocblock][name] = new RobSymbol(leftv, isVolatile, ty);
-    return leftv;
+    DataQualifier vol = isVolatile ? qvolatile : qnone;
+    tabelasym[allocblock][name] = new RobSymbol(addrp, vol, ty);
+    return addrp;
 }
 
 void Pointer::accept(Visitor &v) {

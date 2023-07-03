@@ -4,7 +4,7 @@ Value *LoadVector::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 		auto rsym = search_symbol(ident, allocblock, block);	
 		/* TODO */
 		if (rsym == NULL) {
-			yyerrorcpp("Variable " + ident + " not defined.");
+			yyerrorcpp("Variable " + ident + " not defined.", this);
 			return NULL;
 		}
 		auto sym = rsym->value;
@@ -21,13 +21,13 @@ Value *LoadVector::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 			arrayTy = (ArrayType*)ty;
 		}
 		else {
-			yyerrorcpp("Symbol " + ident + " is not of array type.");
+			yyerrorcpp("Symbol " + ident + " is not an array.", this);
 			return NULL;
 		}
 
 		Value *indice = position->generate(func, block, allocblock);
 		if (!indice->getType()->isIntegerTy()){
-			yyerrorcpp("Index for loading " + ident + " vector should be of integer type.");
+			yyerrorcpp("Index for loading " + ident + " vector should be of type integer.", this);
 			return NULL;
 		}
 

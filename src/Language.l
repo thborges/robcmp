@@ -5,6 +5,9 @@
 
 extern void unescape(char *s);
 
+extern int yycolno;
+#define YY_USER_ACTION yycolno += yyleng;
+
 %}
 
 %option yylineno
@@ -12,7 +15,8 @@ extern void unescape(char *s);
 
 %%
 
-[ \t\n\r]				{ /* ignore spaces */ }
+[ \t\r]					{ /* ignore spaces */ }
+[\n]					{ yycolno = 0; }
 "/*"					{ yymore(); BEGIN COMMENT; }
 <COMMENT>[^*]			{ yymore(); }
 <COMMENT>"*"/[^/]		{ yymore(); }
@@ -22,6 +26,7 @@ extern void unescape(char *s);
 
 "register"				{ return TOK_REGISTER; }
 "volatile"				{ return TOK_VOLATILE; }
+"const"					{ return TOK_CONST; }
 "void"					{ return TOK_VOID; }
 "bool"					{ return TOK_FBOOL; }
 "char"					{ return TOK_FCHAR; }
@@ -92,6 +97,9 @@ extern void unescape(char *s);
 "|"						{ return '|'; }
 "&"						{ return '&'; }
 "^"						{ return '^'; }
+"~"						{ return '~'; }
+"<<"					{ return TOK_LSHIFT; }
+">>"					{ return TOK_RSHIFT; }
 
 ":"						{ return ':'; }
 ","						{ return ','; }
@@ -107,6 +115,11 @@ extern void unescape(char *s);
 
 "0x"[0-9a-fA-F]+		{ char *aux = strndup(yytext, yyleng);
 						  yylval.nint = strtoll(aux, NULL, 16);
+						  free(aux);
+						  return TOK_INTEGER; }
+
+"0b"[0-1]+				{ char *aux = strndup(yytext+2, yyleng-2);
+						  yylval.nint = strtoll(aux, NULL, 2);
 						  free(aux);
 						  return TOK_INTEGER; }
 

@@ -16,7 +16,7 @@
 		}
 		/* TODO */
 		if (cty1 == -1) {
-			yyerrorcpp("Type not supported by print.");
+			yyerrorcpp("Type not supported by print.", this);
 			return NULL;
 		}
 

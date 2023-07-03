@@ -3,7 +3,8 @@
 Value *FunctionDecl::generate(Function *, BasicBlock *, BasicBlock *allocblock) {
 	auto sym = search_symbol(name);
 	if (sym != NULL) {
-		yyerrorcpp("Function " + name + " already defined.");
+		yyerrorcpp("Function/symbol " + name + " already defined.", this);
+		yyerrorcpp(name + " was first defined here.", sym);
 		return NULL;
 	}
 
@@ -17,6 +18,12 @@ Value *FunctionDecl::generate(Function *, BasicBlock *, BasicBlock *allocblock) 
 
 	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, 0, name, mainmodule);
 	nfunc->setDSOLocal(true);
+    llvm::AttrBuilder attrs(global_context);
+	attrs.addAttribute(llvm::Attribute::MinSize);
+    //attrs.addAttribute("stack-protector-buffer-size", llvm::utostr(8));
+	//attrs.addAttribute("frame-pointer", "all");
+	//attrs.addAttribute("no-trapping-math", "true");
+	nfunc->setAttributes(llvm::AttributeList().addFnAttributes(global_context, attrs));
 
 	tabelasym[allocblock][name] = new RobSymbol(nfunc);
 

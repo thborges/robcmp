@@ -1,14 +1,14 @@
 #ifndef __ROBSYMBOL_H__
 #define __ROBSYMBOL_H__
 
-class RobSymbol {
+class RobSymbol: public SourceLocation {
 public:
 	Value* value;
 	Type* pointerType;
-	bool isVolatile;
+	DataQualifier qualifier;
     
-	RobSymbol(Value *v, bool isVolatile = false, Type *pointerType = NULL): 
-		value(v), isVolatile(isVolatile), pointerType(pointerType) {
+	RobSymbol(Value *v, DataQualifier qualifier = qnone, Type *pointerType = NULL): 
+		value(v), qualifier(qualifier), pointerType(pointerType) {
 
     }
 };

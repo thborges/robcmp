@@ -4,7 +4,7 @@ Value *LoadMatrix::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 		auto rsym = search_symbol(ident, allocblock, block);	
 		/* TODO */
 		if (rsym == NULL) {
-			yyerrorcpp("Variable " + ident + " not defined.");
+			yyerrorcpp("Variable " + ident + " not defined.", this);
 			return NULL;
 		}
 		auto sym = rsym->value;
@@ -23,21 +23,21 @@ Value *LoadMatrix::generate(Function *func, BasicBlock *block, BasicBlock *alloc
 			matrixTy = arrayTy->getElementType();
 		}
 		else {
-			yyerrorcpp("Symbol " + ident + " is not of matrix or array type.");
+			yyerrorcpp("Symbol " + ident + " is not of matrix or array type.", this);
 			return NULL;
 		}
 		
 		//Generate first param.
 		Value *indice = position_1->generate(func, block, allocblock);
 		if (!indice->getType()->isIntegerTy()){
-			yyerrorcpp("Index for " + ident + " line should be of integer type.");
+			yyerrorcpp("Index for " + ident + " line should be of integer type.", this);
 			return NULL;
 		}
 
 		//Generate second param.
 		Value *indice_2 = position_2->generate(func, block, allocblock);
 		if (!indice_2->getType()->isIntegerTy()){
-			yyerrorcpp("Index for " + ident + " column should be of integer type.");
+			yyerrorcpp("Index for " + ident + " column should be of integer type.", this);
 			return NULL;
 		}
 

@@ -13,7 +13,9 @@ std::vector<AttachInterrupt *> vectorglobal;
 
 %}
 
-%token TOK_VOID TOK_RETURN TOK_REGISTER TOK_AT TOK_VOLATILE
+%define parse.error verbose
+
+%token TOK_VOID TOK_RETURN TOK_REGISTER TOK_AT TOK_VOLATILE TOK_CONST
 %token TOK_IF TOK_ELSE
 %token TOK_LOOP TOK_WHILE
 %token TOK_PRINT
@@ -24,7 +26,7 @@ std::vector<AttachInterrupt *> vectorglobal;
 %token TOK_FHALF TOK_FFLOAT TOK_FDOUBLE TOK_FCHAR TOK_FLONG TOK_FUNSIGNED TOK_FBOOL
 
 %token TOK_QUANDO TOK_ESTA
-%token EQ_OP NE_OP GE_OP LE_OP GT_OP LT_OP
+%token EQ_OP NE_OP GE_OP LE_OP GT_OP LT_OP TOK_LSHIFT TOK_RSHIFT
 
 %union {
 	char *port;
@@ -46,7 +48,7 @@ std::vector<AttachInterrupt *> vectorglobal;
 
 %type <node> term term2 expr factor stmt gstmt condblock elseblock whileblock logicexpr
 %type <node> logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock unary
-%type <node> funcblock returnblock registerstmt
+%type <node> funcblock returnblock registerstmt cast
 %type <ae> element
 %type <aes> elements relements
 %type <fp> funcparam
@@ -88,14 +90,17 @@ gstmts : gstmts gstmt       { $1->append($2); }
 	   | gstmt				{ $$ = new Stmts($1); }
 	   ;
 
-gstmt : TOK_IDENTIFIER '=' expr ';'					{ $$ = new Scalar($1, $3); }
-	  | TOK_VOLATILE TOK_IDENTIFIER '=' expr ';'	{ $$ = new Scalar($2, $4, true); }
+gstmt : TOK_IDENTIFIER '=' expr ';'					{ $$ = new Scalar($1, $3, qnone); }
+	  | TOK_CONST TOK_IDENTIFIER '=' expr ';'		{ $$ = new Scalar($2, $4, qconst); }
+	  | TOK_VOLATILE TOK_IDENTIFIER '=' expr ';'	{ $$ = new Scalar($2, $4, qvolatile); }
 	  | TOK_IDENTIFIER '[' expr ']' '=' expr ';'	{ $$ = new UpdateVector($1, $3, $6);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
 	  | TOK_IDENTIFIER '=' relements ';'			{ $$ = new Vector($1, $3); } // name, size, expression
 	  | TOK_IDENTIFIER '=' rmatrix ';'				{ $$ = new Matrix($1, $3);}
 	  | registerstmt ';'							{ $$ = $1; }
 	  | fe											{ $$ = $1; }
-	  ;
+	  | error ';'									{ /* ignora o erro ate o proximo ';' */
+													  $$ = new Int8(0); // evita falha de segmentacao
+													};
 
 fe : funcblock	{ $$ = $1; } 
    | eventblock	{ $$ = $1; } 
@@ -142,9 +147,6 @@ stmt : gstmt									{ $$ = $1; }
 	 | printstmt ';'							{ $$ = $1; }
 	 | TOK_STEPPER expr ';'						{ $$ = new StepperGoto($1, $2); }
 	 | TOK_SERVO expr ';'						{ $$ = new ServoGoto($2); }
-	 | error ';'						    	{ /* ignora o erro ate o proximo ';' */
-												  $$ = new Return(new Int8(0)); // evita falha de segmentacao
-												}
 	 ;
 
 rmatrix : '{' matrix '}'				{ $$ = $2; }
@@ -266,6 +268,8 @@ logicfactor : '(' logicexpr ')'		{ $$ = $2; }
 expr : expr '+' term			{ $$ = new BinaryOp($1, '+', $3); }
 	 | expr '-' term			{ $$ = new BinaryOp($1, '-', $3); }
 	 | expr '|' term			{ $$ = new BinaryOp($1, '|', $3); }
+	 | expr TOK_LSHIFT term		{ $$ = new BinaryOp($1, TOK_LSHIFT, $3); }
+	 | expr TOK_RSHIFT term		{ $$ = new BinaryOp($1, TOK_RSHIFT, $3); }
 	 | term						{ $$ = $1; }
 	 ;
 
@@ -289,29 +293,22 @@ factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_INTEGER			{ $$ = getNodeForIntConst($1); }
 	   | TOK_FLOAT				{ $$ = new Float($1); }
 	   | TOK_IN					{ $$ = new InPort($1); }
-	   | '(' TOK_FINT8 ')' TOK_INTEGER	{ $$ = new Int8($4); } 
-	   | '(' TOK_FINT16 ')' TOK_INTEGER	{ $$ = new Int16($4); } 
-	   | '(' TOK_FINT32 ')' TOK_INTEGER	{ $$ = new Int32($4); } 
-	   | '(' TOK_FINT64 ')' TOK_INTEGER	{ $$ = new Int64($4); } 
-	   | '(' TOK_FUNSIGNED TOK_FINT8 ')' TOK_INTEGER	{ $$ = new Int8($5, true); } 
-	   | '(' TOK_FUNSIGNED TOK_FINT16 ')' TOK_INTEGER	{ $$ = new Int16($5, true); } 
-	   | '(' TOK_FUNSIGNED TOK_FINT32 ')' TOK_INTEGER	{ $$ = new Int32($5, true); } 
-	   | '(' TOK_FUNSIGNED TOK_FINT64 ')' TOK_INTEGER	{ $$ = new Int64($5, true); } 
-	   | '(' TOK_FHALF ')' TOK_FLOAT				{ $$ = new Half($4); } 
-	   | '(' TOK_FFLOAT ')' TOK_FLOAT				{ $$ = new Float($4); } 
-       | '(' TOK_FDOUBLE ')' TOK_FLOAT				{ $$ = new Double($4); }
-	   | '(' TOK_FLONG TOK_FDOUBLE ')' TOK_FLOAT	{ $$ = new Double($5); }
 	   | TOK_IDENTIFIER '(' paramscall ')'	{ $$ = new FunctionCall($1, $3); }
 	   | unary { $$ = $1; }
 	   ;
 
-unary : '-' factor { $$ = new BinaryOp($2, '*', getNodeForIntConst(-1)); }
+unary : '-' factor	{ $$ = new BinaryOp($2, '*', getNodeForIntConst(-1)); }
+	  | '~' factor	{ $$ = new FlipOp($2); }
+	  | cast		{ $$ = $1; }
       ;
+
+cast : '(' type_f ')' factor { $$ = new Cast($2, $4); }
+	 ;
 
 printstmt : TOK_PRINT TOK_STRING		{ $$ = new Print(new String($2)); }
 		  | TOK_PRINT expr				{ $$ = new Print($2); }
 
-registerstmt : TOK_REGISTER registertype TOK_IDENTIFIER TOK_AT TOK_INTEGER {
+registerstmt : TOK_REGISTER registertype TOK_IDENTIFIER TOK_AT expr {
 				 $$ = new Pointer($3, $2, $5, true);
 			   }
 			 ;
@@ -324,23 +321,22 @@ registertype : TOK_FINT8	{ $$ = tint8; }
 %%
 
 extern int yylineno;
+extern int yycolno;
 extern char *yytext;
 extern char *build_filename;
 extern int errorsfound;
 
 int yyerror(const char *s)
 {
-	fprintf(stderr, "%s:%d: error: %s %s\n", 
-		build_filename, yylineno, s, yytext);
+	fprintf(stderr, "%s:%d:%d %s\n", 
+		build_filename, yylineno, yycolno, s);
 	errorsfound++;
 	return 0;
 	//exit(1);
 }
 
 Node* getNodeForIntConst(int64_t i) {
-	if (i <= 1 && i >= 0)
-		return new Int1(i);
-	else if (i >= SCHAR_MIN && i <= SCHAR_MAX)
+	if (i >= SCHAR_MIN && i <= SCHAR_MAX)
 		return new Int8(i);
 	else if (i >= SHRT_MIN && i <= SHRT_MAX)
 		return new Int16(i);

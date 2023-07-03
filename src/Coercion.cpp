@@ -28,8 +28,11 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block){
 			if (wty > wdestty){
 				r = new TruncInst(v, destty, "trunc", block);
 			}
-			else if (wty < wdestty){
-				r = new SExtInst(v, destty, "sext", block);
+			else if (wty < wdestty) {
+				if (Constant *c = dyn_cast<Constant>(v))
+					r = ConstantExpr::getSExt(c, destty);
+				else
+					r = new SExtInst(v, destty, "sext", block);
 			}
 		}
 	}

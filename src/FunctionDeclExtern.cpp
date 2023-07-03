@@ -3,7 +3,8 @@
 Value *FunctionDeclExtern::generate(Function *, BasicBlock *, BasicBlock *allocblock) {
 	auto sym = search_symbol(name);
 	if (sym != NULL) {
-		yyerrorcpp("Function " + name + " already defined.");
+		yyerrorcpp("Function/symbol " + name + " already defined.", this);
+		yyerrorcpp(name + " was first defined here.", sym);
 		return NULL;
 	}
 

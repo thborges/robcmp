@@ -1,5 +1,5 @@
-#ifndef __INT1_H__
-#define __INT1_H__
+
+#pragma once
 
 class Int1: public Node {
 	private:
@@ -10,5 +10,3 @@ class Int1: public Node {
 		virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
 		virtual void accept(Visitor &v) override;
 };
-
-#endif

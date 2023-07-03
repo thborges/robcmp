@@ -11,7 +11,8 @@ Value *Loop::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 	Value *newb = stmts->generate(func, bodyloop, allocblock); 
 	BranchInst::Create(bodyloop, bodyloop);
 	BranchInst::Create(bodyloop, block);
-	return bodyloop;
+	BasicBlock *endloop = BasicBlock::Create(global_context, "loop_end", func, 0);
+	return endloop;
 }
 
 void Loop::accept(Visitor& v) {

@@ -1,8 +1,10 @@
 #include <iostream>
+#include <cstdlib>
 
 #include "Header.h"
 
 int errorsfound = 0;
+int yycolno = 0;
 extern int yyparse();
 extern FILE *yyin;
 void print_llvm_ir(const char *target, char opt_level);

@@ -23,6 +23,8 @@ Instruction *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 
 	Value *lhs = lhsn->generate(func, block, allocblock);
 	Value *rhs = rhsn->generate(func, block, allocblock);
+	if (lhs == NULL || rhs == NULL)
+		return NULL;
 
 	Type *Ty1 = lhs->getType();
 	Type *Ty2 = rhs->getType();
@@ -36,6 +38,25 @@ Instruction *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 			ArrayRef<Value*> argsRef(args);
 			return CallInst::Create(i16div, argsRef, "", block);
 		}*/
+
+		if (opint == Instruction::Shl || opint == Instruction::LShr) {
+			// sext the left operator if we know the rside bitwidth
+			Constant *c = Scalar::tryToGenerateAsConstant(rhsn);
+			if (c) {
+				int64_t v = c->getUniqueInteger().getZExtValue();
+				if (dyn_cast<IntegerType>(Ty1)->getBitWidth() < v) {
+					if (v >= 8 && v <= 15)
+						lhs = new SExtInst(lhs, Type::getInt16Ty(global_context), "sext16", block);
+					else if (v >= 16 && v <= 31)
+						lhs = new SExtInst(lhs, Type::getInt32Ty(global_context), "sext32", block);
+					else if (v >= 32 && v <= 63)
+						lhs = new SExtInst(lhs, Type::getInt16Ty(global_context), "sext64", block);
+					else
+						yywarncpp("check if the right side has sufficient bitwidth to shift the number of bits.", this);
+					Ty1 = lhs->getType();
+				}
+			}
+		}
 
 		if (dyn_cast<IntegerType>(Ty1)->getBitWidth() > dyn_cast<IntegerType>(Ty2)->getBitWidth())
 			rhs = Coercion::Convert(rhs, Ty1, block);
@@ -66,6 +87,8 @@ Value *BinaryOp::generate(Function *func, BasicBlock *block, BasicBlock *allocbl
 		case '|' : return binary_operator(Instruction::Or, Instruction::Or, func, block, allocblock);
 		case '&' : return binary_operator(Instruction::And, Instruction::And, func, block, allocblock);
 		case '^' : return binary_operator(Instruction::Xor, Instruction::Xor, func, block, allocblock);
+		case TOK_LSHIFT: return binary_operator(Instruction::Shl, Instruction::Shl, func, block, allocblock);
+		case TOK_RSHIFT: return binary_operator(Instruction::LShr, Instruction::LShr, func, block, allocblock);
 		case TOK_AND : return logical_operator(BinaryOperator::And, func, block, allocblock);
 		case TOK_OR  : return logical_operator(BinaryOperator::Or, func, block, allocblock);
 		default: return NULL;

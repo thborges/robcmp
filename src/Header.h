@@ -20,6 +20,7 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/InlineAsm.h>
+#include <llvm/ADT/StringExtras.h>
 
 using namespace std;
 using namespace llvm;
@@ -29,6 +30,13 @@ using namespace llvm;
 enum LanguageDataType {tvoid, tbool, tchar, tint8, tint16, tint32, tint64, 
   tint8u, tint16u, tint32u, tint64u, thalf, tfloat, tdouble, tldouble,
   __ldt_last};
+
+static const char *LanguageDataTypeNames[__ldt_last] = {"void", "boolean", "char", "int8",
+	"int16", "int32", "int64", "unsigned int8", "unsigned int16",
+	"unsigned int32", "unsigned int64", "half float", "float",
+	"double", "long double"};
+
+enum DataQualifier {qnone, qconst, qvolatile};
 
 extern Type* robTollvmDataType[];
 
@@ -58,6 +66,8 @@ typedef struct {
 
 extern int yyerror(const char *s);
 extern int yylex();
+extern int yylineno;
+extern int yycolno;
 
 // Program main module
 extern Module *mainmodule;
@@ -66,6 +76,8 @@ extern BasicBlock *global_alloc;
 extern char* build_filename;
 extern char* build_outputfilename;
 extern LLVMContext global_context;
+
+#include "SourceLocation.h"
 
 // symbol table
 #include "RobSymbol.h"
@@ -90,8 +102,8 @@ typedef struct {
 static TargetInfo supportedTargets[] = {
 	{"", "", "", ""}, // default target
 	{"avr328p", "avr-atmel-none", "atmega328p", "+avr5"},
-	{"stm32",   "arm-none-eabi",  "cortex-m3", ""}, 
-	{"esp32",   "xtensa",  "", ""}, 	
+	{"stm32",   "thumbv7m-none-eabi", "cortex-m3", ""},
+	{"esp32",   "xtensa",  "", ""},
 };
 
 static string getTypeName(Type *ty) {
@@ -101,9 +113,19 @@ static string getTypeName(Type *ty) {
 	return rso.str();
 }
 
-static int yyerrorcpp(const string& s) {
+static int yyerrorcpp(const string& s, SourceLocation *n) {
 	string e = "semantic error, " + s;
+	yylineno = n->getLineNo();
+	yycolno = n->getColNo();
 	return yyerror(e.c_str());
+}
+
+static void yywarncpp(const string& s, SourceLocation *n) {
+	string e = "semantic warning, " + s;
+	yylineno = n->getLineNo();
+	yycolno = n->getColNo();
+	fprintf(stderr, "%s:%d:%d %s\n", 
+		build_filename, yylineno, yycolno, e.c_str());
 }
 
 static RobSymbol *search_symbol(const string& ident, BasicBlock *firstb = NULL, BasicBlock *secondb = NULL) {
@@ -119,6 +141,7 @@ static RobSymbol *search_symbol(const string& ident, BasicBlock *firstb = NULL, 
 	return NULL;
 }
 
+#include "Node.h"
 #include "ArrayElements.h"
 #include "AttachInterrupt.h"
 #include "BinaryOp.h"
@@ -146,7 +169,6 @@ static RobSymbol *search_symbol(const string& ident, BasicBlock *firstb = NULL, 
 #include "LoadVector.h"
 #include "Matrix.h"
 #include "MatrixElements.h"
-#include "Node.h"
 #include "OutPort.h"
 #include "ParamsCall.h"
 #include "Print.h"
@@ -161,6 +183,8 @@ static RobSymbol *search_symbol(const string& ident, BasicBlock *firstb = NULL, 
 #include "While.h"
 #include "Loop.h"
 #include "Pointer.h"
+#include "FlipOp.h"
+#include "Cast.h"
 
 #include "Visitor.h"
 #include "RecursiveVisitor.h"

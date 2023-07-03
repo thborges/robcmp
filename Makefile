@@ -11,7 +11,7 @@ COMPILER_NAME=$(shell basename "${PWD}")
 SRC = src
 BIN = .
  
-FLAGS=-O2 -DYYERROR_VERBOSE -fexceptions
+FLAGS=-O3 -march=native -DYYERROR_VERBOSE -fexceptions
 DFLAGS=-ggdb -O0
 
 CPPS=$(patsubst %.cpp,%.o,$(wildcard ${SRC}/*.cpp))

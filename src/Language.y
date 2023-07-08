@@ -99,11 +99,11 @@ gstmts : gstmts gstmt       { $1->append($2); }
 gstmt : TOK_IDENTIFIER '=' expr ';'					{ $$ = new Scalar($1, $3, qnone); }
 	  | TOK_CONST TOK_IDENTIFIER '=' expr ';'		{ $$ = new Scalar($2, $4, qconst); }
 	  | TOK_VOLATILE TOK_IDENTIFIER '=' expr ';'	{ $$ = new Scalar($2, $4, qvolatile); }
-	  | TOK_IDENTIFIER '=' relements ';'			{ $$ = new Array($1, $3); } // name, size, expression
+	  | TOK_IDENTIFIER '=' relements ';'			{ $$ = new Array($1, $3); }
 	  | TOK_IDENTIFIER '=' rmatrix ';'				{ $$ = new Matrix($1, $3);}
 	  | registerstmt ';'							{ $$ = $1; }
 	  | fe											{ $$ = $1; }
-	  | error ';'									{ /* ignora o erro ate o proximo ';' */
+	  | error ';'									{ /* error recovery until next ';' */
 													  $$ = new Int8(0); // evita falha de segmentacao
 													};
 
@@ -121,7 +121,7 @@ funcblock : type_f TOK_IDENTIFIER '(' funcparams ')' ';' {
 
 eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}' {	
 				char funcname[100];
-				snprintf(funcname, 100, "__callback_int_p%lld_e%lld", $2, $4);
+				snprintf(funcname, 100, "__callback_int_p%d_e%d", (int)$2, (int)$4);
 				vectorglobal.push_back(new AttachInterrupt($2, funcname, $4));
 				FunctionParams *fps = new FunctionParams();
 				$$ = new FunctionDecl(tvoid, funcname, fps, $6);
@@ -152,7 +152,7 @@ stmt : gstmt									{ $$ = $1; }
 	 | printstmt ';'							{ $$ = $1; }
 	 | TOK_STEPPER expr ';'						{ $$ = new StepperGoto($1, $2); }
 	 | TOK_SERVO expr ';'						{ $$ = new ServoGoto($2); }
-	 | TOK_IDENTIFIER '[' expr ']' '=' expr ';'	{ $$ = new UpdateArray($1, $3, $6);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
+	 | TOK_IDENTIFIER '[' expr ']' '=' expr ';'	{ $$ = new UpdateArray($1, $3, $6);}
 	 | TOK_IDENTIFIER '[' expr ']' '[' expr ']' '=' expr ';'	{ $$ = new UpdateMatrix($1, $3, $6, $9); }
 
 rmatrix : '{' matrix '}'				{ $$ = $2; }
@@ -267,7 +267,6 @@ logicfactor : '(' logicexpr ')'		{ $$ = $2; }
 			| expr '>''=' expr		{ $$ = new CmpOp($1, GE_OP, $4); }
 			| expr '<' expr			{ $$ = new CmpOp($1, LT_OP, $3); }
 			| expr '>' expr			{ $$ = new CmpOp($1, GT_OP, $3); }
- /* 			| expr					{ $$ = new CmpOp($1, EQ_OP, new Int1(1));} */
 			;
 
 expr : expr '+' term			{ $$ = new BinaryOp($1, '+', $3); }
@@ -338,7 +337,6 @@ int yyerror(const char *s)
 		build_filename, yylineno, yycolno, s);
 	errorsfound++;
 	return 0;
-	//exit(1);
 }
 
 Node* getNodeForIntConst(int64_t i) {

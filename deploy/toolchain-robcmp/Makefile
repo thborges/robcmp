@@ -1,8 +1,14 @@
-LLVM_ROOT=/usr/local/robllvm
+LLVM_OBJCOPY=$(shell which llvm-objcopy-16)
+ifeq ($(LLVM_OBJCOPY),)
+	LLVM_OBJCOPY=$(shell which llvm-objcopy)
+endif
 
-TOOLS=llvm-ar llvm-as llvm-objcopy llvm-ranlib ld.lld robcmp
+LLVM_LD=$(shell which ld.lld-16)
+ifeq ($(LLVM_LD),)
+	LLVM_LD=$(shell which ld.lld)
+endif
 
-TOOLS_BIN=$(patsubst %,bin/%,${TOOLS})
+TOOLS=$(LLVM_OBJCOPY) $(LLVM_LD) ../../robcmp
 
 ifeq ($(OS),Windows_NT)
     uname_S := Windows
@@ -11,28 +17,34 @@ else
 endif
 
 ifeq ($(uname_S), Darwin)
-suffix=darwin_x86_64
+	suffix=darwin_x86_64
+	SED=gsed
 endif
 ifeq ($(uname_S), Linux)
-suffix=linux_x86_64
+	suffix=linux_x86_64
+	SED=sed
+	LIBS=$(shell ./libllvmpath ${LLVM_LD})
 endif
 
 version=$(shell cat version)
 
-all: toolchain-robcmp-${suffix}-${version}.tar.gz
-
+all: bin lib toolchain-robcmp-${suffix}-${version}.tar.gz
 
 bin:
 	mkdir bin
 
-bin/%:
-	cp ${LLVM_ROOT}/bin/$(@F) $@
+lib:
+	mkdir lib
 
-bin/robcmp:
-	cp ../../robcmp bin/
+package.json: package-orig.json
+	$(SED) s/sed_system_here/$(suffix)/ $< > $@
 
-toolchain-robcmp-${suffix}-${version}.tar.gz: ${TOOLS_BIN} package.json
-	tar cfz $@ $^
+toolchain-robcmp-${suffix}-${version}.tar.gz: package.json
+	for f in $(TOOLS); do cp $$f bin; done;
+	for f in $(LIBS); do cp $$f lib; done;
+	if [ -f bin/ld.lld-16 ]; then cd bin && ln -s ld.lld-16 ld.lld; fi
+	if [ -f bin/llvm-objcopy-16 ]; then cd bin && ln -s llvm-objcopy-16 llvm-objcopy; fi
+	tar cfz $@ $^ bin/* lib/*
 
 clean:
-	rm *.tar.gz
+	rm -rf bin lib *.tar.gz package.json

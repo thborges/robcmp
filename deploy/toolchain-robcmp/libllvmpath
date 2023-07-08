@@ -1,0 +1,1 @@
+ldd $1|grep libLLVM|sed "s/.*=> \([^( ]*\).*/\1/"

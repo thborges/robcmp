@@ -46,10 +46,10 @@ all: src/out $(COMPILER_NAME)
 	$(SED) 's/\"syntax\ error,/COLOR_RED\ \"syntax\ error:\"\ COLOR_RESET\"/' -i $@
 
 $(COMPILER_NAME): ${YACS} ${LEXS} ${CPPS}
-	${CC} -std=c++11 ${FLAGS} ${DFLAGS} ${SRC}/out/*.o ${LLVMLIBS} -o $(BIN)/$@
+	${CC} -flto -std=c++11 ${FLAGS} ${DFLAGS} ${SRC}/out/*.o ${LLVMLIBS} -o $(BIN)/$@
 
 src/out/%.o: src/%.cpp
-	${CC} -std=c++11 ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@
+	${CC} -flto -std=c++11 ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@
 
 src/out:
 	mkdir ${SRC}/out

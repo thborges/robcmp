@@ -11,17 +11,10 @@ Value *Pointer::generate(Function *func, BasicBlock *block, BasicBlock *allocblo
 	}
 
     // generate code to produce the address
-    Value *addri = NULL;
-    if (block == NULL && allocblock == global_alloc) {
-        addri = Scalar::tryToGenerateAsConstant(address);
-        if (addri == NULL)
-            return NULL;
-    } else {
-        addri = address->generate(func, allocblock, allocblock);
-        if (addri == NULL) {
-            yyerrorcpp("Unable to compute the address for '" + name + "' register.", this);
-            return NULL;
-        }
+    Value *addri = address->generate(func, block, allocblock);
+    if (addri == NULL) {
+        yyerrorcpp("Unable to compute the address for '" + name + "' register.", this);
+        return NULL;
     }
 
     Value *addrp = NULL;

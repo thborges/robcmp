@@ -16,8 +16,6 @@ public:
 	string getIdent() const { return name; };
 
 	virtual void accept(Visitor& v) override;
-	
-	static Constant *tryToGenerateAsConstant(Node *n);
 };
 
 #endif

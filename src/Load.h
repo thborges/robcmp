@@ -15,5 +15,7 @@ public:
 	virtual void accept(Visitor& v) override;
 
 	virtual Type* getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override;
+
+	bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override;
 };
 #endif

@@ -10,10 +10,10 @@ private:
 public:
 	BinaryOp(Node *l, int op, Node *r);
 
-	Instruction *logical_operator(enum Instruction::BinaryOps op, 
+	Value *logical_operator(enum Instruction::BinaryOps op, 
 		Function *func, BasicBlock *block, BasicBlock *allocblock);
 
-	Instruction *binary_operator(enum Instruction::BinaryOps opint, 
+	Value *binary_operator(enum Instruction::BinaryOps opint, 
 		enum Instruction::BinaryOps opflt, Function *func, BasicBlock *block, BasicBlock *allocblock);
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;

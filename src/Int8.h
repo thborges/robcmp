@@ -10,7 +10,7 @@ class Int8: public Node {
 		char getNumber() const { return number; }
 		virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
 		virtual void accept(Visitor &v) override;
-		virtual bool isConstExpr() override {
+		virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override {
 			return true;
 		}
 		virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override {

@@ -1,9 +1,0 @@
-
-function d() {
-	e = [ 3 ];
-	return e;
-}
-
-a = 10;
-g = [ 3 ];
-

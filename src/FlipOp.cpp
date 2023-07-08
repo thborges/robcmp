@@ -11,8 +11,11 @@ Value *FlipOp::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 	Value *exprv = value->generate(func, block, allocblock);
     if (exprv == NULL)
         return NULL;
-    return BinaryOperator::Create(Instruction::Xor, exprv, 
-        Constant::getAllOnesValue(exprv->getType()), "neg", block);
+    if (Constant *c = dyn_cast<Constant>(exprv))
+        return ConstantExpr::getNeg(c);
+    else
+        return BinaryOperator::Create(Instruction::Xor, exprv, 
+            Constant::getAllOnesValue(exprv->getType()), "neg", block);
 }
 
 void FlipOp::accept(Visitor& v) {

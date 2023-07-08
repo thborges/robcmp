@@ -10,7 +10,7 @@ BinaryOp::BinaryOp(Node *l, int op, Node *r) {
 	this->node_children.push_back(rhsn);
 }
 
-Instruction *BinaryOp::logical_operator(enum Instruction::BinaryOps op, 
+Value *BinaryOp::logical_operator(enum Instruction::BinaryOps op, 
 	Function *func, BasicBlock *block, BasicBlock *allocblock) {
 
 	Value *lhs = lhsn->generate(func, block, allocblock);
@@ -18,7 +18,7 @@ Instruction *BinaryOp::logical_operator(enum Instruction::BinaryOps op,
 	return BinaryOperator::Create(op, lhs, rhs, "logicop", block);
 }
 
-Instruction *BinaryOp::binary_operator(enum Instruction::BinaryOps opint, 
+Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint, 
 	enum Instruction::BinaryOps opflt, Function *func, BasicBlock *block, BasicBlock *allocblock) {
 
 	Value *lhs = lhsn->generate(func, block, allocblock);
@@ -28,6 +28,8 @@ Instruction *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 
 	Type *Ty1 = lhs->getType();
 	Type *Ty2 = rhs->getType();
+
+	enum Instruction::BinaryOps llvmop;
 
 	if (Ty1->isIntegerTy() && Ty2->isIntegerTy()) {
 		/*fallback SDiv disabled
@@ -41,7 +43,11 @@ Instruction *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 
 		if (opint == Instruction::Shl || opint == Instruction::LShr) {
 			// sext the left operator if we know the rside bitwidth
-			Constant *c = Scalar::tryToGenerateAsConstant(rhsn);
+			Constant *c = NULL;
+			if (rhsn->isConstExpr(block, allocblock)) {
+				Value *v = rhsn->generate(NULL, block, allocblock);
+				c = dyn_cast<Constant>(v);
+			}
 			if (c) {
 				int64_t v = c->getUniqueInteger().getZExtValue();
 				if (Ty1->getIntegerBitWidth() < v) {
@@ -63,16 +69,39 @@ Instruction *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 		else
 			lhs = Coercion::Convert(lhs, Ty2, block, lhsn);
 
-		return BinaryOperator::Create(opint, lhs, rhs, "binop", block);
+		llvmop = opint;
 	}
 	else {
 		if (Ty1->isIntegerTy())
 			lhs = new SIToFPInst(lhs, Ty2, "castitof", block);
 		else if (Ty2->isIntegerTy())
 			rhs = new SIToFPInst(rhs, Ty1, "castitof", block);
-
-		return BinaryOperator::Create(opflt, lhs, rhs, "binop", block);
+		llvmop = opflt;
 	}
+
+	Constant *c0 = dyn_cast<Constant>(lhs);
+	Constant *c1 = dyn_cast<Constant>(rhs);
+	if (c0 && c1) {
+		switch (getOperator()) {
+			case '+': return ConstantExpr::getAdd(c0, c1);
+			case '-': return ConstantExpr::getSub(c0, c1);
+			case '*': return ConstantExpr::getMul(c0, c1);
+			
+			case TOK_OR:
+			case '|': return ConstantExpr::getOr(c0, c1);
+			
+			case TOK_AND:
+			case '&': return ConstantExpr::getAnd(c0, c1);
+
+			case '^': return ConstantExpr::getXor(c0, c1);
+			case TOK_LSHIFT: return ConstantExpr::getShl(c0, c1);
+			case TOK_RSHIFT: return ConstantExpr::getLShr(c0, c1);
+			default:
+				break;
+		}
+	}
+	
+	return BinaryOperator::Create(llvmop, lhs, rhs, "binop", block);
 }
 
 Type *BinaryOp::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
@@ -81,7 +110,11 @@ Type *BinaryOp::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
 	if (lty->isIntegerTy() && rty->isIntegerTy()) {
 		if (op == TOK_LSHIFT || op == TOK_RSHIFT) {
 			// sext the left operator if we know the rside bitwidth
-			Constant *c = Scalar::tryToGenerateAsConstant(rhsn);
+			Constant *c = NULL;
+			if (rhsn->isConstExpr(block, allocblock)) {
+				Value *v = rhsn->generate(NULL, block, allocblock);
+				c = dyn_cast<Constant>(v);
+			}
 			if (c) {
 				int64_t v = c->getUniqueInteger().getZExtValue();
 				if (lty->getIntegerBitWidth() < v) {

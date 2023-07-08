@@ -52,3 +52,7 @@ void Load::accept(Visitor &v) {
 	v.visit(*this); 
 }
 
+bool Load::isConstExpr(BasicBlock *block, BasicBlock *allocblock) {
+	RobSymbol *rsym = search_symbol(ident, block, allocblock);
+	return rsym && (dyn_cast<Constant>(rsym->value) != NULL);
+}

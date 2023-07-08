@@ -14,11 +14,11 @@ BIN = .
 FLAGS=-O3 -march=native -DYYERROR_VERBOSE -fexceptions
 DFLAGS=-ggdb -O0
 
-CPPS=$(patsubst %.cpp,%.o,$(wildcard ${SRC}/*.cpp))
-YACS=$(patsubst %.y,%_y.o,$(wildcard ${SRC}/*.y))
-LEXS=$(patsubst %.l,%_l.o,$(wildcard ${SRC}/*.l))
+CPPS=$(patsubst src/%.cpp,src/out/%.o,$(wildcard ${SRC}/*.cpp))
+YACS=$(patsubst src/%.y,src/out/%_y.o,$(wildcard ${SRC}/*.y))
+LEXS=$(patsubst src/%.l,src/out/%_l.o,$(wildcard ${SRC}/*.l))
 
-all: $(COMPILER_NAME)
+all: src/out $(COMPILER_NAME)
 
 %_l.cpp: %.l
 	lex -o $@ $<
@@ -30,12 +30,16 @@ all: $(COMPILER_NAME)
 	gsed 's/\"syntax\ error,/COLOR_RED\ \"syntax\ error:\"\ COLOR_RESET\"/' -i $@
 
 $(COMPILER_NAME): ${YACS} ${LEXS} ${CPPS}
-	${CC} -std=c++11 ${FLAGS} ${DFLAGS} ${SRC}/*.o ${LLVMLIBS} -o $(BIN)/$@
+	${CC} -std=c++11 ${FLAGS} ${DFLAGS} ${SRC}/out/*.o ${LLVMLIBS} -o $(BIN)/$@
 
-%.o: %.cpp
+src/out/%.o: src/%.cpp
 	${CC} -std=c++11 ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@
 
+src/out:
+	mkdir ${SRC}/out
+
 clean:
-	rm -f ${SRC}/*_y.cpp ${SRC}/*_l.cpp ${SRC}/bison.hpp ${SRC}/*.o
+	rm -f ${SRC}/*_y.cpp ${SRC}/*_l.cpp ${SRC}/bison.hpp ${SRC}/out/*.o
 
 #.SILENT:
+.PRECIOUS: bison.hpp

@@ -52,7 +52,7 @@ Value *FunctionDecl::generate(Function *, BasicBlock *, BasicBlock *allocblock) 
 		if (lb->getTerminator() == NULL) {
 			if (!xtype->isVoidTy()) {
 				Value *ret = ConstantInt::get(Type::getInt8Ty(global_context), 0);
-				ret = Coercion::Convert(ret, xtype, lb);
+				ret = Coercion::Convert(ret, xtype, lb, this);
 				ReturnInst::Create(global_context, ret, lb);
 			} else
 				ReturnInst::Create(global_context, NULL, lb);

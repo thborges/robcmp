@@ -4,11 +4,9 @@
 class Matrix: public Node {
 private:
 	string name;
-	unsigned int size_l;
-	unsigned int size_c;
-	MatrixElements *arrays;
+	MatrixElements *melements;
 public:
-	Matrix(const char *n, MatrixElements *me) : name(n), arrays(me) { }
+	Matrix(const char *n, MatrixElements *me) : name(n), melements(me) { }
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
 };
 

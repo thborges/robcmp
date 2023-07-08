@@ -5,6 +5,7 @@
 
 int errorsfound = 0;
 int yycolno = 0;
+int yycolnew = 0;
 extern int yyparse();
 extern FILE *yyin;
 void print_llvm_ir(const char *target, char opt_level);

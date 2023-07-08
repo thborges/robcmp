@@ -14,7 +14,7 @@ syn keyword booleanKeyword true false
 
 syn match integerConstants "\<\d\+\>" 
 syn match hexConstants "\<0x[0-9a-fA-F]\+\>" 
-syn match floatConstants "\<\d\+\.\d\+\>"
+syn match floatConstants "\<\d\+\.\d\+L\?D\?\>"
 syn match inPortKey "\<in\d\+\>"
 syn match outPortKey "\<out\d\+\>"
 syn match stringSpecial "\\."

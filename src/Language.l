@@ -6,7 +6,8 @@
 extern void unescape(char *s);
 
 extern int yycolno;
-#define YY_USER_ACTION yycolno += yyleng;
+extern int yycolnew;
+#define YY_USER_ACTION yycolno = yycolnew; yycolnew += yyleng;
 
 %}
 
@@ -16,7 +17,7 @@ extern int yycolno;
 %%
 
 [ \t\r]					{ /* ignore spaces */ }
-[\n]					{ yycolno = 0; }
+[\n]					{ yycolnew = 0; yycolno = 0; }
 "/*"					{ yymore(); BEGIN COMMENT; }
 <COMMENT>[^*]			{ yymore(); }
 <COMMENT>"*"/[^/]		{ yymore(); }
@@ -34,7 +35,6 @@ extern int yycolno;
 "int16"					{ return TOK_FINT16; }
 "int32"					{ return TOK_FINT32; }
 "int64"					{ return TOK_FINT64; }
-"half"					{ return TOK_FHALF; }
 "float"					{ return TOK_FFLOAT; }
 "double"				{ return TOK_FDOUBLE; }
 "long"					{ return TOK_FLONG; }
@@ -109,9 +109,19 @@ extern int yycolno;
 						  return TOK_IDENTIFIER; }
 
 [0-9]+\.[0-9]+			{ char *aux = strndup(yytext, yyleng);
-						  yylval.ndouble = strtod(aux, NULL);
+						  yylval.nfloat = strtof(aux, NULL);
 						  free(aux);
 						  return TOK_FLOAT; }
+
+[0-9]+\.[0-9]+D			{ char *aux = strndup(yytext, yyleng);
+						  yylval.ndouble = strtod(aux, NULL);
+						  free(aux);
+						  return TOK_DOUBLE; }
+
+[0-9]+\.[0-9]+LD		{ char *aux = strndup(yytext, yyleng);
+						  yylval.nldouble = strtold(aux, NULL);
+						  free(aux);
+						  return TOK_LDOUBLE; }
 
 "0x"[0-9a-fA-F]+		{ char *aux = strndup(yytext, yyleng);
 						  yylval.nint = strtoll(aux, NULL, 16);

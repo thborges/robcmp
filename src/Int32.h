@@ -10,9 +10,13 @@ public:
 	int getNumber() const { return number; }
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
 	virtual void accept(Visitor &v) override;
-	/*{
-		return ConstantInt::get(Type::getInt32Ty(global_context), number);
-	}*/
+
+	virtual bool isConstExpr() override {
+		return true;
+	}
+	virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override {
+		return Type::getInt32Ty(global_context);
+	}
 };
 
 #endif

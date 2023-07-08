@@ -1,4 +1,4 @@
-ALL_LL=$(patsubst %.txt,out/%.ll,$(wildcard *.txt))
+ALL_LL=$(patsubst %.rob,out/%.ll,$(wildcard *.rob))
 ALLOBJS=$(patsubst %.ll,%.o,${ALL_LL})
 ALLASM=$(patsubst %.ll,%.s,${ALL_LL})
 ALLBIN=$(patsubst %.ll,%,${ALL_LL})
@@ -10,7 +10,7 @@ all: ${ALL_LL} ${ALLASM} ${ALLOBJS} ${ALLBIN}
 clean:
 	rm -f ${ALLBIN} ${ALLASM} ${ALLOBJS} ${ALL_LL}
 
-out/%.ll : %.txt ${COMPILER_NAME}
+out/%.ll : %.rob ${COMPILER_NAME}
 	${COMPILER_NAME} -Os $< > $@
 
 %.o : %.ll

@@ -11,6 +11,8 @@ class Stmts;
 Node* getNodeForIntConst(int64_t i);
 std::vector<AttachInterrupt *> vectorglobal;
 
+extern int errorsfound;
+
 %}
 
 %define parse.error verbose
@@ -21,9 +23,9 @@ std::vector<AttachInterrupt *> vectorglobal;
 %token TOK_PRINT
 %token TOK_IN TOK_OUT TOK_STEPPER TOK_SERVO
 %token TOK_DELAY TOK_AND TOK_OR
-%token TOK_IDENTIFIER TOK_FLOAT TOK_INTEGER TOK_STRING TOK_TRUE TOK_FALSE
+%token TOK_IDENTIFIER TOK_FLOAT TOK_DOUBLE TOK_LDOUBLE TOK_INTEGER TOK_STRING TOK_TRUE TOK_FALSE
 %token TOK_FINT8 TOK_FINT16 TOK_FINT32 TOK_FINT64
-%token TOK_FHALF TOK_FFLOAT TOK_FDOUBLE TOK_FCHAR TOK_FLONG TOK_FUNSIGNED TOK_FBOOL
+%token TOK_FFLOAT TOK_FDOUBLE TOK_FCHAR TOK_FLONG TOK_FUNSIGNED TOK_FBOOL
 
 %token TOK_QUANDO TOK_ESTA
 %token EQ_OP NE_OP GE_OP LE_OP GT_OP LT_OP TOK_LSHIFT TOK_RSHIFT
@@ -33,7 +35,9 @@ std::vector<AttachInterrupt *> vectorglobal;
 	char *ident;
 	char *str;
 	int64_t nint;
+	float nfloat;
 	double ndouble;
+	long double nldouble;
 	Node *node;
 	Stmts *stmt;
 	ArrayElement ae;
@@ -59,7 +63,9 @@ std::vector<AttachInterrupt *> vectorglobal;
 %type <stmt> stmts gstmts
 %type <port> TOK_OUT TOK_IN
 %type <nint> TOK_INTEGER
-%type <ndouble> TOK_FLOAT
+%type <nfloat> TOK_FLOAT
+%type <ndouble> TOK_DOUBLE
+%type <nldouble> TOK_LDOUBLE
 %type <ident> TOK_IDENTIFIER
 %type <str> TOK_STRING
 %type <nint> TOK_STEPPER
@@ -81,8 +87,8 @@ programa : gstmts	{ Program p($1);
 					  fs.open("ast", std::fstream::out);
 					  PrintAstVisitor(fs).visit(p);
 					  fs.close();*/
-
-					  p.generate(); 
+					  if (errorsfound == 0)
+						  p.generate(); 
                     };
 		 ;
 
@@ -93,8 +99,7 @@ gstmts : gstmts gstmt       { $1->append($2); }
 gstmt : TOK_IDENTIFIER '=' expr ';'					{ $$ = new Scalar($1, $3, qnone); }
 	  | TOK_CONST TOK_IDENTIFIER '=' expr ';'		{ $$ = new Scalar($2, $4, qconst); }
 	  | TOK_VOLATILE TOK_IDENTIFIER '=' expr ';'	{ $$ = new Scalar($2, $4, qvolatile); }
-	  | TOK_IDENTIFIER '[' expr ']' '=' expr ';'	{ $$ = new UpdateVector($1, $3, $6);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
-	  | TOK_IDENTIFIER '=' relements ';'			{ $$ = new Vector($1, $3); } // name, size, expression
+	  | TOK_IDENTIFIER '=' relements ';'			{ $$ = new Array($1, $3); } // name, size, expression
 	  | TOK_IDENTIFIER '=' rmatrix ';'				{ $$ = new Matrix($1, $3);}
 	  | registerstmt ';'							{ $$ = $1; }
 	  | fe											{ $$ = $1; }
@@ -147,7 +152,8 @@ stmt : gstmt									{ $$ = $1; }
 	 | printstmt ';'							{ $$ = $1; }
 	 | TOK_STEPPER expr ';'						{ $$ = new StepperGoto($1, $2); }
 	 | TOK_SERVO expr ';'						{ $$ = new ServoGoto($2); }
-	 ;
+	 | TOK_IDENTIFIER '[' expr ']' '=' expr ';'	{ $$ = new UpdateArray($1, $3, $6);} //Deixar para tratamento semantico, pois poderia aceitar uma expressão [a + 1]
+	 | TOK_IDENTIFIER '[' expr ']' '[' expr ']' '=' expr ';'	{ $$ = new UpdateMatrix($1, $3, $6, $9); }
 
 rmatrix : '{' matrix '}'				{ $$ = $2; }
 	    ;
@@ -213,7 +219,6 @@ type_f  : TOK_VOID { $$ = tvoid; }
 		| TOK_FUNSIGNED TOK_FINT16 { $$ = tint16u; } 
 		| TOK_FUNSIGNED TOK_FINT32 { $$ = tint32u; } 
 		| TOK_FUNSIGNED TOK_FINT64 { $$ = tint64u; } 
-		| TOK_FHALF { $$ = thalf; } 
 		| TOK_FFLOAT { $$ = tfloat; } 
 		| TOK_FDOUBLE { $$ = tdouble; } 
 		| TOK_FLONG TOK_FDOUBLE { $$ = tldouble; } 
@@ -286,12 +291,14 @@ term2 : term2 '&' factor    { $$ = new BinaryOp($1, '&', $3); }
 
 factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_IDENTIFIER			{ $$ = new Load($1); }
-	   | TOK_IDENTIFIER '[' expr ']'				{ $$ = new LoadVector($1, $3);} 
+	   | TOK_IDENTIFIER '[' expr ']'				{ $$ = new LoadArray($1, $3);} 
 	   | TOK_IDENTIFIER '[' expr ']' '[' expr ']'	{ $$ = new LoadMatrix($1, $3, $6);} 
 	   | TOK_TRUE				{ $$ = new Int1(1); }
 	   | TOK_FALSE				{ $$ = new Int1(0); }
 	   | TOK_INTEGER			{ $$ = getNodeForIntConst($1); }
 	   | TOK_FLOAT				{ $$ = new Float($1); }
+	   | TOK_DOUBLE				{ $$ = new Double($1); }
+	   | TOK_LDOUBLE			{ $$ = new Float128($1); }
 	   | TOK_IN					{ $$ = new InPort($1); }
 	   | TOK_IDENTIFIER '(' paramscall ')'	{ $$ = new FunctionCall($1, $3); }
 	   | unary { $$ = $1; }
@@ -324,11 +331,10 @@ extern int yylineno;
 extern int yycolno;
 extern char *yytext;
 extern char *build_filename;
-extern int errorsfound;
 
 int yyerror(const char *s)
 {
-	fprintf(stderr, "%s:%d:%d %s\n", 
+	fprintf(stderr, "%s:%d:%d: %s\n", 
 		build_filename, yylineno, yycolno, s);
 	errorsfound++;
 	return 0;

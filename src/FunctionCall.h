@@ -11,7 +11,9 @@ public:
 		this->name = name;
 		this->parameters = pc;
 	}
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+
+	Type* getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override;
 };
 
 #endif

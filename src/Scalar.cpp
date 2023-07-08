@@ -60,7 +60,6 @@ Constant *Scalar::tryToGenerateAsConstant(Node *n) {
 			dynamic_cast<Int16*>(n) ||
 			dynamic_cast<Int32*>(n) ||
 			dynamic_cast<Int64*>(n) ||
-			dynamic_cast<Half*>(n) ||
 			dynamic_cast<Float*>(n) ||
 			dynamic_cast<Double*>(n) ||
 			dynamic_cast<Float128*>(n) ||
@@ -116,7 +115,7 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 		if (symbol->pointerType)
 			leftvty = symbol->pointerType;
 		Value *exprv = expr->generate(func, block, allocblock);
-		auto nvalue = Coercion::Convert(exprv, leftvty, block);
+		auto nvalue = Coercion::Convert(exprv, leftvty, block, expr);
 		return new StoreInst(nvalue, symbol->value, qualifier == qvolatile, block);
 	}
 }

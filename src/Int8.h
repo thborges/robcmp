@@ -10,6 +10,12 @@ class Int8: public Node {
 		char getNumber() const { return number; }
 		virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
 		virtual void accept(Visitor &v) override;
+		virtual bool isConstExpr() override {
+			return true;
+		}
+		virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override {
+			return Type::getInt8Ty(global_context);
+		}
 };
 
 #endif

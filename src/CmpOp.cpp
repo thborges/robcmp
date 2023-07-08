@@ -14,39 +14,51 @@ Value *CmpOp::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 	Value *lexp = lexpn->generate(func, block, allocblock);
 	Value *rexp = rexpn->generate(func, block, allocblock);
 
-	Type *Ty1 = lexp->getType();
-	Type *Ty2 = rexp->getType();
-	int isFCmp = !Ty1->isIntegerTy() || !Ty2->isIntegerTy();
-	if (isFCmp) {
-		if (Ty1->isIntegerTy())
-			lexp = Coercion::Convert(lexp, Ty2, block);
-			//lexp = new SIToFPInst(lexp, Type::getFloatTy(global_context), "", block);
-		if (Ty2->isIntegerTy())
-			lexp = Coercion::Convert(lexp, Ty1, block);
-			//rexp = new SIToFPInst(rexp, Type::getFloatTy(global_context), "", block);
-	}
-	else {
-		if (dyn_cast<IntegerType>(Ty1)->getBitWidth() > dyn_cast<IntegerType>(Ty2)->getBitWidth())
-			rexp = Coercion::Convert(rexp, Ty1, block);
-		else
-			lexp = Coercion::Convert(lexp, Ty2, block);
+	if (rexp == NULL || lexp == NULL) // can't generate values, error message emitted during generate.
+		return ConstantInt::get(Type::getInt1Ty(global_context), 1); // error recover
+
+	Type *tl = lexp->getType();
+	Type *tr = rexp->getType();
+
+	bool canCompare = (tl->isIntegerTy() || tl->isFloatingPointTy()) &&
+					  (tr->isIntegerTy() || tr->isFloatingPointTy());
+	if (!canCompare) {
+		yyerrorcpp("Can not compare " + getTypeName(tl) + " and " + 
+			getTypeName(tr) + " types.", lexpn);
+		return ConstantInt::get(Type::getInt1Ty(global_context), 1); // error recover
 	}
 
-	if (op == EQ_OP)	  predicate = isFCmp ? FCmpInst::FCMP_OEQ : ICmpInst::ICMP_EQ;
-	else if (op == NE_OP) predicate = isFCmp ? FCmpInst::FCMP_UNE : ICmpInst::ICMP_NE;
-	else if (op == GE_OP) predicate = isFCmp ? FCmpInst::FCMP_OGE : ICmpInst::ICMP_SGE;
-	else if (op == LE_OP) predicate = isFCmp ? FCmpInst::FCMP_OLE : ICmpInst::ICMP_SLE;
-	else if (op == GT_OP) predicate = isFCmp ? FCmpInst::FCMP_OGT : ICmpInst::ICMP_SGT;
-	else if (op == LT_OP) predicate = isFCmp ? FCmpInst::FCMP_OLT : ICmpInst::ICMP_SLT;
+	bool isFloatPointCmp = true;
+	if (tl->isFloatingPointTy() && tr->isIntegerTy())
+		rexp = Coercion::Convert(rexp, tl, block, rexpn);
+	else if (tl->isIntegerTy() && tr->isFloatingPointTy())
+		lexp = Coercion::Convert(lexp, tr, block, lexpn);
 	else {
-		/* TO_DO */
-		/*
-		cerr << "Invalid logical operator" << op << endl;
+		// left and right are integers
+		isFloatPointCmp = false;
+		unsigned tlbw = dyn_cast<IntegerType>(tl)->getBitWidth();
+		unsigned trbw = dyn_cast<IntegerType>(tr)->getBitWidth();
+		if (tlbw > trbw)
+			rexp = Coercion::Convert(rexp, tl, block, rexpn);
+		else if (tlbw < trbw)
+			lexp = Coercion::Convert(lexp, tr, block, lexpn);
+	}
+
+	if (rexp == NULL || lexp == NULL) // coercion not possible, error message during coercion
+		return ConstantInt::get(Type::getInt1Ty(global_context), 1); // error recover
+
+	if (op == EQ_OP)	  predicate = isFloatPointCmp ? FCmpInst::FCMP_OEQ : ICmpInst::ICMP_EQ;
+	else if (op == NE_OP) predicate = isFloatPointCmp ? FCmpInst::FCMP_UNE : ICmpInst::ICMP_NE;
+	else if (op == GE_OP) predicate = isFloatPointCmp ? FCmpInst::FCMP_OGE : ICmpInst::ICMP_SGE;
+	else if (op == LE_OP) predicate = isFloatPointCmp ? FCmpInst::FCMP_OLE : ICmpInst::ICMP_SLE;
+	else if (op == GT_OP) predicate = isFloatPointCmp ? FCmpInst::FCMP_OGT : ICmpInst::ICMP_SGT;
+	else if (op == LT_OP) predicate = isFloatPointCmp ? FCmpInst::FCMP_OLT : ICmpInst::ICMP_SLT;
+	else {
+		yyerrorcpp("Invalid predicate for comparison.", lexpn);
 		return NULL;
-		*/
 	}
 
-	if (isFCmp)
+	if (isFloatPointCmp)
 		return new FCmpInst(*block, predicate, lexp, rexp, "cmpf");
 	else {
 		return new ICmpInst(*block, predicate, lexp, rexp, "cmpi");

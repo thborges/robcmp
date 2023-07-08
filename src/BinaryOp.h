@@ -22,6 +22,7 @@ public:
 
 	int getOperator() const { return op; };
 
+	virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override;
 };
 
 #endif

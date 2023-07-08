@@ -12,6 +12,7 @@ public:
 
 	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
 	void generate();
+	
 };
 
 #endif

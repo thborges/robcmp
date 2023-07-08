@@ -109,7 +109,6 @@ void Program::generate() {
 	robTollvmDataType[tint16u]  = Type::getInt16Ty(global_context);
 	robTollvmDataType[tint32u]  = Type::getInt32Ty(global_context);
 	robTollvmDataType[tint64u]  = Type::getInt64Ty(global_context);
-	robTollvmDataType[thalf]    = Type::getHalfTy(global_context);
 	robTollvmDataType[tfloat]   = Type::getFloatTy(global_context);
 	robTollvmDataType[tdouble]  = Type::getDoubleTy(global_context);
 	robTollvmDataType[tldouble] = Type::getFP128Ty(global_context);

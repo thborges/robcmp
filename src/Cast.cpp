@@ -1,6 +1,10 @@
 
 #include "Header.h"
 
+Type *Cast::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) { 
+    return robTollvmDataType[dt];
+}
+
 Value *Cast::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 {
     Value *exprv = expr->generate(func, block, allocblock);
@@ -8,7 +12,7 @@ Value *Cast::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
         return NULL;
 
     Type *destty = robTollvmDataType[dt];
-    Value *ret = Coercion::Convert(exprv, destty, block);
+    Value *ret = Coercion::Convert(exprv, destty, block, expr);
 
     if (ret == NULL) {
         yyerrorcpp("Can't cast from '" + getTypeName(exprv->getType()) + "' to '" + 

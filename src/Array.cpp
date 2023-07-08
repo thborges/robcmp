@@ -1,40 +1,33 @@
 #include "Header.h"
 
-Value *Matrix::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-
-	/*
-	 * Matrix is generated as an array and accessed latter accordingly!
-	 */
+Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+	//Create an Array of Type Int8, and Size = size.
+	size = elements->getArraySize();
+	Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size);
 	
-	//Get Type of elements in Vector of Elements, and define as I.
-	Type* I = melements->getMatrixType(block, allocblock);
-	
-	// The matrix size
-	unsigned int lines = melements->getLineCount();
-	unsigned int cols = melements->getColumnCount();
-	ArrayType* arrayType = ArrayType::get(I, lines * cols);
+	//Get Type of elements in Array of Elements, and define as I.
+	Type* I = elements->getArrayType(block, allocblock);
 
-	// Allocate elements. Supported formats:
-	// {{1:3}:3, {1:2,2}:2}
-	// {{1,1,1},{1,1,1},{1,1,1},{1,1,2},{1,1,2}}
+	//Declare array type.
+	ArrayType* arrayType = ArrayType::get(I, size);
+	
+	//Generate array elements
+	unsigned int struct_size = elements->getStructSize();
+	unsigned int index = 0;
 	bool allConst = true;
 	vector<Value*> elementValues;
-	elementValues.reserve(lines * cols);
-	for(MatrixElement& i: melements->elements) {
-		unsigned elCount = i.count;
-		
+	elementValues.reserve(elements->getArraySize());
+	for (int i=0; i<struct_size; i++) {
+		unsigned elCount = elements->getElementCount(i);
 		for (int j=0; j<elCount; j++) {
-			for(ArrayElement& k: i.array->elements) {
-				Node* elValue = k.value;
-				Value *val = elValue->generate(func, block, allocblock);
-				if (!val)
-					return NULL;
-				val = Coercion::Convert(val, I, block, elValue);
-				if (!dyn_cast<Constant>(val))
-					allConst = false;
-				for (int l=0; l<k.count; l++)
-					elementValues.push_back(val);
-			}
+			Node* elValue = elements->getStructElement(i);
+			Value *val = elValue->generate(func, block, allocblock);
+			if (!val)
+				return NULL;
+			val = Coercion::Convert(val, I, block, elValue);
+			if (!dyn_cast<Constant>(val))
+				allConst = false;
+			elementValues.push_back(val);
 		}
 	}
 
@@ -44,7 +37,6 @@ Value *Matrix::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 		return NULL;
 	}
 
-	//Allocate matrix as a vector.
 	//Allocate array.
 	Value* var;
 	if (allocblock == global_alloc) { // when alloc is global
@@ -72,8 +64,5 @@ Value *Matrix::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 
 	//Add array to table of symbols.
 	tabelasym[allocblock][name] = new RobSymbol(var);
-	tabelasym[allocblock][name]->matrixLines = lines;
-	tabelasym[allocblock][name]->matrixCols = cols;
-
 	return var;
 }

@@ -7,7 +7,7 @@ graph =
   {1, 3,  2}, {1, 4,  2}, {3, 2, 5}, 
   {3, 1,  1}, {4, 3, -3}};
 
-int bellmanford(int V, int E, int src) {
+int16 bellmanford(int16 V, int16 E, int16 src) {
     // Initialize distance of all vertices as 0. 
 	dis = {INT_MAX : 5};
   
@@ -56,5 +56,8 @@ int bellmanford(int V, int E, int src) {
 	return 0;
 }
 
-bellmanford(5, 8, 0);
+int16 main() {
+	bellmanford(5, 8, 0);
+	return 0;
+}
 

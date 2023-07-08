@@ -3,6 +3,13 @@
 
 //#define ENABLE_ARDUINO
 //#define ENABLE_PRINT
+#define COLOR_RED     "\x1b[31m"
+#define COLOR_GREEN   "\x1b[32m"
+#define COLOR_YELLOW  "\x1b[33m"
+#define COLOR_BLUE    "\x1b[34m"
+#define COLOR_MAGENTA "\x1b[35m"
+#define COLOR_CYAN    "\x1b[36m"
+#define COLOR_RESET   "\x1b[0m"
 
 #include <iostream>
 #include <fstream>
@@ -28,12 +35,12 @@ using namespace llvm;
 /* After adding new types here, go to Program::generate to fill
  * the robTollvmDataType vector */
 enum LanguageDataType {tvoid, tbool, tchar, tint8, tint16, tint32, tint64, 
-  tint8u, tint16u, tint32u, tint64u, thalf, tfloat, tdouble, tldouble,
+  tint8u, tint16u, tint32u, tint64u, tfloat, tdouble, tldouble,
   __ldt_last};
 
 static const char *LanguageDataTypeNames[__ldt_last] = {"void", "boolean", "char", "int8",
 	"int16", "int32", "int64", "unsigned int8", "unsigned int16",
-	"unsigned int32", "unsigned int64", "half float", "float",
+	"unsigned int32", "unsigned int64", "float",
 	"double", "long double"};
 
 enum DataQualifier {qnone, qconst, qvolatile};
@@ -68,6 +75,7 @@ extern int yyerror(const char *s);
 extern int yylex();
 extern int yylineno;
 extern int yycolno;
+extern Node* getNodeForIntConst(int64_t i);
 
 // Program main module
 extern Module *mainmodule;
@@ -114,16 +122,20 @@ static string getTypeName(Type *ty) {
 }
 
 static int yyerrorcpp(const string& s, SourceLocation *n) {
-	string e = "semantic error, " + s;
-	yylineno = n->getLineNo();
-	yycolno = n->getColNo();
+	string e = COLOR_RED "semantic error: " COLOR_RESET + s;
+	if (n) {
+		yylineno = n->getLineNo();
+		yycolno = n->getColNo();
+	}
 	return yyerror(e.c_str());
 }
 
 static void yywarncpp(const string& s, SourceLocation *n) {
-	string e = "semantic warning, " + s;
-	yylineno = n->getLineNo();
-	yycolno = n->getColNo();
+	string e = COLOR_BLUE "semantic warning: " COLOR_RESET + s;
+	if (n) {
+		yylineno = n->getLineNo();
+		yycolno = n->getColNo();
+	}
 	fprintf(stderr, "%s:%d:%d %s\n", 
 		build_filename, yylineno, yycolno, e.c_str());
 }
@@ -156,7 +168,6 @@ static RobSymbol *search_symbol(const string& ident, BasicBlock *firstb = NULL, 
 #include "FunctionDecl.h"
 #include "FunctionDeclExtern.h"
 #include "FunctionParams.h"
-#include "Half.h"
 #include "If.h"
 #include "Int1.h"
 #include "Int8.h"
@@ -165,8 +176,8 @@ static RobSymbol *search_symbol(const string& ident, BasicBlock *firstb = NULL, 
 #include "Int64.h"
 #include "InPort.h"
 #include "Load.h"
+#include "LoadArray.h"
 #include "LoadMatrix.h"
-#include "LoadVector.h"
 #include "Matrix.h"
 #include "MatrixElements.h"
 #include "OutPort.h"
@@ -178,8 +189,9 @@ static RobSymbol *search_symbol(const string& ident, BasicBlock *firstb = NULL, 
 #include "Scalar.h"
 #include "Semantic.h"
 #include "String.h"
-#include "UpdateVector.h"
-#include "Vector.h"
+#include "UpdateArray.h"
+#include "UpdateMatrix.h"
+#include "Array.h"
 #include "While.h"
 #include "Loop.h"
 #include "Pointer.h"

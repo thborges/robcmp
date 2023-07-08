@@ -44,36 +44,65 @@ Instruction *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 			Constant *c = Scalar::tryToGenerateAsConstant(rhsn);
 			if (c) {
 				int64_t v = c->getUniqueInteger().getZExtValue();
-				if (dyn_cast<IntegerType>(Ty1)->getBitWidth() < v) {
+				if (Ty1->getIntegerBitWidth() < v) {
 					if (v >= 8 && v <= 15)
 						lhs = new SExtInst(lhs, Type::getInt16Ty(global_context), "sext16", block);
 					else if (v >= 16 && v <= 31)
 						lhs = new SExtInst(lhs, Type::getInt32Ty(global_context), "sext32", block);
 					else if (v >= 32 && v <= 63)
-						lhs = new SExtInst(lhs, Type::getInt16Ty(global_context), "sext64", block);
+						lhs = new SExtInst(lhs, Type::getInt64Ty(global_context), "sext64", block);
 					else
-						yywarncpp("check if the right side has sufficient bitwidth to shift the number of bits.", this);
+						yyerrorcpp("Number of shift bits exceeds the max int precision for left side.", this);
 					Ty1 = lhs->getType();
 				}
 			}
 		}
 
 		if (dyn_cast<IntegerType>(Ty1)->getBitWidth() > dyn_cast<IntegerType>(Ty2)->getBitWidth())
-			rhs = Coercion::Convert(rhs, Ty1, block);
+			rhs = Coercion::Convert(rhs, Ty1, block, rhsn);
 		else
-			lhs = Coercion::Convert(lhs, Ty2, block);
+			lhs = Coercion::Convert(lhs, Ty2, block, lhsn);
 
 		return BinaryOperator::Create(opint, lhs, rhs, "binop", block);
 	}
 	else {
-		Value *flhs = lhs, *frhs = rhs;
 		if (Ty1->isIntegerTy())
-			flhs = new SIToFPInst(lhs, Type::getFloatTy(global_context), "castitof", block);
-			//ADDCOERSION
-		if (Ty2->isIntegerTy())
-			frhs = new SIToFPInst(rhs, Type::getFloatTy(global_context), "castitof", block);
-			//ADDCOERSION
-		return BinaryOperator::Create(opflt, flhs, frhs, "binop", block);
+			lhs = new SIToFPInst(lhs, Ty2, "castitof", block);
+		else if (Ty2->isIntegerTy())
+			rhs = new SIToFPInst(rhs, Ty1, "castitof", block);
+
+		return BinaryOperator::Create(opflt, lhs, rhs, "binop", block);
+	}
+}
+
+Type *BinaryOp::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
+	Type *lty = lhsn->getLLVMResultType(block, allocblock);
+	Type *rty = rhsn->getLLVMResultType(block, allocblock);
+	if (lty->isIntegerTy() && rty->isIntegerTy()) {
+		if (op == TOK_LSHIFT || op == TOK_RSHIFT) {
+			// sext the left operator if we know the rside bitwidth
+			Constant *c = Scalar::tryToGenerateAsConstant(rhsn);
+			if (c) {
+				int64_t v = c->getUniqueInteger().getZExtValue();
+				if (lty->getIntegerBitWidth() < v) {
+					if (v >= 8 && v <= 15)
+						return Type::getInt16Ty(global_context);
+					else if (v >= 16 && v <= 31)
+						return Type::getInt32Ty(global_context);
+					else if (v >= 32 && v <= 63)
+						return Type::getInt64Ty(global_context);
+					else
+						return NULL;
+				}
+			}
+		}
+		return lty->getIntegerBitWidth() > rty->getIntegerBitWidth() ? lty : rty;
+		
+	} else {
+		if (lty->isIntegerTy())
+			return rty;
+		else
+			return lty;
 	}
 }
 

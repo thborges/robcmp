@@ -25,6 +25,9 @@ all: $(COMPILER_NAME)
 
 %_y.cpp: %.y
 	bison -Wall --report=state --defines=$(SRC)/bison.hpp -o $@ $<
+	gsed 's/\"syntax\ error\"/COLOR_RED\ \"syntax\ error\"\ COLOR_RESET/' -i $@
+	gsed 's/\"syntax\ error:/COLOR_RED\ \"syntax\ error:\"\ COLOR_RESET\"/' -i $@
+	gsed 's/\"syntax\ error,/COLOR_RED\ \"syntax\ error:\"\ COLOR_RESET\"/' -i $@
 
 $(COMPILER_NAME): ${YACS} ${LEXS} ${CPPS}
 	${CC} -std=c++11 ${FLAGS} ${DFLAGS} ${SRC}/*.o ${LLVMLIBS} -o $(BIN)/$@

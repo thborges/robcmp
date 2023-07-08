@@ -6,14 +6,14 @@
 class MatrixElements {
 private:
 public:
-	std::vector<MatrixElement> elements;
 	MatrixElements();
+	std::vector<MatrixElement> elements;
 	void append(MatrixElement& m);
 	
-	unsigned getColumnSize() const;
-	unsigned getLineSize() const;
+	unsigned getColumnCount() const;
+	unsigned getLineCount() const;
 	unsigned getElementCount(int position) const;
-	Type *getMatrixType(Function *func, BasicBlock *block, BasicBlock *allocblock) const;
+	Type *getMatrixType(BasicBlock *block, BasicBlock *allocblock) const;
 };
 
 #endif

@@ -1,7 +1,20 @@
 #include "Header.h"
 
-Value *Load::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-	auto rsym = search_symbol(ident, allocblock, block);	
+Type* Load::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
+	auto rsym = search_symbol(ident, allocblock, block);
+	if (rsym) {
+		if (auto *lvalue = dyn_cast<AllocaInst>(rsym->value))
+			return lvalue->getAllocatedType();
+		else if (auto *lvalue = dyn_cast<GlobalVariable>(rsym->value))
+			return lvalue->getValueType();
+		else
+			return rsym->pointerType;
+	}
+	return NULL;
+}
+
+Value* Load::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+	auto rsym = search_symbol(ident, allocblock, block);
 	if (rsym == NULL) {
 		yyerrorcpp("Variable " + ident + " not defined.", this);
 		return NULL;

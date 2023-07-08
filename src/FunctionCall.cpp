@@ -1,5 +1,15 @@
 #include "Header.h"
 
+Type* FunctionCall::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
+	auto symbol = search_symbol(name);
+	if (symbol) {
+		Function *cfunc = dyn_cast<Function>(symbol->value);
+		if (cfunc)
+			return cfunc->getReturnType();
+	}
+	return NULL;
+}
+
 Value *FunctionCall::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 	auto symbol = search_symbol(name);
 	if (symbol == NULL) {

@@ -57,7 +57,7 @@ package.json: package-orig.json
 	for f in $(LIBS); do cp $$f lib; done;
 	if [ -f bin/ld.lld-16 ]; then cd bin && ln -s ld.lld-16 ld.lld; fi
 	if [ -f bin/llvm-objcopy-16 ]; then cd bin && ln -s llvm-objcopy-16 llvm-objcopy; fi
-	tar cfz $@ $^ bin lib
+	tar cfz $@ $^ bin lib share
 
 clean:
 	rm -rf bin lib *.tar.gz package.json

@@ -1,1 +1,4 @@
-tar cfz robcmp-`uname -s`-`uname -m`-`cat toolchain-robcmp/version`.tar.gz platform samples vscode-syntax toolchain*.tar.gz install
+PATH=~/.platformio/packages/toolchain-atmelavr/bin/:$PATH
+cd toolchain-robcmp && make clean && make
+cd ..
+tar cfz robcmp-`uname -s`-`uname -m`-`cat toolchain-robcmp/version`.tar.gz platform samples vscode-syntax/robcmpsyntax-0.0.1.vsix toolchain*.tar.gz install

@@ -35,11 +35,11 @@
         "owner": "platformio",
         "version": "~1.0.1"
       },
-      "tool-jlink": {
+      "tool-openocd": {
         "type": "uploader",
         "optional": true,
         "owner": "platformio",
-        "version": "^1.63208.0"
+        "version": "~2.1000.0"
       }
     }
   }

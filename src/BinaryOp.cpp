@@ -161,3 +161,7 @@ void BinaryOp::accept(Visitor& v) {
 	v.visit(*this);
 }
 
+bool BinaryOp::isConstExpr(BasicBlock *block, BasicBlock *allocblock) {
+	return lhsn->isConstExpr(block, allocblock) && 
+		rhsn->isConstExpr(block, allocblock);
+}

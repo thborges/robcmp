@@ -1,0 +1,6 @@
+ln -s `realpath platform` ~/.platformio/platforms/robcmp
+ln -s `realpath toolchain-robcmp` ~/.platformio/packages/toolchain-robcmp
+ln -s `realpath vscode-syntax` ~/.vscode/extensions/robcmpsyntax
+echo "Open a samples folder and try build and upload!"
+echo "code samples/avr328p"
+echo "code samples/stm32f1"

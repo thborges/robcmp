@@ -8,7 +8,20 @@ ifeq ($(LLVM_LD),)
 	LLVM_LD=$(shell which ld.lld)
 endif
 
-TOOLS=$(LLVM_OBJCOPY) $(LLVM_LD) ../../robcmp
+AVR_LD=$(shell which avr-ld)
+ifeq ($(AVR_LD),)
+    $(error "Can't find avr-ld!")
+endif
+
+ifeq ($(LLVM_LD),)
+    $(error "Can't find llvm-ld!")
+endif
+
+ifeq ($(LLVM_OBJCOPY),)
+    $(error "Can't find llvm-objcopy!")
+endif
+
+TOOLS=$(LLVM_OBJCOPY) $(LLVM_LD) $(AVR_LD) ../../robcmp
 
 ifeq ($(OS),Windows_NT)
     uname_S := Windows
@@ -44,7 +57,7 @@ toolchain-robcmp-${suffix}-${version}.tar.gz: package.json
 	for f in $(LIBS); do cp $$f lib; done;
 	if [ -f bin/ld.lld-16 ]; then cd bin && ln -s ld.lld-16 ld.lld; fi
 	if [ -f bin/llvm-objcopy-16 ]; then cd bin && ln -s llvm-objcopy-16 llvm-objcopy; fi
-	tar cfz $@ $^ bin/* lib/*
+	tar cfz $@ $^ bin lib
 
 clean:
 	rm -rf bin lib *.tar.gz package.json

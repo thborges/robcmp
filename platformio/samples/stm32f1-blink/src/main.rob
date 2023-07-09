@@ -30,12 +30,7 @@ const OUTPUT_MODE_OPENDRAIN = 0x1;
 const OUTPUT_MODE_APUSH_PULL = 0x2;
 const OUTPUT_MODE_AOPENDRAIN = 0x3;
 
-void wait() {
-	volatile i = 100000;
-	while (i > 0) {
-		i--;
-	}
-}
+void wait();
 
 void main() {
 

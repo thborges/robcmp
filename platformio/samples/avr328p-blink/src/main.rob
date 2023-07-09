@@ -7,12 +7,7 @@ register int8 PORTB at 0x25; // pins 8-13
 register int8 DDRB  at 0x24;
 register int8 PINB  at 0x23;
 
-void wait() {
-	volatile i = 100000;
-	while (i > 0) {
-		i--;
-	}
-}
+void wait();
 
 int16 main() {
 

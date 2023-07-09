@@ -17,6 +17,8 @@ public:
 	virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override {
 		return value->getLLVMResultType(block, allocblock);
 	}
+
+	virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override;
 };
 
 #endif

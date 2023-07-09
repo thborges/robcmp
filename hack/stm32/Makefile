@@ -23,10 +23,10 @@ all: ${ROBCMP} ${ALL}
 
 
 %.rob.ll: %.rob
-	${ROBCMP} -astm32 -Oz $< > $@
+	${ROBCMP} -a stm32f1 -Oz $< > $@
 
 %.rob.o: %.rob
-	${ROBCMP} -astm32 -Oz $< -o $@
+	${ROBCMP} -a stm32f1 -Oz $< -o $@
 
 
 
@@ -34,7 +34,7 @@ all: ${ROBCMP} ${ALL}
 	${LLC} $< -o $@ -filetype=asm
 
 %.elf : %.o
-	${CC} ${CCPLAT} -nostdlib -Wl,-entry=main -Wl,-Tmemory.lld.ld $< -o $@
+	${CC} -v ${CCPLAT} -nostdlib -Wl,-entry=main -Wl,-Tmemory.lld.ld $< -o $@
 	@#${GCC} -mthumb -mcpu=cortex-m3 -nostdlib -Wl,-Tmemory.gcc.ld $< -o $@
 
 

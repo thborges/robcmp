@@ -110,7 +110,7 @@ typedef struct {
 static TargetInfo supportedTargets[] = {
 	{"", "", "", ""}, // default target
 	{"avr328p", "avr-atmel-none", "atmega328p", "+avr5"},
-	{"stm32",   "thumbv7m-none-eabi", "cortex-m3", ""},
+	{"stm32f1", "thumbv7m-none-eabi", "cortex-m3", ""},
 	{"esp32",   "xtensa",  "", ""},
 };
 

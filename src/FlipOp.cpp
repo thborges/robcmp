@@ -21,3 +21,7 @@ Value *FlipOp::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 void FlipOp::accept(Visitor& v) {
 	v.visit(*this);
 }
+
+bool FlipOp::isConstExpr(BasicBlock *block, BasicBlock *allocblock) {
+	return value->isConstExpr(block, allocblock);
+}

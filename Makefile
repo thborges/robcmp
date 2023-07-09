@@ -5,7 +5,7 @@ ifeq ($(uname), Linux)
 endif
 ifeq ($(uname), Darwin)
 	SYSROOT=-isysroot `xcrun -sdk macosx --show-sdk-path`
-	LDFLAGS=-lz -lzstd -lpthread -ldl -lncurses
+	LDFLAGS=-L/usr/local/lib -lz -lzstd -lpthread -ldl -lncurses
 	SED=$(shell which gsed)
 endif
 
@@ -16,7 +16,7 @@ endif
 
 LLVMCONFIG=$(shell which llvm-config-16)
 ifeq ($(LLVMCONFIG),)
-	LLVMCONFIG=$(shell shich llvm-config)
+	LLVMCONFIG=$(shell which llvm-config)
 endif
 
 LLVMFLAGS=$(shell ${LLVMCONFIG} --cxxflags) -frtti ${SYSROOT}
@@ -27,7 +27,7 @@ COMPILER_NAME=$(shell basename "${PWD}")
 SRC = src
 BIN = .
  
-FLAGS=-O3 -march=native -DYYERROR_VERBOSE -fexceptions
+FLAGS=-O3 -march=native -flto
 #DFLAGS=-ggdb -O0
 
 CPPS=$(patsubst src/%.cpp,src/out/%.o,$(wildcard ${SRC}/*.cpp))
@@ -46,10 +46,10 @@ all: src/out $(COMPILER_NAME)
 	$(SED) 's/\"syntax\ error,/COLOR_RED\ \"syntax\ error:\"\ COLOR_RESET\"/' -i $@
 
 $(COMPILER_NAME): ${YACS} ${LEXS} ${CPPS}
-	${CC} -flto -std=c++11 ${FLAGS} ${DFLAGS} ${SRC}/out/*.o ${LLVMLIBS} -o $(BIN)/$@
+	${CC} -std=c++11 ${FLAGS} ${DFLAGS} ${SRC}/out/*.o ${LLVMLIBS} -o $(BIN)/$@
 
 src/out/%.o: src/%.cpp
-	${CC} -flto -std=c++11 ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@
+	${CC} -std=c++11 ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@
 
 src/out:
 	mkdir ${SRC}/out

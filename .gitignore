@@ -56,4 +56,5 @@ llvm-ar
 llvm-as
 llvm-objcopy
 llvm-ranlib
+avr-ld
 .vscode

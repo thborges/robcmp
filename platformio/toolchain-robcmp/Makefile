@@ -41,7 +41,7 @@ endif
 
 version=$(shell cat version)
 
-all: bin lib toolchain-robcmp-${suffix}-${version}.tar.gz
+all: bin lib ../toolchain-robcmp-${suffix}-${version}.tar.gz
 
 bin:
 	mkdir bin
@@ -52,7 +52,7 @@ lib:
 package.json: package-orig.json
 	$(SED) s/sed_system_here/$(suffix)/ $< > $@
 
-toolchain-robcmp-${suffix}-${version}.tar.gz: package.json
+../toolchain-robcmp-${suffix}-${version}.tar.gz: package.json
 	for f in $(TOOLS); do cp $$f bin; done;
 	for f in $(LIBS); do cp $$f lib; done;
 	if [ -f bin/ld.lld-16 ]; then cd bin && ln -s ld.lld-16 ld.lld; fi

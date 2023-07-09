@@ -1,0 +1,1 @@
+tar cfz robcmp-`uname -s`-`uname -m`-`cat toolchain-robcmp/version`.tar.gz platform samples vscode-syntax toolchain*.tar.gz install

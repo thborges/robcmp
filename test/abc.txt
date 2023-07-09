@@ -1,0 +1,7 @@
+int b (){
+	t = 0;
+	print t;
+	return 0;
+}
+
+b();

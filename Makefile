@@ -1,33 +1,61 @@
-CC=clang++
+# detect OS
+uname = $(shell uname)
+ifeq ($(uname), Linux)
+	SED=$(shell which sed)
+endif
+ifeq ($(uname), Darwin)
+	SYSROOT=-isysroot `xcrun -sdk macosx --show-sdk-path`
+	LDFLAGS=-L/usr/local/lib -lz -lzstd -lpthread -ldl -lncurses
+	SED=$(shell which gsed)
+endif
 
-LLVMFLAGS=$(shell llvm-config --cxxflags)
-LLVMLIBS=$(shell llvm-config --ldflags --libs all) -lpthread -ldl -lncurses
+CC=$(shell which clang++-16)
+ifeq ($(CC),)
+	CC=$(shell which clang++)
+endif
+
+LLVMCONFIG=$(shell which llvm-config-16)
+ifeq ($(LLVMCONFIG),)
+	LLVMCONFIG=$(shell which llvm-config)
+endif
+
+LLVMFLAGS=$(shell ${LLVMCONFIG} --cxxflags) -frtti ${SYSROOT}
+LLVMLIBS=$(shell ${LLVMCONFIG} --ldflags --libs all)  ${LDFLAGS} ${SYSROOT}
 
 COMPILER_NAME=$(shell basename "${PWD}")
+
+SRC = src
+BIN = .
  
-#FLAGS=-O3 -DYYERROR_VERBOSE -fexceptions -Wno-deprecated-register
-DFLAGS=-ggdb -O0
+FLAGS=-O3 -march=native -flto
+#DFLAGS=-ggdb -O0
 
-CPPS=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
-YACS=$(patsubst %.y,%_y.o,$(wildcard *.y))
-LEXS=$(patsubst %.l,%_l.o,$(wildcard *.l))
+CPPS=$(patsubst src/%.cpp,src/out/%.o,$(wildcard ${SRC}/*.cpp))
+YACS=$(patsubst src/%.y,src/out/%_y.o,$(wildcard ${SRC}/*.y))
+LEXS=$(patsubst src/%.l,src/out/%_l.o,$(wildcard ${SRC}/*.l))
 
-all: $(COMPILER_NAME)
+all: src/out $(COMPILER_NAME)
 
 %_l.cpp: %.l
 	lex -o $@ $<
 
 %_y.cpp: %.y
-	bison --defines=bison.hpp -o $@ $<
+	bison -Wall --report=state --defines=$(SRC)/bison.hpp -o $@ $<
+	$(SED) 's/\"syntax\ error\"/COLOR_RED\ \"syntax\ error\"\ COLOR_RESET/' -i $@
+	$(SED) 's/\"syntax\ error:/COLOR_RED\ \"syntax\ error:\"\ COLOR_RESET\"/' -i $@
+	$(SED) 's/\"syntax\ error,/COLOR_RED\ \"syntax\ error:\"\ COLOR_RESET\"/' -i $@
 
 $(COMPILER_NAME): ${YACS} ${LEXS} ${CPPS}
-	${CC} ${FLAGS} ${DFLAGS} *.o ${LLVMLIBS} -o $@
+	${CC} -std=c++11 ${FLAGS} ${DFLAGS} ${SRC}/out/*.o ${LLVMLIBS} -o $(BIN)/$@
 
-%.o: %.cpp node.h
-	${CC} ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@
+src/out/%.o: src/%.cpp
+	${CC} -std=c++11 ${LLVMFLAGS} ${FLAGS} ${DFLAGS} -c $< -o $@
+
+src/out:
+	mkdir ${SRC}/out
 
 clean:
-	rm -f *_y.cpp *_l.cpp bison.hpp *.o
+	rm -f ${SRC}/*_y.cpp ${SRC}/*_l.cpp ${SRC}/bison.hpp ${SRC}/out/*.o
 
 #.SILENT:
-
+.PRECIOUS: bison.hpp

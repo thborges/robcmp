@@ -1,0 +1,10 @@
+
+vector = {7, 8, 9, 10};
+
+int fa(int i) {
+	localvector = {1,2,3,4,5,6};
+	return localvector[i];
+}
+
+print vector[1]; // print 8
+print fa(2);     // print 3

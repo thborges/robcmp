@@ -1,0 +1,31 @@
+/*
+ * Robcmp examples: Blink
+ * Blinks the led on PIN13
+ */
+
+register int8 PORTB at 0x25; // pins 8-13
+register int8 DDRB  at 0x24;
+register int8 PINB  at 0x23;
+
+void wait();
+
+int16 main() {
+
+	/* pin 13 is controlled by bit 5 of DDRB and PORTB registers
+	 * - bit 5 of DDRB indicates if the pin is input (0) or output (1)
+	 * - bit 5 of PORTB toggles pin HIGH or LOW
+	 */
+
+	// set pin 13 as output
+	DDRB |= 0b00100000;
+
+	loop {
+		// set bit 5 high
+		PORTB |= 0b00100000;
+		wait();
+		// set bit 5 low
+		PORTB &= ~(0b00100000);
+		wait();
+	}
+}
+

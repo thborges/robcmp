@@ -1,0 +1,152 @@
+PARA_FRENTE = 1.0;
+PARA_TRAS = -1.0;
+STEPS_PER_CLICK = 50;
+
+PIN1 = 0.0;
+PIN2 = 0.0;
+PIN3 = 0.0;
+PIN4 = 0.0;
+curr_step = 0.0;
+CURR_DIR = PARA_FRENTE;
+
+void step_motor(float curr_step) {
+	if (curr_step == 0.0) {
+		OUTPIN1 = 255.0;
+		OUTPIN2 = 0.0;
+		OUTPIN3 = 255.0;
+		OUTPIN4 = 0.0;
+	}
+	else if (curr_step == 1.0) {
+		OUTPIN1 = 0.0;
+		OUTPIN2 = 255.0;
+		OUTPIN3 = 255.0;
+		OUTPIN4 = 0.0;	
+	}
+	else if (curr_step == 2.0) {
+		OUTPIN1 = 0.0;
+		OUTPIN2 = 255.0;
+		OUTPIN3 = 0.0;
+		OUTPIN4 = 255.0;
+	}
+	else if (curr_step == 3.0) {
+		OUTPIN1 = 255.0;
+		OUTPIN2 = 0.0;
+		OUTPIN3 = 0.0;
+		OUTPIN4 = 255.0;
+	}
+
+	RPM = (60.0 * 1000.0) / 4096.0 / 4.0;
+	DELAY RPM;
+
+	curr_step = curr_step + curr_dir;
+	if (curr_step == 4.0) {
+		curr_step = 0.0;
+	}
+	else if (curr_step == -1.0) {
+		curr_step = 3.0;
+	}
+}
+
+void MOTOR_SHUTDOWN() {
+	OUTPIN1 = 0.0;
+	OUTPIN2 = 0.0;
+	OUTPIN3 = 0.0;
+	OUTPIN4 = 0.0;
+}
+
+void LOOP_STEPS() {
+	I = 0.0;
+	WHILE (I < STEPS_PER_CLICK) {
+		step_motor(curr_step);
+		I = I + 1.0;
+	}
+	MOTOR_SHUTDOWN();
+}
+
+STEP_DE = 0.0;
+void STEP_RIGHT_LEFT() {
+
+	CURR_STEP = STEP_DE;
+	PIN1 = 14.0; // A0
+	PIN2 = 4.0;
+	PIN3 = 3.0;
+	PIN4 = 5.0;
+
+	LOOP_STEPS();
+	STEP_DE = CURR_STEP;
+}
+
+STEP_UD = 0.0;
+void STEP_UP_DOWN() {
+
+	CURR_STEP = STEP_UD;
+	PIN1 = 10.0;
+	PIN2 = 12.0;
+	PIN3 = 11.0;
+	PIN4 = 13.0;
+
+	LOOP_STEPS();
+	STEP_UD = CURR_STEP;
+}
+
+STEP_FB = 0.0;
+void STEP_FRONT_BACK(float direcao) {
+
+	direcao = STEP_FB;
+	PIN1 = 6.0;
+	PIN2 = 8.0;
+		PIN3 = 7.0;
+	PIN4 = 9.0;
+
+	LOOP_STEPS();
+	STEP_FB = direcao;
+}
+
+void OPEN_GRIP() {
+	Z = SERVO_POS_INC();
+}
+
+void CLOSE_GRIP() {
+	Y = SERVO_POS_DEC();
+}
+
+void blink(float time){
+	out 13 = 255.0;
+	delay time;
+	out 13 = 0.0;
+	delay time;
+}
+
+// BLINK_FAST = blink(100.0);
+// MAIN LOOP
+blink(500.0);
+blink(500.0);
+var = 1.0;
+
+while (var >= 1.0) {
+	F = READ_IR();
+	IF (F == 3041526525.0) { // UP
+		STEP_UP_DOWN(PARA_FRENTE);
+	}
+	ELSE IF (F == 3041559165.0) { // DOWN
+		STEP_UP_DOWN(PARA_TRAS);
+	}
+	ELSE IF (F == 3041542845.0) { // LEFT
+		STEP_RIGHT_LEFT(PARA_FRENTE);
+	}
+	ELSE IF (F == 3041575485.0) { // RIGHT
+		STEP_RIGHT_LEFT(PARA_TRAS);
+	}
+	ELSE IF (F == 4111076595.0) { // AUDIO
+		STEP_FRONT_BACK(PARA_FRENTE);
+	}
+	ELSE IF (F == 3041570895.0) { // RIGHT
+		STEP_FRONT_BACK(PARA_TRAS);
+	}
+	ELSE IF (F == 3041546415.0) { // OPEN GRIP
+		OPEN_GRIP();		
+	}
+	ELSE IF (F == 3041579055.0) { // CLOSE GRIP
+		CLOSE_GRIP();
+	}
+}

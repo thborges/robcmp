@@ -1,0 +1,1 @@
+gcc -O2 debug.o nome.c -o exec -lncurses

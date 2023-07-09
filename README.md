@@ -1,16 +1,35 @@
 # robcmp
-LLVM frontend for Arduino
 
-Project Developed at Universidade Federal de Goiás - Regional Jataí
-http://computacao.jatai.ufg.br
+Robcmp is a compiler for a programming language designed for robotics, developed at the Universidade Federal de Jataí in Brazil. The language goal is to isolate microcontroller specificities, providing a hardware abstraction layer within the compiler itself, rather than relying on frameworks or libraries. This approach allows developers to write code once, without the need for conditional compilation directives (IFDEFs) or other preprocessing techniques. By leveraging the compiler's semantic analysis, common errors encountered when developing firmware in a non-domain specific language, such as C/C++, can be prevented.
 
-This code is a framework to build LLVM compiler frontend's. It uses the compiler backend in https://github.com/avr-llvm/llvm.
+Currently, Robcmp is integrated with the AVR and ARM backends of LLVM, and is able to upload code to avr328p and stm32f1 based boards. The language is still in the experimental stage and lacks support for various features, including string processing, dynamic arrays, debugging, and others. We warmly welcome any contributions in these areas, whether in the form of pull requests, financial aid for our students, or any other form of assistance. If you are interested in the project, please feel free to reach out to us!
 
-The purpose of the framework is to provide basic support for academics, taking the Compiler course, to build their own language an run it on Arduino boards.
+To install and integrate robcmp with Visual Code and Platformio, please follow the instructions below.
 
-The files [rob.l](/rob.l) and [rob.y](/rob.l) implements a general purpose example language, using the framework in [node.h](/node.h) file. Examples of the language are provided in [test](/test) folder.
+The project initially began in 2015 as a framework for building LLVM compiler frontends, utilizing the compiler backend available at https://github.com/avr-llvm/llvm. Its primary objective at the time was to provide basic support for academics enrolled in the Compiler course, enabling them to construct their own language and run it on Arduino boards. Over time, the AVR backend was integrated into LLVM as an experimental feature and eventually became a fully supported backend.
 
-Academics build their own specific language using the framework provided, to run on an arduino board connected to a robot arm (1). The project file is provided in the [proj](/proj) folder, file [project.pdf](/proj/project.pdf), writen in Brazilian Portuguese.
+# Setup
 
-1:
-![arm robot](/proj/robotarm.jpg)
+To test robcmp in your computer, run the following commands in a console after installing Visual Code and the Platformio extension. There is basic support for syntax highlighting, automatic building and uploading to some AVR and STM32 based boards.
+
+```
+[Linux] wget https://thborges.github.io/robcmp/download/robcmp-Linux-x86_64-0.1.tar.gz
+[Osx]   wget https://thborges.github.io/robcmp/download/robcmp-Darwin-x86_64-0.1.tar.gz
+mkdir robcmp && cd robcmp && tar xfz robcmp-*.tar.gz
+./install
+code samples/avr328p-blink [for avr]
+code samples/stm32f1-blink [for stm32]
+```
+
+This commands will install the robcmp platform in ~/.platformio/platforms and the syntax highlight extension in ~/.vscode/extensions. The last command will open the basic-blink sample on vscode. Hit build and then upload it to a supported board.
+
+
+# Robcmp Development Setup
+
+To build robcmp from source, you will need to follow these steps. Please note that currently, only Linux and OSX are supported:
+
+- Install LLVM version 16 or newer. On Linux, you can follow the instructions provided at https://apt.llvm.org. On macOS, you can use Homebrew by running the command brew install llvm16.
+- Install flex (version 2.6.4 or newer) and bison (version 3.8.2 or newer) on your system. You can use package managers like apt on Linux to install them. For example, you can run the command apt install flex bison.
+- Clone the robcmp repository: `git clone git@github.com:thborges/robcmp.git && cd robcmp`
+- Switch to the new-platforms branch: `git checkout new-platforms`
+- In the main robcmp folder, execute the make command: `$ make`

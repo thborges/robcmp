@@ -1,0 +1,11 @@
+mkdir -p toolchain-robcmp
+cd toolchain-robcmp && tar xfz ../toolchain-robcmp-*.tar.gz
+cd ..
+mkdir -p ~/.platformio/platforms
+mkdir -p ~/.platformio/packages
+ln -sf `realpath platform` ~/.platformio/platforms/robcmp
+ln -sf `realpath toolchain-robcmp` ~/.platformio/packages/toolchain-robcmp
+code --install-extension vscode-syntax/robcmpsyntax-0.0.1.vsix
+echo "Open the samples folder and try to build and upload!"
+echo "	code samples/avr328p"
+echo "	code samples/stm32f1"

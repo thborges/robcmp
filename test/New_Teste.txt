@@ -1,0 +1,18 @@
+int function_name (int b){
+	if (b >= 3)
+		print (b * 2);
+	else{
+		print 1;
+	}
+	return b + 1;
+}
+
+c = {3:5, 24:3};
+a = function_name(3);
+print (a); 
+
+i = 0;
+while (i < 8){
+	print (c[i]);
+	i = i+1;
+}

@@ -1,0 +1,45 @@
+{
+    "name": "robcmp",
+    "title": "Robotic Compiler Platform",
+    "description": "Experimental language and compiler on top of LLVM Backends to write code only once for distinct microcontrollers platforms. Experimental support for AVR and STM32.",
+    "homepage": "https://github.com/thborges/robcmp/",
+    "license": "GPL-2.0",
+    "keywords": ["robcmp", "robotic", "atmel", "AVR", "ARM", "STM", "STM32", "STMicroelectronics"],
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/thborges/robcmp.git"
+    },
+    "version": "0.0.1",
+    "frameworks": {
+    },
+    "packages": {
+      "toolchain-robcmp": {
+        "type": "toolchain",
+        "version": "0.1"
+      },
+      "tool-avrdude": {
+        "type": "uploader",
+        "optional": true,
+        "owner": "platformio",
+        "version": "~1.70100.0"
+      },
+      "tool-simavr": {
+        "type": "debugger",
+        "optional": true,
+        "owner": "platformio",
+        "version": "~1.7"
+      },
+      "tool-stm32duino": {
+        "type": "uploader",
+        "optional": true,
+        "owner": "platformio",
+        "version": "~1.0.1"
+      },
+      "tool-openocd": {
+        "type": "uploader",
+        "optional": true,
+        "owner": "platformio",
+        "version": "~2.1000.0"
+      }
+    }
+  }

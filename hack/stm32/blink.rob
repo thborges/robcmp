@@ -1,0 +1,58 @@
+
+/*
+ * Sample Blink Led on port 13 for STM32F1
+ */
+
+// CLOCK GATES FOR IO
+const RCC_BASE = 0x40021000;
+register int32 RCC_APB2ENR at (RCC_BASE + 0x18);
+
+// PORTC is enabled by IO PC EN, the bit four in RCC_APB2ENR 
+const RCC_APB2ENR_IOP_C_EN = (1 << 4);
+
+// GPIO PORTC base address
+const GPIO_PORTC_BASE = 0x40011000;
+// PORTC registers
+register int32 GPIOC_CRH at (GPIO_PORTC_BASE + 0x4);
+register int32 GPIOC_ODR at (GPIO_PORTC_BASE + 0xC);
+
+const PIN_MODE_INPUT = 0x0;
+const PIN_MODE_OUTPUT10MHz = 0x1;
+const PIN_MODE_OUTPUT2MHz = 0x2;
+const PIN_MODE_OUTPUT50MHz = 0x3;
+
+const INPUT_MODE_ANALOG = 0x0;
+const INPUT_MODE_FLOATING = 0x1;
+const INPUT_MODE_PULLUPDOWN = 0x2;
+
+const OUTPUT_MODE_PUSHPULL = 0x0;
+const OUTPUT_MODE_OPENDRAIN = 0x1;
+const OUTPUT_MODE_APUSH_PULL = 0x2;
+const OUTPUT_MODE_AOPENDRAIN = 0x3;
+
+void wait() {
+	volatile i = 100000;
+	while (i > 0) {
+		i--;
+	}
+}
+
+void main() {
+
+	// Enable port C clock gate.
+    RCC_APB2ENR |= RCC_APB2ENR_IOP_C_EN;
+
+	// PORT C, PIN 13 as OUTPUT 50MHz
+	GPIOC_CRH &= ~(0x3 << ((13-8)*4));
+	GPIOC_CRH |= PIN_MODE_OUTPUT50MHz << ((13-8)*4);
+	// PORT C, PIN13 as PUSHPULL
+	GPIOC_CRH &= ~(0x3 << ((13-8)*4+2));
+	GPIOC_CRH |= OUTPUT_MODE_PUSHPULL << ((13-8)*4+2);
+
+	loop {
+		GPIOC_ODR &= ~(1 << 13);
+		wait();
+		GPIOC_ODR |= 1 << 13;
+		wait();
+	}
+}

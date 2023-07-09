@@ -1,3 +1,11 @@
+#Makefiles
+#Makefile
+
+# Swap files
+.*.swp
+*.swp
+*.swo
+
 # Object files
 *.o
 *.ko
@@ -35,4 +43,18 @@
 
 # Generated
 robcmp
-rob_y.hpp
+bison.hpp
+run_test/out/*
+src/Language_y.output
+.vscode/**
+*.tar.gz
+*.bin
+*.elf
+stm32flash
+ld.lld
+llvm-ar
+llvm-as
+llvm-objcopy
+llvm-ranlib
+avr-ld
+.vscode

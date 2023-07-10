@@ -1,1 +1,0 @@
-var = ( short float ) 3.0;

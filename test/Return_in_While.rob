@@ -1,12 +1,11 @@
-
-void fb(int a) {
+void fb(int16 a) {
 	b = a;
 	while(b > 3) {
 		b = b - 1;
 	}
 }
 
-double fa(int a) {
+double fa(int16 a) {
 	b = a;
 	while(b > 3) {
 		b = b - 1;
@@ -14,5 +13,7 @@ double fa(int a) {
 	}
 }
 
-fa(10);
-
+int16 main (){
+	fa(10);
+	fb(10);
+}

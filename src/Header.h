@@ -178,6 +178,7 @@ static RobSymbol *search_symbol(const string& ident, BasicBlock *firstb = NULL, 
 #include "Load.h"
 #include "LoadArray.h"
 #include "LoadMatrix.h"
+#include "Malloc.h"
 #include "Matrix.h"
 #include "MatrixElements.h"
 #include "OutPort.h"

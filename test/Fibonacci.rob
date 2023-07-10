@@ -1,0 +1,20 @@
+int16 fibonacci (int16 n){
+	if (n == 1)
+		return 1;
+	else
+		if (n == 2)
+			return 1;
+		else
+		{
+			return fibonacci(n - 1) + fibonacci(n - 2);
+		}
+	return 1;
+}
+
+int16 main(){
+	print fibonacci(1);
+	print fibonacci(2);
+	print fibonacci(3);
+	print fibonacci(4);
+	print fibonacci(5);
+}

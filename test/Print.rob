@@ -1,0 +1,4 @@
+int16 main(){
+	var = 3;
+	print (var);
+}

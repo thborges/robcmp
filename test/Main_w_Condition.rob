@@ -1,4 +1,5 @@
-int func (bool a){
+int16 main(){
+	a = true;
 	if (a == true){
 		print 1;
 	}
@@ -7,5 +8,3 @@ int func (bool a){
 	}
 	return 0;
 }
-
-b = func(true);

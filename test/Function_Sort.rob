@@ -1,0 +1,22 @@
+int16 Sort(int16 n){
+	return 0;
+}
+
+int16 main(){
+	a = { 34, -5, 6, 0, 12, 100, 56, 22, 44, -3, -9, 12, 17, 22, 6, 11 };
+
+	Sort(16);
+	i = 0;
+	while (i < 16){
+		c = a[i];
+		print c;
+		i++;
+	}
+
+	Sort(16);
+	i = 0;
+	while (i < 16){
+		print c;
+		i++;
+	}
+}

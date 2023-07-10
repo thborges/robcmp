@@ -1,7 +1,0 @@
-a = true;
-	if (a == true){
-		print 1;
-	}
-	else {
-		print 2;
-	}

@@ -1,5 +1,5 @@
 a = { 34, -5, 6, 0, 12, 100, 56, 22, 44, -3, -9, 12, 17, 22, 6, 11 };
-int sort (int n)
+int16 sort (int16 n)
 {
 	t = 0;
 	s = 0;
@@ -22,17 +22,19 @@ int sort (int n)
 	return 0;
 }
 
+int16 main()
+{
+	i = 0;
+	while (i < 16){
+		print a[i];
+		i++;
+	}
+	print "\n";
 
-i = 0;
-while (i < 16){
-	print a[i];
-	i++;
-}
-print "\n";
-
-sort (16);
-i = 0;
-while(i < 16){
-	print a[i];
-	i++;
+	sort (16);
+	i = 0;
+	while(i < 16){
+		print a[i];
+		i++;
+	}
 }

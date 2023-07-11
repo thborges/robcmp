@@ -25,6 +25,7 @@ extern int yycolnew;
 
 "//".*$					{ /* line comment */}
 
+"extern"				{ return TOK_EXTERN; }
 "register"				{ return TOK_REGISTER; }
 "volatile"				{ return TOK_VOLATILE; }
 "const"					{ return TOK_CONST; }
@@ -49,8 +50,6 @@ extern int yycolnew;
 
 "while"					{ return TOK_WHILE; }
 "loop"					{ return TOK_LOOP; }
-
-"print"					{ return TOK_PRINT; }
 
 "in"[0-9]+				{ yylval.port = strndup(yytext+2, yyleng-2);
 						  return TOK_IN;

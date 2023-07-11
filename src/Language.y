@@ -17,10 +17,9 @@ extern int errorsfound;
 
 %define parse.error verbose
 
-%token TOK_VOID TOK_RETURN TOK_REGISTER TOK_AT TOK_VOLATILE TOK_CONST
+%token TOK_VOID TOK_RETURN TOK_REGISTER TOK_AT TOK_VOLATILE TOK_CONST TOK_EXTERN
 %token TOK_IF TOK_ELSE
 %token TOK_LOOP TOK_WHILE
-%token TOK_PRINT
 %token TOK_IN TOK_OUT TOK_STEPPER TOK_SERVO
 %token TOK_DELAY TOK_AND TOK_OR
 %token TOK_IDENTIFIER TOK_FLOAT TOK_DOUBLE TOK_LDOUBLE TOK_INTEGER TOK_STRING TOK_TRUE TOK_FALSE
@@ -51,7 +50,7 @@ extern int errorsfound;
 }
 
 %type <node> term term2 expr factor stmt gstmt condblock elseblock whileblock logicexpr
-%type <node> logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock unary
+%type <node> logicterm logicfactor TOK_AND TOK_OR fe eventblock unary
 %type <node> funcblock returnblock registerstmt cast
 %type <ae> element
 %type <aes> elements relements
@@ -97,6 +96,7 @@ gstmts : gstmts gstmt       { $1->append($2); }
 	   ;
 
 gstmt : TOK_IDENTIFIER '=' expr ';'					{ $$ = new Scalar($1, $3, qnone); }
+	  | TOK_EXTERN TOK_IDENTIFIER '(' funcparams ')' ';' { $$ = new ExternDeclaration($2, $4); }
 	  | TOK_CONST TOK_IDENTIFIER '=' expr ';'		{ $$ = new Scalar($2, $4, qconst); }
 	  | TOK_VOLATILE TOK_IDENTIFIER '=' expr ';'	{ $$ = new Scalar($2, $4, qvolatile); }
 	  | TOK_IDENTIFIER '=' relements ';'			{ $$ = new Array($1, $3); }
@@ -149,7 +149,6 @@ stmt : gstmt									{ $$ = $1; }
 	 | condblock								{ $$ = $1; }
 	 | whileblock								{ $$ = $1; }
 	 | returnblock ';'							{ $$ = $1; }
-	 | printstmt ';'							{ $$ = $1; }
 	 | TOK_STEPPER expr ';'						{ $$ = new StepperGoto($1, $2); }
 	 | TOK_SERVO expr ';'						{ $$ = new ServoGoto($2); }
 	 | TOK_IDENTIFIER '[' expr ']' '=' expr ';'	{ $$ = new UpdateArray($1, $3, $6);}
@@ -299,6 +298,7 @@ factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_DOUBLE				{ $$ = new Double($1); }
 	   | TOK_LDOUBLE			{ $$ = new Float128($1); }
 	   | TOK_IN					{ $$ = new InPort($1); }
+	   | TOK_STRING				{ $$ = new String($1); }
 	   | TOK_IDENTIFIER '(' paramscall ')'	{ $$ = new FunctionCall($1, $3); }
 	   | unary { $$ = $1; }
 	   ;
@@ -310,9 +310,6 @@ unary : '-' factor	{ $$ = new BinaryOp($2, '*', getNodeForIntConst(-1)); }
 
 cast : '(' type_f ')' factor { $$ = new Cast($2, $4); }
 	 ;
-
-printstmt : TOK_PRINT TOK_STRING		{ $$ = new Print(new String($2)); }
-		  | TOK_PRINT expr				{ $$ = new Print($2); }
 
 registerstmt : TOK_REGISTER registertype TOK_IDENTIFIER TOK_AT expr {
 				 $$ = new Pointer($3, $2, $5, true);

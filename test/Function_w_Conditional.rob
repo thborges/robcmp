@@ -1,10 +1,10 @@
-int16 func (){
+int16 func(){
 	a = true;
 	if (a == true){
-		print 1;
+		return 1;
 	}
 	else {
-		print 2;
+		return 2;
 	}
 	return 0;
 }

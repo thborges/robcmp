@@ -1,9 +1,11 @@
+extern void print();
+
 int16 func (bool a){
 	if (a == true){
-		print 1;
+		print (1);
 	}
 	else {
-		print 2;
+		print (2);
 	}
 	return 0;
 }

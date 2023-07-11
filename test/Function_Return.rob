@@ -1,3 +1,4 @@
+extern void print();
 
 void fa(int16 a) {
 	a = a + 1;
@@ -12,5 +13,5 @@ int16 fb(int16 b) {
 
 int16 main(){
 	fa(1);
-	print fb(2);
+	print (fb(2));
 }

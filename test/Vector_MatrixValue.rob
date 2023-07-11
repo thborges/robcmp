@@ -1,3 +1,5 @@
+extern void print();
+
 int16 main(){
 	matriz = {{1, 2, 3}:2, {1:2,2}};
 
@@ -5,7 +7,7 @@ int16 main(){
 
 	c = matriz[2][2];
 
-	print c;      // print 2
-	print b[c];   // print 7
-	print b[matriz[0][2]]; // print 8
+	print (c);      // print 2
+	print (b[c]);   // print 7
+	print (b[matriz[0][2]]); // print 8
 }

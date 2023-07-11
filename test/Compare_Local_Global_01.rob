@@ -1,3 +1,5 @@
+extern void print();
+
 matriz = {{7, 8}, {9,10}};
 
 int16 fa(int16 i, int16 j) {
@@ -7,6 +9,6 @@ int16 fa(int16 i, int16 j) {
 
 int16 main()
 {
-	print matriz[1][1]; // print 10
-	print fa(2,1);      // print 6
+	print (matriz[1][1]); // print 10
+	print (fa(2,1));      // print 6
 }

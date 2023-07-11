@@ -1,8 +1,10 @@
+extern void print();
+
 int16 function_name (int16 b){
 	if (b >= 3)
 		print (b * 2);
 	else{
-		print 1;
+		print (1);
 	}
 	return b + 1;
 }

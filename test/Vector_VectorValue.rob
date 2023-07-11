@@ -1,6 +1,8 @@
+extern void print();
+
 int16 main(){
 	a = {3, 2, 1};
-	print a[1];
+	print (a[1]);
 	b = {2, 2, 4};
-	print b[a[1]];
+	print (b[a[1]]);
 }

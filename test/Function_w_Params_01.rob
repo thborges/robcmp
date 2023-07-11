@@ -1,7 +1,9 @@
+extern void print();
+
 int16 quadrado(int16 a){
 	return a * a;
 }
 
 int16 main(){
-	print quadrado(3);
+	print (quadrado(3));
 }

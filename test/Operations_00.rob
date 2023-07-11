@@ -1,8 +1,10 @@
+extern void print();
+
 int16 main(){
 	i = 1.2;
 	i++;
 	i+=7;
-	print i;
+	print (i);
 	i*=2;
-	print i;
+	print (i);
 }

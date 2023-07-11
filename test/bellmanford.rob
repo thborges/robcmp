@@ -1,5 +1,5 @@
-extern print(char value);
-INT_MAX = 9999;
+extern void print(char value);
+INT_MAX = 0;
 
 // edges (u,v,w)
 graph =

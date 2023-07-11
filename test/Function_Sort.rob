@@ -1,3 +1,5 @@
+extern void print();
+
 int16 Sort(int16 n){
 	return 0;
 }
@@ -9,14 +11,14 @@ int16 main(){
 	i = 0;
 	while (i < 16){
 		c = a[i];
-		print c;
+		print (c);
 		i++;
 	}
 
 	Sort(16);
 	i = 0;
 	while (i < 16){
-		print c;
+		print (c);
 		i++;
 	}
 }

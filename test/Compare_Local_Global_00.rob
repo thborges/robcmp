@@ -1,3 +1,5 @@
+extern void print();
+
 vector = {7, 8, 9, 10};
 
 int16 fa(int16 i) {
@@ -6,6 +8,6 @@ int16 fa(int16 i) {
 }
 
 int16 main(){
-	print vector[1]; // print 8
-	print fa(2);     // print 3
+	print (vector[1]); // print 8
+	print (fa(2));     // print 3
 }

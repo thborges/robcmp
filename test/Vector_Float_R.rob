@@ -1,9 +1,11 @@
+extern void print();
+
 int16 main(){
 	vector = {3:3, 4.2};
 
 	i = 0;
 	while (i < 4){
-		print vector[i];
+		print (vector[i]);
 		i = i + 1;
 	}
 }

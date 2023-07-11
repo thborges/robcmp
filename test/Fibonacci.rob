@@ -1,3 +1,5 @@
+extern void print();
+
 int16 fibonacci (int16 n){
 	if (n == 1)
 		return 1;
@@ -12,9 +14,9 @@ int16 fibonacci (int16 n){
 }
 
 int16 main(){
-	print fibonacci(1);
-	print fibonacci(2);
-	print fibonacci(3);
-	print fibonacci(4);
-	print fibonacci(5);
+	print (fibonacci(1));
+	print (fibonacci(2));
+	print (fibonacci(3));
+	print (fibonacci(4));
+	print (fibonacci(5));
 }

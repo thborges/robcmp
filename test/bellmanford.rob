@@ -1,4 +1,4 @@
-
+extern print(char value);
 INT_MAX = 9999;
 
 // edges (u,v,w)
@@ -40,16 +40,16 @@ int16 bellmanford(int16 V, int16 E, int16 src) {
         y = graph[i][1];
         weight = graph[i][2];
         if (dis[x] != INT_MAX and dis[x] + weight < dis[y])
-            print "Graph contains negative weight cycle\n";
+            print ("Graph contains negative weight cycle\n");
 		i++;
 	}
   
-    print "Vertex Distance from Source\n";
+    print ("Vertex Distance from Source\n");
     i = 0;
 	while (i < V) {
-        print i;
-		print dis[i];
-		print "\n";
+        print (i);
+		print (dis[i]);
+		print ("\n");
 		i++;
 	}
 

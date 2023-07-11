@@ -96,7 +96,7 @@ gstmts : gstmts gstmt       { $1->append($2); }
 	   ;
 
 gstmt : TOK_IDENTIFIER '=' expr ';'					{ $$ = new Scalar($1, $3, qnone); }
-	  | TOK_EXTERN TOK_IDENTIFIER '(' funcparams ')' ';' { $$ = new ExternDeclaration($2, $4); }
+	  | TOK_EXTERN type_f TOK_IDENTIFIER '(' funcparams ')' ';' { $$ = new ExternDeclaration($2, $3, $5); }
 	  | TOK_CONST TOK_IDENTIFIER '=' expr ';'		{ $$ = new Scalar($2, $4, qconst); }
 	  | TOK_VOLATILE TOK_IDENTIFIER '=' expr ';'	{ $$ = new Scalar($2, $4, qvolatile); }
 	  | TOK_IDENTIFIER '=' relements ';'			{ $$ = new Array($1, $3); }

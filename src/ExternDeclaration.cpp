@@ -8,12 +8,14 @@ Value *ExternDeclaration::generate(Function *func, BasicBlock *block, BasicBlock
 		return NULL;
 	}
 
-
     std::vector<Type*> arg_types;
-	int i;
-    for (i = 0; i < parameters->getNumParams(); i++)
-        arg_types.push_back(parameters->getParamType(i));
-    FunctionType *ftype = FunctionType::get(Type::getInt32Ty(global_context), ArrayRef<Type*>(arg_types), false);
+	if (parameters->getNumParams() != 0)
+		for (int i = 0; i < parameters->getNumParams(); i++)
+			arg_types.push_back(parameters->getParamType(i));
+
+	Type *xtype = robTollvmDataType[tipo];
+    FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
+
     Function *function = Function::Create(ftype, GlobalValue::ExternalLinkage, name.c_str(), mainmodule);
 	tabelasym[allocblock][name] = new RobSymbol(function);
     return function;

@@ -4,10 +4,12 @@
 
 class ExternDeclaration: public Node {
 private:
+	LanguageDataType tipo;
 	string name;
 	FunctionParams *parameters;
 public:
-	ExternDeclaration(string name, FunctionParams *fp) {
+	ExternDeclaration(LanguageDataType tipo, string name, FunctionParams *fp) {
+		this->tipo = tipo;
 		this->name = name;
 		this->parameters = fp;
 	}

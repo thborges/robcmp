@@ -2,6 +2,7 @@
     Build script for robcmp platform
 """
 
+import os
 import sys
 from os.path import join
 from SCons.Script import AlwaysBuild, Builder, Default, DefaultEnvironment, Glob
@@ -9,6 +10,8 @@ from SCons.Script import AlwaysBuild, Builder, Default, DefaultEnvironment, Glob
 env = DefaultEnvironment()
 platform = env.PioPlatform()
 ldscripts_folder = platform.get_package_dir("toolchain-robcmp")
+
+os.environ['LD_LIBRARY_PATH'] = join(ldscripts_folder, "lib")
 
 mcu = env.GetProjectOption("custom_mcu")
 if mcu == "stm32f1":

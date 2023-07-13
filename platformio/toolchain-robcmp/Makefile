@@ -36,7 +36,7 @@ endif
 ifeq ($(uname_S), Linux)
 	suffix=linux_x86_64
 	SED=sed
-	LIBS=$(shell ./libllvmpath ${LLVM_LD})
+	LIBS=$(shell ./libllvmpath.sh ${LLVM_LD})
 endif
 
 version=$(shell cat version)

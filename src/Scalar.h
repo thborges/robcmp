@@ -8,8 +8,10 @@ private:
 	string name;
 	Node *expr;
 	DataQualifier qualifier;
+	ComplexIdentifier *complexIdent;
 public:
 	Scalar(const char *n, Node *e, DataQualifier qualifier = qnone);
+	Scalar(ComplexIdentifier *ci, Node *e, DataQualifier qualifier = qnone);
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
 

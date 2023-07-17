@@ -5,9 +5,6 @@
 #include "Header.h"
 #include "2018arm/nodeh_ext.h"
 
-class Node;
-class Stmts;
-
 Node* getNodeForIntConst(int64_t i);
 std::vector<AttachInterrupt *> vectorglobal;
 
@@ -48,6 +45,9 @@ extern int errorsfound;
 	FunctionParams *fps;
 	ParamsCall *pc;
 	LanguageDataType dt;
+	Field field;
+	Structure *structure;
+	ComplexIdentifier *complexIdent;
 }
 
 %type <node> term term2 expr factor stmt gstmt condblock elseblock whileblock logicexpr
@@ -70,6 +70,9 @@ extern int errorsfound;
 %type <str> TOK_STRING
 %type <nint> TOK_STEPPER
 %type <dt> type_f registertype
+%type <field> struct_field
+%type <structure> struct_fields
+%type <complexIdent> complex_identifier
 
 %precedence IFX
 %precedence TOK_ELSE
@@ -97,11 +100,12 @@ gstmts : gstmts gstmt       { $1->append($2); }
 	   ;
 
 gstmt : TOK_IDENTIFIER '=' expr ';'					{ $$ = new Scalar($1, $3, qnone); }
+	  | complex_identifier '=' expr ';'				{ $$ = new Scalar($1, $3, qnone); }
 	  | TOK_CONST TOK_IDENTIFIER '=' expr ';'		{ $$ = new Scalar($2, $4, qconst); }
 	  | TOK_VOLATILE TOK_IDENTIFIER '=' expr ';'	{ $$ = new Scalar($2, $4, qvolatile); }
 	  | TOK_IDENTIFIER '=' relements ';'			{ $$ = new Array($1, $3); }
 	  | TOK_IDENTIFIER '=' rmatrix ';'				{ $$ = new Matrix($1, $3);}
-	  | registerstmt ';'							{ $$ = $1; }
+	  | registerstmt								{ $$ = $1; }
 	  | fe											{ $$ = $1; }
 	  | error ';'									{ /* error recovery until next ';' */
 													  $$ = new Int8(0); // evita falha de segmentacao
@@ -291,7 +295,8 @@ term2 : term2 '&' factor    { $$ = new BinaryOp($1, '&', $3); }
 factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_IDENTIFIER			{ $$ = new Load($1); }
 	   | TOK_IDENTIFIER '[' expr ']'				{ $$ = new LoadArray($1, $3);} 
-	   | TOK_IDENTIFIER '[' expr ']' '[' expr ']'	{ $$ = new LoadMatrix($1, $3, $6);} 
+	   | TOK_IDENTIFIER '[' expr ']' '[' expr ']'	{ $$ = new LoadMatrix($1, $3, $6);}
+	   | complex_identifier		{ $$ = new Load($1); }
 	   | TOK_TRUE				{ $$ = new Int1(1); }
 	   | TOK_FALSE				{ $$ = new Int1(0); }
 	   | TOK_INTEGER			{ $$ = getNodeForIntConst($1); }
@@ -302,6 +307,18 @@ factor : '(' expr ')'			{ $$ = $2; }
 	   | TOK_IDENTIFIER '(' paramscall ')'	{ $$ = new FunctionCall($1, $3); }
 	   | unary { $$ = $1; }
 	   ;
+
+complex_identifier : complex_identifier '.' TOK_IDENTIFIER {
+	                   $1->names.push_back($3);
+					   $$ = $1;
+                     }
+                   | TOK_IDENTIFIER '.' TOK_IDENTIFIER {
+					   ComplexIdentifier *complexIdent = new ComplexIdentifier();
+					   complexIdent->names.push_back($1);
+					   complexIdent->names.push_back($3);
+					   $$ = complexIdent;
+				     }
+                   ;
 
 unary : '-' factor	{ $$ = new BinaryOp($2, '*', getNodeForIntConst(-1)); }
 	  | '~' factor	{ $$ = new FlipOp($2); }
@@ -314,8 +331,11 @@ cast : '(' type_f ')' factor { $$ = new Cast($2, $4); }
 printstmt : TOK_PRINT TOK_STRING		{ $$ = new Print(new String($2)); }
 		  | TOK_PRINT expr				{ $$ = new Print($2); }
 
-registerstmt : TOK_REGISTER registertype TOK_IDENTIFIER TOK_AT expr {
+registerstmt : TOK_REGISTER registertype TOK_IDENTIFIER TOK_AT expr ';' {
 				 $$ = new Pointer($3, $2, $5, true);
+			   }
+			 | TOK_REGISTER registertype TOK_IDENTIFIER TOK_AT expr '{' struct_fields '}' {
+				 $$ = new Pointer($3, $2, $5, $7, true);
 			   }
 			 ;
 
@@ -324,6 +344,34 @@ registertype : TOK_FINT8	{ $$ = tint8; }
 			 | TOK_FINT32	{ $$ = tint32; }
 			 | TOK_FINT64	{ $$ = tint64; }
 			 ;
+
+struct_fields : struct_fields struct_field {
+				  $2.startBit = $1->nextBit;
+	              $1->fields[$2.fieldName] = $2;
+				  $1->nextBit += $2.bitWidth;
+				  $$ = $1;
+				}
+              | struct_field {
+			      Structure *s = new Structure();
+				  $1.startBit = 0;
+				  s->fields[$1.fieldName] = $1;
+				  s->nextBit = $1.bitWidth;
+				  $$ = s;
+				}
+			  ;
+
+struct_field : type_f TOK_IDENTIFIER ';' {
+			     $$.fieldDataType = $1;
+				 $$.fieldName = $2;
+				 $$.bitWidth = LanguageDataTypeBitWidth[$1];
+			   }
+			 | type_f TOK_IDENTIFIER ':' TOK_INTEGER ';' {
+			     $$.fieldDataType = $1;
+				 $$.fieldName = $2;
+				 $$.bitWidth = (unsigned)$4;
+			   }
+             ;
+
 %%
 
 extern int yylineno;

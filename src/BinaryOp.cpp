@@ -42,7 +42,7 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 		}*/
 
 		if (opint == Instruction::Shl || opint == Instruction::LShr) {
-			// sext the left operator if we know the rside bitwidth
+			// zext the left operator if we know the rside bitwidth
 			Constant *c = NULL;
 			if (rhsn->isConstExpr(block, allocblock)) {
 				Value *v = rhsn->generate(NULL, block, allocblock);
@@ -52,11 +52,11 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 				int64_t v = c->getUniqueInteger().getZExtValue();
 				if (Ty1->getIntegerBitWidth() < v) {
 					if (v >= 8 && v <= 15)
-						lhs = new SExtInst(lhs, Type::getInt16Ty(global_context), "sext16", block);
+						lhs = new ZExtInst(lhs, Type::getInt16Ty(global_context), "zext16", block);
 					else if (v >= 16 && v <= 31)
-						lhs = new SExtInst(lhs, Type::getInt32Ty(global_context), "sext32", block);
+						lhs = new ZExtInst(lhs, Type::getInt32Ty(global_context), "zext32", block);
 					else if (v >= 32 && v <= 63)
-						lhs = new SExtInst(lhs, Type::getInt64Ty(global_context), "sext64", block);
+						lhs = new ZExtInst(lhs, Type::getInt64Ty(global_context), "zext64", block);
 					else
 						yyerrorcpp("Number of shift bits exceeds the max int precision for left side.", this);
 					Ty1 = lhs->getType();
@@ -109,7 +109,7 @@ Type *BinaryOp::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
 	Type *rty = rhsn->getLLVMResultType(block, allocblock);
 	if (lty->isIntegerTy() && rty->isIntegerTy()) {
 		if (op == TOK_LSHIFT || op == TOK_RSHIFT) {
-			// sext the left operator if we know the rside bitwidth
+			// zext the left operator if we know the rside bitwidth
 			Constant *c = NULL;
 			if (rhsn->isConstExpr(block, allocblock)) {
 				Value *v = rhsn->generate(NULL, block, allocblock);

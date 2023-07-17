@@ -24,3 +24,28 @@ class RobcmpPlatform(PlatformBase):
             self.packages[required_tool]['optional'] = False
 
         return super().configure_default_packages(variables, targets)
+
+    def get_boards(self, id_=None):
+        result = super().get_boards(id_)
+        if not result:
+            return result
+        if id_:
+            return self._add_default_debug_tools(result)
+        else:
+            for key, value in result.items():
+                result[key] = self._add_default_debug_tools(result[key])
+        return result
+
+    def _add_default_debug_tools(self, board):
+        debug = board.manifest.get("debug", {})
+        if "tools" not in debug:
+            debug["tools"] = {}
+
+        if debug.get("target_mcu", ""):
+            debug["tools"]["robcmp"]["server"]["arguments"] = [
+                "-m", debug["target_mcu"],
+                "-hw", "led"
+            ]
+
+        board.manifest["debug"] = debug
+        return board

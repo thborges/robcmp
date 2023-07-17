@@ -2,6 +2,7 @@
     Build script for robcmp platform
 """
 
+import os
 import sys
 from os.path import join
 from SCons.Script import AlwaysBuild, Builder, Default, DefaultEnvironment, Glob
@@ -10,11 +11,19 @@ env = DefaultEnvironment()
 platform = env.PioPlatform()
 ldscripts_folder = platform.get_package_dir("toolchain-robcmp")
 
-mcu = env.GetProjectOption("custom_mcu")
+os.environ['LD_LIBRARY_PATH'] = join(ldscripts_folder, "lib")
+
+# Needed by debug
+env.Replace(
+    PROGNAME="firmware.elf"
+)
+
+board = env.subst("$BOARD")
+mcu = env.subst("$BOARD_MCU")
 if mcu == "stm32f1":
     ld = "ld.lld"
     ldflags = ["-nostdlib", "-entry=main", "-T" + ldscripts_folder + "/share/stm32f1.lld.ld", "-Bstatic"]
-elif mcu == "avr328p":
+elif mcu == "atmega328p":
     ld = "avr-ld"
     ldflags = ["--gc-sections", "-Tdata=0x800100"]
 else:
@@ -33,7 +42,7 @@ env.Append(
             suffix=".elf"
         ),
         Rob=Builder(
-            action = ' '.join(["robcmp", "-a", mcu, "-o", "$TARGET", "$SOURCE"]),
+            action = ' '.join(["robcmp", "-a", board, "-o", "$TARGET", "$SOURCE"]),
             suffix = '.o',
             src_suffix = '.rob',
         )
@@ -51,7 +60,6 @@ for f in sources:
 target_elf = env.Linker(join("$BUILD_DIR", "firmware"), target_objs)
 target_bin = env.ElfToBin(join("$BUILD_DIR", "firmware"), target_elf)
 
-
 # UPLOAD
 upload_protocol = env.subst("$UPLOAD_PROTOCOL")
 upload_actions = []
@@ -67,7 +75,7 @@ if upload_protocol == "serial":
             UPLOADCMD='$UPLOADER $UPLOADERFLAGS "$SOURCE" $UPLOAD_PORT'
         )
 
-    elif mcu == "avr328p":
+    elif mcu == "atmega328p":
         avrdude_bin = join(platform.get_package_dir("tool-avrdude"), "avrdude")
         avrdude_cfg = join(platform.get_package_dir("tool-avrdude"), "avrdude.conf")
         env.Replace(

@@ -67,9 +67,9 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 			}
 			else if (wty < wdestty) {
 				if (Constant *c = dyn_cast<Constant>(v))
-					r = ConstantExpr::getSExt(c, destty);
+					r = ConstantExpr::getZExt(c, destty);
 				else
-					r = new SExtInst(v, destty, "sext", block);
+					r = new ZExtInst(v, destty, "zext", block);
 			}
 		}
 		else if (!destty->isPointerTy()) {

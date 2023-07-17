@@ -12,7 +12,7 @@ Value *FlipOp::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
     if (exprv == NULL)
         return NULL;
     if (Constant *c = dyn_cast<Constant>(exprv))
-        return ConstantExpr::getNeg(c);
+        return ConstantExpr::getNot(c);
     else
         return BinaryOperator::Create(Instruction::Xor, exprv, 
             Constant::getAllOnesValue(exprv->getType()), "neg", block);

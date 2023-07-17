@@ -102,6 +102,7 @@ extern int yycolnew;
 ">>"					{ return TOK_RSHIFT; }
 
 ":"						{ return ':'; }
+"."						{ return '.'; }
 ","						{ return ','; }
 ";"						{ return ';'; }
 

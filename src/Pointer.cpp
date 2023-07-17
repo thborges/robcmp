@@ -25,7 +25,11 @@ Value *Pointer::generate(Function *func, BasicBlock *block, BasicBlock *allocblo
         
     Type *ty = robTollvmDataType[type];
     DataQualifier vol = isVolatile ? qvolatile : qnone;
-    tabelasym[allocblock][name] = new RobSymbol(addrp, vol, ty);
+    
+    RobSymbol *rs = new RobSymbol(addrp, vol, ty);
+    rs->structure = structure;
+    tabelasym[allocblock][name] = rs;
+    
     return addrp;
 }
 

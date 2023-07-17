@@ -5,8 +5,10 @@
 class Load: public Node {
 private:
 	string ident;
+	ComplexIdentifier *complexIdent;
 public:
-	Load(const char *i): ident(i) {}
+	Load(const string i): ident(i), complexIdent(nullptr) {}
+	Load(ComplexIdentifier *ci): complexIdent(ci) {}
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
 

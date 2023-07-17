@@ -99,11 +99,9 @@ void print_llvm_ir(const char *target, char opt_level) {
 		default : ol = OptimizationLevel::Oz; break;
 	}
 
-	if (opt_level != '0') {
-		ModulePassManager modulePassManager =
-	    	passBuilder.buildPerModuleDefaultPipeline(ol);
-		modulePassManager.run(*mainmodule, moduleAnalysisManager);
-	}
+	ModulePassManager modulePassManager =
+		passBuilder.buildPerModuleDefaultPipeline(ol);
+	modulePassManager.run(*mainmodule, moduleAnalysisManager);
 
 	if (build_outputfilename) {
 		std::error_code ec;

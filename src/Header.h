@@ -43,6 +43,9 @@ static const char *LanguageDataTypeNames[__ldt_last] = {"void", "boolean", "char
 	"unsigned int32", "unsigned int64", "float",
 	"double", "long double"};
 
+static const unsigned LanguageDataTypeBitWidth[__ldt_last] = {0, 1, 8, 8,
+	16, 32, 64, 8, 16, 32, 64, 32, 64, 128};
+
 enum DataQualifier {qnone, qconst, qvolatile};
 
 extern Type* robTollvmDataType[];
@@ -68,6 +71,8 @@ typedef struct {
 	ArrayElements *array;
 	unsigned count;
 } MatrixElement;
+
+#include "Field.h"
 
 #include "bison.hpp"
 
@@ -151,6 +156,18 @@ static RobSymbol *search_symbol(const string& ident, BasicBlock *firstb = NULL, 
 			return var->second;
 	}
 	return NULL;
+}
+
+template<typename ... Args>
+string string_format(const char *format, Args ... args) {
+    int size_s = std::snprintf(nullptr, 0, format, args ...) + 1;
+    if( size_s <= 0 ) { 
+		return "";
+	}
+    auto size = static_cast<size_t>(size_s);
+    unique_ptr<char[]> buf(new char[ size ]);
+    snprintf(buf.get(), size, format, args ...);
+    return string(buf.get(), buf.get() + size - 1);
 }
 
 #include "Node.h"

@@ -9,11 +9,13 @@ public:
 	unsigned int matrixLines;
 	unsigned int matrixCols;
 	Structure *structure;
+	LanguageDataType dt;
     
 	RobSymbol(Value *v, DataQualifier qualifier = qnone, Type *pointerType = NULL): 
 		value(v), qualifier(qualifier), pointerType(pointerType) {
 		matrixLines = matrixCols = 0;
 		structure = nullptr;
+		dt = tvoid;
     }
 };
 

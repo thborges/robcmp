@@ -114,8 +114,29 @@ void Program::generate() {
 	robTollvmDataType[tldouble] = Type::getFP128Ty(global_context);
 
 	mainmodule = new Module(build_filename, global_context);
+	Builder = make_unique<IRBuilder<>>(global_context);
+
+	if (debug_info) {
+		mainmodule->addModuleFlag(Module::Warning, "Debug Info Version", DEBUG_METADATA_VERSION);
+		mainmodule->addModuleFlag(Module::Warning, "Dwarf Version", 2);
+		DBuilder = make_unique<DIBuilder>(*mainmodule);
+		RobDbgInfo.cunit = DBuilder->createCompileUnit(dwarf::DW_LANG_C,
+			DBuilder->createFile(build_filename, std::filesystem::current_path().string()),
+			"Robcmp", false, "", 0);
+		for(int t = 0; t < __ldt_last; t++) {
+			RobDbgInfo.types[t] = DBuilder->createBasicType(
+				LanguageDataTypeNames[t],
+				LanguageDataTypeBitWidth[t],
+				LanguageDataTypeDwarfEnc[t]
+			);
+		}
+	}
+
 	global_alloc = BasicBlock::Create(global_context, "global");
 
 	// generate the program!
 	stmts->generate(NULL, NULL, global_alloc);
+
+	if (debug_info)
+		DBuilder->finalize();
 }

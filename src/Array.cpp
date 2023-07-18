@@ -6,7 +6,7 @@ Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 	Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size);
 	
 	//Get Type of elements in Array of Elements, and define as I.
-	Type* I = elements->getArrayType(block, allocblock);
+	Type* I = robTollvmDataType[elements->getArrayType(block, allocblock)];
 
 	//Declare array type.
 	ArrayType* arrayType = ArrayType::get(I, size);

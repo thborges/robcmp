@@ -14,20 +14,22 @@ Function *AttachInterrupt::fattach = NULL;
 // file name
 char *build_filename;
 char *build_outputfilename;
+bool debug_info;
 
 int main(int argc, char *argv[]) {
 
 	char optimization = 'z';
 	const char *targetarch = "";
 	build_outputfilename = NULL;
+	debug_info = false;
 
 	if (argc <= 1) {
-		fprintf(stderr, "Syntax: %s -O{1,2,3,s,z} -a {", argv[0]);
+		fprintf(stderr, "Syntax: %s -a {", argv[0]);
 		for(int t = 1; t < (sizeof(supportedTargets)/sizeof(TargetInfo)); t++) {
 			if (t > 1) fprintf(stderr, ",");
 			fprintf(stderr, "%s", supportedTargets[t].name);
 		}
-		fprintf(stderr, "} -o output_file input_file\n");
+		fprintf(stderr, "} -g -O{1,2,3,s,z} -o output_file input_file\n");
 		return 1;
 	}
 
@@ -40,6 +42,9 @@ int main(int argc, char *argv[]) {
 		}
 		else if (strncmp(argv[i], "-a", 2) == 0) {
 			targetarch = argv[++i];
+		}
+		else if (strncmp(argv[i], "-g", 2) == 0) {
+			debug_info = true;
 		}
 		else if (strncmp(argv[i], "-o", 2) == 0) {
 			build_outputfilename = argv[++i];

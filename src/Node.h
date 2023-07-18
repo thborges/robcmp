@@ -20,11 +20,11 @@ public:
 	virtual std::vector<Node *> const& children() const;
 	virtual void accept(Visitor &);
 
-	virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
+	virtual LanguageDataType getResultType(BasicBlock *block, BasicBlock *allocblock) {
 		/* this method should be overrided in descending classes 
 		 * that define vars/consts
 		 */
-		return NULL;
+		return tvoid;
 	}
 };
 

@@ -15,7 +15,9 @@ Value *BinaryOp::logical_operator(enum Instruction::BinaryOps op,
 
 	Value *lhs = lhsn->generate(func, block, allocblock);
 	Value *rhs = rhsn->generate(func, block, allocblock);
-	return BinaryOperator::Create(op, lhs, rhs, "logicop", block);
+
+	Builder->SetInsertPoint(block);
+	return Builder->CreateBinOp(op, lhs, rhs, "logicop");
 }
 
 Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint, 
@@ -30,6 +32,8 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 	Type *Ty2 = rhs->getType();
 
 	enum Instruction::BinaryOps llvmop;
+
+	Builder->SetInsertPoint(block);
 
 	if (Ty1->isIntegerTy() && Ty2->isIntegerTy()) {
 		/*fallback SDiv disabled
@@ -52,11 +56,11 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 				int64_t v = c->getUniqueInteger().getZExtValue();
 				if (Ty1->getIntegerBitWidth() < v) {
 					if (v >= 8 && v <= 15)
-						lhs = new ZExtInst(lhs, Type::getInt16Ty(global_context), "zext16", block);
+						lhs = Builder->CreateZExt(lhs, Type::getInt16Ty(global_context), "zext16");
 					else if (v >= 16 && v <= 31)
-						lhs = new ZExtInst(lhs, Type::getInt32Ty(global_context), "zext32", block);
+						lhs = Builder->CreateZExt(lhs, Type::getInt32Ty(global_context), "zext32");
 					else if (v >= 32 && v <= 63)
-						lhs = new ZExtInst(lhs, Type::getInt64Ty(global_context), "zext64", block);
+						lhs = Builder->CreateZExt(lhs, Type::getInt64Ty(global_context), "zext64");
 					else
 						yyerrorcpp("Number of shift bits exceeds the max int precision for left side.", this);
 					Ty1 = lhs->getType();
@@ -73,9 +77,9 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 	}
 	else {
 		if (Ty1->isIntegerTy())
-			lhs = new SIToFPInst(lhs, Ty2, "castitof", block);
+			lhs = Builder->CreateSIToFP(lhs, Ty2, "castitof");
 		else if (Ty2->isIntegerTy())
-			rhs = new SIToFPInst(rhs, Ty1, "castitof", block);
+			rhs = Builder->CreateSIToFP(rhs, Ty1, "castitof");
 		llvmop = opflt;
 	}
 
@@ -101,13 +105,13 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 		}
 	}
 	
-	return BinaryOperator::Create(llvmop, lhs, rhs, "binop", block);
+	return Builder->CreateBinOp(llvmop, lhs, rhs, "binop");
 }
 
-Type *BinaryOp::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
-	Type *lty = lhsn->getLLVMResultType(block, allocblock);
-	Type *rty = rhsn->getLLVMResultType(block, allocblock);
-	if (lty->isIntegerTy() && rty->isIntegerTy()) {
+LanguageDataType BinaryOp::getResultType(BasicBlock *block, BasicBlock *allocblock) {
+	LanguageDataType lty = lhsn->getResultType(block, allocblock);
+	LanguageDataType rty = rhsn->getResultType(block, allocblock);
+	if (isIntegerDataType(lty) && isIntegerDataType(rty)) {
 		if (op == TOK_LSHIFT || op == TOK_RSHIFT) {
 			// zext the left operator if we know the rside bitwidth
 			Constant *c = NULL;
@@ -117,22 +121,22 @@ Type *BinaryOp::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
 			}
 			if (c) {
 				int64_t v = c->getUniqueInteger().getZExtValue();
-				if (lty->getIntegerBitWidth() < v) {
+				if (LanguageDataTypeBitWidth[lty] < v) {
 					if (v >= 8 && v <= 15)
-						return Type::getInt16Ty(global_context);
+						return tint16;
 					else if (v >= 16 && v <= 31)
-						return Type::getInt32Ty(global_context);
+						return tint32;
 					else if (v >= 32 && v <= 63)
-						return Type::getInt64Ty(global_context);
+						return tint64;
 					else
-						return NULL;
+						return tvoid;
 				}
 			}
 		}
-		return lty->getIntegerBitWidth() > rty->getIntegerBitWidth() ? lty : rty;
+		return LanguageDataTypeBitWidth[lty] > LanguageDataTypeBitWidth[rty] ? lty : rty;
 		
 	} else {
-		if (lty->isIntegerTy())
+		if (isIntegerDataType(lty))
 			return rty;
 		else
 			return lty;
@@ -140,6 +144,7 @@ Type *BinaryOp::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
 }
 
 Value *BinaryOp::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+	RobDbgInfo.emitLocation(this);
 	switch (op) {
 		case '+' : return binary_operator(Instruction::Add, Instruction::FAdd, func, block, allocblock);
 		case '-' : return binary_operator(Instruction::Sub, Instruction::FSub, func, block, allocblock);

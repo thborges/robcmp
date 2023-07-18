@@ -14,6 +14,8 @@ Scalar::Scalar(ComplexIdentifier *ci, Node *e, DataQualifier qualifier) :
 
 Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 
+	RobDbgInfo.emitLocation(this);
+
 	string id = complexIdent ? complexIdent->names[0] : name;
 	auto symbol = search_symbol(id, allocblock, block);
 	Field field;
@@ -37,6 +39,8 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 	if (symbol == NULL) {
 		Value *ret, *leftv;
 		Value *exprv = expr->generate(func, block, allocblock);
+		LanguageDataType dt = expr->getResultType(block, allocblock);
+
 		if (!exprv)
 			return NULL;
 		
@@ -48,16 +52,28 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 			if (qualifier == qconst)
 				ret = leftv = exprvc;
 			else {
-				GlobalVariable *gv = new GlobalVariable(*mainmodule, exprvc->getType(), 
+				GlobalVariable *gv = new GlobalVariable(*mainmodule, robTollvmDataType[dt],
 					false, GlobalValue::CommonLinkage, exprvc, name);
 				ret = leftv = gv;
 			}
 		} else {
-			leftv = new AllocaInst(exprv->getType(), 0, name, allocblock);
-			ret = new StoreInst(exprv, leftv, qualifier == qvolatile, block);
+			Builder->SetInsertPoint(allocblock);
+			leftv = Builder->CreateAlloca(exprv->getType(), 0, name);
+			Builder->SetInsertPoint(block);
+			ret = Builder->CreateStore(exprv, leftv, qualifier == qvolatile);
+			if (debug_info) {
+				auto sp = RobDbgInfo.currScope();
+				auto funit = RobDbgInfo.currFile();
+				DILocalVariable *d = DBuilder->createAutoVariable(
+					sp, name, funit, lineno, RobDbgInfo.types[dt], true);
+				DBuilder->insertDeclare(leftv, d, DBuilder->createExpression(),
+					DILocation::get(sp->getContext(), lineno, 0, sp), allocblock);
+			}
 		}
 
-		tabelasym[allocblock][name] = new RobSymbol(leftv, qualifier);
+		RobSymbol *rs = new RobSymbol(leftv, qualifier);
+		rs->dt = dt;
+		tabelasym[allocblock][name] = rs;
 		return ret;
 
 	} else {
@@ -107,7 +123,9 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 			nvalue = Coercion::Convert(exprv, leftvty, block, expr);
 		}
 
-		return new StoreInst(nvalue, symbol->value, qualifier == qvolatile, block);
+		RobDbgInfo.emitLocation(this);
+		Builder->SetInsertPoint(block);
+		return Builder->CreateStore(nvalue, symbol->value, qualifier == qvolatile);
 	}
 }
 

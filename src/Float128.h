@@ -13,8 +13,8 @@ public:
 		return true;
 	}
 	
-	virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override {
-		return Type::getFP128Ty(global_context);
+	virtual LanguageDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override {
+		return tldouble;
 	}
 };
 

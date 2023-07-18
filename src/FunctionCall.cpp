@@ -1,16 +1,14 @@
 #include "Header.h"
 
-Type* FunctionCall::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
+LanguageDataType FunctionCall::getResultType(BasicBlock *block, BasicBlock *allocblock) {
 	auto symbol = search_symbol(name);
-	if (symbol) {
-		Function *cfunc = dyn_cast<Function>(symbol->value);
-		if (cfunc)
-			return cfunc->getReturnType();
-	}
-	return NULL;
+	if (symbol)
+		return symbol->dt;
+	return tvoid;
 }
 
 Value *FunctionCall::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+
 	auto symbol = search_symbol(name);
 	if (symbol == NULL) {
 		yyerrorcpp("Function " + name + " not defined.", this);
@@ -30,10 +28,8 @@ Value *FunctionCall::generate(Function *func, BasicBlock *block, BasicBlock *all
 	}
 	ArrayRef<Value*> argsRef(args);
 
-	bool isVoidReturn = cfunc->getReturnType()->isVoidTy();
-	if (isVoidReturn)
-		return CallInst::Create(cfunc, argsRef, "", block);
-	else
-		return CallInst::Create(cfunc, argsRef, "fc", block);
+	RobDbgInfo.emitLocation(this);
+	Builder->SetInsertPoint(block);
+	return Builder->CreateCall(cfunc, argsRef, "fc");
 }
 

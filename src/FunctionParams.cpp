@@ -10,8 +10,8 @@ unsigned FunctionParams::getNumParams() const {
 	return parameters.size();
 };
 
-Type *FunctionParams::getParamType(int position) const {
-	return robTollvmDataType[parameters[position].type];
+LanguageDataType FunctionParams::getParamType(int position) const {
+	return parameters[position].type;
 }
 
 const char *FunctionParams::getParamElement(int position) const {

@@ -14,8 +14,8 @@ public:
 	virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override {
 		return true;
 	}
-	virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override {
-		return Type::getInt16Ty(global_context);
+	virtual LanguageDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override {
+		return tint16;
 	}
 };
 

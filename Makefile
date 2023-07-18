@@ -27,8 +27,8 @@ COMPILER_NAME=$(shell basename "${PWD}")
 SRC = src
 BIN = .
  
-FLAGS=-O3 -march=native -flto
-#DFLAGS=-ggdb -O0
+#FLAGS=-O3 -march=native -flto
+DFLAGS=-ggdb -O0 -std=c++17
 
 CPPS=$(patsubst src/%.cpp,src/out/%.o,$(wildcard ${SRC}/*.cpp))
 YACS=$(patsubst src/%.y,src/out/%_y.o,$(wildcard ${SRC}/*.y))

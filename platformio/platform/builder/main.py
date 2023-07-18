@@ -25,11 +25,19 @@ if mcu == "stm32f1":
     ldflags = ["-nostdlib", "-entry=main", "-T" + ldscripts_folder + "/share/stm32f1.lld.ld", "-Bstatic"]
 elif mcu == "atmega328p":
     ld = "avr-ld"
-    ldflags = ["--gc-sections", "-Tdata=0x800100"]
+    ldflags = ["-Tdata=0x800100"]
 else:
     sys.stderr.write("The requested mcu is not supported.\n")
     env.Exit(1)
 
+build_type = env.subst("$BUILD_TYPE")
+robcmp_args = ["robcmp", "-a", board, "-o", "$TARGET"]
+if build_type == "debug":
+    robcmp_args.append("-g")
+elif build_type == "release":
+    robcmp_args.append("-Oz")
+    ldflags.append("--gc-sections")
+robcmp_args.append("$SOURCE")
 
 env.Append(
     BUILDERS=dict(
@@ -42,7 +50,7 @@ env.Append(
             suffix=".elf"
         ),
         Rob=Builder(
-            action = ' '.join(["robcmp", "-a", board, "-o", "$TARGET", "$SOURCE"]),
+            action = ' '.join(robcmp_args),
             suffix = '.o',
             src_suffix = '.rob',
         )

@@ -17,38 +17,38 @@ unsigned ArrayElements::getStructSize() const {
 	return elements.size();
 }
 
-Type *ArrayElements::getArrayType(BasicBlock *block, BasicBlock *allocblock) const {
+LanguageDataType ArrayElements::getArrayType(BasicBlock *block, BasicBlock *allocblock) const {
 	unsigned intsize = 0;
 	unsigned floatsize = 0;
 	for(auto& i : elements) {
-		Type *ty = i.value->getLLVMResultType(block, allocblock);
-		if (ty->isIntegerTy() && intsize < ty->getIntegerBitWidth())
-			intsize = ty->getIntegerBitWidth();
+		LanguageDataType dt = i.value->getResultType(block, allocblock);
+		if (isIntegerDataType(dt) && intsize < LanguageDataTypeBitWidth[dt])
+			intsize = LanguageDataTypeBitWidth[dt];
 		
-		if (floatsize < 32 && ty->isFloatTy())
+		if (floatsize < 32 && dt == tfloat)
 			floatsize = 32;
-		else if (floatsize < 64 && ty->isDoubleTy())
+		else if (floatsize < 64 && dt == tdouble)
 			floatsize = 64;
-		else if (floatsize < 128 && ty->isFP128Ty())
+		else if (floatsize < 128 && dt == tldouble)
 			floatsize = 128;
 	}
 	if (intsize == 0 && floatsize == 0) {
-		yyerrorcpp("FIXME: vector of non-consts.", NULL);
-		return NULL;
+		yyerrorcpp("FIXME: vector of non-consts/non-numbers.", NULL);
+		return tvoid;
 	}
 	if (floatsize == 0) {
 		switch (intsize) {
-			case 1:  return Type::getInt1Ty(global_context);
-			case 8:  return Type::getInt8Ty(global_context);
-			case 16: return Type::getInt16Ty(global_context);
-			case 32: return Type::getInt32Ty(global_context);
-			default: return Type::getInt64Ty(global_context);
+			case 1:  return tbool;
+			case 8:  return tint8;
+			case 16: return tint16;
+			case 32: return tint32;
+			default: return tint64;
 		}
 	} else {
 		switch (floatsize) {
-			case 32: return Type::getFloatTy(global_context);
-			case 64: return Type::getDoubleTy(global_context);
-			default: return Type::getFP128Ty(global_context);
+			case 32: return tfloat;
+			case 64: return tdouble;
+			default: return tldouble;
 		}
 	}
 }

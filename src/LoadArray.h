@@ -13,7 +13,7 @@ public:
 
 	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
 
-	virtual Type* getLLVMResultType(BasicBlock *block, BasicBlock *allocblock);
+	virtual LanguageDataType getResultType(BasicBlock *block, BasicBlock *allocblock);
 
 	virtual Node *getLoadIndex(RobSymbol *rsym, BasicBlock *block, BasicBlock *allocblock) {
 		return position;

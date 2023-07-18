@@ -4,6 +4,7 @@
 #include <llvm/IR/Constant.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Function.h>
@@ -24,10 +25,12 @@
 using namespace llvm;
 
 // Program main module
-Module *mainmodule;
-BasicBlock *global_alloc;
+Module* mainmodule;
+BasicBlock* global_alloc;
 LLVMContext global_context;
-static IRBuilder<> builder(global_context);
+std::unique_ptr<IRBuilder<>> Builder;
+std::unique_ptr<DIBuilder> DBuilder;
+struct DebugInfo RobDbgInfo;
 
 // symbol table
 std::map<BasicBlock*, std::map<std::string, RobSymbol*>> tabelasym;
@@ -69,7 +72,7 @@ void print_llvm_ir(const char *target, char opt_level) {
 	}	
 
 	TargetOptions opt;
-	auto RM = optional<Reloc::Model>();
+	auto RM = Optional<Reloc::Model>();
 	auto targetMachine = Target->createTargetMachine(ai.triple, ai.cpu, ai.features, opt, RM);
 
 	mainmodule->setDataLayout(targetMachine->createDataLayout());

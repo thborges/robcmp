@@ -28,6 +28,8 @@ Value *CmpOp::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 		return ConstantInt::get(Type::getInt1Ty(global_context), 1); // error recover
 	}
 
+	RobDbgInfo.emitLocation(this);
+
 	bool isFloatPointCmp = true;
 	if (tl->isFloatingPointTy() && tr->isIntegerTy())
 		rexp = Coercion::Convert(rexp, tl, block, rexpn);
@@ -58,10 +60,11 @@ Value *CmpOp::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 		return NULL;
 	}
 
+	Builder->SetInsertPoint(block);
 	if (isFloatPointCmp)
-		return new FCmpInst(*block, predicate, lexp, rexp, "cmpf");
+		return Builder->CreateFCmp(predicate, lexp, rexp, "cmpf");
 	else {
-		return new ICmpInst(*block, predicate, lexp, rexp, "cmpi");
+		return Builder->CreateICmp(predicate, lexp, rexp, "cmpi");
 	}
 }
 

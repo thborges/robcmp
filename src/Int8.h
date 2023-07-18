@@ -13,8 +13,8 @@ class Int8: public Node {
 		virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override {
 			return true;
 		}
-		virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override {
-			return Type::getInt8Ty(global_context);
+		virtual LanguageDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override {
+			return tint8;
 		}
 };
 

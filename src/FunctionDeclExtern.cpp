@@ -11,8 +11,8 @@ Value *FunctionDeclExtern::generate(Function *, BasicBlock *, BasicBlock *allocb
 	std::vector<Type*> arg_types;
 	if (parameters->getNumParams() != 0)
 		for (int i = 0; i < parameters->getNumParams(); i++)
-			arg_types.push_back(parameters->getParamType(i));
-	
+			arg_types.push_back(robTollvmDataType[parameters->getParamType(i)]);
+
 	Type *xtype = robTollvmDataType[tipo];
 	FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
 	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, 0, name, mainmodule);

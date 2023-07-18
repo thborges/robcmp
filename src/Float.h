@@ -11,8 +11,8 @@ public:
 	virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override {
 		return true;
 	}
-	virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override {
-		return Type::getFloatTy(global_context);
+	virtual LanguageDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override {
+		return tfloat;
 	}
 };
 

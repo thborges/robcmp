@@ -7,10 +7,20 @@ Loop::Loop(Node *stms) : stmts(stms) {
 
 Value *Loop::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 	BasicBlock *bodyloop = BasicBlock::Create(global_context, "loop_body", func, 0);
+	
+	RobDbgInfo.emitLocation(this);
+
+	// go to loop
+	Builder->SetInsertPoint(block);
+	Builder->CreateBr(bodyloop);
+
 	// alloc instructions inside bodyloop should go to allocblock to prevent repeatedly allocation
 	Value *newb = stmts->generate(func, bodyloop, allocblock); 
-	BranchInst::Create(bodyloop, bodyloop);
-	BranchInst::Create(bodyloop, block);
+
+	// return to loop at end
+	Builder->SetInsertPoint(bodyloop);
+	Builder->CreateBr(bodyloop);
+
 	BasicBlock *endloop = BasicBlock::Create(global_context, "loop_end", func, 0);
 	return endloop;
 }

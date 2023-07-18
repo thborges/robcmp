@@ -9,9 +9,10 @@ Node* getNodeForIntConst(int64_t i);
 std::vector<AttachInterrupt *> vectorglobal;
 
 extern int errorsfound;
-
 %}
 
+%locations
+%define api.location.type {location_t}
 %define parse.error verbose
 
 %token TOK_VOID TOK_RETURN TOK_REGISTER TOK_AT TOK_VOLATILE TOK_CONST
@@ -73,6 +74,7 @@ extern int errorsfound;
 %type <field> struct_field
 %type <structure> struct_fields
 %type <complexIdent> complex_identifier
+%type <str> error
 
 %precedence IFX
 %precedence TOK_ELSE
@@ -95,8 +97,8 @@ programa : gstmts	{ Program p($1);
                     };
 		 ;
 
-gstmts : gstmts gstmt       { $1->append($2); }
-	   | gstmt				{ $$ = new Stmts($1); }
+gstmts : gstmts gstmt       { $1->append($gstmt);}
+	   | gstmt				{ $$ = new Stmts($gstmt); $gstmt->setLocation(@gstmt); }
 	   ;
 
 gstmt : TOK_IDENTIFIER '=' expr ';'					{ $$ = new Scalar($1, $3, qnone); }
@@ -117,9 +119,11 @@ fe : funcblock	{ $$ = $1; }
 
 funcblock : type_f TOK_IDENTIFIER '(' funcparams ')' ';' {
 				$$ = new FunctionDeclExtern($1, $2, $4);
+				$$->setLocation(@type_f);
 			}
 		  | type_f TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}' {
 				$$ = new FunctionDecl($1, $2, $4, $7); 
+				$$->setLocation(@type_f);
 			}
 		  ;
 
@@ -132,9 +136,8 @@ eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}' {
              }
 		   ;
 
-stmts : stmts stmt	{ $1->append($2);
-	  				  $$ = $1; }
-	  | stmt		{ $$ = new Stmts($1); }
+stmts : stmts stmt	{ $1->append($stmt); }
+	  | stmt		{ $$ = new Stmts($stmt); $stmt->setLocation(@stmt); }
 	  ;
 
 stmt : gstmt									{ $$ = $1; }
@@ -207,10 +210,14 @@ funcparams: funcparams ',' funcparam {
 			}
 		  ;
 
-funcparam : type_f TOK_IDENTIFIER {
-				FunctionParam fp{$2, $1}; 
-				$$ = fp;
+funcparam : type_f TOK_IDENTIFIER[id] {
+				$$ = FunctionParam{$id, $type_f};
 			}
+		  | TOK_IDENTIFIER[id1] TOK_IDENTIFIER[id2] { 
+				yyerrorcpp(string_format("Invalid type name '%s' for parameter %s.", $id1, $id2), nullptr);
+				$$ = FunctionParam{$2, tvoid};
+		    }
+		  ;
 
 type_f  : TOK_VOID { $$ = tvoid; }
 		| TOK_FCHAR { $$ = tchar; }
@@ -226,6 +233,11 @@ type_f  : TOK_VOID { $$ = tvoid; }
 		| TOK_FFLOAT { $$ = tfloat; } 
 		| TOK_FDOUBLE { $$ = tdouble; } 
 		| TOK_FLONG TOK_FDOUBLE { $$ = tldouble; } 
+/*		| TOK_IDENTIFIER[ident] {
+			yyerrok;
+			yyerrorcpp(string_format("Invalid type name '%s'.", $ident), nullptr);
+			$$ = tvoid; 
+		  }*/
 	    ;
 
 paramscall : paramscall ',' expr {$1 -> append($3);
@@ -252,8 +264,15 @@ elseblock : TOK_ELSE stmt				{ $$ = $2; }
 		  | TOK_ELSE '{' stmts '}'		{ $$ = $3; }
 		  ;
 
-whileblock : TOK_WHILE '(' logicexpr ')' '{' stmts '}'	{ $$ = new While($3, $6); }
-		   | TOK_LOOP '{' stmts '}' 					{ $$ = new Loop($3); }
+whileblock : TOK_WHILE '(' logicexpr ')' '{' stmts '}' {
+			   $logicexpr->setLocation(@logicexpr);
+			   $$ = new While($logicexpr, $stmts);
+			   $$->setLocation(@TOK_WHILE);
+			 }
+		   | TOK_LOOP '{' stmts '}' {
+		       $$ = new Loop($stmts);
+			   $$->setLocation(@TOK_LOOP);
+			 }
 		   ;
 
 logicexpr : logicexpr TOK_OR logicterm		{ $$ = new BinaryOp($1, TOK_OR, $3); }
@@ -374,15 +393,12 @@ struct_field : type_f TOK_IDENTIFIER ';' {
 
 %%
 
-extern int yylineno;
-extern int yycolno;
-extern char *yytext;
 extern char *build_filename;
 
 int yyerror(const char *s)
 {
 	fprintf(stderr, "%s:%d:%d: %s\n", 
-		build_filename, yylineno, yycolno, s);
+		build_filename, yylloc.first_line, yylloc.first_column, s);
 	errorsfound++;
 	return 0;
 }

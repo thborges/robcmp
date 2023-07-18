@@ -1,21 +1,11 @@
 #include "Header.h"
 
-Type* LoadArray::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
+LanguageDataType LoadArray::getResultType(BasicBlock *block, BasicBlock *allocblock) {
 	if (!rsym)
 		rsym = search_symbol(ident, allocblock, block);
-	if (rsym) {
-		Type *ty = NULL;
-		if (auto *aux = dyn_cast<AllocaInst>(rsym->value))
-			ty = aux->getAllocatedType();
-		else if (auto *aux = dyn_cast<GlobalVariable>(rsym->value))
-			ty = aux->getValueType();
-		
-		if (ty->isArrayTy()) {
-			ArrayType *arrayTy = (ArrayType*)ty;
-			return arrayTy->getArrayElementType();
-		}
-	}
-	return NULL;
+	if (rsym)
+		return rsym->dt;
+	return tvoid;
 }
 
 Value *LoadArray::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {

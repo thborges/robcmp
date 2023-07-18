@@ -17,11 +17,13 @@
 #include <map>
 #include <vector>
 #include <cstdlib>
+#include <filesystem>
 #include <llvm/IR/Value.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Constant.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Function.h>
@@ -38,6 +40,14 @@ enum LanguageDataType {tvoid, tbool, tchar, tint8, tint16, tint32, tint64,
   tint8u, tint16u, tint32u, tint64u, tfloat, tdouble, tldouble,
   __ldt_last};
 
+static bool isIntegerDataType(LanguageDataType dt) {
+	return dt >= tint8 && dt <= tint64u;
+}
+
+static bool isFloatDataType(LanguageDataType dt) {
+	return dt >= tfloat && dt <= tldouble;
+}
+
 static const char *LanguageDataTypeNames[__ldt_last] = {"void", "boolean", "char", "int8",
 	"int16", "int32", "int64", "unsigned int8", "unsigned int16",
 	"unsigned int32", "unsigned int64", "float",
@@ -45,6 +55,15 @@ static const char *LanguageDataTypeNames[__ldt_last] = {"void", "boolean", "char
 
 static const unsigned LanguageDataTypeBitWidth[__ldt_last] = {0, 1, 8, 8,
 	16, 32, 64, 8, 16, 32, 64, 32, 64, 128};
+
+static const unsigned LanguageDataTypeDwarfEnc[__ldt_last] = {
+	dwarf::DW_ATE_address, 
+	dwarf::DW_ATE_boolean,
+	dwarf::DW_ATE_unsigned_char,
+	dwarf::DW_ATE_signed, dwarf::DW_ATE_signed, dwarf::DW_ATE_signed, dwarf::DW_ATE_signed,
+	dwarf::DW_ATE_unsigned, dwarf::DW_ATE_unsigned, dwarf::DW_ATE_unsigned, dwarf::DW_ATE_unsigned,
+	dwarf::DW_ATE_float, dwarf::DW_ATE_float, dwarf::DW_ATE_float
+};
 
 enum DataQualifier {qnone, qconst, qvolatile};
 
@@ -74,23 +93,45 @@ typedef struct {
 
 #include "Field.h"
 
+typedef struct {
+	int first_line;
+	int first_column;
+	int last_line;
+	int last_column;
+} location_t;
+
 #include "bison.hpp"
 
 extern int yyerror(const char *s);
 extern int yylex();
-extern int yylineno;
-extern int yycolno;
 extern Node* getNodeForIntConst(int64_t i);
-
-// Program main module
-extern Module *mainmodule;
-extern BasicBlock *global_alloc;
 
 extern char* build_filename;
 extern char* build_outputfilename;
-extern LLVMContext global_context;
 
 #include "SourceLocation.h"
+
+// Program main module and IR Builder
+extern Module* mainmodule;
+extern BasicBlock* global_alloc;
+extern LLVMContext global_context;
+extern std::unique_ptr<IRBuilder<>> Builder;
+
+// Debug Info
+extern bool debug_info;
+extern std::unique_ptr<DIBuilder> DBuilder;
+struct DebugInfo {
+	DICompileUnit *cunit;
+	DIType *types[__ldt_last];
+	vector<DIFile *> files;
+	vector<DIScope *> scopes;
+	void emitLocation(SourceLocation *s);
+	void push_scope(DIFile *f, DIScope *);
+	void pop_scope();
+	DIFile *currFile();
+	DIScope *currScope();
+};
+extern struct DebugInfo RobDbgInfo;
 
 // symbol table
 #include "RobSymbol.h"
@@ -129,8 +170,8 @@ static string getTypeName(Type *ty) {
 static int yyerrorcpp(const string& s, SourceLocation *n) {
 	string e = COLOR_RED "semantic error: " COLOR_RESET + s;
 	if (n) {
-		yylineno = n->getLineNo();
-		yycolno = n->getColNo();
+		yylloc.first_line = n->getLineNo();
+		yylloc.first_column = n->getColNo();
 	}
 	return yyerror(e.c_str());
 }
@@ -138,11 +179,11 @@ static int yyerrorcpp(const string& s, SourceLocation *n) {
 static void yywarncpp(const string& s, SourceLocation *n) {
 	string e = COLOR_BLUE "semantic warning: " COLOR_RESET + s;
 	if (n) {
-		yylineno = n->getLineNo();
-		yycolno = n->getColNo();
+		yylloc.first_line = n->getLineNo();
+		yylloc.first_column = n->getColNo();
 	}
 	fprintf(stderr, "%s:%d:%d %s\n", 
-		build_filename, yylineno, yycolno, e.c_str());
+		build_filename, yylloc.first_line, yylloc.first_column, e.c_str());
 }
 
 static RobSymbol *search_symbol(const string& ident, BasicBlock *firstb = NULL, BasicBlock *secondb = NULL) {

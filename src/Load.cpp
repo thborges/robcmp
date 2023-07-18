@@ -1,16 +1,10 @@
 #include "Header.h"
 
-Type* Load::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
+LanguageDataType Load::getResultType(BasicBlock *block, BasicBlock *allocblock) {
 	auto rsym = search_symbol(ident, allocblock, block);
-	if (rsym) {
-		if (auto *lvalue = dyn_cast<AllocaInst>(rsym->value))
-			return lvalue->getAllocatedType();
-		else if (auto *lvalue = dyn_cast<GlobalVariable>(rsym->value))
-			return lvalue->getValueType();
-		else
-			return rsym->pointerType;
-	}
-	return NULL;
+	if (rsym)
+		return rsym->dt;
+	return tvoid;
 }
 
 Value* Load::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
@@ -33,19 +27,21 @@ Value* Load::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 		}
 	}
 
-	LoadInst *ret = NULL;
+	Type *ty;
 	bool vol = rsym->qualifier == qvolatile;
 	if (auto *lvalue = dyn_cast<AllocaInst>(sym))
-		ret = new LoadInst(lvalue->getAllocatedType(), sym, ident, vol, block);
+		ty = lvalue->getAllocatedType();
 	else if (auto *lvalue = dyn_cast<GlobalVariable>(sym))
-		ret = new LoadInst(lvalue->getValueType(), sym, ident, vol, block);
+		ty = lvalue->getValueType();
 	else if (rsym->pointerType != NULL)
-		ret = new LoadInst(rsym->pointerType, sym, ident, vol, block);
+		ty = rsym->pointerType;
 	else {
 		printf("ERR: Going to return NULL!\n");
 	}
-		
-	return ret;
+	
+	RobDbgInfo.emitLocation(this);
+	Builder->SetInsertPoint(block);
+	return Builder->CreateLoad(ty, sym, vol, ident);
 }
 
 void Load::accept(Visitor &v) {

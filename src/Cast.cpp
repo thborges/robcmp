@@ -1,8 +1,8 @@
 
 #include "Header.h"
 
-Type *Cast::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) { 
-    return robTollvmDataType[dt];
+LanguageDataType Cast::getResultType(BasicBlock *block, BasicBlock *allocblock) { 
+    return dt;
 }
 
 Value *Cast::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)

@@ -18,7 +18,7 @@ all: ${ROBCMP} ${ALL}
 	${CC} ${CCPLAT} -Oz -S -emit-llvm ${INCLUDES} $< -o $@
 
 %.c.o: %.c
-	${CC} ${CCPLAT} -Oz -c ${INCLUDES} $< -o $@
+	${CC} ${CCPLAT} -ggdb -O0 -c ${INCLUDES} $< -o $@
 
 
 
@@ -36,7 +36,7 @@ all: ${ROBCMP} ${ALL}
 %.elf : %.o
 	@#${CC} -v ${CCPLAT} ${AVRLIB} $< -o $@
 	@#avr-gcc -v -mmcu=atmega328p $< -o $@
-	avr-ld -o $@ --gc-sections -Tdata=0x800100 $<
+	avr-ld -o $@ -Tdata=0x800100 $<
 
 %.hex : %.elf
 	avr-objcopy -Oihex $< $@

@@ -43,6 +43,7 @@ class RobcmpPlatform(PlatformBase):
 
         if debug.get("target_mcu", ""):
             debug["tools"]["robcmp"]["server"]["arguments"] = [
+                "-f", "$PROGNAME",
                 "-m", debug["target_mcu"],
                 "-hw", "led"
             ]

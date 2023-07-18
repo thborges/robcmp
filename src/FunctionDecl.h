@@ -23,6 +23,7 @@ public:
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
 
+	DISubroutineType *getFunctionDIType();
 };
 
 #endif

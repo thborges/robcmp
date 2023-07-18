@@ -6,8 +6,16 @@
 extern void unescape(char *s);
 
 extern int yycolno;
-extern int yycolnew;
-#define YY_USER_ACTION yycolno = yycolnew; yycolnew += yyleng;
+
+static void update_loc() {
+	yylloc.first_line = yylineno;
+	yylloc.last_line = yylineno;
+	yylloc.first_column = yycolno;
+	yylloc.last_column = yycolno + yyleng - 1;
+	yycolno += yyleng;
+}
+	
+#define YY_USER_ACTION update_loc();
 
 %}
 
@@ -17,7 +25,7 @@ extern int yycolnew;
 %%
 
 [ \t\r]					{ /* ignore spaces */ }
-[\n]					{ yycolnew = 0; yycolno = 0; }
+[\n]					{ yycolno = 0; }
 "/*"					{ yymore(); BEGIN COMMENT; }
 <COMMENT>[^*]			{ yymore(); }
 <COMMENT>"*"/[^/]		{ yymore(); }

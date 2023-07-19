@@ -34,6 +34,7 @@ build_type = env.subst("$BUILD_TYPE")
 robcmp_args = ["robcmp", "-a", board, "-o", "$TARGET"]
 if build_type == "debug":
     robcmp_args.append("-g")
+    robcmp_args.append("-O0")
 elif build_type == "release":
     robcmp_args.append("-Oz")
     ldflags.append("--gc-sections")

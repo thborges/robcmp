@@ -46,7 +46,7 @@ Function *init;
 Function *print;
 Function *i16div;
 
-void print_llvm_ir(const char *target, char opt_level) {
+void print_llvm_ir(char opt_level) {
 	
 	InitializeAllTargetInfos();
 	InitializeAllTargets();
@@ -56,13 +56,7 @@ void print_llvm_ir(const char *target, char opt_level) {
 
 	std::string defaultt = sys::getDefaultTargetTriple();
 	supportedTargets[0].triple = defaultt.c_str();
-	TargetInfo ai = supportedTargets[0];
-	for(int t = 0; t < (sizeof(supportedTargets)/sizeof(TargetInfo)); t++) {
-		if (strcmp(target, supportedTargets[t].name) == 0) {
-			ai = supportedTargets[t];
-			break;
-		}
-	}
+	TargetInfo ai = supportedTargets[currentTarget];
 
 	std::string Error;
 	auto Target = TargetRegistry::lookupTarget(ai.triple, Error);
@@ -72,8 +66,9 @@ void print_llvm_ir(const char *target, char opt_level) {
 	}	
 
 	TargetOptions opt;
-	auto RM = Optional<Reloc::Model>();
-	auto targetMachine = Target->createTargetMachine(ai.triple, ai.cpu, ai.features, opt, RM);
+	auto RM = optional<Reloc::Model>();
+	auto targetMachine = Target->createTargetMachine(ai.triple, 
+		ai.cpu, ai.features, opt, RM);
 
 	mainmodule->setDataLayout(targetMachine->createDataLayout());
 	mainmodule->setTargetTriple(ai.triple);

@@ -123,6 +123,10 @@ void Program::generate() {
 		RobDbgInfo.cunit = DBuilder->createCompileUnit(dwarf::DW_LANG_C,
 			DBuilder->createFile(build_filename, std::filesystem::current_path().string()),
 			"Robcmp", false, "", 0);
+		
+		// global scope
+		RobDbgInfo.push_scope(RobDbgInfo.cunit->getFile(), RobDbgInfo.cunit);
+		
 		for(int t = 0; t < __ldt_last; t++) {
 			RobDbgInfo.types[t] = DBuilder->createBasicType(
 				LanguageDataTypeNames[t],

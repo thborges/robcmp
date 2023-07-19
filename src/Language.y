@@ -105,7 +105,7 @@ gstmt : TOK_IDENTIFIER '=' expr ';'					{ $$ = new Scalar($1, $3, qnone); }
 	  | complex_identifier '=' expr ';'				{ $$ = new Scalar($1, $3, qnone); }
 	  | TOK_CONST TOK_IDENTIFIER '=' expr ';'		{ $$ = new Scalar($2, $4, qconst); }
 	  | TOK_VOLATILE TOK_IDENTIFIER '=' expr ';'	{ $$ = new Scalar($2, $4, qvolatile); }
-	  | TOK_IDENTIFIER '=' relements ';'			{ $$ = new Array($1, $3); }
+	  | TOK_IDENTIFIER '=' relements ';'			{ $$ = new Array($1, $3); $$->setLocation(@1); }
 	  | TOK_IDENTIFIER '=' rmatrix ';'				{ $$ = new Matrix($1, $3);}
 	  | registerstmt								{ $$ = $1; }
 	  | fe											{ $$ = $1; }

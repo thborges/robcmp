@@ -17,9 +17,16 @@ Value *Loop::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 	// alloc instructions inside bodyloop should go to allocblock to prevent repeatedly allocation
 	Value *newb = stmts->generate(func, bodyloop, allocblock); 
 
-	// return to loop at end
-	Builder->SetInsertPoint(bodyloop);
-	Builder->CreateBr(bodyloop);
+	// identify last while body block
+	BasicBlock *endbody = bodyloop;
+	if (newb->getValueID() == Value::BasicBlockVal)
+		endbody = (BasicBlock*)newb;
+	
+	// if end block already has a terminator, don't generate branch
+	if (!((BasicBlock*)endbody)->getTerminator()) {
+		Builder->SetInsertPoint(endbody);
+		Builder->CreateBr(bodyloop);
+	}
 
 	BasicBlock *endloop = BasicBlock::Create(global_context, "loop_end", func, 0);
 	return endloop;

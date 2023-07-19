@@ -4,7 +4,7 @@ LanguageDataType LoadArray::getResultType(BasicBlock *block, BasicBlock *allocbl
 	if (!rsym)
 		rsym = search_symbol(ident, allocblock, block);
 	if (rsym)
-		return rsym->dt;
+		return rsym->pointee_dt;
 	return tvoid;
 }
 

@@ -37,7 +37,7 @@ using namespace llvm;
 /* After adding new types here, go to Program::generate to fill
  * the robTollvmDataType vector */
 enum LanguageDataType {tvoid, tbool, tchar, tint8, tint16, tint32, tint64, 
-  tint8u, tint16u, tint32u, tint64u, tfloat, tdouble, tldouble,
+  tint8u, tint16u, tint32u, tint64u, tfloat, tdouble, tldouble, tarray,
   __ldt_last};
 
 static bool isIntegerDataType(LanguageDataType dt) {
@@ -51,10 +51,10 @@ static bool isFloatDataType(LanguageDataType dt) {
 static const char *LanguageDataTypeNames[__ldt_last] = {"void", "boolean", "char", "int8",
 	"int16", "int32", "int64", "unsigned int8", "unsigned int16",
 	"unsigned int32", "unsigned int64", "float",
-	"double", "long double"};
+	"double", "long double", "array"};
 
 static const unsigned LanguageDataTypeBitWidth[__ldt_last] = {0, 1, 8, 8,
-	16, 32, 64, 8, 16, 32, 64, 32, 64, 128};
+	16, 32, 64, 8, 16, 32, 64, 32, 64, 128, 0 /*use currentTarget->pointerSize*/};
 
 static const unsigned LanguageDataTypeDwarfEnc[__ldt_last] = {
 	dwarf::DW_ATE_address, 
@@ -62,7 +62,8 @@ static const unsigned LanguageDataTypeDwarfEnc[__ldt_last] = {
 	dwarf::DW_ATE_unsigned_char,
 	dwarf::DW_ATE_signed, dwarf::DW_ATE_signed, dwarf::DW_ATE_signed, dwarf::DW_ATE_signed,
 	dwarf::DW_ATE_unsigned, dwarf::DW_ATE_unsigned, dwarf::DW_ATE_unsigned, dwarf::DW_ATE_unsigned,
-	dwarf::DW_ATE_float, dwarf::DW_ATE_float, dwarf::DW_ATE_float
+	dwarf::DW_ATE_float, dwarf::DW_ATE_float, dwarf::DW_ATE_float,
+	dwarf::DW_ATE_address
 };
 
 enum DataQualifier {qnone, qconst, qvolatile};
@@ -151,13 +152,17 @@ typedef struct {
 	const char *triple;
 	const char *cpu;
 	const char *features;
+	const uint8_t pointerSize;
 } TargetInfo;
 
-static TargetInfo supportedTargets[] = {
-	{"", "", "", ""}, // default target
-	{"avr328p", "avr-atmel-none", "atmega328p", "+avr5"},
-	{"stm32f1", "thumbv7m-none-eabi", "cortex-m3", ""},
-	{"esp32",   "xtensa",  "", ""},
+enum SupportedTargets {native, avr328p, stm32f1, esp32, __last_target};
+extern enum SupportedTargets currentTarget;
+
+static TargetInfo supportedTargets[__last_target] = {
+	{"", "", "", "", 64}, // default target
+	{"avr328p", "avr-atmel-none", "atmega328p", "+avr5", 16},
+	{"stm32f1", "thumbv7m-none-eabi", "cortex-m3", "", 32},
+	{"esp32",   "xtensa",  "", "", 32},
 };
 
 static string getTypeName(Type *ty) {

@@ -1,6 +1,6 @@
 
-void wait() {
-	volatile i = 50000;
+void wait(int32 q) {
+	volatile i = q;
 	while (i > 0) {
 		i--;
 	}

@@ -26,4 +26,9 @@ public:
 		lineno = l.first_line;
 		colno = l.first_column;
 	}
+	
+	virtual void setLocation(SourceLocation *s) {
+		lineno = s->lineno;
+		colno = s->colno;
+	}
 };

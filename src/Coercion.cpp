@@ -20,6 +20,9 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 
 	Value *r = v;
 	Type *ty = v->getType();
+
+	RobDbgInfo.emitLocation(loc);
+	Builder->SetInsertPoint(block);
 	
 	if (ty != destty){
 		//Float to Integer
@@ -27,7 +30,7 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 			if (Constant *c = dyn_cast<Constant>(v))
 				r = ConstantExpr::getFPToSI(c, destty);
 			else
-				r = new FPToSIInst(v, destty, "fptosi", block);
+				r = Builder->CreateFPToSI(v, destty, "fptosi");
 			yywarncpp("Float point converted to integer.", loc);
 		}
 		//Integer to Float
@@ -35,7 +38,7 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 			if (Constant *c = dyn_cast<Constant>(v))
 				r = ConstantExpr::getSIToFP(c, destty);
 			else
-				r = new SIToFPInst(v, destty, "sitofp", block);
+				r = Builder->CreateSIToFP(v, destty, "sitofp");
 		}
 		//Floating point to Floating point
 		else if (ty->isFloatingPointTy() && destty->isFloatingPointTy()) {
@@ -45,12 +48,12 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 				if (Constant *c = dyn_cast<Constant>(v))
 					r = ConstantExpr::getFPExtend(c, destty);
 				else
-					r = new FPExtInst(v, destty, "fpext", block);
+					r = Builder->CreateFPExt(v, destty, "fpext");
 			else if (dtybw < tybw) {
 				if (Constant *c = dyn_cast<Constant>(v))
 					r = ConstantExpr::getFPTrunc(c, destty);
 				else
-					r = new FPTruncInst(v, destty, "fptrunc", block);
+					r = Builder->CreateFPTrunc(v, destty, "fptrunc");
 				yywarncpp("Float point value truncated.", loc);
 			}
 		}
@@ -62,14 +65,14 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 				if (Constant *c = dyn_cast<Constant>(v))
 					r = ConstantExpr::getTrunc(c, destty);
 				else
-					r = new TruncInst(v, destty, "trunc", block);
+					r = Builder->CreateTrunc(v, destty, "trunc");
 				yywarncpp("Integer value truncated.", loc);
 			}
 			else if (wty < wdestty) {
 				if (Constant *c = dyn_cast<Constant>(v))
 					r = ConstantExpr::getZExt(c, destty);
 				else
-					r = new ZExtInst(v, destty, "zext", block);
+					r = Builder->CreateZExt(v, destty, "zext");
 			}
 		}
 		else if (!destty->isPointerTy()) {

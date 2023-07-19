@@ -10,12 +10,14 @@ public:
 	unsigned int matrixCols;
 	Structure *structure;
 	LanguageDataType dt;
+	LanguageDataType pointee_dt;
     
 	RobSymbol(Value *v, DataQualifier qualifier = qnone, Type *pointerType = NULL): 
 		value(v), qualifier(qualifier), pointerType(pointerType) {
 		matrixLines = matrixCols = 0;
 		structure = nullptr;
 		dt = tvoid;
+		pointee_dt = tvoid;
     }
 };
 

@@ -6,7 +6,8 @@ Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 	Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size);
 	
 	//Get Type of elements in Array of Elements, and define as I.
-	Type* I = robTollvmDataType[elements->getArrayType(block, allocblock)];
+	LanguageDataType pointee_dt = elements->getArrayType(block, allocblock);
+	Type* I = robTollvmDataType[pointee_dt];
 
 	//Declare array type.
 	ArrayType* arrayType = ArrayType::get(I, size);
@@ -37,6 +38,9 @@ Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 		return NULL;
 	}
 
+	auto sp = RobDbgInfo.currScope();
+	auto funit = RobDbgInfo.currFile();
+
 	//Allocate array.
 	Value* var;
 	if (allocblock == global_alloc) { // when alloc is global
@@ -48,21 +52,37 @@ Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 		GlobalVariable *gv = new GlobalVariable(*mainmodule, arrayType, 
 			false, GlobalValue::ExternalLinkage, ConstantArray::get(arrayType, constantRefs), name);
 		var = gv;
+
+		if (debug_info) {
+			 //FIXME: Replace 16 with pointer size for platform!
+			auto di_ptr = DBuilder->createPointerType(RobDbgInfo.types[pointee_dt], 16);
+			auto *d = DBuilder->createGlobalVariableExpression(sp, name, "",
+				funit, lineno, di_ptr, false);
+			gv->addDebugInfo(d);
+		}
+
 	} else {
-		var = new AllocaInst(arrayType, 0, name, allocblock);
+		Builder->SetInsertPoint(allocblock);
+		var = Builder->CreateAlloca(arrayType, 0, name);
+
+		RobDbgInfo.emitLocation(this);
+		Builder->SetInsertPoint(block);
 
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 		StoreInst *store = NULL;
 		for(unsigned index = 0; index < elementValues.size(); index++) {
 			Value *idx = ConstantInt::get(Type::getInt32Ty(global_context), index);
 			Value* indexList[2] = {zero, idx};
-			GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, var, 
-				ArrayRef<Value*>(indexList), "", block);
-			store = new StoreInst(elementValues[index], gep, false, block);
+			Value* gep = Builder->CreateGEP(arrayType, var, 
+				ArrayRef<Value*>(indexList), "elem");
+			store = Builder->CreateStore(elementValues[index], gep, false);
 		}
 	}
 
 	//Add array to table of symbols.
-	tabelasym[allocblock][name] = new RobSymbol(var);
+	RobSymbol *rs = new RobSymbol(var);
+	rs->dt = tarray;
+	rs->pointee_dt = pointee_dt;
+	tabelasym[allocblock][name] = rs;
 	return var;
 }

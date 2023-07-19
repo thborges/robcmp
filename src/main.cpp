@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdlib>
+#include <cstring>
 
 #include "Header.h"
 
@@ -8,13 +9,14 @@ int yycolno = 0;
 int yycolnew = 0;
 extern int yyparse();
 extern FILE *yyin;
-void print_llvm_ir(const char *target, char opt_level);
+void print_llvm_ir(char opt_level);
 Function *AttachInterrupt::fattach = NULL;
 
 // file name
 char *build_filename;
 char *build_outputfilename;
 bool debug_info;
+enum SupportedTargets currentTarget;
 
 int main(int argc, char *argv[]) {
 
@@ -59,6 +61,16 @@ int main(int argc, char *argv[]) {
 		}
 		i++;
 	}
+
+	// set current target
+	currentTarget = native; //native
+	for(int t = native; t < __last_target; t++) {
+		if (strcmp(targetarch, supportedTargets[t].name) == 0) {
+			currentTarget = static_cast<enum SupportedTargets>(t);
+			break;
+		}
+	}
+
 	yyparse();
 	if (yyin)
 		fclose(yyin);
@@ -68,7 +80,7 @@ int main(int argc, char *argv[]) {
 		return errorsfound;
 	}
 
-	print_llvm_ir(targetarch, optimization);
+	print_llvm_ir(optimization);
 
 	return 0;
 }

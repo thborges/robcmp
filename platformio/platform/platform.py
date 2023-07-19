@@ -3,6 +3,7 @@
 #   Require packages according to upload_protocol and custom_mcu
 #
 
+import os
 from platformio.public import PlatformBase
 
 class RobcmpPlatform(PlatformBase):
@@ -43,7 +44,7 @@ class RobcmpPlatform(PlatformBase):
 
         if debug.get("target_mcu", ""):
             debug["tools"]["robcmp"]["server"]["arguments"] = [
-                "-f", "$PROGNAME",
+                "-f", "$PROG_PATH",
                 "-m", debug["target_mcu"],
                 "-hw", "led"
             ]

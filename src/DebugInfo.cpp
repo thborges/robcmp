@@ -1,6 +1,8 @@
 #include "Header.h"
 
 void DebugInfo::emitLocation(SourceLocation *s) {
+	if (!debug_info)
+		return;
 	if (!s)
 		return Builder->SetCurrentDebugLocation(DebugLoc());
 	DIScope *scope;
@@ -23,10 +25,14 @@ void DebugInfo::pop_scope() {
 }
 
 DIFile* DebugInfo::currFile() {
+	if (!debug_info)
+		return NULL;
 	return files.back();
 }
 
 DIScope* DebugInfo::currScope() {
+	if (!debug_info)
+		return NULL;
 	return scopes.back();
 }
 

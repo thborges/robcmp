@@ -24,6 +24,7 @@ register int8 ddrb at 0x24 {
 void wait();
 
 int16 main() {
+	arr = {10000, 5000, 3000, 2000, 1000, 500};
 
 	/* pin 13 is controlled by bit 5 of DDRB and PORTB registers
 	 * - bit 5 of DDRB indicates if the pin is input (0) or output (1)
@@ -33,12 +34,22 @@ int16 main() {
 	// set pin 13 as output
 	ddrb.pin13 = true;
 
+	w = 0;
+	t = 10;
 	loop {
 		// set bit 5 high
 		portb.pin13 = true;
-		wait();
+		wait(arr[w]);
 		// set bit 5 low
 		portb.pin13 = false;
-		wait();
+		wait(arr[w]);
+
+		t--;
+		if (t == 0) {
+			w++;
+		}
+		if (w > 5) {
+			w = 0;
+		}
 	}
 }

@@ -20,6 +20,7 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 	auto symbol = search_symbol(id, allocblock, block);
 	Field field;
 
+	// semantic validation of complexIdent
 	if (complexIdent) {
 		string idfield = complexIdent->names[1];
 		auto fieldit = symbol->structure->fields.find(idfield);
@@ -44,6 +45,9 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 		if (!exprv)
 			return NULL;
 		
+		auto sp = RobDbgInfo.currScope();
+		auto funit = RobDbgInfo.currFile();
+
 		if (allocblock == global_alloc) {
 			Constant *exprvc = dyn_cast<Constant>(exprv);
 			if (exprvc == NULL)
@@ -55,19 +59,24 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 				GlobalVariable *gv = new GlobalVariable(*mainmodule, robTollvmDataType[dt],
 					false, GlobalValue::CommonLinkage, exprvc, name);
 				ret = leftv = gv;
+
+				if (debug_info) {
+					auto *d = DBuilder->createGlobalVariableExpression(sp, name, "",
+						funit, lineno, RobDbgInfo.types[dt], false);
+					gv->addDebugInfo(d);
+				}
 			}
 		} else {
 			Builder->SetInsertPoint(allocblock);
 			leftv = Builder->CreateAlloca(exprv->getType(), 0, name);
 			Builder->SetInsertPoint(block);
 			ret = Builder->CreateStore(exprv, leftv, qualifier == qvolatile);
+			
 			if (debug_info) {
-				auto sp = RobDbgInfo.currScope();
-				auto funit = RobDbgInfo.currFile();
 				DILocalVariable *d = DBuilder->createAutoVariable(
 					sp, name, funit, lineno, RobDbgInfo.types[dt], true);
 				DBuilder->insertDeclare(leftv, d, DBuilder->createExpression(),
-					DILocation::get(sp->getContext(), lineno, 0, sp), allocblock);
+					DILocation::get(sp->getContext(), lineno, colno, sp), allocblock);
 			}
 		}
 
@@ -90,6 +99,8 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 		Value *exprv = expr->generate(func, block, allocblock);
 		Value *nvalue;
 
+		Builder->SetInsertPoint(block);
+
 		if (complexIdent) {
 			/* this code does:
 			 *   symbol->value &= ~(0x11... << field.startBit)
@@ -108,23 +119,23 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 			if (field.startBit > 0) {
 				Constant *shiftl = ConstantInt::get(leftvty, field.startBit);
 				ones = ConstantExpr::getShl(ones, shiftl);
-				exprv = BinaryOperator::CreateShl(exprv, shiftl, "shift", block);
+				exprv = Builder->CreateShl(exprv, shiftl, "shift");
 			}
 			Constant *mask = ConstantExpr::getNot(ones);
 
 			// Load pointer value
 			Load ld(id);
+			ld.setLocation(expr);
 			Value *leftv = ld.generate(func, block, allocblock);
 
 			// Apply mask, than or
-			Value *vaftermask = BinaryOperator::CreateAnd(leftv, mask, "mask", block);
-			nvalue = BinaryOperator::CreateOr(vaftermask, exprv, "setbits", block);
+			Builder->SetInsertPoint(block); //caution, after generate!
+			Value *vaftermask = Builder->CreateAnd(leftv, mask, "mask");
+			nvalue = Builder->CreateOr(vaftermask, exprv, "setbits");
 		} else {
 			nvalue = Coercion::Convert(exprv, leftvty, block, expr);
 		}
 
-		RobDbgInfo.emitLocation(this);
-		Builder->SetInsertPoint(block);
 		return Builder->CreateStore(nvalue, symbol->value, qualifier == qvolatile);
 	}
 }

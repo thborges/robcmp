@@ -155,11 +155,12 @@ typedef struct {
 	const uint8_t pointerSize;
 } TargetInfo;
 
-enum SupportedTargets {native, avr328p, stm32f1, esp32, __last_target};
+enum SupportedTargets {native, avr48, avr328p, stm32f1, esp32, __last_target};
 extern enum SupportedTargets currentTarget;
 
 static TargetInfo supportedTargets[__last_target] = {
 	{"", "", "", "", 64}, // default target
+	{"avr48", "avr-atmel-none", "atmega48", "+avr4", 16},
 	{"avr328p", "avr-atmel-none", "atmega328p", "+avr5", 16},
 	{"stm32f1", "thumbv7m-none-eabi", "cortex-m3", "", 32},
 	{"esp32",   "xtensa",  "", "", 32},

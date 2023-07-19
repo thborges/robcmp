@@ -66,7 +66,7 @@ void print_llvm_ir(char opt_level) {
 	}	
 
 	TargetOptions opt;
-	auto RM = optional<Reloc::Model>();
+	auto RM = Optional<Reloc::Model>();
 	auto targetMachine = Target->createTargetMachine(ai.triple, 
 		ai.cpu, ai.features, opt, RM);
 

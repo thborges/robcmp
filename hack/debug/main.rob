@@ -1,0 +1,20 @@
+
+int16 wait(int32 qtd) {
+	volatile q = qtd;
+	while(q > 0) {
+		q--;
+	}
+}
+
+int16 main() {
+	i = (int32)1;
+	loop {
+		wait(i*1000);
+		wait(i*10);
+		i++;
+		if (i > 5) {
+			i = 0;
+		}
+	}
+}
+

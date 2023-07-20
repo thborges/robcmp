@@ -1,30 +1,16 @@
-/* Default linker script, for normal executables */
-/* Copyright (C) 2014 Free Software Foundation, Inc.
-   Copying and distribution of this script, with or without modification,
-   are permitted in any medium without royalty provided the copyright
-   notice and this notice are preserved.  */
+/*
+ * RobCmp linker script for avr5 familly
+ */
 
 OUTPUT_FORMAT("elf32-avr","elf32-avr","elf32-avr")
-
 OUTPUT_ARCH(avr:5)
-
-MEMORY
-{
-  text   (rx)   : ORIGIN = 0, LENGTH = 128K
-  data   (rw!x) : ORIGIN = 0x800060, LENGTH = 0xffa0
-  eeprom (rw!x) : ORIGIN = 0x810000, LENGTH = 64K
-  fuse      (rw!x) : ORIGIN = 0x820000, LENGTH = 1K
-  lock      (rw!x) : ORIGIN = 0x830000, LENGTH = 1K
-  signature (rw!x) : ORIGIN = 0x840000, LENGTH = 1K
-  user_signatures (rw!x) : ORIGIN = 0x850000, LENGTH = 1K
-}
 
 SECTIONS
 {
   .text : {
   	_start__vectors = .;
 	KEEP(*(.vectors))
-	. = 106; /* should be 104, but llvm requires a return at the end of __vectors*/
+	. = __vectors_size;
 	_end_vectors = .;
 	. = ALIGN(2);
 	_stext = .;

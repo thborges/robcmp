@@ -1,0 +1,56 @@
+/*
+ * Robcmp interruptions vector for atmega328p
+ */
+
+void main();
+void __init();
+void __bad_irq();
+
+void __vectors() {
+	/* atmega328p has 26 interruptions */
+	/* FIXME: provide proper interrupt functions instead of __bad_irq after implementing "weak" attribute for functions */
+	asm "jmp __init";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+}
+
+void __bad_irq() {
+	// reset
+	__vectors();
+}
+
+register int8 SREG at 0x3f;
+register int16 STACK at 0x3d;
+
+void __init() {
+	// clear SREG, set STACK at RAM top and call main
+	// if main returns, reset. 
+	SREG = 0;
+	STACK = 0x0AFF;
+	main();
+	__vectors();
+}
+

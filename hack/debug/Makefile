@@ -24,7 +24,7 @@ main.avr.elf: main.c.o
 
 main.lld.elf: main.o avr5.o
 	@#clang-16 -v -fuse-ld=lld -e main -target avr -mmcu=atmega328p main.o -o main.elf
-	ld.lld --gc-sections -o $@ -Tavr5.ld -Tdata=0x800100 -e main ${LOPT} main.o avr5.o
+	ld.lld --gc-sections -o $@ -L../../share/avr/ -Tavr328p.ld -Tdata=0x800100 -e main ${LOPT} main.o avr5.o
 
 %.hex : %.elf
 	avr-objcopy -Oihex $< $@

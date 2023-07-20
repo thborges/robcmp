@@ -9,23 +9,27 @@ from SCons.Script import AlwaysBuild, Builder, Default, DefaultEnvironment, Glob
 
 env = DefaultEnvironment()
 platform = env.PioPlatform()
-ldscripts_folder = platform.get_package_dir("toolchain-robcmp")
+ldscripts_folder = join(platform.get_package_dir("toolchain-robcmp"), "lib")
 
-os.environ['LD_LIBRARY_PATH'] = join(ldscripts_folder, "lib")
+os.environ['LD_LIBRARY_PATH'] = ldscripts_folder
 
 # Needed by debug
 env.Replace(
     PROGNAME="firmware.elf"
 )
 
+sources = []
+
 board = env.subst("$BOARD")
 mcu = env.subst("$BOARD_MCU")
+ldflags = ["-nostdlib", "-entry=main", "-L", ldscripts_folder, "-Bstatic"]
 if mcu == "stm32f1":
-    ld = "ld.lld"
-    ldflags = ["-nostdlib", "-entry=main", "-T" + ldscripts_folder + "/share/stm32f1.lld.ld", "-Bstatic"]
+    ldflags.append("-Tstm32f1.ld")
 elif mcu == "atmega328p":
-    ld = "avr-ld"
-    ldflags = ["-Tdata=0x800100"]
+    ldflags.append("-Tavr328p.ld")
+    ldflags.append("-Tdata=0x800100")
+    ldflags.append(join(ldscripts_folder, "avr5.o"))
+    sources += Glob(join(ldscripts_folder, "avr328p.rob"))
 else:
     sys.stderr.write("The requested mcu is not supported.\n")
     env.Exit(1)
@@ -47,7 +51,7 @@ env.Append(
             suffix=".bin"
         ),
         Linker=Builder(
-            action = ' '.join([ld, "$SOURCES", ' '.join(ldflags), "-o", "$TARGET"]),
+            action = ' '.join(["ld.lld", "$SOURCES", ' '.join(ldflags), "-o", "$TARGET"]),
             suffix=".elf"
         ),
         Rob=Builder(
@@ -58,7 +62,7 @@ env.Append(
     )
 )
 
-sources = Glob(env.subst(join("$PROJECT_DIR/src/", "*.rob")))
+sources += Glob(env.subst(join("$PROJECT_DIR/src/", "*.rob")))
 #source_fnames = [join("$PROJECT_DIR/src/", f.name) for f in sources]
 #print("SOURCES: ", source_fnames)
 
@@ -121,4 +125,14 @@ upload_actions.append(env.VerboseAction("$UPLOADCMD", "Uploading $SOURCE"))
 upload = env.Alias(["upload"], target_bin, upload_actions)
 AlwaysBuild(upload)
 
+# SIZE
+target_size = env.AddPlatformTarget(
+    "size",
+    target_elf,
+    env.VerboseAction("llvm-size -d $SOURCES", "Calculating size $SOURCE"),
+    "Program Size",
+    "Calculate program size",
+)
+
+env.Depends(target_bin, "size")
 Default(target_bin)

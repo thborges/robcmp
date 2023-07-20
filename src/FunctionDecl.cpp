@@ -13,7 +13,7 @@ Value *FunctionDecl::generate(Function *, BasicBlock *, BasicBlock *allocblock) 
 	if (sym && sym->isDeclaration) {
 		if (sym->params->getNumParams() != parameters->getNumParams()) {
 			yyerrorcpp("The number of function parameters differs between its declaration and definition.", this);
-			yyerrorcpp("The function declarations is here.", sym);
+			yyerrorcpp("The function declaration is here.", sym);
 			return NULL;
 		}
 		for(int i = 0; i < sym->params->getNumParams(); i++) {
@@ -21,13 +21,13 @@ Value *FunctionDecl::generate(Function *, BasicBlock *, BasicBlock *allocblock) 
 			if (p.type != parameters->parameters[i].type) {
 				yyerrorcpp(string_format("Parameter %s has distinct types in declaration '%s' and definition '%s'.",
 					LanguageDataTypeNames[p.type], LanguageDataTypeNames[parameters->parameters[i].type]), this);
-				yyerrorcpp("The function declarations is here.", sym);
+				yyerrorcpp("The function declaration is here.", sym);
 			}
 		}
 		if (tipo != sym->dt) {
 			yyerrorcpp(string_format("Function return type has distinct types in declaration '%s' and definition '%s'.",
 				LanguageDataTypeNames[sym->dt], LanguageDataTypeNames[tipo]), this);
-			yyerrorcpp("The function declarations is here.", sym);
+			yyerrorcpp("The function declaration is here.", sym);
 		}
 		nfunc = mainmodule->getFunction(name);
 	} else {

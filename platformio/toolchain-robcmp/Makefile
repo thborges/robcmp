@@ -8,9 +8,9 @@ ifeq ($(LLVM_LD),)
 	LLVM_LD=$(shell which ld.lld)
 endif
 
-AVR_LD=$(shell which avr-ld)
-ifeq ($(AVR_LD),)
-    $(error "Can't find avr-ld!")
+LLVM_SIZE=$(shell which llvm-size-16)
+ifeq ($(LLVM_SIZE),)
+	LLVM_SIZE=$(shell which llvm-size)
 endif
 
 ifeq ($(LLVM_LD),)
@@ -21,7 +21,11 @@ ifeq ($(LLVM_OBJCOPY),)
     $(error "Can't find llvm-objcopy!")
 endif
 
-TOOLS=$(LLVM_OBJCOPY) $(LLVM_LD) $(AVR_LD) ../../robcmp
+ifeq ($(LLVM_SIZE),)
+    $(error "Can't find llvm-size!")
+endif
+
+TOOLS=$(LLVM_OBJCOPY) $(LLVM_LD) $(LLVM_SIZE) ../../robcmp
 
 ifeq ($(OS),Windows_NT)
     uname_S := Windows
@@ -38,6 +42,8 @@ ifeq ($(uname_S), Linux)
 	SED=sed
 	LIBS=$(shell ./libllvmpath.sh ${LLVM_LD})
 endif
+
+LIBS += ../../lib/*.ld ../../lib/*.o ../../lib/*.rob
 
 version=$(shell cat version)
 

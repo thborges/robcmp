@@ -68,13 +68,19 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 			}
 		} else {
 			Builder->SetInsertPoint(allocblock);
-			leftv = Builder->CreateAlloca(exprv->getType(), 0, name);
+			AllocaInst *newvar = Builder->CreateAlloca(exprv->getType(), 0, name);
+			newvar->setAlignment(Align(1));
+			leftv = newvar;
 			Builder->SetInsertPoint(block);
 			ret = Builder->CreateStore(exprv, leftv, qualifier == qvolatile);
 			
 			if (debug_info) {
+				llvm::DIType *dty = RobDbgInfo.types[dt];
+				if (qualifier == qvolatile) {
+					dty = DBuilder->createQualifiedType(dwarf::DW_TAG_volatile_type, dty);
+				}
 				DILocalVariable *d = DBuilder->createAutoVariable(
-					sp, name, funit, lineno, RobDbgInfo.types[dt], true);
+					sp, name, funit, lineno, dty, true);
 				DBuilder->insertDeclare(leftv, d, DBuilder->createExpression(),
 					DILocation::get(sp->getContext(), lineno, colno, sp), allocblock);
 			}
@@ -92,10 +98,8 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 			return NULL;
 		}
 
-		Type *leftvty = symbol->value->getType();
+		Type *leftvty = robTollvmDataType[symbol->dt];
 		qualifier = symbol->qualifier;
-		if (symbol->pointerType)
-			leftvty = symbol->pointerType;
 		Value *exprv = expr->generate(func, block, allocblock);
 		Value *nvalue;
 

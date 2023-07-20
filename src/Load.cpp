@@ -26,21 +26,12 @@ Value* Load::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 			return NULL;
 		}
 	}
-
-	Type *ty;
-	bool vol = rsym->qualifier == qvolatile;
-	if (auto *lvalue = dyn_cast<AllocaInst>(sym))
-		ty = lvalue->getAllocatedType();
-	else if (auto *lvalue = dyn_cast<GlobalVariable>(sym))
-		ty = lvalue->getValueType();
-	else if (rsym->pointerType != NULL)
-		ty = rsym->pointerType;
-	else {
-		printf("ERR: Going to return NULL!\n");
-	}
 	
 	RobDbgInfo.emitLocation(this);
 	Builder->SetInsertPoint(block);
+	
+	bool vol = rsym->qualifier == qvolatile;
+	Type *ty = robTollvmDataType[rsym->dt];
 	return Builder->CreateLoad(ty, sym, vol, ident);
 }
 

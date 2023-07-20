@@ -11,23 +11,26 @@ Value *Pointer::generate(Function *func, BasicBlock *block, BasicBlock *allocblo
 	}
 
     // generate code to produce the address
-    Value *addri = address->generate(func, block, allocblock);
-    if (addri == NULL) {
+    Value *addr = address->generate(func, block, allocblock);
+    if (addr == NULL) {
         yyerrorcpp("Unable to compute the address for '" + name + "' register.", this);
         return NULL;
     }
 
+    Type *targetPointerType = robTollvmDataType[currentTarget.pointerType];
     Value *addrp = NULL;
-    if (Constant *addrc = dyn_cast<Constant>(addri))
-        addrp = ConstantExpr::getIntToPtr(addrc, Type::getInt64PtrTy(global_context)); // FIXME: What is the method to get an opaque pointer type?
+    if (Constant *addrc = dyn_cast<Constant>(addr))
+        addrp = ConstantExpr::getIntToPtr(addrc, targetPointerType);
     else
-        addrp = new IntToPtrInst(addri, Type::getInt64PtrTy(global_context), name, allocblock);
+        addrp = new IntToPtrInst(addr, targetPointerType, name, allocblock);
         
     Type *ty = robTollvmDataType[type];
     DataQualifier vol = isVolatile ? qvolatile : qnone;
     
-    RobSymbol *rs = new RobSymbol(addrp, vol, ty);
+    RobSymbol *rs = new RobSymbol(addrp, vol);
     rs->structure = structure;
+    rs->setLocation(this);
+    rs->dt = type;
     tabelasym[allocblock][name] = rs;
     
     return addrp;

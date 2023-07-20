@@ -38,8 +38,8 @@ Value *CmpOp::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 	else {
 		// left and right are integers
 		isFloatPointCmp = false;
-		unsigned tlbw = dyn_cast<IntegerType>(tl)->getBitWidth();
-		unsigned trbw = dyn_cast<IntegerType>(tr)->getBitWidth();
+		unsigned tlbw = tl->getIntegerBitWidth();
+		unsigned trbw = tr->getIntegerBitWidth();
 		if (tlbw > trbw)
 			rexp = Coercion::Convert(rexp, tl, block, rexpn);
 		else if (tlbw < trbw)

@@ -16,7 +16,7 @@ Function *AttachInterrupt::fattach = NULL;
 char *build_filename;
 char *build_outputfilename;
 bool debug_info;
-enum SupportedTargets currentTarget;
+enum SupportedTargets currentTargetId;
 
 int main(int argc, char *argv[]) {
 
@@ -63,10 +63,10 @@ int main(int argc, char *argv[]) {
 	}
 
 	// set current target
-	currentTarget = native; //native
+	currentTargetId = native; //native
 	for(int t = native; t < __last_target; t++) {
 		if (strcmp(targetarch, supportedTargets[t].name) == 0) {
-			currentTarget = static_cast<enum SupportedTargets>(t);
+			currentTargetId = static_cast<enum SupportedTargets>(t);
 			break;
 		}
 	}

@@ -14,6 +14,10 @@ public:
         colno = yycolno;
     }
 
+    SourceLocation(location_t l) {
+        setLocation(l);
+    }
+
     virtual int getLineNo() {
 		return lineno;
 	}

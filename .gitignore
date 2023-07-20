@@ -58,3 +58,4 @@ llvm-objcopy
 llvm-ranlib
 avr-ld
 .vscode
+refdatasheets

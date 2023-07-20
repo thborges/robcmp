@@ -15,9 +15,16 @@ Value *FunctionDeclExtern::generate(Function *, BasicBlock *, BasicBlock *allocb
 
 	Type *xtype = robTollvmDataType[tipo];
 	FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
-	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, 0, name, mainmodule);
+	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, 1, name, mainmodule);
+	nfunc->setDSOLocal(true);
 	nfunc->setCallingConv(CallingConv::C);
-	tabelasym[allocblock][name] = new RobSymbol(nfunc);
+
+	RobSymbol *rs = new RobSymbol(nfunc);
+	rs->params = parameters;
+	rs->setLocation(this);
+	rs->isDeclaration = true;
+	rs->dt = tipo;
+	tabelasym[allocblock][name] = rs;
 
 	return nfunc;
 }

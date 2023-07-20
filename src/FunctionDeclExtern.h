@@ -5,11 +5,11 @@
 
 class FunctionDeclExtern: public Node {
 private:
-	int tipo;
+	LanguageDataType tipo;
 	string name;
 	FunctionParams *parameters;
 public:
-	FunctionDeclExtern(int tipo, string name, FunctionParams *fp){
+	FunctionDeclExtern(LanguageDataType tipo, string name, FunctionParams *fp){
 		this->tipo = tipo;
 		this->name = name;
 		this->parameters = fp;

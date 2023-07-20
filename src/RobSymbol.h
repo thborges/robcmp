@@ -4,20 +4,23 @@
 class RobSymbol: public SourceLocation {
 public:
 	Value* value;
-	Type* pointerType;
 	DataQualifier qualifier;
 	unsigned int matrixLines;
 	unsigned int matrixCols;
 	Structure *structure;
 	LanguageDataType dt;
 	LanguageDataType pointee_dt;
+	FunctionParams *params;
+	bool isDeclaration;
     
-	RobSymbol(Value *v, DataQualifier qualifier = qnone, Type *pointerType = NULL): 
-		value(v), qualifier(qualifier), pointerType(pointerType) {
+	RobSymbol(Value *v, DataQualifier qualifier = qnone): 
+		value(v), qualifier(qualifier) {
 		matrixLines = matrixCols = 0;
 		structure = nullptr;
 		dt = tvoid;
 		pointee_dt = tvoid;
+		params = nullptr;
+		isDeclaration = false;
     }
 };
 

@@ -51,6 +51,7 @@ static void update_loc() {
 "true"					{ return TOK_TRUE; }
 "false"					{ return TOK_FALSE; }
 "at"					{ return TOK_AT; }
+"asm"					{ return TOK_ASM; }
 
 "if"					{ return TOK_IF; }
 "else"					{ return TOK_ELSE; }

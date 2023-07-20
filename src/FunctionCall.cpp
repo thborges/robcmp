@@ -21,15 +21,17 @@ Value *FunctionCall::generate(Function *func, BasicBlock *block, BasicBlock *all
 		return NULL;
 	}
 
-	vector<Value*> args;	
+	vector<Value*> args;
 	for (int i = 0; i < parameters->getNumParams(); i++){
 		Value *valor = parameters->getParamElement(i)->generate(func, block, allocblock);
+		Type *pty = robTollvmDataType[symbol->params->getParamType(i)];
+		valor = Coercion::Convert(valor, pty, block, this);
 		args.push_back(valor);
 	}
 	ArrayRef<Value*> argsRef(args);
 
 	RobDbgInfo.emitLocation(this);
 	Builder->SetInsertPoint(block);
-	return Builder->CreateCall(cfunc, argsRef, "fc");
+	return Builder->CreateCall(cfunc, argsRef);
 }
 

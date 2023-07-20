@@ -15,7 +15,7 @@ extern int errorsfound;
 %define api.location.type {location_t}
 %define parse.error verbose
 
-%token TOK_VOID TOK_RETURN TOK_REGISTER TOK_AT TOK_VOLATILE TOK_CONST
+%token TOK_VOID TOK_RETURN TOK_REGISTER TOK_AT TOK_VOLATILE TOK_CONST TOK_ASM
 %token TOK_IF TOK_ELSE
 %token TOK_LOOP TOK_WHILE
 %token TOK_PRINT
@@ -68,7 +68,7 @@ extern int errorsfound;
 %type <ndouble> TOK_DOUBLE
 %type <nldouble> TOK_LDOUBLE
 %type <ident> TOK_IDENTIFIER
-%type <str> TOK_STRING
+%type <str> TOK_STRING asminline
 %type <nint> TOK_STEPPER
 %type <dt> type_f registertype
 %type <field> struct_field
@@ -121,18 +121,18 @@ funcblock : type_f TOK_IDENTIFIER '(' funcparams ')' ';' {
 				$$ = new FunctionDeclExtern($1, $2, $4);
 				$$->setLocation(@type_f);
 			}
-		  | type_f TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}' {
-				$$ = new FunctionDecl($1, $2, $4, $7); 
+		  | type_f TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'[ef] {
+				$$ = new FunctionDecl($1, $2, $4, $7, @ef); 
 				$$->setLocation(@type_f);
 			}
 		  ;
 
-eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}' {	
+eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'[ef] {	
 				char funcname[100];
 				snprintf(funcname, 100, "__callback_int_p%d_e%d", (int)$2, (int)$4);
 				vectorglobal.push_back(new AttachInterrupt($2, funcname, $4));
 				FunctionParams *fps = new FunctionParams();
-				$$ = new FunctionDecl(tvoid, funcname, fps, $6);
+				$$ = new FunctionDecl(tvoid, funcname, fps, $6, @ef);
              }
 		   ;
 
@@ -157,6 +157,7 @@ stmt : gstmt									{ $$ = $1; }
 	 | whileblock								{ $$ = $1; }
 	 | returnblock ';'							{ $$ = $1; }
 	 | printstmt ';'							{ $$ = $1; }
+	 | asminline ';'							{ $$ = new InlineAssembly($1); $$->setLocation(@1); }
 	 | TOK_STEPPER expr ';'						{ $$ = new StepperGoto($1, $2); }
 	 | TOK_SERVO expr ';'						{ $$ = new ServoGoto($2); }
 	 | TOK_IDENTIFIER '[' expr ']' '=' expr ';'	{ $$ = new UpdateArray($1, $3, $6);}
@@ -391,6 +392,8 @@ struct_field : type_f TOK_IDENTIFIER ';' {
 			   }
              ;
 
+asminline : TOK_ASM TOK_STRING { $$ = $2; }
+		  ;
 %%
 
 extern char *build_filename;

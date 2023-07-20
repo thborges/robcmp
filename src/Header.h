@@ -152,18 +152,18 @@ typedef struct {
 	const char *triple;
 	const char *cpu;
 	const char *features;
-	const uint8_t pointerSize;
+	const LanguageDataType pointerType;
 } TargetInfo;
 
-enum SupportedTargets {native, avr48, avr328p, stm32f1, esp32, __last_target};
-extern enum SupportedTargets currentTarget;
+enum SupportedTargets {native, avr328p, stm32f1, esp32, __last_target};
+extern enum SupportedTargets currentTargetId;
+#define currentTarget (supportedTargets[currentTargetId])
 
 static TargetInfo supportedTargets[__last_target] = {
-	{"", "", "", "", 64}, // default target
-	{"avr48", "avr-atmel-none", "atmega48", "+avr4", 16},
-	{"avr328p", "avr-atmel-none", "atmega328p", "+avr5", 16},
-	{"stm32f1", "thumbv7m-none-eabi", "cortex-m3", "", 32},
-	{"esp32",   "xtensa",  "", "", 32},
+	{"", "", "", "", tint64}, // default target
+	{"avr328p", "avr-atmel-none", "atmega328p", "+avr5", tint16},
+	{"stm32f1", "thumbv7m-none-eabi", "cortex-m3", "", tint32},
+	{"esp32",   "xtensa",  "", "", tint32},
 };
 
 static string getTypeName(Type *ty) {
@@ -261,6 +261,7 @@ string string_format(const char *format, Args ... args) {
 #include "Pointer.h"
 #include "FlipOp.h"
 #include "Cast.h"
+#include "InlineAssembly.h"
 
 #include "Visitor.h"
 #include "RecursiveVisitor.h"

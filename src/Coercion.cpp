@@ -59,8 +59,8 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 		}
 		//Generic ExtInt to Int
 		else if (destty->isIntegerTy() && ty->isIntegerTy()){
-			unsigned wty = dyn_cast<IntegerType>(ty)->getBitWidth();
-			unsigned wdestty = dyn_cast<IntegerType>(destty)->getBitWidth();
+			unsigned wty = ty->getIntegerBitWidth();
+			unsigned wdestty = destty->getIntegerBitWidth();
 			if (wty > wdestty){
 				if (Constant *c = dyn_cast<Constant>(v))
 					r = ConstantExpr::getTrunc(c, destty);
@@ -70,9 +70,9 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 			}
 			else if (wty < wdestty) {
 				if (Constant *c = dyn_cast<Constant>(v))
-					r = ConstantExpr::getZExt(c, destty);
+					r = ConstantExpr::getSExt(c, destty);
 				else
-					r = Builder->CreateZExt(v, destty, "zext");
+					r = Builder->CreateSExt(v, destty, "sext");
 			}
 		}
 		else if (!destty->isPointerTy()) {

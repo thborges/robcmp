@@ -56,7 +56,7 @@ void print_llvm_ir(char opt_level) {
 
 	std::string defaultt = sys::getDefaultTargetTriple();
 	supportedTargets[0].triple = defaultt.c_str();
-	TargetInfo ai = supportedTargets[currentTarget];
+	TargetInfo ai = currentTarget;
 
 	std::string Error;
 	auto Target = TargetRegistry::lookupTarget(ai.triple, Error);
@@ -66,7 +66,7 @@ void print_llvm_ir(char opt_level) {
 	}	
 
 	TargetOptions opt;
-	auto RM = Optional<Reloc::Model>();
+	auto RM = optional<Reloc::Model>();
 	auto targetMachine = Target->createTargetMachine(ai.triple, 
 		ai.cpu, ai.features, opt, RM);
 

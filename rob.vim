@@ -7,7 +7,7 @@ if exists("b:current_syntax")
     finish
 endif
 
-syn keyword keywords while loop if delay print return register at volatile const
+syn keyword keywords while loop if delay print return register at volatile const asm
 syn keyword typeKeywords void char int8 int16 int32 int64 long unsigned float double bool
 syn keyword operatorKeywords and or quando esta servo
 syn keyword booleanKeyword true false

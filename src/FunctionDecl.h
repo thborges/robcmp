@@ -9,12 +9,14 @@ private:
 	LanguageDataType tipo;
 	string name;
 	FunctionParams *parameters;
+	SourceLocation endfunction;
 public:
-	FunctionDecl(LanguageDataType tipo, string name, FunctionParams *fp, Node *stmts){
+	FunctionDecl(LanguageDataType tipo, string name, FunctionParams *fp, Node *stmts, SourceLocation ef){
 		this->tipo = tipo;
 		this->stmts = stmts;
 		this->name = name;
 		this->parameters = fp;
+		this->endfunction = ef;
 	}
 	
 	bool isFunctionDecl() {

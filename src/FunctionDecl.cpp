@@ -2,32 +2,61 @@
 
 Value *FunctionDecl::generate(Function *, BasicBlock *, BasicBlock *allocblock) {
 	auto sym = search_symbol(name);
-	if (sym != NULL) {
+	if (sym != NULL && !sym->isDeclaration) {
 		yyerrorcpp("Function/symbol " + name + " already defined.", this);
 		yyerrorcpp(name + " was first defined here.", sym);
 		return NULL;
 	}
 
-	std::vector<Type*> arg_types;
-	if (parameters->getNumParams() != 0)
-		for (int i = 0; i < parameters->getNumParams(); i++)
-			arg_types.push_back(robTollvmDataType[parameters->getParamType(i)]);
-	
+	Function *nfunc;
 	Type *xtype = robTollvmDataType[tipo];
-	FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
+	if (sym && sym->isDeclaration) {
+		if (sym->params->getNumParams() != parameters->getNumParams()) {
+			yyerrorcpp("The number of function parameters differs between its declaration and definition.", this);
+			yyerrorcpp("The function declarations is here.", sym);
+			return NULL;
+		}
+		for(int i = 0; i < sym->params->getNumParams(); i++) {
+			FunctionParam &p = sym->params->parameters[i];
+			if (p.type != parameters->parameters[i].type) {
+				yyerrorcpp(string_format("Parameter %s has distinct types in declaration '%s' and definition '%s'.",
+					LanguageDataTypeNames[p.type], LanguageDataTypeNames[parameters->parameters[i].type]), this);
+				yyerrorcpp("The function declarations is here.", sym);
+			}
+		}
+		if (tipo != sym->dt) {
+			yyerrorcpp(string_format("Function return type has distinct types in declaration '%s' and definition '%s'.",
+				LanguageDataTypeNames[sym->dt], LanguageDataTypeNames[tipo]), this);
+			yyerrorcpp("The function declarations is here.", sym);
+		}
+		nfunc = mainmodule->getFunction(name);
+	} else {
+		std::vector<Type*> arg_types;
+		if (parameters->getNumParams() != 0)
+			for (int i = 0; i < parameters->getNumParams(); i++)
+				arg_types.push_back(robTollvmDataType[parameters->getParamType(i)]);
+		
+		FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
+		nfunc = Function::Create(ftype, Function::ExternalLinkage, 1, name, mainmodule);
+	}
 
-	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, 0, name, mainmodule);
 	nfunc->setDSOLocal(true);
 	llvm::AttrBuilder attrs(global_context);
-	attrs.addAttribute(llvm::Attribute::MinSize);
-	//attrs.addAttribute("stack-protector-buffer-size", llvm::utostr(8));
-	//attrs.addAttribute("frame-pointer", "all");
-	//attrs.addAttribute("no-trapping-math", "true");
-	nfunc->setAttributes(llvm::AttributeList().addFnAttributes(global_context, attrs));
+	attrs.addAttribute(Attribute::MinSize);
+	
+	if (name == "__vectors") { // FIXME: remove after adding functions attributes to language
+		nfunc->setSection(".vectors");
+	}
 
-	RobSymbol *rs = new RobSymbol(nfunc);
-	rs->dt = tipo;
-	tabelasym[allocblock][name] = rs;
+	nfunc->setAttributes(llvm::AttributeList().addFnAttributes(global_context, attrs));
+	nfunc->setCallingConv(CallingConv::C);
+
+	if (!sym)
+		sym = new RobSymbol(nfunc);
+	sym->dt = tipo;
+	sym->params = parameters;
+	sym->isDeclaration = false;
+	tabelasym[allocblock][name] = sym;
 
 	DIFile *funit;
 	DISubprogram *sp;
@@ -38,12 +67,14 @@ Value *FunctionDecl::generate(Function *, BasicBlock *, BasicBlock *allocblock) 
 			getFunctionDIType(), this->lineno, DINode::FlagPrototyped, DISubprogram::SPFlagDefinition);
 		nfunc->setSubprogram(sp);
 		RobDbgInfo.push_scope(funit, sp);
-		RobDbgInfo.emitLocation(nullptr);
 	}
 
 	BasicBlock *falloc = BasicBlock::Create(global_context, "entry", nfunc);
 	BasicBlock *fblock = BasicBlock::Create(global_context, "body", nfunc);
+	
+	RobDbgInfo.emitLocation(this);
 	Builder->SetInsertPoint(falloc);
+
 	unsigned Idx = 0;
 	for (auto &Arg : nfunc->args())
 	{
@@ -51,7 +82,7 @@ Value *FunctionDecl::generate(Function *, BasicBlock *, BasicBlock *allocblock) 
 		LanguageDataType ptype = parameters->getParamType(Idx);
 		
 		Arg.setName(argname);
-		AllocaInst* variable = Builder->CreateAlloca(robTollvmDataType[ptype], 0, argname );
+		AllocaInst* variable = Builder->CreateAlloca(robTollvmDataType[ptype], 0, argname);
 		RobSymbol *rs = new RobSymbol(variable);
 		rs->dt = ptype;
 		tabelasym[falloc][argname] = rs; 
@@ -67,11 +98,8 @@ Value *FunctionDecl::generate(Function *, BasicBlock *, BasicBlock *allocblock) 
 
 		Idx++;
 	}
-	nfunc->setCallingConv(CallingConv::C);
 
-	if (debug_info)
-		RobDbgInfo.emitLocation(stmts);
-
+	RobDbgInfo.emitLocation(stmts);
 	Value *last_block = stmts->generate(nfunc, fblock, falloc);
 	if (!last_block)
 		last_block = fblock;
@@ -79,13 +107,14 @@ Value *FunctionDecl::generate(Function *, BasicBlock *, BasicBlock *allocblock) 
 	// prevent mallformed block at the end without proper return instruction 
 	if (last_block && last_block->getValueID() == Value::BasicBlockVal) {
 		BasicBlock *lb = (BasicBlock*)last_block;
+		Builder->SetInsertPoint(lb);
+		RobDbgInfo.emitLocation(&endfunction);
 		if (lb->getTerminator() == NULL) {
 			if (!xtype->isVoidTy()) {
-				Value *ret = ConstantInt::get(Type::getInt8Ty(global_context), 0);
-				ret = Coercion::Convert(ret, xtype, lb, this);
-				ReturnInst::Create(global_context, ret, lb);
+				Value *ret = ConstantInt::get(xtype, 0);
+				Builder->CreateRet(ret);
 			} else
-				ReturnInst::Create(global_context, NULL, lb);
+				Builder->CreateRetVoid();
 		}
 	}
 

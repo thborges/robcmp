@@ -12,7 +12,7 @@ Value *Cast::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
         return NULL;
 
     Type *destty = robTollvmDataType[dt];
-    Value *ret = Coercion::Convert(exprv, destty, block, expr);
+    Value *ret = Coercion::Convert(exprv, destty, block, expr, true);
 
     if (ret == NULL) {
         yyerrorcpp("Can't cast from '" + getTypeName(exprv->getType()) + "' to '" + 

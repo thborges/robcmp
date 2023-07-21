@@ -8,7 +8,9 @@ private:
 	ComplexIdentifier *complexIdent;
 public:
 	Load(const string i): ident(i), complexIdent(nullptr) {}
-	Load(ComplexIdentifier *ci): complexIdent(ci) {}
+	Load(ComplexIdentifier *ci): complexIdent(ci) {
+		this->ident = complexIdent->names[0];
+	}
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
 

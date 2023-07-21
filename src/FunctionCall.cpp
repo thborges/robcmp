@@ -22,7 +22,7 @@ Value *FunctionCall::generate(Function *func, BasicBlock *block, BasicBlock *all
 	}
 
 	if (symbol->params->getNumParams() != parameters->getNumParams()) {
-		yyerrorcpp(string_format("Function %s has %d parameter(s) but was called with %d.",
+		yyerrorcpp(string_format("Function %s has %d argument(s) but was called with %d.",
 			name.c_str(), symbol->params->getNumParams(), parameters->getNumParams()), this);
 		yyerrorcpp("The function declaration is here.", symbol);
 		return NULL;

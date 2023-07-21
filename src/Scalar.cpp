@@ -29,7 +29,7 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 			yyerrorcpp("Symbol " + id + " must be defined first.", this);
 			return NULL;
 		} else if (fieldit == symbol->structure->fields.end()) {
-			yyerrorcpp("Symbol " + id + "." + idfield + " not declared.", this);
+			yyerrorcpp("Field " + idfield + " not declared in " + id, this);
 			return NULL;
 		} else {
 			field = fieldit->second;

@@ -2,8 +2,15 @@
 
 LanguageDataType Load::getResultType(BasicBlock *block, BasicBlock *allocblock) {
 	auto rsym = search_symbol(ident, allocblock, block);
-	if (rsym)
-		return rsym->dt;
+	if (rsym) {
+		if (complexIdent) {
+			auto it = rsym->structure->fields.find(complexIdent->names[1]);
+			if (it != rsym->structure->fields.end()) {
+				return it->second.fieldDataType;
+			}
+		} else
+			return rsym->dt;
+	}
 	return tvoid;
 }
 
@@ -12,6 +19,19 @@ Value* Load::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 	if (rsym == NULL) {
 		yyerrorcpp("Variable " + ident + " not defined.", this);
 		return NULL;
+	}
+	Field field;
+
+	// semantic validation of complexIdent
+	if (complexIdent) {
+		string idfield = complexIdent->names[1];
+		auto fieldit = rsym->structure->fields.find(idfield);
+		if (fieldit == rsym->structure->fields.end()) {
+			yyerrorcpp("Field " + idfield + " not declared in " + ident, this);
+			return NULL;
+		} else {
+			field = fieldit->second;
+		}
 	}
 
 	auto sym = rsym->value;
@@ -29,10 +49,25 @@ Value* Load::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 	
 	RobDbgInfo.emitLocation(this);
 	Builder->SetInsertPoint(block);
-	
+
 	bool vol = rsym->qualifier == qvolatile;
 	Type *ty = robTollvmDataType[rsym->dt];
-	return Builder->CreateLoad(ty, sym, vol, ident);
+	Value *v = Builder->CreateLoad(ty, sym, vol, ident);
+
+	if (complexIdent) {
+		/* this code does:
+		 *   v = symbol->value << pointerbits - field_start - field_width
+		 *   v = v >> pointer_bits - field_width
+		 */
+		int bs = LanguageDataTypeBitWidth[rsym->dt] - field.bitWidth;
+		if (bs - field.startBit > 0)
+			v = Builder->CreateShl(v, ConstantInt::get(ty, bs - field.startBit));
+		if (bs > 0)
+			v = Builder->CreateAShr(v, ConstantInt::get(ty, bs));
+		v = Builder->CreateTrunc(v, robTollvmDataType[field.fieldDataType]);
+	}
+
+	return v;
 }
 
 void Load::accept(Visitor &v) {

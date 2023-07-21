@@ -6,6 +6,7 @@ class Stmts: public Node {
 private:
 	std::vector<Node *> stmts;
 public:
+	Stmts() {};
 	Stmts(Node *s);
 
 	virtual std::vector<Node *> const& children() const override;

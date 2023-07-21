@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 	int i = 1;
 	while (i < argc) {
 		if (strncmp(argv[i], "-O", 2) == 0) {
-			if (strlen(argv[1]) > 2)
+			if (strlen(argv[i]) > 2)
 				optimization = argv[i][2];
 		}
 		else if (strncmp(argv[i], "-a", 2) == 0) {

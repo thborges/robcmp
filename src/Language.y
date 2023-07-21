@@ -76,8 +76,6 @@ extern int errorsfound;
 %type <complexIdent> complex_identifier
 %type <str> error
 
-%precedence IFX
-%precedence TOK_ELSE
 %start programa
 
 %%
@@ -255,21 +253,36 @@ returnblock : TOK_RETURN expr			{ $$ = new Return($2); }
 			| TOK_RETURN logicexpr		{ $$ = new Return($2); }
 			;
 
-condblock : TOK_IF '(' logicexpr ')' stmt %prec IFX				{ $$ = new If($3, $5, NULL); }
-		  | TOK_IF '(' logicexpr ')' stmt elseblock				{ $$ = new If($3, $5, $6); }
-		  | TOK_IF '(' logicexpr ')' '{' stmts '}' %prec IFX		{ $$ = new If($3, $6, NULL); }
-		  | TOK_IF '(' logicexpr ')' '{' stmts '}' elseblock		{ $$ = new If($3, $6, $8); }
+condblock : TOK_IF logicexpr '{' stmts '}' {
+			  $logicexpr->setLocation(@logicexpr);
+			  $stmts->setLocation(@stmts);
+			  $$ = new If($logicexpr, $stmts, NULL);
+			  $$->setLocation(@TOK_IF);
+			}
+		  | TOK_IF logicexpr '{' stmts '}' elseblock {
+			  $logicexpr->setLocation(@logicexpr);
+			  $stmts->setLocation(@stmts);
+			  $$ = new If($logicexpr, $stmts, $elseblock);
+			  $$->setLocation(@TOK_IF);
+			}
 		  ;
 
-elseblock : TOK_ELSE stmt				{ $$ = $2; }
-		  | TOK_ELSE '{' stmts '}'		{ $$ = $3; }
+elseblock : TOK_ELSE '{' stmts '}' {
+			  $$ = $stmts;
+			  $$->setLocation(@stmts);
+			}
 		  ;
 
-whileblock : TOK_WHILE '(' logicexpr ')' '{' stmts '}' {
+whileblock : TOK_WHILE logicexpr '{' stmts '}' {
 			   $logicexpr->setLocation(@logicexpr);
 			   $$ = new While($logicexpr, $stmts);
 			   $$->setLocation(@TOK_WHILE);
 			 }
+		   | TOK_WHILE logicexpr ';' {
+			   $logicexpr->setLocation(@logicexpr);
+			   $$ = new While($logicexpr, new Stmts());
+			   $$->setLocation(@TOK_WHILE);
+		     }
 		   | TOK_LOOP '{' stmts '}' {
 		       $$ = new Loop($stmts);
 			   $$->setLocation(@TOK_LOOP);

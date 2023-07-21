@@ -97,8 +97,12 @@ void print_llvm_ir(char opt_level) {
 		default : ol = OptimizationLevel::Oz; break;
 	}
 
-	ModulePassManager modulePassManager =
-		passBuilder.buildPerModuleDefaultPipeline(ol);
+	ModulePassManager modulePassManager;
+	if (ol == OptimizationLevel::O0)
+		modulePassManager = passBuilder.buildO0DefaultPipeline(ol);
+	else
+		modulePassManager = passBuilder.buildPerModuleDefaultPipeline(ol);
+
 	modulePassManager.run(*mainmodule, moduleAnalysisManager);
 
 	if (build_outputfilename) {

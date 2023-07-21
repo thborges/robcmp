@@ -12,20 +12,20 @@ Value *FunctionDecl::generate(Function *, BasicBlock *, BasicBlock *allocblock) 
 	Type *xtype = robTollvmDataType[tipo];
 	if (sym && sym->isDeclaration) {
 		if (sym->params->getNumParams() != parameters->getNumParams()) {
-			yyerrorcpp("The number of function parameters differs between its declaration and definition.", this);
+			yyerrorcpp("The number of function arguments differs between its declaration and definition.", this);
 			yyerrorcpp("The function declaration is here.", sym);
 			return NULL;
 		}
 		for(int i = 0; i < sym->params->getNumParams(); i++) {
 			FunctionParam &p = sym->params->parameters[i];
 			if (p.type != parameters->parameters[i].type) {
-				yyerrorcpp(string_format("Parameter %s has distinct types in declaration '%s' and definition '%s'.",
+				yyerrorcpp(string_format("Argument %s has distinct type in declaration '%s' and definition '%s'.",
 					LanguageDataTypeNames[p.type], LanguageDataTypeNames[parameters->parameters[i].type]), this);
 				yyerrorcpp("The function declaration is here.", sym);
 			}
 		}
 		if (tipo != sym->dt) {
-			yyerrorcpp(string_format("Function return type has distinct types in declaration '%s' and definition '%s'.",
+			yyerrorcpp(string_format("Function return type has distinct type in declaration '%s' and definition '%s'.",
 				LanguageDataTypeNames[sym->dt], LanguageDataTypeNames[tipo]), this);
 			yyerrorcpp("The function declaration is here.", sym);
 		}

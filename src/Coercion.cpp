@@ -16,7 +16,7 @@ unsigned Coercion::GetFloatingPointBitwidth(Type *ty) {
 	}
 }
 
-Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocation *loc){
+Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocation *loc, bool isCast){
 
 	Value *r = v;
 	Type *ty = v->getType();
@@ -31,7 +31,8 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 				r = ConstantExpr::getFPToSI(c, destty);
 			else
 				r = Builder->CreateFPToSI(v, destty, "fptosi");
-			yywarncpp("Float point converted to integer.", loc);
+			if (!isCast)
+				yywarncpp("Float point converted to integer.", loc);
 		}
 		//Integer to Float
 		else if (destty->isFloatingPointTy() && ty->isIntegerTy()){
@@ -54,7 +55,8 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 					r = ConstantExpr::getFPTrunc(c, destty);
 				else
 					r = Builder->CreateFPTrunc(v, destty, "fptrunc");
-				yywarncpp("Float point value truncated.", loc);
+				if (!isCast)
+					yywarncpp("Float point value truncated.", loc);
 			}
 		}
 		//Generic ExtInt to Int
@@ -66,7 +68,8 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 					r = ConstantExpr::getTrunc(c, destty);
 				else
 					r = Builder->CreateTrunc(v, destty, "trunc");
-				yywarncpp("Integer value truncated.", loc);
+				if (!isCast)
+					yywarncpp("Integer value truncated.", loc);
 			}
 			else if (wty < wdestty) {
 				if (Constant *c = dyn_cast<Constant>(v))

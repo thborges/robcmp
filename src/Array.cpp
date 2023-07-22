@@ -6,8 +6,8 @@ Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 	Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size);
 	
 	//Get Type of elements in Array of Elements, and define as I.
-	LanguageDataType pointee_dt = elements->getArrayType(block, allocblock);
-	Type* I = robTollvmDataType[pointee_dt];
+	BasicDataType pointee_dt = elements->getArrayType(block, allocblock);
+	Type* I = buildTypes->llvmType(pointee_dt);
 
 	//Declare array type.
 	ArrayType* arrayType = ArrayType::get(I, size);
@@ -54,10 +54,10 @@ Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 		var = gv;
 
 		if (debug_info) {
-			 //FIXME: Replace 16 with pointer size for platform!
-			auto di_ptr = DBuilder->createPointerType(RobDbgInfo.types[pointee_dt], 16);
+			auto di_ptr = DBuilder->createPointerType(buildTypes->diType(pointee_dt), 
+				buildTypes->bitWidth(currentTarget.pointerType));
 			auto *d = DBuilder->createGlobalVariableExpression(sp, name, "",
-				funit, lineno, di_ptr, false);
+				funit, this->getLineNo(), di_ptr, false);
 			gv->addDebugInfo(d);
 		}
 

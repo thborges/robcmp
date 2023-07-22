@@ -14,7 +14,7 @@ public:
 	unsigned getStructSize () const;
 	unsigned getElementCount (int position) const;
 	Node *getStructElement (int position) const;
-	LanguageDataType getArrayType(BasicBlock *block, BasicBlock *allocblock) const;
+	BasicDataType getArrayType(BasicBlock *block, BasicBlock *allocblock) const;
 };
 
 #endif

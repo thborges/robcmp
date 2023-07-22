@@ -50,4 +50,6 @@ public:
 	}
 };
 
+extern std::vector<AttachInterrupt *> vectorglobal;
+
 #endif

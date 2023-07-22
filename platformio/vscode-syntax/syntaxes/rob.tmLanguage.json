@@ -42,13 +42,20 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.rob",
-				"match": "\\b(while|loop|if|delay|print|return|register|at|volatile|const)\\b"
+				"match": "\\b(while|loop|if|delay|print|return|register|at|volatile|const|type|interface|implements|use)\\b"
 			}]
 		},
 		"types": {
 			"patterns": [{
 				"name": "storage.type.rob",
 				"match": "\\b(void|char|int8|int16|int32|int64|long|unsigned|float|double|bool)\\b"
+			},
+			{
+				"match": "(\\w+)\\s+(\\w+)[\\(\\),]",
+				"captures": {
+					"1": { "name": "storage.type.rob" },
+					"2": { "name": "variable.name.rob" }
+				}
 			}]
 		},
 		"numeric-consts": {
@@ -60,7 +67,7 @@
 		"functions": {
 			"patterns": [{
 				"name": "support.function.rob",
-				"match": "\\b([a-zA-Z_][a-zA-Z0-9_]*(?=\\())\\b"
+				"match": "\\b(\\w+(?=\\())\\b"
 			}]
 		},
 		"ident": {

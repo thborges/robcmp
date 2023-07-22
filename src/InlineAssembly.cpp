@@ -1,7 +1,7 @@
 #include "Header.h"
 
 Value *InlineAssembly::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-    Type *voidty = robTollvmDataType[tvoid];
+    Type *voidty = buildTypes->llvmType(tvoid);
 	std::vector<Type*> arg_types;
 	FunctionType *ftype = FunctionType::get(voidty, ArrayRef<Type*>(arg_types), false);
     InlineAsm *asmcall = InlineAsm::get(ftype, assembly, "", false, false, InlineAsm::AD_ATT);

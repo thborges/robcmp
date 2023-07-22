@@ -18,7 +18,7 @@ public:
 
 	virtual void accept(Visitor& v) override;
 
-	virtual LanguageDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override;
+	virtual BasicDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override;
 
 	bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override;
 };

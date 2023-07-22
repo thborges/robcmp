@@ -4,19 +4,9 @@
 
 #include "Header.h"
 
-int errorsfound = 0;
-int yycolno = 0;
-int yycolnew = 0;
-extern int yyparse();
-extern FILE *yyin;
 void print_llvm_ir(char opt_level);
 Function *AttachInterrupt::fattach = NULL;
-
-// file name
-char *build_filename;
-char *build_outputfilename;
 bool debug_info;
-enum SupportedTargets currentTargetId;
 
 int main(int argc, char *argv[]) {
 
@@ -36,6 +26,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Compila o arquivo passado como parâmetro
+	FILE *source = NULL;
 	int i = 1;
 	while (i < argc) {
 		if (strncmp(argv[i], "-O", 2) == 0) {
@@ -53,27 +44,15 @@ int main(int argc, char *argv[]) {
 		}
 		else {
 			build_filename = argv[i];
-			yyin = fopen(build_filename, "r");
-			if (yyin == NULL) {
-				fprintf(stderr, "Could not open file %s.\n", build_filename);
-				exit(1);
-			}
 		}
 		i++;
 	}
 
-	// set current target
-	currentTargetId = native; //native
-	for(int t = native; t < __last_target; t++) {
-		if (strcmp(targetarch, supportedTargets[t].name) == 0) {
-			currentTargetId = static_cast<enum SupportedTargets>(t);
-			break;
-		}
-	}
+	// set current target and basic build types
+	initTarget(targetarch);
 
-	yyparse();
-	if (yyin)
-		fclose(yyin);
+	if (!parseFile(build_filename))
+		exit(1);
 
 	if (errorsfound > 0) {
 		fprintf(stderr, "%d error(s) found.\n", errorsfound);

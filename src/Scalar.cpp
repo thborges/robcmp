@@ -40,7 +40,7 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 	if (symbol == NULL) {
 		Value *ret, *leftv;
 		Value *exprv = expr->generate(func, block, allocblock);
-		LanguageDataType dt = expr->getResultType(block, allocblock);
+		BasicDataType dt = expr->getResultType(block, allocblock);
 
 		if (!exprv)
 			return NULL;
@@ -56,13 +56,13 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 			if (qualifier == qconst)
 				ret = leftv = exprvc;
 			else {
-				GlobalVariable *gv = new GlobalVariable(*mainmodule, robTollvmDataType[dt],
+				GlobalVariable *gv = new GlobalVariable(*mainmodule, buildTypes->llvmType(dt),
 					false, GlobalValue::CommonLinkage, exprvc, name);
 				ret = leftv = gv;
 
 				if (debug_info) {
 					auto *d = DBuilder->createGlobalVariableExpression(sp, name, "",
-						funit, lineno, RobDbgInfo.types[dt], false);
+						funit, getLineNo(), buildTypes->diType(dt), false);
 					gv->addDebugInfo(d);
 				}
 			}
@@ -75,14 +75,14 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 			ret = Builder->CreateStore(exprv, leftv, qualifier == qvolatile);
 			
 			if (debug_info) {
-				llvm::DIType *dty = RobDbgInfo.types[dt];
+				llvm::DIType *dty = buildTypes->diType(dt);
 				if (qualifier == qvolatile) {
 					dty = DBuilder->createQualifiedType(dwarf::DW_TAG_volatile_type, dty);
 				}
 				DILocalVariable *d = DBuilder->createAutoVariable(
-					sp, name, funit, lineno, dty, true);
+					sp, name, funit, getLineNo(), dty, true);
 				DBuilder->insertDeclare(leftv, d, DBuilder->createExpression(),
-					DILocation::get(sp->getContext(), lineno, colno, sp), allocblock);
+					DILocation::get(sp->getContext(), getLineNo(), getColNo(), sp), allocblock);
 			}
 		}
 
@@ -98,7 +98,7 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 			return NULL;
 		}
 
-		Type *leftvty = robTollvmDataType[symbol->dt];
+		Type *leftvty = buildTypes->llvmType(symbol->dt);
 		qualifier = symbol->qualifier;
 		Value *exprv = expr->generate(func, block, allocblock);
 		Value *nvalue;
@@ -112,7 +112,7 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 			 */
 
 			// Coerce the left side to the field size
-			exprv = Coercion::Convert(exprv, robTollvmDataType[field.fieldDataType], block, expr);
+			exprv = Coercion::Convert(exprv, buildTypes->llvmType(field.fieldDataType), block, expr);
 			// Expand to the left side size
 			exprv = Coercion::Convert(exprv, leftvty, block, expr);
 			

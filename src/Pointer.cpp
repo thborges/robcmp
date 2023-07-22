@@ -17,14 +17,14 @@ Value *Pointer::generate(Function *func, BasicBlock *block, BasicBlock *allocblo
         return NULL;
     }
 
-    Type *targetPointerType = robTollvmDataType[currentTarget.pointerType];
+    Type *targetPointerType = buildTypes->llvmType(currentTarget.pointerType);
     Value *addrp = NULL;
     if (Constant *addrc = dyn_cast<Constant>(addr))
         addrp = ConstantExpr::getIntToPtr(addrc, targetPointerType);
     else
         addrp = new IntToPtrInst(addr, targetPointerType, name, allocblock);
         
-    Type *ty = robTollvmDataType[type];
+    Type *ty = buildTypes->llvmType(type);
     DataQualifier vol = isVolatile ? qvolatile : qnone;
     
     RobSymbol *rs = new RobSymbol(addrp, vol);

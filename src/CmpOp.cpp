@@ -1,5 +1,6 @@
 
 #include "Header.h"
+#include "Language_gen_y.hpp"
 
 CmpOp::CmpOp (Node *l, int op, Node *r) : lexpn(l), rexpn(r) {
 	this->op = op;

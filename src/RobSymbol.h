@@ -8,8 +8,8 @@ public:
 	unsigned int matrixLines;
 	unsigned int matrixCols;
 	Structure *structure;
-	LanguageDataType dt;
-	LanguageDataType pointee_dt;
+	BasicDataType dt;
+	BasicDataType pointee_dt;
 	FunctionParams *params;
 	bool isDeclaration;
     

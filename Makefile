@@ -30,17 +30,25 @@ BIN = .
 #FLAGS=-O3 -march=native -flto
 DFLAGS=-ggdb -O0 -std=c++17
 
+SCANNERS=src/Language_gen.y src/LanguageUse_gen.y
 CPPS=$(patsubst src/%.cpp,src/out/%.o,$(wildcard ${SRC}/*.cpp))
-YACS=$(patsubst src/%.y,src/out/%_y.o,$(wildcard ${SRC}/*.y))
+YACS=$(patsubst src/%.y,src/out/%_y.o,$(SCANNERS))
 LEXS=$(patsubst src/%.l,src/out/%_l.o,$(wildcard ${SRC}/*.l))
 
 all: src/out $(COMPILER_NAME)
 
 %_l.cpp: %.l
-	lex -o $@ $<
+	flex -o $@ $<
+
+.PRECIOUS : %_l.cpp %_y.cpp %_y.hpp
+
+main.cpp : %_l.cpp %_y.cpp %_y.hpp
+
+%_gen.y : src/LanguageHeader.y %.y
+	cat $^ > $@
 
 %_y.cpp: %.y
-	bison -Wall --report=state --defines=$(SRC)/bison.hpp -o $@ $<
+	bison -Wall --defines=$(patsubst %.cpp,%.hpp,$@) -o $@ $<
 	$(SED) 's/\"syntax\ error\"/COLOR_RED\ \"syntax\ error\"\ COLOR_RESET/' -i $@
 	$(SED) 's/\"syntax\ error:/COLOR_RED\ \"syntax\ error:\"\ COLOR_RESET\"/' -i $@
 	$(SED) 's/\"syntax\ error,/COLOR_RED\ \"syntax\ error:\"\ COLOR_RESET\"/' -i $@
@@ -55,7 +63,6 @@ src/out:
 	mkdir ${SRC}/out
 
 clean:
-	rm -f ${SRC}/*_y.cpp ${SRC}/*_l.cpp ${SRC}/bison.hpp ${SRC}/out/*.o
+	rm -f ${SRC}/*_y.{hpp,cpp} ${SRC}/*_l.{hpp,cpp} ${SRC}/out/*.o
 
 #.SILENT:
-.PRECIOUS: bison.hpp

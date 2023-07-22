@@ -1,18 +1,16 @@
-#ifndef __PROGRAM_H__
-#define __PROGRAM_H__
+
+#pragma once
+
 #include "Node.h"
 
 class Program : public Node {
-private:
-	Stmts *stmts;
 public:
-	Program(Stmts *stmts);
-	
+
+	Program(Stmts &&stmts): Node(std::move(stmts.node_children)) {}
+
 	void declara_auxiliary_c_funcs();
 
 	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
 	void generate();
 	
 };
-
-#endif

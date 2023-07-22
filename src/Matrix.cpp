@@ -7,7 +7,7 @@ Value *Matrix::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 	 */
 	
 	//Get Type of elements in Vector of Elements, and define as I.
-	Type* I = robTollvmDataType[melements->getMatrixType(block, allocblock)];
+	Type* I = buildTypes->llvmType(melements->getMatrixType(block, allocblock));
 	
 	// The matrix size
 	unsigned int lines = melements->getLineCount();

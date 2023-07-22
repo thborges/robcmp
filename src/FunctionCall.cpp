@@ -1,6 +1,6 @@
 #include "Header.h"
 
-LanguageDataType FunctionCall::getResultType(BasicBlock *block, BasicBlock *allocblock) {
+BasicDataType FunctionCall::getResultType(BasicBlock *block, BasicBlock *allocblock) {
 	auto symbol = search_symbol(name);
 	if (symbol)
 		return symbol->dt;
@@ -31,7 +31,7 @@ Value *FunctionCall::generate(Function *func, BasicBlock *block, BasicBlock *all
 	vector<Value*> args;
 	for (int i = 0; i < parameters->getNumParams(); i++){
 		Value *valor = parameters->getParamElement(i)->generate(func, block, allocblock);
-		Type *pty = robTollvmDataType[symbol->params->getParamType(i)];
+		Type *pty = buildTypes->llvmType(symbol->params->getParamType(i));
 		valor = Coercion::Convert(valor, pty, block, this);
 		args.push_back(valor);
 	}

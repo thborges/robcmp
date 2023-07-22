@@ -1,6 +1,6 @@
 #include "Header.h"
 
-LanguageDataType Load::getResultType(BasicBlock *block, BasicBlock *allocblock) {
+BasicDataType Load::getResultType(BasicBlock *block, BasicBlock *allocblock) {
 	auto rsym = search_symbol(ident, allocblock, block);
 	if (rsym) {
 		if (complexIdent) {
@@ -51,7 +51,7 @@ Value* Load::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 	Builder->SetInsertPoint(block);
 
 	bool vol = rsym->qualifier == qvolatile;
-	Type *ty = robTollvmDataType[rsym->dt];
+	Type *ty = buildTypes->llvmType(rsym->dt);
 	Value *v = Builder->CreateLoad(ty, sym, vol, ident);
 
 	if (complexIdent) {
@@ -59,12 +59,12 @@ Value* Load::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 		 *   v = symbol->value << pointerbits - field_start - field_width
 		 *   v = v >> pointer_bits - field_width
 		 */
-		int bs = LanguageDataTypeBitWidth[rsym->dt] - field.bitWidth;
+		int bs = buildTypes->bitWidth(rsym->dt) - field.bitWidth;
 		if (bs - field.startBit > 0)
 			v = Builder->CreateShl(v, ConstantInt::get(ty, bs - field.startBit));
 		if (bs > 0)
 			v = Builder->CreateAShr(v, ConstantInt::get(ty, bs));
-		v = Builder->CreateTrunc(v, robTollvmDataType[field.fieldDataType]);
+		v = Builder->CreateTrunc(v, buildTypes->llvmType(field.fieldDataType));
 	}
 
 	return v;

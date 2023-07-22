@@ -6,10 +6,10 @@
 class Cast: public Node {
 private:
     Node *expr;
-    LanguageDataType dt;
+    BasicDataType dt;
 public:
-    Cast(LanguageDataType dt, Node *expr): dt(dt), expr(expr) {}
+    Cast(BasicDataType dt, Node *expr): dt(dt), expr(expr) {}
     virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
     virtual void accept(Visitor &v) override;
-    virtual LanguageDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override;
+    virtual BasicDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override;
 };

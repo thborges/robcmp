@@ -4,7 +4,7 @@
 #include "Header.h"
 
 typedef struct {
-    LanguageDataType fieldDataType;
+    BasicDataType fieldDataType;
     char *fieldName;
     unsigned startBit;
     unsigned bitWidth;

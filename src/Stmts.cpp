@@ -1,35 +1,29 @@
 #include "Header.h"
 
-	Stmts::Stmts(Node *s) {
-		this->stmts.push_back(s);
-	}
+void Stmts::append(Node *s) {
+	node_children.push_back(s);
+	if (s->hasName())
+		update_names = true;
+}
 
-	std::vector<Node *> const& Stmts::children() const {
-		return stmts;
+void Stmts::prepend(Node *s) {
+	// put after function declarations
+	auto last_func = node_children.begin();
+	auto iterator = node_children.begin();
+	while (iterator != node_children.end()) {
+		if ((*iterator)->isFunctionDecl())
+			last_func = iterator;
+		iterator = next(iterator);
 	}
+	last_func = next(last_func);
+	node_children.insert(last_func, s);
+}
 
-	void Stmts::append(Node *s) {
-		stmts.push_back(s);
+Value *Stmts::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+	for(Node *n: node_children) {
+		Value *b = n->generate(func, block, allocblock);
+		if (b && b->getValueID() == Value::BasicBlockVal) 
+			block = (BasicBlock*)b;
 	}
-
-	void Stmts::prepend(Node *s) {
-		// put after function declarations
-		auto last_func = stmts.begin();
-		auto iterator = stmts.begin();
-		while (iterator != stmts.end()) {
-			if ((*iterator)->isFunctionDecl())
-				last_func = iterator;
-			iterator = std::next(iterator);
-		}
-		last_func = std::next(last_func);
-		stmts.insert(last_func, s);
-	}
-
-	Value *Stmts::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-		for(Node *n: stmts) {
-			Value *b = n->generate(func, block, allocblock);
-			if (b && b->getValueID() == Value::BasicBlockVal) 
-				block = (BasicBlock*)b;
-		}
-		return block;
-	}
+	return block;
+}

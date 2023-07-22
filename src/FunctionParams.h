@@ -11,7 +11,7 @@ public:
 	void append(FunctionParam& fp);
 	
 	unsigned getNumParams() const;
-	LanguageDataType getParamType (int position) const;
+	BasicDataType getParamType (int position) const;
 	const char *getParamElement (int position) const;
 };
 

@@ -26,14 +26,14 @@ unsigned MatrixElements::getColumnCount() const {
 	return biggest_r;
 }
 
-LanguageDataType MatrixElements::getMatrixType(BasicBlock *block, BasicBlock *allocblock) const {
+BasicDataType MatrixElements::getMatrixType(BasicBlock *block, BasicBlock *allocblock) const {
 	unsigned intsize = 0;
 	unsigned floatsize = 0;
 	for(auto& j : elements) {
 		for (auto& i : j.array->elements) {
-			LanguageDataType dt = i.value->getResultType(block, allocblock);
-			if (isIntegerDataType(dt) && intsize < LanguageDataTypeBitWidth[dt])
-				intsize = LanguageDataTypeBitWidth[dt];
+			BasicDataType dt = i.value->getResultType(block, allocblock);
+			if (buildTypes->isIntegerDataType(dt) && intsize < buildTypes->bitWidth(dt))
+				intsize = buildTypes->bitWidth(dt);
 			
 			if (floatsize < 32 && dt == tfloat)
 				floatsize = 32;

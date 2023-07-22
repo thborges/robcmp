@@ -5,6 +5,8 @@ void DebugInfo::emitLocation(SourceLocation *s) {
 		return;
 	if (!s)
 		return Builder->SetCurrentDebugLocation(DebugLoc());
+	if (s->getLineNo() == 0)
+		return;
 	DIScope *scope;
 	if (scopes.empty())
 		scope = cunit;

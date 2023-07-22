@@ -1,16 +1,23 @@
-#ifndef __FUNCTIONDECLEXTERN_H__
-#define __FUNCTIONDECLEXTERN_H__
+
+#pragma once
 
 #include "Node.h"
 
-class FunctionDecl: public NamedNode {
+class FunctionImpl: public NamedNode {
 private:
+	Node *stmts;
 	BasicDataType tipo;
 	FunctionParams *parameters;
+	SourceLocation endfunction;
 public:
-	FunctionDecl(BasicDataType tipo, string name, FunctionParams *fp) : NamedNode(name) {
+	FunctionImpl(BasicDataType tipo, string name, FunctionParams *fp, Node *stmts, SourceLocation ef) :
+		NamedNode(name)
+	{
 		this->tipo = tipo;
+		this->stmts = stmts;
 		this->parameters = fp;
+		this->endfunction = ef;
+		this->node_children.push_back(stmts);
 	}
 	
 	virtual bool isFunctionDecl() override {
@@ -19,14 +26,11 @@ public:
 
 	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
 
-	FunctionParams const& getParameters() {
-		return *parameters;
-	}
+	DISubroutineType *getFunctionDIType();
+
+	bool validateImplementation(FunctionDecl *decl);
 
 	virtual BasicDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override {
 		return tipo;
 	}
 };
-
-#endif
-

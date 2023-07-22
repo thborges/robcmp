@@ -1,15 +1,15 @@
-#ifndef __STMTS_H__
-#define __STMTS_H__
+
+#pragma once
+
 #include "Node.h"
 
 class Stmts: public Node {
-private:
-	std::vector<Node *> stmts;
 public:
 	Stmts() {};
-	Stmts(Node *s);
 
-	virtual std::vector<Node *> const& children() const override;
+	Stmts(Node *s) {
+		node_children.push_back(s);
+	}
 
 	void append(Node *s);
 
@@ -17,5 +17,3 @@ public:
 
 	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
 };
-
-#endif

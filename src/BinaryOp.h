@@ -22,7 +22,7 @@ public:
 
 	int getOperator() const { return op; };
 
-	virtual LanguageDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override;
+	virtual BasicDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override;
 
 	virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override;
 };

@@ -12,7 +12,7 @@ class Int1: public Node {
 		virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override {
 			return true;
 		}
-		virtual LanguageDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override {
+		virtual BasicDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override {
 			return tbool;
 		}
 };

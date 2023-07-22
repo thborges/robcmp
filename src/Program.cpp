@@ -1,11 +1,5 @@
 #include "Header.h"
 
-Program::Program(Stmts *stmts) {
-	this->stmts = stmts;
-	node_children.reserve(1);
-	node_children.push_back(stmts);
-}
-
 void Program::declara_auxiliary_c_funcs() {
 	std::vector<Type*> arg_types;
 	FunctionType *ftype;
@@ -97,22 +91,6 @@ Value *Program::generate(Function *func, BasicBlock *block, BasicBlock *allocblo
 
 void Program::generate() {
 
-	// conversion between robcmp data types to llvm data types
-	robTollvmDataType[tvoid]    = Type::getVoidTy(global_context);
-	robTollvmDataType[tbool]    = Type::getInt1Ty(global_context);
-	robTollvmDataType[tchar]    = Type::getInt8Ty(global_context);
-	robTollvmDataType[tint8]    = Type::getInt8Ty(global_context);
-	robTollvmDataType[tint16]   = Type::getInt16Ty(global_context);
-	robTollvmDataType[tint32]   = Type::getInt32Ty(global_context);
-	robTollvmDataType[tint64]   = Type::getInt64Ty(global_context);
-	robTollvmDataType[tint8u]   = Type::getInt8Ty(global_context);
-	robTollvmDataType[tint16u]  = Type::getInt16Ty(global_context);
-	robTollvmDataType[tint32u]  = Type::getInt32Ty(global_context);
-	robTollvmDataType[tint64u]  = Type::getInt64Ty(global_context);
-	robTollvmDataType[tfloat]   = Type::getFloatTy(global_context);
-	robTollvmDataType[tdouble]  = Type::getDoubleTy(global_context);
-	robTollvmDataType[tldouble] = Type::getFP128Ty(global_context);
-
 	mainmodule = new Module(build_filename, global_context);
 	Builder = make_unique<IRBuilder<>>(global_context);
 
@@ -126,20 +104,13 @@ void Program::generate() {
 		
 		// global scope
 		RobDbgInfo.push_scope(RobDbgInfo.cunit->getFile(), RobDbgInfo.cunit);
-		
-		for(int t = 0; t < __ldt_last; t++) {
-			RobDbgInfo.types[t] = DBuilder->createBasicType(
-				LanguageDataTypeNames[t],
-				LanguageDataTypeBitWidth[t],
-				LanguageDataTypeDwarfEnc[t]
-			);
-		}
 	}
 
 	global_alloc = BasicBlock::Create(global_context, "global");
 
 	// generate the program!
-	stmts->generate(NULL, NULL, global_alloc);
+	for(auto n: node_children)
+		n->generate(NULL, NULL, global_alloc);
 
 	if (debug_info)
 		DBuilder->finalize();

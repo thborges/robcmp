@@ -22,9 +22,13 @@ register int8 ddrb at 0x24 {
 }
 
 void wait(int32 q);
+void serial_start(int32 clock, int32 baud_rate);
+void serial_write(int8 c);
 
 int16 main() {
 	arr = {1000000, 500000, 300000, 200000, 100000, 50000};
+
+	serial_start(16000000, 9600);
 
 	/* pin 13 is controlled by bit 5 of DDRB and PORTB registers
 	 * - bit 5 of DDRB indicates if the pin is input (0) or output (1)
@@ -51,5 +55,9 @@ int16 main() {
 				i = 0;
 			}
 		}
+		serial_write(65);
+		serial_write(66);
+		serial_write(67);
+		serial_write(10);
 	}
 }

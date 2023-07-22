@@ -3,13 +3,6 @@
 
 //#define ENABLE_ARDUINO
 //#define ENABLE_PRINT
-#define COLOR_RED     "\x1b[31m"
-#define COLOR_GREEN   "\x1b[32m"
-#define COLOR_YELLOW  "\x1b[33m"
-#define COLOR_BLUE    "\x1b[34m"
-#define COLOR_MAGENTA "\x1b[35m"
-#define COLOR_CYAN    "\x1b[36m"
-#define COLOR_RESET   "\x1b[0m"
 
 #include <iostream>
 #include <fstream>
@@ -34,41 +27,33 @@
 using namespace std;
 using namespace llvm;
 
-/* After adding new types here, go to Program::generate to fill
- * the robTollvmDataType vector */
-enum LanguageDataType {tvoid, tbool, tchar, tint8, tint16, tint32, tint64, 
-  tint8u, tint16u, tint32u, tint64u, tfloat, tdouble, tldouble, tarray,
-  __ldt_last};
+// Program main module and IR Builder
+extern Module* mainmodule;
+extern BasicBlock* global_alloc;
+extern LLVMContext global_context;
+extern std::unique_ptr<IRBuilder<>> Builder;
 
-static bool isIntegerDataType(LanguageDataType dt) {
-	return dt >= tint8 && dt <= tint64u;
-}
+#include "SourceLocation.h"
 
-static bool isFloatDataType(LanguageDataType dt) {
-	return dt >= tfloat && dt <= tldouble;
-}
-
-static const char *LanguageDataTypeNames[__ldt_last] = {"void", "boolean", "char", "int8",
-	"int16", "int32", "int64", "unsigned int8", "unsigned int16",
-	"unsigned int32", "unsigned int64", "float",
-	"double", "long double", "array"};
-
-static const unsigned LanguageDataTypeBitWidth[__ldt_last] = {0, 1, 8, 8,
-	16, 32, 64, 8, 16, 32, 64, 32, 64, 128, 0 /*use currentTarget->pointerSize*/};
-
-static const unsigned LanguageDataTypeDwarfEnc[__ldt_last] = {
-	dwarf::DW_ATE_address, 
-	dwarf::DW_ATE_boolean,
-	dwarf::DW_ATE_unsigned_char,
-	dwarf::DW_ATE_signed, dwarf::DW_ATE_signed, dwarf::DW_ATE_signed, dwarf::DW_ATE_signed,
-	dwarf::DW_ATE_unsigned, dwarf::DW_ATE_unsigned, dwarf::DW_ATE_unsigned, dwarf::DW_ATE_unsigned,
-	dwarf::DW_ATE_float, dwarf::DW_ATE_float, dwarf::DW_ATE_float,
-	dwarf::DW_ATE_address
+// Debug Info
+extern bool debug_info;
+extern std::unique_ptr<DIBuilder> DBuilder;
+struct DebugInfo {
+	DICompileUnit *cunit;
+	vector<DIFile *> files;
+	vector<DIScope *> scopes;
+	void emitLocation(SourceLocation *s);
+	void push_scope(DIFile *f, DIScope *);
+	void pop_scope();
+	DIFile *currFile();
+	DIScope *currScope();
 };
+extern struct DebugInfo RobDbgInfo;
 
-enum DataQualifier {qnone, qconst, qvolatile};
+#include "BuildTypes.h"
+extern std::unique_ptr<BuildTypes> buildTypes;
 
-extern Type* robTollvmDataType[];
+#include "Scanner.h"
 
 class Node;
 class Stmts;
@@ -84,7 +69,7 @@ typedef struct {
 
 typedef struct {
 	const char *name;
-	LanguageDataType type;
+	BasicDataType type;
 } FunctionParam;
 
 typedef struct {
@@ -94,49 +79,13 @@ typedef struct {
 
 #include "Field.h"
 
-typedef struct {
-	int first_line;
-	int first_column;
-	int last_line;
-	int last_column;
-} location_t;
-
-#include "bison.hpp"
-
-extern int yyerror(const char *s);
-extern int yylex();
-extern Node* getNodeForIntConst(int64_t i);
-
 extern char* build_filename;
 extern char* build_outputfilename;
-
-#include "SourceLocation.h"
-
-// Program main module and IR Builder
-extern Module* mainmodule;
-extern BasicBlock* global_alloc;
-extern LLVMContext global_context;
-extern std::unique_ptr<IRBuilder<>> Builder;
-
-// Debug Info
-extern bool debug_info;
-extern std::unique_ptr<DIBuilder> DBuilder;
-struct DebugInfo {
-	DICompileUnit *cunit;
-	DIType *types[__ldt_last];
-	vector<DIFile *> files;
-	vector<DIScope *> scopes;
-	void emitLocation(SourceLocation *s);
-	void push_scope(DIFile *f, DIScope *);
-	void pop_scope();
-	DIFile *currFile();
-	DIScope *currScope();
-};
-extern struct DebugInfo RobDbgInfo;
 
 // symbol table
 #include "RobSymbol.h"
 extern map<BasicBlock*, map<string, RobSymbol*>> tabelasym;
+static Node* getNodeForIntConst(int64_t i);
 
 // arduino functions
 extern Function *analogWrite;
@@ -152,11 +101,11 @@ typedef struct {
 	const char *triple;
 	const char *cpu;
 	const char *features;
-	const LanguageDataType pointerType;
+	const BasicDataType pointerType;
 } TargetInfo;
 
 enum SupportedTargets {native, avr328p, stm32f1, esp32, __last_target};
-extern enum SupportedTargets currentTargetId;
+static enum SupportedTargets currentTargetId;
 #define currentTarget (supportedTargets[currentTargetId])
 
 static TargetInfo supportedTargets[__last_target] = {
@@ -166,30 +115,22 @@ static TargetInfo supportedTargets[__last_target] = {
 	{"esp32",   "xtensa",  "", "", tint32},
 };
 
+static void initTarget(const char *targetarch) {
+	currentTargetId = native; //native
+	for(int t = native; t < __last_target; t++) {
+		if (strcmp(targetarch, supportedTargets[t].name) == 0) {
+			currentTargetId = static_cast<enum SupportedTargets>(t);
+			break;
+		}
+	}
+	buildTypes = make_unique<BuildTypes>(currentTarget.pointerType);
+}
+
 static string getTypeName(Type *ty) {
 	string type_str;
 	llvm::raw_string_ostream rso(type_str);
 	ty->print(rso);
 	return rso.str();
-}
-
-static int yyerrorcpp(const string& s, SourceLocation *n) {
-	string e = COLOR_RED "semantic error: " COLOR_RESET + s;
-	if (n) {
-		yylloc.first_line = n->getLineNo();
-		yylloc.first_column = n->getColNo();
-	}
-	return yyerror(e.c_str());
-}
-
-static void yywarncpp(const string& s, SourceLocation *n) {
-	string e = COLOR_BLUE "semantic warning: " COLOR_RESET + s;
-	if (n) {
-		yylloc.first_line = n->getLineNo();
-		yylloc.first_column = n->getColNo();
-	}
-	fprintf(stderr, "%s:%d:%d %s\n", 
-		build_filename, yylloc.first_line, yylloc.first_column, e.c_str());
 }
 
 static RobSymbol *search_symbol(const string& ident, BasicBlock *firstb = NULL, BasicBlock *secondb = NULL) {
@@ -230,7 +171,7 @@ string string_format(const char *format, Args ... args) {
 #include "Float128.h"
 #include "FunctionCall.h"
 #include "FunctionDecl.h"
-#include "FunctionDeclExtern.h"
+#include "FunctionImpl.h"
 #include "FunctionParams.h"
 #include "If.h"
 #include "Int1.h"
@@ -247,9 +188,9 @@ string string_format(const char *format, Args ... args) {
 #include "OutPort.h"
 #include "ParamsCall.h"
 #include "Print.h"
+#include "Stmts.h"
 #include "Program.h"
 #include "Return.h"
-#include "Stmts.h"
 #include "Scalar.h"
 #include "Semantic.h"
 #include "String.h"
@@ -262,10 +203,23 @@ string string_format(const char *format, Args ... args) {
 #include "FlipOp.h"
 #include "Cast.h"
 #include "InlineAssembly.h"
+#include "Interface.h"
+#include "UserType.h"
 
 #include "Visitor.h"
 #include "RecursiveVisitor.h"
 #include "PrintAstVisitor.h"
+
+static Node* getNodeForIntConst(int64_t i) {
+	if (i >= SCHAR_MIN && i <= SCHAR_MAX)
+		return new Int8(i);
+	else if (i >= SHRT_MIN && i <= SHRT_MAX)
+		return new Int16(i);
+	else if (i >= INT_MIN && i <= INT_MAX)
+		return new Int32(i);
+	else
+		return new Int64(i);
+}
 
 #endif
 

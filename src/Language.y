@@ -1,59 +1,18 @@
-%{
 
-#include <stdlib.h>
-#include <limits.h>
-#include "Header.h"
-#include "2018arm/nodeh_ext.h"
+%name-prefix="MAIN"
+//%define api.prefix {MAIN} // not working in Bison 3.8.2
 
-Node* getNodeForIntConst(int64_t i);
-std::vector<AttachInterrupt *> vectorglobal;
-
-extern int errorsfound;
-%}
-
-%locations
-%define api.location.type {location_t}
-%define parse.error verbose
-
-%token TOK_VOID TOK_RETURN TOK_REGISTER TOK_AT TOK_VOLATILE TOK_CONST TOK_ASM
-%token TOK_IF TOK_ELSE
-%token TOK_LOOP TOK_WHILE
-%token TOK_PRINT
-%token TOK_IN TOK_OUT TOK_STEPPER TOK_SERVO
-%token TOK_DELAY TOK_AND TOK_OR
-%token TOK_IDENTIFIER TOK_FLOAT TOK_DOUBLE TOK_LDOUBLE TOK_INTEGER TOK_STRING TOK_TRUE TOK_FALSE
-%token TOK_FINT8 TOK_FINT16 TOK_FINT32 TOK_FINT64
-%token TOK_FFLOAT TOK_FDOUBLE TOK_FCHAR TOK_FLONG TOK_FUNSIGNED TOK_FBOOL
-
-%token TOK_QUANDO TOK_ESTA
-%token EQ_OP NE_OP GE_OP LE_OP GT_OP LT_OP TOK_LSHIFT TOK_RSHIFT
-
-%union {
-	char *port;
-	char *ident;
-	char *str;
-	int64_t nint;
-	float nfloat;
-	double ndouble;
-	long double nldouble;
-	Node *node;
-	Stmts *stmt;
-	ArrayElement ae;
-	ArrayElements *aes;
-	MatrixElement me;
-	MatrixElements *mes;
-	FunctionParam fp;
-	FunctionParams *fps;
-	ParamsCall *pc;
-	LanguageDataType dt;
-	Field field;
-	Structure *structure;
-	ComplexIdentifier *complexIdent;
+%code provides {
+  #define YY_DECL int MAINlex(YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t yyscanner)
+  YY_DECL;
+  void yyerror(YYLTYPE *yyloc, yyscan_t yyscanner, const char *msg);
 }
 
 %type <node> term term2 expr factor stmt gstmt condblock elseblock whileblock logicexpr
 %type <node> logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock unary
-%type <node> funcblock returnblock registerstmt cast
+%type <node> funcblock func_decl func_impl returnblock registerstmt cast
+%type <node> interfacestmt typestmt
+%type <strings> typestmt_impls
 %type <ae> element
 %type <aes> elements relements
 %type <fp> funcparam
@@ -75,21 +34,23 @@ extern int errorsfound;
 %type <structure> struct_fields
 %type <complexIdent> complex_identifier
 %type <str> error
-
-%start programa
+%type <nodes> intf_decls
 
 %%
 
-programa : gstmts	{ Program p($1);
+programa : gstmts	{ 
 		 			  // interruptions setup
 					  for(AttachInterrupt *a : vectorglobal) {
 						$1->prepend(a);
 					  }
 
+					  Program p(std::move(*$1));
+					  
 					  /*std::fstream fs;
 					  fs.open("ast", std::fstream::out);
 					  PrintAstVisitor(fs).visit(p);
 					  fs.close();*/
+
 					  if (errorsfound == 0)
 						  p.generate(); 
                     };
@@ -106,6 +67,8 @@ gstmt : TOK_IDENTIFIER '=' expr ';'					{ $$ = new Scalar($1, $3, qnone); }
 	  | TOK_IDENTIFIER '=' relements ';'			{ $$ = new Array($1, $3); $$->setLocation(@1); }
 	  | TOK_IDENTIFIER '=' rmatrix ';'				{ $$ = new Matrix($1, $3);}
 	  | registerstmt								{ $$ = $1; }
+	  | interfacestmt								{ $$ = $1; }
+	  | typestmt									{ $$ = $1; }
 	  | fe											{ $$ = $1; }
 	  | error ';'									{ /* error recovery until next ';' */
 													  $$ = new Int8(0); // evita falha de segmentacao
@@ -115,12 +78,14 @@ fe : funcblock	{ $$ = $1; }
    | eventblock	{ $$ = $1; } 
    ;
 
-funcblock : type_f TOK_IDENTIFIER '(' funcparams ')' ';' {
-				$$ = new FunctionDeclExtern($1, $2, $4);
+funcblock : func_decl | func_impl ;
+
+func_decl : type_f TOK_IDENTIFIER '(' funcparams ')' ';' {
+				$$ = new FunctionDecl($1, $2, $4);
 				$$->setLocation(@type_f);
 			}
-		  | type_f TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'[ef] {
-				$$ = new FunctionDecl($1, $2, $4, $7, @ef); 
+func_impl : type_f TOK_IDENTIFIER '(' funcparams ')' '{' stmts '}'[ef] {
+				$$ = new FunctionImpl($1, $2, $4, $7, @ef); 
 				$$->setLocation(@type_f);
 			}
 		  ;
@@ -130,7 +95,7 @@ eventblock : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'[ef] {
 				snprintf(funcname, 100, "__callback_int_p%d_e%d", (int)$2, (int)$4);
 				vectorglobal.push_back(new AttachInterrupt($2, funcname, $4));
 				FunctionParams *fps = new FunctionParams();
-				$$ = new FunctionDecl(tvoid, funcname, fps, $6, @ef);
+				$$ = new FunctionImpl(tvoid, funcname, fps, $6, @ef);
              }
 		   ;
 
@@ -156,8 +121,6 @@ stmt : gstmt									{ $$ = $1; }
 	 | returnblock ';'							{ $$ = $1; }
 	 | printstmt ';'							{ $$ = $1; }
 	 | asminline ';'							{ $$ = new InlineAssembly($1); $$->setLocation(@1); }
-	 | TOK_STEPPER expr ';'						{ $$ = new StepperGoto($1, $2); }
-	 | TOK_SERVO expr ';'						{ $$ = new ServoGoto($2); }
 	 | TOK_IDENTIFIER '[' expr ']' '=' expr ';'	{ $$ = new UpdateArray($1, $3, $6);}
 	 | TOK_IDENTIFIER '[' expr ']' '[' expr ']' '=' expr ';'	{ $$ = new UpdateMatrix($1, $3, $6, $9); }
 
@@ -213,7 +176,6 @@ funcparam : type_f TOK_IDENTIFIER[id] {
 				$$ = FunctionParam{$id, $type_f};
 			}
 		  | TOK_IDENTIFIER[id1] TOK_IDENTIFIER[id2] { 
-				yyerrorcpp(string_format("Invalid type name '%s' for parameter %s.", $id1, $id2), nullptr);
 				$$ = FunctionParam{$2, tvoid};
 		    }
 		  ;
@@ -396,7 +358,7 @@ struct_fields : struct_fields struct_field {
 struct_field : type_f TOK_IDENTIFIER ';' {
 			     $$.fieldDataType = $1;
 				 $$.fieldName = $2;
-				 $$.bitWidth = LanguageDataTypeBitWidth[$1];
+				 $$.bitWidth = buildTypes->bitWidth($1);
 			   }
 			 | type_f TOK_IDENTIFIER ':' TOK_INTEGER ';' {
 			     $$.fieldDataType = $1;
@@ -407,30 +369,45 @@ struct_field : type_f TOK_IDENTIFIER ';' {
 
 asminline : TOK_ASM TOK_STRING { $$ = $2; }
 		  ;
+
+interfacestmt : TOK_INTF TOK_IDENTIFIER '{' intf_decls '}' {
+	$$ = new Interface($TOK_IDENTIFIER, std::move(*$intf_decls));
+	$$->setLocation(@TOK_INTF);
+};
+
+interfacestmt : TOK_INTF TOK_IDENTIFIER '{' '}' {
+	$$ = new Interface($TOK_IDENTIFIER);
+	$$->setLocation(@TOK_INTF);
+};
+
+intf_decls : intf_decls func_decl {
+	$1->push_back($func_decl);
+	$$ = $1;
+};
+
+intf_decls : func_decl {
+	$$ = new vector<Node*>();
+	$$->push_back($func_decl);
+};
+
+typestmt : TOK_TYPE TOK_IDENTIFIER TOK_IMPL typestmt_impls '{' stmts '}' {
+	$$ = new UserType($TOK_IDENTIFIER, std::move(*$stmts), std::move(*$typestmt_impls));
+	$$->setLocation(@TOK_TYPE);
+}
+
+typestmt : TOK_TYPE TOK_IDENTIFIER '{' stmts '}' {
+	$$ = new UserType($TOK_IDENTIFIER, std::move(*$stmts));
+	$$->setLocation(@TOK_TYPE);
+}
+
+typestmt_impls : typestmt_impls ',' TOK_IDENTIFIER {
+	$1->push_back($TOK_IDENTIFIER);
+	$$ = $1;
+}
+
+typestmt_impls : TOK_IDENTIFIER {
+	$$ = new vector<string>();
+	$$->push_back($1);
+}
+
 %%
-
-extern char *build_filename;
-
-int yyerror(const char *s)
-{
-	fprintf(stderr, "%s:%d:%d: %s\n", 
-		build_filename, yylloc.first_line, yylloc.first_column, s);
-	errorsfound++;
-	return 0;
-}
-
-Node* getNodeForIntConst(int64_t i) {
-	if (i >= SCHAR_MIN && i <= SCHAR_MAX)
-		return new Int8(i);
-	else if (i >= SHRT_MIN && i <= SHRT_MAX)
-		return new Int16(i);
-	else if (i >= INT_MIN && i <= INT_MAX)
-		return new Int32(i);
-	else
-		return new Int64(i);
-}
-
-extern "C" int yywrap() {
-	return 1;
-}
-

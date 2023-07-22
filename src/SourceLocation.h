@@ -1,38 +1,42 @@
 
 #pragma once
 
-extern int yylineno;
-extern int yycolno;
+typedef struct {
+	int first_line;
+	int first_column;
+	int last_line;
+	int last_column;
+} location_t;
 
 class SourceLocation {
 protected:
-	int lineno;
-	int colno;
+	location_t sloc;
 public:
     SourceLocation() {
-        lineno = yylineno;
-        colno = yycolno;
+        //TODO: sloc = yylloc;
     }
 
     SourceLocation(location_t l) {
-        setLocation(l);
+        sloc = l;
     }
 
     virtual int getLineNo() {
-		return lineno;
+		return sloc.first_line;
 	}
 
 	virtual int getColNo() {
-		return colno;
+		return sloc.first_column;
 	}
 
 	virtual void setLocation(location_t l) {
-		lineno = l.first_line;
-		colno = l.first_column;
+		sloc = l;
 	}
 	
 	virtual void setLocation(SourceLocation *s) {
-		lineno = s->lineno;
-		colno = s->colno;
+		sloc = s->sloc;
+	}
+
+	virtual location_t *getLoct() {
+		return &sloc;
 	}
 };

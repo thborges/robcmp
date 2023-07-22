@@ -1,6 +1,6 @@
 #include "Header.h"
 
-LanguageDataType LoadArray::getResultType(BasicBlock *block, BasicBlock *allocblock) {
+BasicDataType LoadArray::getResultType(BasicBlock *block, BasicBlock *allocblock) {
 	if (!rsym)
 		rsym = search_symbol(ident, allocblock, block);
 	if (rsym)

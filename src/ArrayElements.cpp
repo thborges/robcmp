@@ -17,13 +17,13 @@ unsigned ArrayElements::getStructSize() const {
 	return elements.size();
 }
 
-LanguageDataType ArrayElements::getArrayType(BasicBlock *block, BasicBlock *allocblock) const {
+BasicDataType ArrayElements::getArrayType(BasicBlock *block, BasicBlock *allocblock) const {
 	unsigned intsize = 0;
 	unsigned floatsize = 0;
 	for(auto& i : elements) {
-		LanguageDataType dt = i.value->getResultType(block, allocblock);
-		if (isIntegerDataType(dt) && intsize < LanguageDataTypeBitWidth[dt])
-			intsize = LanguageDataTypeBitWidth[dt];
+		BasicDataType dt = i.value->getResultType(block, allocblock);
+		if (buildTypes->isIntegerDataType(dt) && intsize < buildTypes->bitWidth(dt))
+			intsize = buildTypes->bitWidth(dt);
 		
 		if (floatsize < 32 && dt == tfloat)
 			floatsize = 32;

@@ -13,7 +13,7 @@ public:
 	unsigned getColumnCount() const;
 	unsigned getLineCount() const;
 	unsigned getElementCount(int position) const;
-	LanguageDataType getMatrixType(BasicBlock *block, BasicBlock *allocblock) const;
+	BasicDataType getMatrixType(BasicBlock *block, BasicBlock *allocblock) const;
 };
 
 #endif

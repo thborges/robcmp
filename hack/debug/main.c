@@ -28,9 +28,11 @@ void wait(long qtd) {
 	}
 }
 
-void main() {
+int main() {
 	volatile ddrb_t *ddrb = (ddrb_t*)0x24;
 	volatile portb_t *portb = (portb_t*)0x25;
+
+	char a = ddrb->pin13;
 
 	ddrb->pin13 = 1; //output
 	char i = 10;

@@ -10,7 +10,7 @@ unsigned FunctionParams::getNumParams() const {
 	return parameters.size();
 };
 
-LanguageDataType FunctionParams::getParamType(int position) const {
+BasicDataType FunctionParams::getParamType(int position) const {
 	return parameters[position].type;
 }
 

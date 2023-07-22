@@ -31,11 +31,13 @@ LLVMContext global_context;
 std::unique_ptr<IRBuilder<>> Builder;
 std::unique_ptr<DIBuilder> DBuilder;
 struct DebugInfo RobDbgInfo;
+std::unique_ptr<BuildTypes> buildTypes;
+
+// interruptions
+std::vector<AttachInterrupt *> vectorglobal;
 
 // symbol table
 std::map<BasicBlock*, std::map<std::string, RobSymbol*>> tabelasym;
-
-Type* robTollvmDataType[__ldt_last];
 
 // arduino functions
 Function *analogWrite;

@@ -1,5 +1,6 @@
 #include "Header.h"
 #include "Int8.h"
+#include "Language_gen_y.hpp"
 
 BinaryOp::BinaryOp(Node *l, int op, Node *r) {
 	this->lhsn = l;
@@ -108,10 +109,10 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 	return Builder->CreateBinOp(llvmop, lhs, rhs, "binop");
 }
 
-LanguageDataType BinaryOp::getResultType(BasicBlock *block, BasicBlock *allocblock) {
-	LanguageDataType lty = lhsn->getResultType(block, allocblock);
-	LanguageDataType rty = rhsn->getResultType(block, allocblock);
-	if (isIntegerDataType(lty) && isIntegerDataType(rty)) {
+BasicDataType BinaryOp::getResultType(BasicBlock *block, BasicBlock *allocblock) {
+	BasicDataType lty = lhsn->getResultType(block, allocblock);
+	BasicDataType rty = rhsn->getResultType(block, allocblock);
+	if (buildTypes->isIntegerDataType(lty) && buildTypes->isIntegerDataType(rty)) {
 		if (op == TOK_LSHIFT || op == TOK_RSHIFT) {
 			// zext the left operator if we know the rside bitwidth
 			Constant *c = NULL;
@@ -121,7 +122,7 @@ LanguageDataType BinaryOp::getResultType(BasicBlock *block, BasicBlock *allocblo
 			}
 			if (c) {
 				int64_t v = c->getUniqueInteger().getZExtValue();
-				if (LanguageDataTypeBitWidth[lty] < v) {
+				if (buildTypes->bitWidth(lty) < v) {
 					if (v >= 8 && v <= 15)
 						return tint16;
 					else if (v >= 16 && v <= 31)
@@ -133,10 +134,10 @@ LanguageDataType BinaryOp::getResultType(BasicBlock *block, BasicBlock *allocblo
 				}
 			}
 		}
-		return LanguageDataTypeBitWidth[lty] > LanguageDataTypeBitWidth[rty] ? lty : rty;
+		return buildTypes->bitWidth(lty) > buildTypes->bitWidth(rty) ? lty : rty;
 		
 	} else {
-		if (isIntegerDataType(lty))
+		if (buildTypes->isIntegerDataType(lty))
 			return rty;
 		else
 			return lty;

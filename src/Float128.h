@@ -13,7 +13,7 @@ public:
 		return true;
 	}
 	
-	virtual LanguageDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override {
+	virtual BasicDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override {
 		return tldouble;
 	}
 };

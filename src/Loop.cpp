@@ -1,12 +1,13 @@
-#include "Header.h"
 
-Loop::Loop(Node *stms) : stmts(stms) {
-	node_children.reserve(1);
-	node_children.push_back(stms);
+#include "Loop.h"
+#include "FunctionImpl.h"
+
+Loop::Loop(vector<Node*> &&stms) : Node(std::move(stms)) {
 }
 
-Value *Loop::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-	BasicBlock *bodyloop = BasicBlock::Create(global_context, "loop_body", func, 0);
+Value *Loop::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
+	BasicBlock *bodyloop = BasicBlock::Create(global_context, "loop_body", 
+		func->getLLVMFunction(), 0);
 	
 	RobDbgInfo.emitLocation(this);
 
@@ -15,7 +16,7 @@ Value *Loop::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 	Builder->CreateBr(bodyloop);
 
 	// alloc instructions inside bodyloop should go to allocblock to prevent repeatedly allocation
-	Value *newb = stmts->generate(func, bodyloop, allocblock); 
+	Value *newb = generateChildren(func, bodyloop, allocblock); 
 
 	// identify last while body block
 	BasicBlock *endbody = bodyloop;
@@ -28,10 +29,7 @@ Value *Loop::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
 		Builder->CreateBr(bodyloop);
 	}
 
-	BasicBlock *endloop = BasicBlock::Create(global_context, "loop_end", func, 0);
+	BasicBlock *endloop = BasicBlock::Create(global_context, "loop_end", 
+		func->getLLVMFunction(), 0);
 	return endloop;
-}
-
-void Loop::accept(Visitor& v) {
-	v.visit(*this);
 }

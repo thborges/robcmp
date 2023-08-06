@@ -1,4 +1,6 @@
-#include "Header.h"
+#include "Coercion.h"
+#include "HeaderGlobals.h"
+#include "BuildTypes.h"
 
 unsigned Coercion::GetFloatingPointBitwidth(Type *ty) {
 	switch (ty->getTypeID()) {
@@ -68,8 +70,10 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 					r = ConstantExpr::getTrunc(c, destty);
 				else
 					r = Builder->CreateTrunc(v, destty, "trunc");
-				if (!isCast)
-					yywarncpp("Integer value truncated.", loc);
+				if (!isCast) {
+					yywarncpp(string_format("Integer value truncated from int%d to int%d.", 
+						wty, wdestty), loc);
+				}
 			}
 			else if (wty < wdestty) {
 				if (Constant *c = dyn_cast<Constant>(v))

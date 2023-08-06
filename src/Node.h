@@ -1,53 +1,42 @@
 
 #pragma once
 
+#include "SourceLocation.h"
+#include "BuildTypes.h"
+
 class Visitor;
 class NamedNode;
 class UserType;
+class FunctionImpl;
 
 class Node : public SourceLocation {
 protected:
+	map<string, NamedNode*> symbols;
 	vector<Node*> node_children;
-	map<string, Node*> symbols;
-	Node *parent = nullptr;
-	bool update_names = false;
+	DataType dt = BuildTypes::undefinedType;
+	set<DataQualifier> qualifiers;
+	Node *scope = nullptr;
 
-	virtual void updateNamedNodes() {
-		for(Node *n : node_children) {
-			if (n->hasName())
-				symbols[n->getName()] = n;
-		}
-	}
+	virtual void setChildrenScope(Node *scope);
 
 public:
 	Node() {}
-	Node(vector<Node *> &&children) : node_children(children) {
-		updateNamedNodes();
-		update_names = false;
-		for(auto c : children)
-			c->setParent(this);
-	}
+	Node(vector<Node*> &&children);
+	Node(vector<Node*> &&children, bool constructor);
 
 	virtual ~Node();
 
-	virtual bool isFunctionDecl();
-
-	virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) {
+	virtual bool isConstExpr() {
 		return false;
 	}
 	
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) = 0;
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
+	
+	virtual Value *generateChildren(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
 
 	virtual std::vector<Node *> const& children() const;
 	
 	virtual void accept(Visitor &);
-
-	virtual BasicDataType getResultType(BasicBlock *block, BasicBlock *allocblock) {
-		/* this method should be overrided in descending classes 
-		 * that define vars/consts
-		 */
-		return tvoid;
-	}
 
 	virtual bool hasName() {
 		return false;
@@ -57,23 +46,47 @@ public:
 		return "";
 	}
 
-	Node *getParent() {
-		return parent;
+	Node *getScope() {
+		return scope;
 	}
 
-	virtual void setParent(Node *p) {
-		parent = p;
+	virtual void setScope(Node *s);
+
+	virtual Node* findSymbol(const string& name, bool recursive = true);
+	
+	virtual Node* findMember(const string& name);
+
+	void addChild(Node *n);
+
+	vector<Node*> const& getChildren() {
+		return node_children;
 	}
 
-	virtual Node* findSymbol(const string& name, bool recursive = true) {
-		auto it = symbols.find(name);
-		if (it != symbols.end()) {
-			return it->second;
-		} else if (recursive && parent)
-			return parent->findSymbol(name);
-		else
-			return nullptr;
+	map<string, NamedNode*> const& getSymbols();
+
+	virtual void addSymbol(NamedNode *nm);
+
+	void setDataType(DataType dt) {
+		this->dt = dt;
 	}
+
+	virtual DataType getDataType() {
+		return dt;
+	}
+
+	void setQualifier(DataQualifier dq) {
+		qualifiers.insert(dq);
+	}
+
+	bool hasQualifier(DataQualifier dq) const {
+		return qualifiers.count(dq) == 1;
+	}
+
+	virtual Value* getLLVMValue(Node *stem) {
+		return NULL;
+	}
+
+	virtual void setLeftValue(Value *lv, const string& name) {}
 
 	friend class UserType;
 	friend class Program;
@@ -86,11 +99,18 @@ protected:
 public:
 	NamedNode(const string &name) : name(name) {}
 
-	NamedNode(const string &name, vector<Node*> &&children) : 
+	NamedNode(const string &name, vector<Node*> &&children) :
 		Node(std::move(children)), name(name) {}
-	
+
+	NamedNode(const string &name, vector<Node*> &&children, bool constructor) :
+		Node(std::move(children), constructor), name(name) {}
+
 	string const getName() const override {
 		return name;
+	}
+
+	void setName(const string& nname) {
+		name = nname;
 	}
 
 	bool hasName() override {

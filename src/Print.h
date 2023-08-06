@@ -7,7 +7,7 @@ private:
 	Node *expr;
 public:
 	Print(Node *e) : expr(e) {}
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
 };
 
 #endif

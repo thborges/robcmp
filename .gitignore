@@ -61,3 +61,4 @@ llvm-ranlib
 avr-ld
 .vscode
 refdatasheets
+build

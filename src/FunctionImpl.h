@@ -2,35 +2,48 @@
 #pragma once
 
 #include "Node.h"
+#include "FunctionDecl.h"
 
-class FunctionImpl: public NamedNode {
+class Visitor;
+
+class FunctionImpl: public FunctionBase {
 private:
-	Node *stmts;
-	BasicDataType tipo;
-	FunctionParams *parameters;
 	SourceLocation endfunction;
-public:
-	FunctionImpl(BasicDataType tipo, string name, FunctionParams *fp, Node *stmts, SourceLocation ef) :
-		NamedNode(name)
-	{
-		this->tipo = tipo;
-		this->stmts = stmts;
-		this->parameters = fp;
-		this->endfunction = ef;
-		this->node_children.push_back(stmts);
-	}
+	DataType thisArgDt = BuildTypes::undefinedType;
+	Value *thisArg = NULL;
+	string userTypeName;
 	
-	virtual bool isFunctionDecl() override {
-		return true;
-	}
-
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+public:
+	FunctionImpl(DataType dt, string name, FunctionParams *fp, vector<Node*> &&stmts, location_t ef,
+		bool constructor = false);
+	
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
 	DISubroutineType *getFunctionDIType();
 
 	bool validateImplementation(FunctionDecl *decl);
 
-	virtual BasicDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override {
-		return tipo;
+	void addThisArgument(DataType dt);
+
+	Value *getThisArg() const {
+		return thisArg;
 	}
+
+	DataType getThisArgDt() const {
+		return thisArgDt;
+	}
+
+	void setUserTypeName(const string& ut) {
+		userTypeName = ut;
+	}
+
+	string getFinalName() {
+		if (userTypeName == "")
+			return name;
+		else
+			return userTypeName + "#" + name;
+	}
+
+	virtual void accept(Visitor& v) override;
+	
 };

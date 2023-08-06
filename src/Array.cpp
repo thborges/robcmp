@@ -1,13 +1,23 @@
-#include "Header.h"
+#include "Array.h"
+#include "ArrayElements.h"
+#include "Coercion.h"
+#include "BackLLVM.h"
+#include "Visitor.h"
+#include "Int16.h"
 
-Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+Array::Array(const char *n, ArrayElements *aes) : LinearDataStructure(n), elements(aes) {
+	NamedConst *nc = new NamedConst("size", getNodeForIntConst(aes->getArraySize()));
+	addChild(nc);
+}
+
+Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	//Create an Array of Type Int8, and Size = size.
 	size = elements->getArraySize();
 	Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size);
 	
 	//Get Type of elements in Array of Elements, and define as I.
-	BasicDataType pointee_dt = elements->getArrayType(block, allocblock);
-	Type* I = buildTypes->llvmType(pointee_dt);
+	element_dt = elements->getArrayType(func);
+	Type* I = buildTypes->llvmType(element_dt);
 
 	//Declare array type.
 	ArrayType* arrayType = ArrayType::get(I, size);
@@ -42,7 +52,6 @@ Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 	auto funit = RobDbgInfo.currFile();
 
 	//Allocate array.
-	Value* var;
 	if (allocblock == global_alloc) { // when alloc is global
 		vector<Constant*> constantValues;
 		constantValues.reserve(elementValues.size());
@@ -51,10 +60,12 @@ Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 		ArrayRef<Constant*> constantRefs(constantValues);
 		GlobalVariable *gv = new GlobalVariable(*mainmodule, arrayType, 
 			false, GlobalValue::ExternalLinkage, ConstantArray::get(arrayType, constantRefs), name);
-		var = gv;
+		//gv->setDSOLocal(true);
+		gv->setAlignment(Align(2));
+		alloc = gv;
 
 		if (debug_info) {
-			auto di_ptr = DBuilder->createPointerType(buildTypes->diType(pointee_dt), 
+			auto di_ptr = DBuilder->createPointerType(buildTypes->diType(getElementDt()), 
 				buildTypes->bitWidth(currentTarget.pointerType));
 			auto *d = DBuilder->createGlobalVariableExpression(sp, name, "",
 				funit, this->getLineNo(), di_ptr, false);
@@ -63,7 +74,7 @@ Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 
 	} else {
 		Builder->SetInsertPoint(allocblock);
-		var = Builder->CreateAlloca(arrayType, 0, name);
+		alloc = Builder->CreateAlloca(arrayType, globalAddrSpace, 0, name);
 
 		RobDbgInfo.emitLocation(this);
 		Builder->SetInsertPoint(block);
@@ -73,16 +84,15 @@ Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 		for(unsigned index = 0; index < elementValues.size(); index++) {
 			Value *idx = ConstantInt::get(Type::getInt32Ty(global_context), index);
 			Value* indexList[2] = {zero, idx};
-			Value* gep = Builder->CreateGEP(arrayType, var, 
+			Value* gep = Builder->CreateGEP(arrayType, alloc, 
 				ArrayRef<Value*>(indexList), "elem");
 			store = Builder->CreateStore(elementValues[index], gep, false);
 		}
 	}
 
-	//Add array to table of symbols.
-	RobSymbol *rs = new RobSymbol(var);
-	rs->dt = tarray;
-	rs->pointee_dt = pointee_dt;
-	tabelasym[allocblock][name] = rs;
-	return var;
+	return alloc;
+}
+
+void Array::accept(Visitor& v) {
+	v.visit(*this);
 }

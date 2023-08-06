@@ -1,4 +1,26 @@
-#include "Header.h"
+#include "Program.h"
+#include "SymbolizeTree.h"
+#include "BackLLVM.h"
+
+Program::Program() {
+	mainmodule = new Module(this->file, global_context);
+	Builder = make_unique<IRBuilder<>>(global_context);
+
+	if (debug_info) {
+		mainmodule->addModuleFlag(Module::Warning, "Debug Info Version", DEBUG_METADATA_VERSION);
+		mainmodule->addModuleFlag(Module::Warning, "Dwarf Version", 2);
+		DBuilder = make_unique<DIBuilder>(*mainmodule);
+		RobDbgInfo.cunit = DBuilder->createCompileUnit(dwarf::DW_LANG_C,
+			DBuilder->createFile(this->file, std::filesystem::current_path().string()),
+			"Robcmp", false, "", 0);
+
+		// global scope
+		RobDbgInfo.push_scope(RobDbgInfo.cunit->getFile(), RobDbgInfo.cunit);
+	}
+	
+	buildTypes = make_unique<BuildTypes>(currentTarget.pointerType);
+	global_alloc = BasicBlock::Create(global_context, "global");
+}
 
 void Program::declara_auxiliary_c_funcs() {
 	std::vector<Type*> arg_types;
@@ -85,31 +107,18 @@ void Program::declara_auxiliary_c_funcs() {
 	i16div->setCallingConv(CallingConv::C);*/
 }
 
-Value *Program::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+Value *Program::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	return NULL;
 }
 
 void Program::generate() {
 
-	mainmodule = new Module(build_filename, global_context);
-	Builder = make_unique<IRBuilder<>>(global_context);
-
-	if (debug_info) {
-		mainmodule->addModuleFlag(Module::Warning, "Debug Info Version", DEBUG_METADATA_VERSION);
-		mainmodule->addModuleFlag(Module::Warning, "Dwarf Version", 2);
-		DBuilder = make_unique<DIBuilder>(*mainmodule);
-		RobDbgInfo.cunit = DBuilder->createCompileUnit(dwarf::DW_LANG_C,
-			DBuilder->createFile(build_filename, std::filesystem::current_path().string()),
-			"Robcmp", false, "", 0);
-		
-		// global scope
-		RobDbgInfo.push_scope(RobDbgInfo.cunit->getFile(), RobDbgInfo.cunit);
-	}
-
-	global_alloc = BasicBlock::Create(global_context, "global");
+	// instrumentation passes
+	SymbolizeTree st;
+	st.visit(*this);
 
 	// generate the program!
-	for(auto n: node_children)
+	for(auto n: getChildren())
 		n->generate(NULL, NULL, global_alloc);
 
 	if (debug_info)

@@ -42,7 +42,7 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.rob",
-				"match": "\\b(while|loop|if|delay|print|return|register|at|volatile|const|type|interface|implements|use)\\b"
+				"match": "\\b(while|loop|if|else|delay|print|return|register|at|volatile|const|type|interface|implements|use|and|or)\\b"
 			}]
 		},
 		"types": {
@@ -62,6 +62,12 @@
 			"patterns": [{
 				"name": "constant.numeric.rob",
 				"match": "\\b(\\d+\\.\\d+L?D?|\\d+|0x[0-9a-fA-F]+|0b[0-1]+)\\b"
+			},{
+				"name": "constant.numeric.rob",
+				"match": "'\\\\?.'"
+			},{
+				"name": "constant.numeric.rob",
+				"match": "\\b(true|false)\\b"
 			}]
 		},
 		"functions": {

@@ -1,101 +1,119 @@
 
 #pragma once
 
-enum BasicDataType {tvoid, tbool, tchar, tint8, tint16, tint32, tint64, 
+#include <cassert>
+#include "HeaderGlobals.h"
+
+typedef int DataType;
+
+enum BasicDataType {tvoid, tbool, tchar, tint2, tint8, tint16, tint32, tint64, 
   tint8u, tint16u, tint32u, tint64u, tfloat, tdouble, tldouble, tarray,
   /* new types here! */
   __bdt_last};
 
 enum DataQualifier {qnone, qconst, qvolatile};
+typedef DataQualifier DataQualifier;
 
 struct DataTypeInfo {
-    const char *name;
+    string name;
     unsigned bitWidth;
     Type *llvmType;
     unsigned dwarfEnc;
     DIType *diType;
+    SourceLocation *sl;
+    bool isDefined;
+    bool isComplex;
+
+    DataTypeInfo() {}
+
+    DataTypeInfo(string name) {
+        this->name = name;
+        this->bitWidth = 0;
+        this->llvmType = NULL;
+        this->dwarfEnc = 0;
+        this->diType = NULL;
+        this->isDefined = false;
+        this->isComplex = false;
+    }
+
+    DataTypeInfo(const char* name, unsigned bitWidth, Type *llvmType, unsigned dwarfEnc):
+        name(name), bitWidth(bitWidth), llvmType(llvmType), dwarfEnc(dwarfEnc), diType(NULL),
+        sl(NULL), isDefined(true), isComplex(false) {};
 };
 
 class BuildTypes {
 private:
-    map<unsigned, DataTypeInfo> tinfo;
-    unsigned nextt = __bdt_last;
-public:
-    BuildTypes(unsigned targetPointerType) {
-        tinfo[tvoid]    = {"void",          0, Type::getVoidTy(global_context),   dwarf::DW_ATE_address};
-        tinfo[tbool]    = {"boolean",       1, Type::getInt1Ty(global_context),   dwarf::DW_ATE_boolean};
-        tinfo[tchar]    = {"char",          8, Type::getInt8Ty(global_context),   dwarf::DW_ATE_unsigned_char};
-        tinfo[tint8]    = {"int8",          8, Type::getInt8Ty(global_context),   dwarf::DW_ATE_signed};
-	    tinfo[tint16]   = {"int16",        16, Type::getInt16Ty(global_context),  dwarf::DW_ATE_signed};
-        tinfo[tint32]   = {"int32",        32, Type::getInt32Ty(global_context),  dwarf::DW_ATE_signed};
-        tinfo[tint64]   = {"int64",        64, Type::getInt64Ty(global_context),  dwarf::DW_ATE_signed};
-        tinfo[tint8u]   = {"unsigned8",     8, Type::getInt8Ty(global_context),   dwarf::DW_ATE_unsigned};
-        tinfo[tint16u]  = {"unsigned16",   16, Type::getInt16Ty(global_context),  dwarf::DW_ATE_unsigned};
-    	tinfo[tint32u]  = {"unsigned32",   32, Type::getInt32Ty(global_context),  dwarf::DW_ATE_unsigned};
-        tinfo[tint64u]  = {"unsigned64",   64, Type::getInt64Ty(global_context),  dwarf::DW_ATE_unsigned};
-        tinfo[tfloat]   = {"float",        32, Type::getFloatTy(global_context),  dwarf::DW_ATE_float};
-        tinfo[tdouble]  = {"double",       64, Type::getDoubleTy(global_context), dwarf::DW_ATE_float};
-        tinfo[tldouble] = {"long double", 128, Type::getFP128Ty(global_context),  dwarf::DW_ATE_float};
+    map<DataType, DataTypeInfo> tinfo;
+    map<string, DataType> namedTypes;
+    DataType nextt = __bdt_last;
 
-        unsigned pts = tinfo[targetPointerType].bitWidth;
-        Type *pty = tinfo[targetPointerType].llvmType;
-        tinfo[tarray]   = {"array", pts, pty, dwarf::DW_ATE_address};
-
-        if (debug_info) {
-            for(int t = 0; t < __bdt_last; t++) {
-                DataTypeInfo &info = tinfo[t];
-                info.diType = DBuilder->createBasicType(info.name, info.bitWidth, info.dwarfEnc);
-            }
-        }
-    }
-
-    unsigned addUserDataType(char *name, unsigned bitWidth, Type* llvmType) {
-        DataTypeInfo info;
-        info.name = name;
-        info.bitWidth = bitWidth;
-        info.llvmType = llvmType;
-        info.dwarfEnc = dwarf::DW_ATE_address;
-        //TODO: info.dwarfEnc = DBuilder->createClassType();
-       
-        unsigned result = nextt;
-        tinfo[nextt++] = info;
+    DataType addDataType(const DataTypeInfo& udt) {
+        DataType result = nextt++;
+        tinfo[result] = udt;
+        namedTypes[udt.name] = result;
         return result;
     }
 
+public:
+    static const DataType undefinedType = -1;
+
+    BuildTypes(DataType targetPointerType);
+
+    DataType addDataType(Node* userType, Type* llvmType);
+
+    DataType getType(const string& name, bool createUndefined = false);
+
     const char *name(unsigned tid) {
-        return tinfo[tid].name;
+        assert(tid != -1 && "Undefined type");
+        return tinfo[tid].name.c_str();
     }
 
     const unsigned bitWidth(unsigned tid) {
+        assert(tid != -1 && "Undefined type");
         return tinfo[tid].bitWidth;
     }
 
-    unsigned dwarfEnc(unsigned tid) {
-        return tinfo[tid].dwarfEnc;
-    }
-
     Type *llvmType(unsigned tid) {
+        assert(tid != -1 && "Undefined type");
         return tinfo[tid].llvmType;
     }
 
     DIType *diType(unsigned tid) {
+        assert(tid != -1 && "Undefined type");
         return tinfo[tid].diType;
     }
 
-    bool isIntegerDataType(unsigned tid) {
+    SourceLocation *location(unsigned tid) {
+        assert(tid != -1 && "Undefined type");
+        return tinfo[tid].sl;
+    }
+
+    bool isIntegerDataType(unsigned tid) const {
         return tid >= tint8 && tid <= tint64u;
     }
 
-    bool isSignedDataType(unsigned tid) {
+    bool isSignedDataType(unsigned tid) const {
         return tid >= tint8 && tid <= tint64;
     }
 
-    bool isUnsignedDataType(unsigned tid) {
+    bool isUnsignedDataType(unsigned tid) const {
         return tid >= tint8u && tid <= tint64u;
     }
 
-    bool isFloatDataType(unsigned tid) {
+    bool isFloatDataType(unsigned tid) const {
 	    return tid >= tfloat && tid <= tldouble;
     }
 
+    bool isComplex(unsigned tid) {
+        return tinfo[tid].isComplex;
+    }
+
 };
+
+// TODO: Replace all places with buildType::name
+static string getTypeName(Type *ty) {
+	string type_str;
+	llvm::raw_string_ostream rso(type_str);
+	ty->print(rso);
+	return rso.str();
+}

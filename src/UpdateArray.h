@@ -2,18 +2,20 @@
 #pragma once
 
 #include "Node.h"
+#include "Array.h"
+#include "Field.h"
 
 class UpdateArray: public Node {
 protected:
-	string ident;
+	Identifier ident;
 	Node *position;
 	Node *expr;
 public:
-	UpdateArray(const char *i, Node *pos, Node *expr): ident(i), position(pos), expr(expr) {}
+	UpdateArray(const char *i, Node *pos, Node *expr);
 
-	virtual Node *getUpdateIndex(RobSymbol *rsym, BasicBlock *block, BasicBlock *allocblock) {
-		return position;
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
+
+	virtual Node *getElementIndex(LinearDataStructure *arr) {
+		return arr->getElementIndex(position, NULL);
 	}
-
-	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
 };

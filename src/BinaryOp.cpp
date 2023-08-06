@@ -1,18 +1,20 @@
-#include "Header.h"
-#include "Int8.h"
+#include "FlexDependencies.h"
 #include "Language_gen_y.hpp"
+
+#include "BinaryOp.h"
+#include "Int8.h"
+#include "Coercion.h"
 
 BinaryOp::BinaryOp(Node *l, int op, Node *r) {
 	this->lhsn = l;
 	this->rhsn = r;
 	this->op = op;
-	this->node_children.reserve(2);
-	this->node_children.push_back(lhsn);
-	this->node_children.push_back(rhsn);
+	this->addChild(lhsn);
+	this->addChild(rhsn);
 }
 
 Value *BinaryOp::logical_operator(enum Instruction::BinaryOps op, 
-	Function *func, BasicBlock *block, BasicBlock *allocblock) {
+	FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
 	Value *lhs = lhsn->generate(func, block, allocblock);
 	Value *rhs = rhsn->generate(func, block, allocblock);
@@ -22,7 +24,7 @@ Value *BinaryOp::logical_operator(enum Instruction::BinaryOps op,
 }
 
 Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint, 
-	enum Instruction::BinaryOps opflt, Function *func, BasicBlock *block, BasicBlock *allocblock) {
+	enum Instruction::BinaryOps opflt, FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
 	Value *lhs = lhsn->generate(func, block, allocblock);
 	Value *rhs = rhsn->generate(func, block, allocblock);
@@ -49,7 +51,7 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 		if (opint == Instruction::Shl || opint == Instruction::LShr) {
 			// zext the left operator if we know the rside bitwidth
 			Constant *c = NULL;
-			if (rhsn->isConstExpr(block, allocblock)) {
+			if (rhsn->isConstExpr()) {
 				Value *v = rhsn->generate(NULL, block, allocblock);
 				c = dyn_cast<Constant>(v);
 			}
@@ -109,42 +111,45 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 	return Builder->CreateBinOp(llvmop, lhs, rhs, "binop");
 }
 
-BasicDataType BinaryOp::getResultType(BasicBlock *block, BasicBlock *allocblock) {
-	BasicDataType lty = lhsn->getResultType(block, allocblock);
-	BasicDataType rty = rhsn->getResultType(block, allocblock);
-	if (buildTypes->isIntegerDataType(lty) && buildTypes->isIntegerDataType(rty)) {
-		if (op == TOK_LSHIFT || op == TOK_RSHIFT) {
-			// zext the left operator if we know the rside bitwidth
-			Constant *c = NULL;
-			if (rhsn->isConstExpr(block, allocblock)) {
-				Value *v = rhsn->generate(NULL, block, allocblock);
-				c = dyn_cast<Constant>(v);
-			}
-			if (c) {
-				int64_t v = c->getUniqueInteger().getZExtValue();
-				if (buildTypes->bitWidth(lty) < v) {
-					if (v >= 8 && v <= 15)
-						return tint16;
-					else if (v >= 16 && v <= 31)
-						return tint32;
-					else if (v >= 32 && v <= 63)
-						return tint64;
-					else
-						return tvoid;
+DataType BinaryOp::getDataType() {
+	if (dt == BuildTypes::undefinedType) {
+		DataType lty = lhsn->getDataType();
+		DataType rty = rhsn->getDataType();
+		if (buildTypes->isIntegerDataType(lty) && buildTypes->isIntegerDataType(rty)) {
+			if (op == TOK_LSHIFT || op == TOK_RSHIFT) {
+				// zext the left operator if we know the rside bitwidth
+				Constant *c = NULL;
+				if (rhsn->isConstExpr()) {
+					Value *v = rhsn->generate(NULL, NULL, NULL);
+					c = dyn_cast<Constant>(v);
+				}
+				if (c) {
+					int64_t v = c->getUniqueInteger().getZExtValue();
+					if (buildTypes->bitWidth(lty) < v) {
+						if (v >= 8 && v <= 15)
+							dt = tint16;
+						else if (v >= 16 && v <= 31)
+							dt = tint32;
+						else if (v >= 32 && v <= 63)
+							dt = tint64;
+						else
+							dt = tvoid;
+					}
 				}
 			}
+			dt = buildTypes->bitWidth(lty) > buildTypes->bitWidth(rty) ? lty : rty;
+			
+		} else {
+			if (buildTypes->isIntegerDataType(lty))
+				dt = rty;
+			else
+				dt = lty;
 		}
-		return buildTypes->bitWidth(lty) > buildTypes->bitWidth(rty) ? lty : rty;
-		
-	} else {
-		if (buildTypes->isIntegerDataType(lty))
-			return rty;
-		else
-			return lty;
 	}
+	return dt;
 }
 
-Value *BinaryOp::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+Value *BinaryOp::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	RobDbgInfo.emitLocation(this);
 	switch (op) {
 		case '+' : return binary_operator(Instruction::Add, Instruction::FAdd, func, block, allocblock);
@@ -163,11 +168,7 @@ Value *BinaryOp::generate(Function *func, BasicBlock *block, BasicBlock *allocbl
 	}
 }
 
-void BinaryOp::accept(Visitor& v) {
-	v.visit(*this);
-}
-
-bool BinaryOp::isConstExpr(BasicBlock *block, BasicBlock *allocblock) {
-	return lhsn->isConstExpr(block, allocblock) && 
-		rhsn->isConstExpr(block, allocblock);
+bool BinaryOp::isConstExpr() {
+	return lhsn->isConstExpr() && 
+		rhsn->isConstExpr();
 }

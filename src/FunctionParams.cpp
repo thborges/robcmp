@@ -1,19 +1,20 @@
-#include "Header.h"
+
+#include "FunctionParams.h"
 
 FunctionParams::FunctionParams() {};
 
-void FunctionParams::append(FunctionParam& e) {
+void FunctionParams::append(FunctionParam *e) {
 	parameters.push_back(e);
 };
 	
-unsigned FunctionParams::getNumParams() const {
+unsigned FunctionParams::getNumParams() {
 	return parameters.size();
 };
 
-BasicDataType FunctionParams::getParamType(int position) const {
-	return parameters[position].type;
+DataType FunctionParams::getParamType(int position) {
+	return parameters[position]->getDataType();
 }
 
-const char *FunctionParams::getParamElement(int position) const {
-	return parameters[position].name;
+const string FunctionParams::getParamName(int position) {
+	return parameters[position]->getName();
 }

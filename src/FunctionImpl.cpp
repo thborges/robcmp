@@ -1,75 +1,97 @@
-#include "Header.h"
+#include "FunctionImpl.h"
+#include "Visitor.h"
+#include "BackLLVM.h"
 
-Value *FunctionImpl::generate(Function *, BasicBlock *, BasicBlock *allocblock) {
-	auto sym = search_symbol(name);
-	if (sym != NULL && !sym->isDeclaration) {
+FunctionImpl::FunctionImpl(DataType dt, string name, FunctionParams *fp, vector<Node*> &&stmts,
+	location_t ef, bool constructor) :
+	FunctionBase(dt, name, fp, std::move(stmts), constructor) {
+	this->declaration = false;
+	this->endfunction = ef;
+
+	// params needs to be the first inserted children
+	// to fill the symbols table prior to their use in stmts
+	for(auto p: fp->getParameters()) {
+		node_children.insert(node_children.begin(), p);
+	}	
+}
+
+Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblock) {
+	
+	Node *symbol = findSymbol(name);
+	FunctionDecl *fsymbol = dynamic_cast<FunctionDecl*>(symbol);
+	if (symbol != NULL && symbol != this && fsymbol != NULL && !fsymbol->isDeclaration()) {
 		yyerrorcpp("Function/symbol " + name + " already defined.", this);
-		yyerrorcpp(name + " was first defined here.", sym);
+		yyerrorcpp(name + " was first defined here.", symbol);
 		return NULL;
 	}
 
-	Function *nfunc;
-	Type *xtype = buildTypes->llvmType(tipo);
-	if (sym && sym->isDeclaration) {
-		//TODO: validateImplementation();
-		nfunc = mainmodule->getFunction(name);
+	Type *xtype = buildTypes->llvmType(dt);
+	if (fsymbol) {
+		validateImplementation(fsymbol);
+		func = mainmodule->getFunction(name);
+		func->setName(getFinalName());
 	} else {
 		std::vector<Type*> arg_types;
-		if (parameters->getNumParams() != 0)
-			for (int i = 0; i < parameters->getNumParams(); i++)
-				arg_types.push_back(buildTypes->llvmType(parameters->getParamType(i)));
+		if (!validateAndGetArgsTypes(arg_types))
+			return NULL;
 		
 		FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
-		nfunc = Function::Create(ftype, Function::ExternalLinkage, 1, name, mainmodule);
+		func = Function::Create(ftype, Function::ExternalLinkage, globalAddrSpace, getFinalName(), mainmodule);
 	}
 
-	nfunc->setDSOLocal(true);
+	//func->setDSOLocal(true);
 	llvm::AttrBuilder attrs(global_context);
-	attrs.addAttribute(Attribute::MinSize);
+	//attrs.addAttribute(Attribute::MinSize);
+	attrs.addAttribute("target-cpu", currentTarget.cpu);
+	//attrs.addAttribute("frame-pointer", "all");
+	
+	if (name == "init") // inline constructors
+		attrs.addAttribute(Attribute::InlineHint);
 	
 	if (name == "__vectors") { // FIXME: remove after adding functions attributes to language
-		nfunc->setSection(".vectors");
+		func->setSection(".vectors");
 	}
 
-	nfunc->setAttributes(llvm::AttributeList().addFnAttributes(global_context, attrs));
-	nfunc->setCallingConv(CallingConv::C);
-
-	if (!sym)
-		sym = new RobSymbol(nfunc);
-	sym->dt = tipo;
-	sym->params = parameters;
-	sym->isDeclaration = false;
-	tabelasym[allocblock][name] = sym;
+	func->setAttributes(llvm::AttributeList().addFnAttributes(global_context, attrs));
+	func->setCallingConv(CallingConv::C);
 
 	DIFile *funit;
 	DISubprogram *sp;
 	if (debug_info) {
 		funit = DBuilder->createFile(RobDbgInfo.cunit->getFilename(), RobDbgInfo.cunit->getDirectory());
 		DIScope *fcontext = funit;
-		sp = DBuilder->createFunction(fcontext, name, StringRef(), funit, this->getLineNo(),
+		sp = DBuilder->createFunction(fcontext, getFinalName(), StringRef(), funit, this->getLineNo(),
 			getFunctionDIType(), this->getLineNo(), DINode::FlagPrototyped, DISubprogram::SPFlagDefinition);
-		nfunc->setSubprogram(sp);
+		func->setSubprogram(sp);
 		RobDbgInfo.push_scope(funit, sp);
 	}
 
-	BasicBlock *falloc = BasicBlock::Create(global_context, "entry", nfunc);
-	BasicBlock *fblock = BasicBlock::Create(global_context, "body", nfunc);
+	BasicBlock *falloc = BasicBlock::Create(global_context, "entry", func);
+	BasicBlock *fblock = BasicBlock::Create(global_context, "body", func);
 	
 	RobDbgInfo.emitLocation(this);
 	Builder->SetInsertPoint(falloc);
 
 	unsigned Idx = 0;
-	for (auto &Arg : nfunc->args())
-	{
-		const char *argname = parameters->getParamElement(Idx);
-		BasicDataType ptype = parameters->getParamType(Idx);
-		
+	for (auto &Arg : func->args()) {
+		FunctionParam *fp = parameters->getParameters()[Idx];
+		DataType ptype = fp->getDataType();
+		const string& argname = fp->getName();
+
 		Arg.setName(argname);
-		AllocaInst* variable = Builder->CreateAlloca(buildTypes->llvmType(ptype), 0, argname);
-		RobSymbol *rs = new RobSymbol(variable);
-		rs->dt = ptype;
-		tabelasym[falloc][argname] = rs; 
-		StoreInst *val = Builder->CreateStore(&Arg, variable, false);
+
+		Value *variable = &Arg;
+		if (!buildTypes->isComplex(ptype))
+			variable = Builder->CreateAlloca(buildTypes->llvmType(ptype), globalAddrSpace, 0, argname);
+		
+		if (argname == "#this") {
+			thisArg = variable;
+		}
+		
+		fp->setAlloca(variable);
+		
+		if (!buildTypes->isComplex(ptype))
+			Builder->CreateStore(&Arg, variable, false);
 
 		if (debug_info) {
 			DILocalVariable *d = DBuilder->createParameterVariable(sp, argname, Idx+1, funit,
@@ -82,8 +104,7 @@ Value *FunctionImpl::generate(Function *, BasicBlock *, BasicBlock *allocblock) 
 		Idx++;
 	}
 
-	RobDbgInfo.emitLocation(stmts);
-	Value *last_block = stmts->generate(nfunc, fblock, falloc);
+	Value *last_block = generateChildren(this, fblock, falloc);
 	if (!last_block)
 		last_block = fblock;
 
@@ -105,45 +126,54 @@ Value *FunctionImpl::generate(Function *, BasicBlock *, BasicBlock *allocblock) 
 
 	if (debug_info)
 		RobDbgInfo.pop_scope();
-		
-	return nfunc;
+
+	return func;
 }
 
 DISubroutineType *FunctionImpl::getFunctionDIType() {
 	SmallVector<Metadata*, 8> Tys;
-	Tys.push_back(buildTypes->diType(tipo)); // return type
-	for(FunctionParam &p : parameters->parameters) {
-		Tys.push_back(buildTypes->diType(p.type));
+	Tys.push_back(buildTypes->diType(dt)); // return type
+	for(FunctionParam *p : parameters->getParameters()) {
+		Tys.push_back(buildTypes->diType(p->getDataType()));
 	}
 	return DBuilder->createSubroutineType(DBuilder->getOrCreateTypeArray(Tys));
 }
 
 bool FunctionImpl::validateImplementation(FunctionDecl *decl) {
 	bool result = true;
-	const FunctionParams& decl_parameters = decl->getParameters();
+	FunctionParams& decl_parameters = decl->getParameters();
 	if (parameters->getNumParams() != decl_parameters.getNumParams()) {
 		yyerrorcpp(string_format("The number of arguments differs between function declaration(%d) and definition(%d).",
 			decl_parameters.getNumParams(), parameters->getNumParams()), this);
-		yyerrorcpp("The function declaration is here.", decl);
+		yywarncpp("The function declaration is here.", decl);
 		result = false;
 	}
 	int compareno = std::min(parameters->getNumParams(), decl_parameters.getNumParams());
 	for(int i = 0; i < compareno; i++) {
-		const FunctionParam &p = decl_parameters.parameters[i];
-		if (p.type != parameters->parameters[i].type) {
+		FunctionParam *p = decl_parameters.getParameters()[i];
+		if (p->getDataType() != parameters->getParamType(i)) {
 			yyerrorcpp(string_format("Argument %s has distinct type in declaration '%s' and definition '%s'.",
-				parameters->parameters[i].name, buildTypes->name(p.type), 
-				buildTypes->name(parameters->parameters[i].type)), this);
-			yyerrorcpp("The function declaration is here.", decl);
+				parameters->getParamName(i).c_str(), buildTypes->name(p->getDataType()), 
+				buildTypes->name(parameters->getParamType(i))), this);
+			yywarncpp("The function declaration is here.", decl);
 			result = false;
 		}
 	}
-	BasicDataType decl_type = decl->getResultType(NULL, NULL);
-	if (tipo != decl_type) {
+	DataType decl_type = decl->getDataType();
+	if (dt != decl_type) {
 		yyerrorcpp(string_format("Function return type has distinct type in declaration '%s' and definition '%s'.",
-			buildTypes->name(decl_type), buildTypes->name(tipo)), this);
-		yyerrorcpp("The function declaration is here.", decl);
+			buildTypes->name(decl_type), buildTypes->name(dt)), this);
+		yywarncpp("The function declaration is here.", decl);
 		result = false;
 	}
 	return result;
+}
+
+void FunctionImpl::addThisArgument(DataType dt) {
+	thisArgDt = dt;
+	parameters->append(new FunctionParam("#this", dt));
+}
+
+void FunctionImpl::accept(Visitor& v) {
+	v.visit(*this);
 }

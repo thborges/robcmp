@@ -1,7 +1,7 @@
 
-#include "Header.h"
+#include "Capsule.h"
 
-Value *Capsule::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+Value *Capsule::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	return node->generate(func, block, allocblock);
 }
 

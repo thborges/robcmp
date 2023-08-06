@@ -1,20 +1,29 @@
-#ifndef __MATRIX_ELEMENTS_H__
-#define __MATRIX_ELEMENTS_H__
+
+#pragma once
 
 #include "Node.h"
+#include "ArrayElements.h"
+
+class MatrixElement {
+public:
+	ArrayElements *array;
+	unsigned count;
+	MatrixElement(ArrayElements *array, unsigned count): array(array), count(count) {}
+};
 
 class MatrixElements {
 private:
+	std::vector<MatrixElement*> elements;
 public:
 	MatrixElements();
-	std::vector<MatrixElement> elements;
-	void append(MatrixElement& m);
+	void append(MatrixElement *m);
 	
-	unsigned getColumnCount() const;
-	unsigned getLineCount() const;
-	unsigned getElementCount(int position) const;
-	BasicDataType getMatrixType(BasicBlock *block, BasicBlock *allocblock) const;
+	unsigned getColumnCount();
+	unsigned getLineCount();
+	unsigned getElementCount(int position);
+	DataType getMatrixType(FunctionImpl *func);
+	
+	std::vector<MatrixElement*> const& getElements() {
+		return elements;
+	}
 };
-
-#endif
-

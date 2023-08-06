@@ -1,0 +1,32 @@
+/* vim: set tabstop=4:softtabstop=4:shiftwidth=4:noexpandtab */ 
+
+int32 fibonacci (int32 n) {
+	if (n == 1 or n == 2) {
+		return 1;
+	} else {
+		return fibonacci(n - 1) + fibonacci(n - 2);
+	}
+}
+
+int8 main() {
+	check = {1, 1, 2, 3, 5, 6765};
+
+	result = {
+		fibonacci(1),
+		fibonacci(2),
+		fibonacci(3),
+		fibonacci(4),
+		fibonacci(5),
+		fibonacci(20)
+	};
+
+	i = 0;
+	while (i < check.size) {
+		if (result[i] != check[i]) {
+			return 1;
+		}
+		i++;
+	}
+
+	return 0;
+}

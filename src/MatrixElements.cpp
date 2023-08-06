@@ -1,24 +1,25 @@
-#include "Header.h"
+
+#include "MatrixElements.h"
 
 MatrixElements::MatrixElements() {};
 
-void MatrixElements::append(MatrixElement& m) {
+void MatrixElements::append(MatrixElement *m) {
 	elements.push_back(m);
 };
 	
-unsigned MatrixElements::getLineCount() const {
+unsigned MatrixElements::getLineCount() {
 	unsigned r = 0;
 	for(auto& e : elements)
-		r += e.count;
+		r += e->count;
 	return r;
 };
 
-unsigned MatrixElements::getColumnCount() const {
+unsigned MatrixElements::getColumnCount() {
 	unsigned r = 0;
 	unsigned biggest_r = 0;
 	for(auto& e : elements) {
-		for (auto& i : e.array->elements)
-			r += i.count;
+		for (auto& i : e->array->getElements())
+			r += i->count;
 		if (biggest_r < r)
 			biggest_r = r;
 		r = 0;
@@ -26,12 +27,12 @@ unsigned MatrixElements::getColumnCount() const {
 	return biggest_r;
 }
 
-BasicDataType MatrixElements::getMatrixType(BasicBlock *block, BasicBlock *allocblock) const {
+DataType MatrixElements::getMatrixType(FunctionImpl *func) {
 	unsigned intsize = 0;
 	unsigned floatsize = 0;
 	for(auto& j : elements) {
-		for (auto& i : j.array->elements) {
-			BasicDataType dt = i.value->getResultType(block, allocblock);
+		for (auto& i : j->array->getElements()) {
+			DataType dt = i->value->getDataType();
 			if (buildTypes->isIntegerDataType(dt) && intsize < buildTypes->bitWidth(dt))
 				intsize = buildTypes->bitWidth(dt);
 			
@@ -64,6 +65,6 @@ BasicDataType MatrixElements::getMatrixType(BasicBlock *block, BasicBlock *alloc
 	}
 }
 
-unsigned MatrixElements::getElementCount(int position) const {
-	return elements[position].count;
+unsigned MatrixElements::getElementCount(int position) {
+	return elements[position]->count;
 }

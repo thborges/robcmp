@@ -1,12 +1,12 @@
 
 #pragma once
 
-#include "Header.h"
+#include "Node.h"
 
 class InlineAssembly: public Node {
 private:
 	string assembly;
 public:
 	InlineAssembly(const char *a): assembly(a) { }
-	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock); 
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 };

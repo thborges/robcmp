@@ -1,31 +1,50 @@
-#include "Header.h"
 
-Value *FunctionDecl::generate(Function *, BasicBlock *, BasicBlock *allocblock) {
-	auto sym = search_symbol(name);
-	if (sym != NULL) {
+#include "FunctionDecl.h"
+#include "BackLLVM.h"
+
+bool FunctionBase::validateAndGetArgsTypes(std::vector<Type*> &argsty) {
+	bool valid = true;
+	Type *xtype = buildTypes->llvmType(dt);
+	if (!xtype) {
+		yyerrorcpp(string_format("Type %s not defined.", buildTypes->name(dt)), this);
+		valid = false;
+	}
+	for (int i = 0; i < parameters->getNumParams(); i++) {
+		DataType dt = parameters->getParamType(i);
+		Type *atype = buildTypes->llvmType(dt);
+		if (buildTypes->isComplex(dt)) {
+			atype = atype->getPointerTo();
+		}
+		if (!atype) {
+			yyerrorcpp(string_format("Type %s for argument %s not defined.",
+				buildTypes->name(dt), parameters->getParamName(i).c_str()), this);
+			valid = false;
+		} else {
+			argsty.push_back(atype);
+		}
+	}
+	return valid;
+}
+
+Value *FunctionDecl::generate(FunctionImpl*, BasicBlock *, BasicBlock *allocblock) {
+	
+	Node *symbol = findSymbol(name);
+	if (symbol != NULL && symbol != this) {
 		yyerrorcpp("Function/symbol " + name + " already defined.", this);
-		yyerrorcpp(name + " was first defined here.", sym);
+		yyerrorcpp(name + " was first defined here.", symbol);
 		return NULL;
 	}
 
 	std::vector<Type*> arg_types;
-	if (parameters->getNumParams() != 0)
-		for (int i = 0; i < parameters->getNumParams(); i++)
-			arg_types.push_back(buildTypes->llvmType(parameters->getParamType(i)));
+	if (!validateAndGetArgsTypes(arg_types))
+		return NULL;
 
-	Type *xtype = buildTypes->llvmType(tipo);
+	Type *xtype = buildTypes->llvmType(dt);
 	FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
-	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, 1, name, mainmodule);
-	nfunc->setDSOLocal(true);
+	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, globalAddrSpace, name, mainmodule);
+	//nfunc->setDSOLocal(true);
 	nfunc->setCallingConv(CallingConv::C);
 
-	RobSymbol *rs = new RobSymbol(nfunc);
-	rs->params = parameters;
-	rs->setLocation(this);
-	rs->isDeclaration = true;
-	rs->dt = tipo;
-	tabelasym[allocblock][name] = rs;
-
-	return nfunc;
+	func = nfunc;
+	return func;
 }
-

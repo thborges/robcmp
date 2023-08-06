@@ -1,4 +1,6 @@
+
 #include <map>
+
 #include <llvm/IR/Value.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Constant.h>
@@ -10,17 +12,15 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/InlineAsm.h>
-
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/IR/LegacyPassManager.h>
-
 #include <llvm/Support/Host.h>
 #include <llvm/MC/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
 
-#include "Header.h"
+#include "BackLLVM.h"
 
 using namespace llvm;
 
@@ -33,20 +33,9 @@ std::unique_ptr<DIBuilder> DBuilder;
 struct DebugInfo RobDbgInfo;
 std::unique_ptr<BuildTypes> buildTypes;
 
-// interruptions
-std::vector<AttachInterrupt *> vectorglobal;
-
-// symbol table
-std::map<BasicBlock*, std::map<std::string, RobSymbol*>> tabelasym;
-
-// arduino functions
-Function *analogWrite;
-Function *analogRead;
-Function *delay;
-Function *delayMicroseconds;
-Function *init;
-Function *print;
-Function *i16div;
+unsigned int globalAddrSpace = 0;
+enum SupportedTargets currentTargetId;
+extern char *build_outputfilename;
 
 void print_llvm_ir(char opt_level) {
 	
@@ -116,6 +105,7 @@ void print_llvm_ir(char opt_level) {
 		}
 		legacy::PassManager pass_codegen;
 		targetMachine->addPassesToEmitFile(pass_codegen, dest, nullptr, llvm::CGFT_ObjectFile);
+		//targetMachine->addPassesToEmitFile(pass_codegen, dest, nullptr, llvm::CGFT_AssemblyFile);
 		pass_codegen.run(*mainmodule);
 		dest.flush();
 	} else {

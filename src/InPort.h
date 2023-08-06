@@ -9,7 +9,7 @@ private:
 public:
 	InPort(const char *p): port(p) {}
 
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
 
 };
 

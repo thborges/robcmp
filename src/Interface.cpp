@@ -1,16 +1,28 @@
 
-#include "Header.h"
+#include "Interface.h"
+#include "UserType.h"
+#include "FunctionImpl.h"
 
-Value *Interface::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-    for(const auto n : symbols) {
-        printf("Symbol %s exists here!\n", n.first.c_str());
+void Interface::createDataType() {
+    StructType *intftype = StructType::create(global_context, name);
+    unsigned dt = buildTypes->addDataType(this, intftype);
+    if (dt == BuildTypes::undefinedType) {
+        yyerrorcpp("Type " + name + " alread defined.", this);
+        yyerrorcpp(name + " was first defined here.", buildTypes->location(dt));
     }
+}
+
+Value *Interface::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
+    /*printf("Interface %s defined with:\n", name.c_str());
+    for(const auto n : getSymbols()) {
+        printf("\t%s\n", n.first.c_str());
+    }*/
     return NULL;
 }
 
 bool Interface::validateImplementation(UserType *ut) {
     bool result = true;
-    for(const auto & [key, func_decl] : symbols) {
+    for(const auto & [key, func_decl] : getSymbols()) {
         auto symb = ut->findSymbol(key, false);
         FunctionImpl *fimpl = dynamic_cast<FunctionImpl*>(symb);
         if (!symb) {

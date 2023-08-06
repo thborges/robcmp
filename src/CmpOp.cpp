@@ -1,15 +1,16 @@
 
-#include "Header.h"
+#include "CmpOp.h"
+#include "FlexDependencies.h"
 #include "Language_gen_y.hpp"
+#include "Coercion.h"
 
 CmpOp::CmpOp (Node *l, int op, Node *r) : lexpn(l), rexpn(r) {
 	this->op = op;
-	node_children.reserve(2);
-	node_children.push_back(lexpn);
-	node_children.push_back(rexpn);
+	addChild(lexpn);
+	addChild(rexpn);
 }
 
-Value *CmpOp::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+Value *CmpOp::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	CmpInst::Predicate predicate; 
 
 	Value *lexp = lexpn->generate(func, block, allocblock);
@@ -67,8 +68,4 @@ Value *CmpOp::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 	else {
 		return Builder->CreateICmp(predicate, lexp, rexp, "cmpi");
 	}
-}
-
-void CmpOp::accept(Visitor& v) {
-	v.visit(*this);
 }

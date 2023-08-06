@@ -1,11 +1,8 @@
 
-#include "Header.h"
+#include "Cast.h"
+#include "Coercion.h"
 
-BasicDataType Cast::getResultType(BasicBlock *block, BasicBlock *allocblock) { 
-    return dt;
-}
-
-Value *Cast::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
+Value *Cast::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock)
 {
     Value *exprv = expr->generate(func, block, allocblock);
     if (!exprv)
@@ -15,14 +12,11 @@ Value *Cast::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
     Value *ret = Coercion::Convert(exprv, destty, block, expr, true);
 
     if (ret == NULL) {
-        yyerrorcpp("Can't cast from '" + getTypeName(exprv->getType()) + "' to '" + 
-            buildTypes->name(dt), this);
+        yyerrorcpp(string_format("Can't cast from '%s' to '%s'.",
+            buildTypes->name(expr->getDataType()),
+            buildTypes->name(dt)), this);
         return NULL;
     }
 
     return ret;
-}
-
-void Cast::accept(Visitor &v) {
-	v.visit(*this); 
 }

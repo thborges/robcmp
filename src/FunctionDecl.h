@@ -1,32 +1,57 @@
-#ifndef __FUNCTIONDECLEXTERN_H__
-#define __FUNCTIONDECLEXTERN_H__
+#pragma once
 
 #include "Node.h"
+#include "FunctionParams.h"
+#include "Variable.h"
 
-class FunctionDecl: public NamedNode {
-private:
-	BasicDataType tipo;
+class FunctionBase: public NamedNode {
+protected:
 	FunctionParams *parameters;
+	Function *func = NULL;
+	bool declaration = true;
+
+	bool validateAndGetArgsTypes(std::vector<Type*> &args);
+
 public:
-	FunctionDecl(BasicDataType tipo, string name, FunctionParams *fp) : NamedNode(name) {
-		this->tipo = tipo;
+	FunctionBase(DataType dt, string name, FunctionParams *fp) : NamedNode(name) {
+		this->dt = dt;
 		this->parameters = fp;
 	}
-	
-	virtual bool isFunctionDecl() override {
-		return true;
+
+	FunctionBase(DataType dt, string name, FunctionParams *fp, vector<Node*> &&stmts,
+		bool constructor = false) :
+		NamedNode(name, std::move(stmts), constructor) {
+		this->dt = dt;
+		this->parameters = fp;
 	}
 
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
-
-	FunctionParams const& getParameters() {
+	FunctionParams& getParameters() {
 		return *parameters;
 	}
 
-	virtual BasicDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override {
-		return tipo;
+	virtual Value *getLLVMValue(Node *) override {
+		return func;
+	}
+
+	virtual Function *getLLVMFunction() {
+		return func;
+	}
+
+	unsigned getNumParams() const {
+		return parameters->getNumParams();
+	}
+
+	bool isDeclaration() {
+		return declaration;
 	}
 };
 
-#endif
+class FunctionDecl: public FunctionBase {
+public:
+	FunctionDecl(DataType dt, string name, FunctionParams *fp) : 
+		FunctionBase(dt, name, fp) {
+		declaration = true;
+	}
 
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
+};

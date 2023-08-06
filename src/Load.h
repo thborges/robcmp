@@ -1,25 +1,19 @@
-#ifndef __LOAD_H__
-#define __LOAD_H__
+#pragma once
+
 #include "Node.h"
+#include "Field.h"
 
 class Load: public Node {
 private:
-	string ident;
-	ComplexIdentifier *complexIdent;
+	Identifier ident;
 public:
-	Load(const string i): ident(i), complexIdent(nullptr) {}
-	Load(ComplexIdentifier *ci): complexIdent(ci) {
-		this->ident = complexIdent->names[0];
-	}
+	Load(const char* i): ident(i) {	}
+	Load(Identifier i): ident(i) { }
+ 
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+	virtual DataType getDataType() override;
 
-	string getIdent() const { return ident; };
+	virtual bool isConstExpr() override;
 
-	virtual void accept(Visitor& v) override;
-
-	virtual BasicDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override;
-
-	bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override;
 };
-#endif

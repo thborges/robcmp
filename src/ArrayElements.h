@@ -1,21 +1,29 @@
-#ifndef __ARRAY_ELEMENT_H__
-#define __ARRAY_ELEMENT_H__
+
+#pragma once
 
 #include "Node.h"
 
-class ArrayElements {
-private:
+class ArrayElement {
 public:
-	std::vector<ArrayElement> elements;
-	ArrayElements();
-	void append(ArrayElement& e);
-	
-	unsigned getArraySize() const;
-	unsigned getStructSize () const;
-	unsigned getElementCount (int position) const;
-	Node *getStructElement (int position) const;
-	BasicDataType getArrayType(BasicBlock *block, BasicBlock *allocblock) const;
+	Node *value;
+	unsigned count;
+	ArrayElement(Node *value, unsigned count): value(value), count(count) {}
 };
 
-#endif
-
+class ArrayElements {
+private:
+	std::vector<ArrayElement*> elements;
+public:
+	ArrayElements();
+	void append(ArrayElement *e);
+	
+	unsigned getArraySize();
+	unsigned getStructSize ();
+	unsigned getElementCount (int position);
+	Node *getStructElement (int position);
+	DataType getArrayType(FunctionImpl *func);
+	
+	std::vector<ArrayElement*> const& getElements() {
+		return elements;
+	}
+};

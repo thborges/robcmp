@@ -1,26 +1,26 @@
 
+#define SCANNER_OR_VISITOR
 #include "Header.h"
 #include <cxxabi.h>
 #include "Language_gen_y.hpp"
+#include "Program.h"
+#include "PrintAstVisitor.h"
 
 template <typename T> char* get_typename(T& object)
 {
     return abi::__cxa_demangle(typeid(object).name(), 0, 0, 0);
 }
 
-PrintAstVisitorNode::PrintAstVisitorNode(std::ostream& _os) : os(_os) {
-}
-
-PrintAstVisitorNode::~PrintAstVisitorNode() {
-}
-
-bool PrintAstVisitorNode::before(Node const& n) {
+bool PrintAstVisitor::before(Node& n) {
 	this->os << "N" << std::hex << (long int)&n << 
 		"[label=\"" << get_typename(n) << "\"];\n";
 	return false;
 }
 
-void PrintAstVisitorNode::visit_children(Node const& n) {
+void PrintAstVisitor::after(Node& n) {
+}
+
+void PrintAstVisitor::visit_children(Node& n) {
 	for (Node *c : n.children()) {
 		c->accept(*this);
 
@@ -31,22 +31,22 @@ void PrintAstVisitorNode::visit_children(Node const& n) {
 	}
 }
 
-void PrintAstVisitorNode::visit(Node const& n) {
+void PrintAstVisitor::visit(Node& n) {
 	if (before(n)) { return; }
 	visit_children(n);
 	after(n);
 }
 
-PrintAstVisitor::PrintAstVisitor(std::ostream& _os) : PrintAstVisitorNode(_os) {
+PrintAstVisitor::PrintAstVisitor(std::ostream& _os) : os(_os) {
 }
 
-void PrintAstVisitor::visit(Program const& p) {
+void PrintAstVisitor::visit(Program& p) {
 	if (before(p)) { return; }
 	visit_children(p);
 	after(p);
 }
 
-bool PrintAstVisitor::before(Program const& p) {
+bool PrintAstVisitor::before(Program& p) {
 	this->os << "graph {\nN"
 		<< std::hex << (long int)&p
 		<< "[label=\"" << get_typename(p) 
@@ -54,27 +54,23 @@ bool PrintAstVisitor::before(Program const& p) {
 	return false;
 }
 
-void PrintAstVisitor::after(Program const& p) {
+void PrintAstVisitor::after(Program& p) {
 	this->os << "}\n";
 }
 
-void PrintAstVisitor::visit(Int8 const& n) {
+void PrintAstVisitor::visit(Int8& n) {
 	this->os << "N" << std::hex << (long int)&n << 
 		"[label=\"" << get_typename(n) << "(" << std::dec << (int)n.getNumber() << ")\"];\n";
 }
 
-void PrintAstVisitor::visit(Int16 const& n) {
+void PrintAstVisitor::visit(Int16& n) {
 	this->os << "N" << std::hex << (long int)&n << 
 		"[label=\"" << get_typename(n) << "(" << std::dec << n.getNumber() << ")\"];\n";
 }
 
-void PrintAstVisitor::visit(Int32 const& n) {
+void PrintAstVisitor::visit(Int32& n) {
 	this->os << "N" << std::hex << (long int)&n << 
 		"[label=\"" << get_typename(n) << "(" << std::dec << n.getNumber() << ")\"];\n";
-}
-
-void PrintAstVisitor::visit(While const& n) {
-	PrintAstVisitorNode::visit(n);
 }
 
 const string PrintAstVisitor::getOperatorName(int op) {
@@ -96,38 +92,28 @@ const string PrintAstVisitor::getOperatorName(int op) {
 	}
 }
 
-void PrintAstVisitor::visit(CmpOp const& n) {
+void PrintAstVisitor::visit(CmpOp& n) {
 	this->os << "N" << std::hex << (long int)&n 
 			 << "[label=\"" << get_typename(n) << "(" << std::dec 
 			 << getOperatorName(n.getOperator()) << ")\"];\n";
 	visit_children(n);
 }
 
-void PrintAstVisitor::visit(BinaryOp const& n) {
+void PrintAstVisitor::visit(BinaryOp& n) {
 	this->os << "N" << std::hex << (long int)&n 
 			 << "[label=\"" << get_typename(n) << "(" << std::dec 
 			 << getOperatorName(n.getOperator()) << ")\"];\n";
 	visit_children(n);
 }
 
-void PrintAstVisitor::visit(Load const& n) {
+void PrintAstVisitor::visit(Load& n) {
 	this->os << "N" << std::hex << (long int)&n 
-			 << "[label=\"" << get_typename(n) << "(" << n.getIdent() << ")\"];\n";
+			 << "[label=\"" << get_typename(n) << "(" << n.getName() << ")\"];\n";
 	visit_children(n);
 }
 
-void PrintAstVisitor::visit(Scalar const& n) {
+void PrintAstVisitor::visit(Scalar& n) {
 	this->os << "N" << std::hex << (long int)&n 
-			 << "[label=\"" << get_typename(n) << "(" << n.getIdent() << ")\"];\n";
+			 << "[label=\"" << get_typename(n) << "(" << n.getName() << ")\"];\n";
 	visit_children(n);
 }
-
-void PrintAstVisitor::visit(Delay const& n) {
-	PrintAstVisitorNode::visit(n);
-}
-
-void PrintAstVisitor::visit(If const& n) {
-	PrintAstVisitorNode::visit(n);
-}
-
-

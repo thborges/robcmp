@@ -1,13 +1,32 @@
-#include "Header.h"
+#include "Matrix.h"
+#include "Coercion.h"
+#include "Array.h"
+#include "BinaryOp.h"
+#include "Visitor.h"
+#include "Int16.h"
 
-Value *Matrix::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+Matrix::Matrix(const char *n, MatrixElements *me) : LinearDataStructure(n), melements(me) {
+	NamedConst *rows = new NamedConst("rows", getNodeForIntConst(me->getLineCount()));
+	NamedConst *cols = new NamedConst("cols", getNodeForIntConst(me->getColumnCount()));
+	addChild(rows);
+	addChild(cols);
+}
+
+Node* Matrix::getElementIndex(Node *p1, Node *p2) {
+	//Generate index of element
+	Node *mcols = getNodeForIntConst(melements->getColumnCount());
+	return new BinaryOp(new BinaryOp(p1, '*', mcols), '+', p2);
+}
+
+Value *Matrix::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
 	/*
 	 * Matrix is generated as an array and accessed latter accordingly!
 	 */
 	
 	//Get Type of elements in Vector of Elements, and define as I.
-	Type* I = buildTypes->llvmType(melements->getMatrixType(block, allocblock));
+	element_dt = melements->getMatrixType(func);
+	Type* I = buildTypes->llvmType(element_dt);
 	
 	// The matrix size
 	unsigned int lines = melements->getLineCount();
@@ -20,19 +39,19 @@ Value *Matrix::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 	bool allConst = true;
 	vector<Value*> elementValues;
 	elementValues.reserve(lines * cols);
-	for(MatrixElement& i: melements->elements) {
-		unsigned elCount = i.count;
+	for(MatrixElement *i: getElements()) {
+		unsigned elCount = i->count;
 		
 		for (int j=0; j<elCount; j++) {
-			for(ArrayElement& k: i.array->elements) {
-				Node* elValue = k.value;
+			for(ArrayElement *k: i->array->getElements()) {
+				Node* elValue = k->value;
 				Value *val = elValue->generate(func, block, allocblock);
 				if (!val)
 					return NULL;
 				val = Coercion::Convert(val, I, block, elValue);
 				if (!dyn_cast<Constant>(val))
 					allConst = false;
-				for (int l=0; l<k.count; l++)
+				for (int l=0; l < k->count; l++)
 					elementValues.push_back(val);
 			}
 		}
@@ -46,7 +65,6 @@ Value *Matrix::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 
 	//Allocate matrix as a vector.
 	//Allocate array.
-	Value* var;
 	if (allocblock == global_alloc) { // when alloc is global
 		vector<Constant*> constantValues;
 		constantValues.reserve(elementValues.size());
@@ -55,25 +73,25 @@ Value *Matrix::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 		ArrayRef<Constant*> constantRefs(constantValues);
 		GlobalVariable *gv = new GlobalVariable(*mainmodule, arrayType, 
 			false, GlobalValue::ExternalLinkage, ConstantArray::get(arrayType, constantRefs), name);
-		var = gv;
+		//gv->setDSOLocal(true);
+		alloc = gv;
 	} else {
-		var = new AllocaInst(arrayType, 0, name, allocblock);
+		alloc = new AllocaInst(arrayType, 0, name, allocblock);
 
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 		StoreInst *store = NULL;
 		for(unsigned index = 0; index < elementValues.size(); index++) {
 			Value *idx = ConstantInt::get(Type::getInt32Ty(global_context), index);
 			Value* indexList[2] = {zero, idx};
-			GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, var, 
+			GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, alloc, 
 				ArrayRef<Value*>(indexList), "", block);
 			store = new StoreInst(elementValues[index], gep, false, block);
 		}
 	}
 
-	//Add array to table of symbols.
-	tabelasym[allocblock][name] = new RobSymbol(var);
-	tabelasym[allocblock][name]->matrixLines = lines;
-	tabelasym[allocblock][name]->matrixCols = cols;
+	return alloc;
+}
 
-	return var;
+void Matrix::accept(Visitor& v) {
+	v.visit(*this);
 }

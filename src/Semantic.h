@@ -1,9 +1,10 @@
-#ifndef __SEMANTIC_H__
-#define __SEMANTIC_H__
+
+#pragma once
+
+#include "HeaderExternals.h"
 
 class Semantic {
 	public:
 		static Value *Verification();
 };
 
-#endif

@@ -1,6 +1,7 @@
-#include "Header.h"
 
-Value *InlineAssembly::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+#include "InlineAssembly.h"
+
+Value *InlineAssembly::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
     Type *voidty = buildTypes->llvmType(tvoid);
 	std::vector<Type*> arg_types;
 	FunctionType *ftype = FunctionType::get(voidty, ArrayRef<Type*>(arg_types), false);

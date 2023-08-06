@@ -1,50 +1,69 @@
-#include "Header.h"
 
-Scalar::Scalar(const char *n, Node *e, DataQualifier qualifier) : 
-	name(n), expr(e), qualifier(qualifier), complexIdent(nullptr) {
-	node_children.reserve(1);
-	node_children.push_back(e);
+#include "Scalar.h"
+#include "Coercion.h"
+#include "FunctionImpl.h"
+#include "BackLLVM.h"
+
+Scalar::Scalar(Identifier ident, Node *e) :
+	Variable(ident.getFullName()), expr(e) {
+	addChild(e);
 }
 
-Scalar::Scalar(ComplexIdentifier *ci, Node *e, DataQualifier qualifier) : 
-	complexIdent(ci), expr(e), qualifier(qualifier) {
-	node_children.reserve(1);
-	node_children.push_back(e);
+Scalar::Scalar(const char* ident, Node *e): Variable(ident), expr(e) {
+	addChild(e);
 }
 
-Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
 	RobDbgInfo.emitLocation(this);
 
-	string id = complexIdent ? complexIdent->names[0] : name;
-	auto symbol = search_symbol(id, allocblock, block);
-	Field field;
+	Node *symbol = ident.getSymbol(getScope());
+	if (!symbol)
+		return NULL;
 
-	// semantic validation of complexIdent
-	if (complexIdent) {
-		string idfield = complexIdent->names[1];
-		auto fieldit = symbol->structure->fields.find(idfield);
+	if (ident.isComplex()) {
+		Identifier istem = ident.getStem();
+		Node *stem = istem.getSymbol(getScope());
+		alloc = symbol->getLLVMValue(stem);
+		
+		if (stem->hasQualifier(qvolatile))
+			symbol->setQualifier(qvolatile);
 
-		if (symbol == NULL) {
-			yyerrorcpp("Symbol " + id + " must be defined first.", this);
-			return NULL;
-		} else if (fieldit == symbol->structure->fields.end()) {
-			yyerrorcpp("Field " + idfield + " not declared in " + id, this);
-			return NULL;
-		} else {
-			field = fieldit->second;
-		}
+		// TODO: When accessing a.x.func(), need to load a and gep x
+		//Load loadstem(ident.getStem());
+		//loadstem.setParent(this->parent);
+		//stem = loadstem.generate(func, block, allocblock);
+	} else {
+		alloc = symbol->getLLVMValue(func);
 	}
 
-	// variable doesn't exists
-	if (symbol == NULL) {
-		Value *ret, *leftv;
-		Value *exprv = expr->generate(func, block, allocblock);
-		BasicDataType dt = expr->getResultType(block, allocblock);
+	// tell the allocated left value to an eventual
+	// constructor initializing a user type field
+	if (getGEPIndex() != -1)
+		expr->setLeftValue(alloc, name);
 
-		if (!exprv)
-			return NULL;
-		
+	Value *exprv = expr->generate(func, block, allocblock);
+	if (!exprv)
+		return NULL;
+	DataType exprv_dt = expr->getDataType();
+
+	// is the result of a constructor()?
+	Value *allocall = dyn_cast<AllocaInst>(exprv);
+	if (!allocall)
+		allocall = dyn_cast<GetElementPtrInst>(exprv);
+
+	if (allocall) {
+		setDataType(exprv_dt);
+		alloc = allocall;
+		if (debug_info)
+			RobDbgInfo.declareVar(this, alloc, allocblock);
+	}
+
+	// variable not allocated
+	if (alloc == NULL) {
+		Value *ret;
+		setDataType(exprv_dt);
+
 		auto sp = RobDbgInfo.currScope();
 		auto funit = RobDbgInfo.currFile();
 
@@ -53,12 +72,13 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 			if (exprvc == NULL)
 				return NULL; //TODO: semantic error, global const value can't be generated
 
-			if (qualifier == qconst)
-				ret = leftv = exprvc;
+			if (symbol->hasQualifier(qconst))
+				ret = alloc = exprvc;
 			else {
 				GlobalVariable *gv = new GlobalVariable(*mainmodule, buildTypes->llvmType(dt),
 					false, GlobalValue::CommonLinkage, exprvc, name);
-				ret = leftv = gv;
+				//gv->setDSOLocal(true);
+				ret = alloc = gv;
 
 				if (debug_info) {
 					auto *d = DBuilder->createGlobalVariableExpression(sp, name, "",
@@ -68,48 +88,34 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 			}
 		} else {
 			Builder->SetInsertPoint(allocblock);
-			AllocaInst *newvar = Builder->CreateAlloca(exprv->getType(), 0, name);
-			newvar->setAlignment(Align(1));
-			leftv = newvar;
+			AllocaInst *temp = Builder->CreateAlloca(exprv->getType(), globalAddrSpace, 0, name);
+			temp->setAlignment(Align(1));
+			alloc = temp;
 			Builder->SetInsertPoint(block);
-			ret = Builder->CreateStore(exprv, leftv, qualifier == qvolatile);
+			ret = Builder->CreateStore(exprv, alloc, symbol->hasQualifier(qvolatile));
 			
-			if (debug_info) {
-				llvm::DIType *dty = buildTypes->diType(dt);
-				if (qualifier == qvolatile) {
-					dty = DBuilder->createQualifiedType(dwarf::DW_TAG_volatile_type, dty);
-				}
-				DILocalVariable *d = DBuilder->createAutoVariable(
-					sp, name, funit, getLineNo(), dty, true);
-				DBuilder->insertDeclare(leftv, d, DBuilder->createExpression(),
-					DILocation::get(sp->getContext(), getLineNo(), getColNo(), sp), allocblock);
-			}
+			if (debug_info)
+				RobDbgInfo.declareVar(this, alloc, allocblock);
 		}
 
-		RobSymbol *rs = new RobSymbol(leftv, qualifier);
-		rs->dt = dt;
-		tabelasym[allocblock][name] = rs;
 		return ret;
 
-	} else {
-		// variable already exists
-		if (symbol->qualifier == qconst) {
-			yyerrorcpp("Constant '" + name + "' can not be changed.", this);
+	} else { // variable already allocated
+		
+		if (symbol->hasQualifier(qconst)) {
+			yyerrorcpp("Constant '" + symbol->getName() + "' can not be changed.", this);
 			return NULL;
 		}
 
-		Type *leftvty = buildTypes->llvmType(symbol->dt);
-		qualifier = symbol->qualifier;
-		Value *exprv = expr->generate(func, block, allocblock);
-		Value *nvalue;
-
+		Type *currty = buildTypes->llvmType(symbol->getDataType());
 		Builder->SetInsertPoint(block);
 
+		/*
 		if (complexIdent) {
-			/* this code does:
-			 *   symbol->value &= ~(0x11... << field.startBit)
-			 *   symbol->value |= (exprv << field.startBit)
-			 */
+			// this code does:
+			//   symbol->value &= ~(0x11... << field.startBit)
+			//   symbol->value |= (exprv << field.startBit)
+			//
 
 			// Coerce the left side to the field size
 			exprv = Coercion::Convert(exprv, buildTypes->llvmType(field.fieldDataType), block, expr);
@@ -136,14 +142,43 @@ Value *Scalar::generate(Function *func, BasicBlock *block, BasicBlock *allocbloc
 			Builder->SetInsertPoint(block); //caution, after generate!
 			Value *vaftermask = Builder->CreateAnd(leftv, mask, "mask");
 			nvalue = Builder->CreateOr(vaftermask, exprv, "setbits");
-		} else {
-			nvalue = Coercion::Convert(exprv, leftvty, block, expr);
+		} else {*/
+		
+		// TODO: remove this check after converting Coercion to use DataType
+		//       instead of llvm::Type
+		Value *nvalue;
+		if (allocall)
+			return allocall;
+		else {
+			nvalue = Coercion::Convert(exprv, currty, block, expr);
+			return Builder->CreateStore(nvalue, alloc, symbol->hasQualifier(qvolatile));
 		}
-
-		return Builder->CreateStore(nvalue, symbol->value, qualifier == qvolatile);
 	}
 }
 
-void Scalar::accept(Visitor& v) {
-	v.visit(*this);
+Value *Scalar::getLLVMValue(Node *stem) {
+	int gepidx = getGEPIndex();
+	if (gepidx != -1) {
+		Value *zero = ConstantInt::get(Type::getInt32Ty(global_context), 0);
+		Value *idx = ConstantInt::get(Type::getInt32Ty(global_context), gepidx);
+		Value* indexList[2] = {zero, idx};
+		
+		if (FunctionImpl *func = dynamic_cast<FunctionImpl*>(stem)) {
+			// generating a function of a type: get the gep on the #this parameter
+			Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
+			alloc = Builder->CreateStructGEP(thisTy, func->getThisArg(), gepidx, "gepthis");
+		} else {
+			// accessing a var of a user type: get the gep in the scope (user type) of the scalar
+			Type *udt = buildTypes->llvmType(stem->getDataType());
+			alloc = Builder->CreateStructGEP(udt, stem->getLLVMValue(NULL), gepidx, "gepu"); // FIXME
+		}
+	}
+	return alloc;
+}
+
+DataType Scalar::getDataType() {
+	if (dt == BuildTypes::undefinedType)
+		return dt = expr->getDataType();
+	else
+		return dt;
 }

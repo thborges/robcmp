@@ -1,10 +1,6 @@
-#include "Header.h"
 
-Value *Int64::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+#include "Int64.h"
+
+Value *Int64::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	return ConstantInt::get(Type::getInt64Ty(global_context), number, IsSigned);
 }
-
-void Int64::accept(Visitor &v) {
-	v.visit(*this); 
-}
-

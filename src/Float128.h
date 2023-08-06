@@ -7,13 +7,13 @@ private:
 	float number;
 public:
 	Float128(float n): number(n) {}
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 	
-	virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override {
+	virtual bool isConstExpr() override {
 		return true;
 	}
 	
-	virtual BasicDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override {
+	virtual DataType getDataType() override {
 		return tldouble;
 	}
 };

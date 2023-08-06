@@ -2,12 +2,13 @@
 %locations
 %define api.location.type {location_t}
 %define api.pure full
-%define parse.error verbose
+%define parse.lac full
 %param {yyscan_t scanner}
 
 %code top {
   #include <stdlib.h>
   #include <limits.h>
+  #define SCANNER_OR_VISITOR
   #include "Header.h"
 }
 
@@ -15,6 +16,7 @@
   #ifndef YYLTYPE
   #define YYLTYPE location_t
   #endif
+  #include "FlexDependencies.h"
 }
 
 %token TOK_VOID TOK_RETURN TOK_REGISTER TOK_AT TOK_VOLATILE TOK_CONST TOK_ASM
@@ -23,7 +25,8 @@
 %token TOK_PRINT
 %token TOK_IN TOK_OUT TOK_STEPPER TOK_SERVO
 %token TOK_DELAY TOK_AND TOK_OR
-%token TOK_IDENTIFIER TOK_FLOAT TOK_DOUBLE TOK_LDOUBLE TOK_INTEGER TOK_STRING TOK_TRUE TOK_FALSE
+%token TOK_IDENTIFIER TOK_XIDENTIFIER
+%token TOK_FLOAT TOK_DOUBLE TOK_LDOUBLE TOK_INTEGER TOK_STRING TOK_TRUE TOK_FALSE
 %token TOK_FINT8 TOK_FINT16 TOK_FINT32 TOK_FINT64
 %token TOK_FFLOAT TOK_FDOUBLE TOK_FCHAR TOK_FLONG TOK_FUNSIGNED TOK_FBOOL
 %token TOK_TYPE TOK_INTF TOK_IMPL TOK_USE
@@ -40,20 +43,17 @@
 	double ndouble;
 	long double nldouble;
 	Node *node;
-	Stmts *stmt;
-	ArrayElement ae;
 	ArrayElements *aes;
-	MatrixElement me;
 	MatrixElements *mes;
-	FunctionParam fp;
 	FunctionParams *fps;
 	ParamsCall *pc;
-	BasicDataType dt;
-	Field field;
 	Structure *structure;
-	ComplexIdentifier *complexIdent;
 	vector<Node*> *nodes;
 	vector<string> *strings;
+	ArrayElement *ae;
+	MatrixElement *me;
+	FunctionParam *fp;
+	Field *field;
 }
 
 %start programa

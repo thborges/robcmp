@@ -4,12 +4,17 @@
 #include "Node.h"
 
 class Interface: public NamedNode {
+private:
+	void createDataType();
+
 public:
-    Interface(const string name): NamedNode(name) {}
+	Interface(const string& name) : NamedNode(name) {}
 
-	Interface(const string name, vector<Node *> &&funcs): NamedNode(name, std::move(funcs)) {}
+    Interface(const string& name, vector<Node*> stmts): NamedNode(name, std::move(stmts)) {
+		createDataType();
+	}
 
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
 	bool validateImplementation(UserType *ut);
 };

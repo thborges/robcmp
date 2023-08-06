@@ -1,15 +1,21 @@
-#include "Header.h"
 
-While::While(Node *e, Node *stms) : expr(e), stmts(stms) {
-	node_children.reserve(2);
-	node_children.push_back(e);
-	node_children.push_back(stms);
+#include "While.h"
+#include "FunctionImpl.h"
+
+While::While(Node *e) : expr(e) {
+	addChild(e);
 }
 
-Value *While::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-	BasicBlock *condwhile = BasicBlock::Create(global_context, "while_cond", func, 0);
-	BasicBlock *bodywhile = BasicBlock::Create(global_context, "while_body", func, 0);
-	BasicBlock *endwhile = BasicBlock::Create(global_context, "while_end", func, 0);
+While::While(Node *e, vector<Node*> &&ss) : While(e) {
+	stmts = new Node(std::move(ss));
+	addChild(stmts);
+}
+
+Value *While::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
+	Function *llvmf = func->getLLVMFunction();
+	BasicBlock *condwhile = BasicBlock::Create(global_context, "while_cond", llvmf, 0);
+	BasicBlock *bodywhile = BasicBlock::Create(global_context, "while_body", llvmf, 0);
+	BasicBlock *endwhile = BasicBlock::Create(global_context, "while_end", llvmf, 0);
 
 	// go to condition
 	RobDbgInfo.emitLocation(expr);
@@ -24,11 +30,13 @@ Value *While::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 	Builder->CreateCondBr(exprv, bodywhile, endwhile);
 
 	// alloc instructions inside bodywhile should go to allocblock to prevent repeatedly allocation
-	Value *newb = stmts->generate(func, bodywhile, allocblock); 
+	Value *newb = NULL;
+	if (stmts)
+		newb = stmts->generateChildren(func, bodywhile, allocblock); 
 
 	// identify last while body block
 	BasicBlock *endbody = bodywhile;
-	if (newb->getValueID() == Value::BasicBlockVal)
+	if (newb && newb->getValueID() == Value::BasicBlockVal)
 		endbody = (BasicBlock*)newb;
 	
 	// if end block already has a terminator, don't generate branch
@@ -39,8 +47,3 @@ Value *While::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 
 	return endwhile;
 }
-
-void While::accept(Visitor& v) {
-	v.visit(*this);
-}
-

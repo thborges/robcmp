@@ -1,4 +1,6 @@
-#include "Header.h"
+#include "HeaderGlobals.h"
+#include "SourceLocation.h"
+#include "Node.h"
 
 void DebugInfo::emitLocation(SourceLocation *s) {
 	if (!debug_info)
@@ -7,11 +9,13 @@ void DebugInfo::emitLocation(SourceLocation *s) {
 		return Builder->SetCurrentDebugLocation(DebugLoc());
 	if (s->getLineNo() == 0)
 		return;
+	
 	DIScope *scope;
 	if (scopes.empty())
 		scope = cunit;
 	else
 		scope = scopes.back();
+	
 	Builder->SetCurrentDebugLocation(DILocation::get(
 		scope->getContext(), s->getLineNo(), s->getColNo(), scope));
 }
@@ -38,3 +42,16 @@ DIScope* DebugInfo::currScope() {
 	return scopes.back();
 }
 
+void DebugInfo::declareVar(Node *n, Value *alloc, BasicBlock *allocblock) {
+	DataType dt = n->getDataType();
+	llvm::DIType *dty = buildTypes->diType(dt);
+	if (n->hasQualifier(qvolatile)) {
+		dty = DBuilder->createQualifiedType(dwarf::DW_TAG_volatile_type, dty);
+	}
+	auto sp = RobDbgInfo.currScope();
+	auto funit = RobDbgInfo.currFile();
+	DILocalVariable *d = DBuilder->createAutoVariable(
+		sp, n->getName(), funit, n->getLineNo(), dty, true);
+	DBuilder->insertDeclare(alloc, d, DBuilder->createExpression(),
+		DILocation::get(sp->getContext(), n->getLineNo(), n->getColNo(), sp), allocblock);
+}

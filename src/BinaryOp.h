@@ -1,5 +1,6 @@
-#ifndef __BINARYOP_H__
-#define __BINARYOP_H__
+
+#pragma once
+
 #include "Node.h"
 
 class BinaryOp: public Node {
@@ -7,24 +8,22 @@ private:
 	int op;
 	Node *lhsn;
 	Node *rhsn;
+
 public:
 	BinaryOp(Node *l, int op, Node *r);
 
 	Value *logical_operator(enum Instruction::BinaryOps op, 
-		Function *func, BasicBlock *block, BasicBlock *allocblock);
+		FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
 
 	Value *binary_operator(enum Instruction::BinaryOps opint, 
-		enum Instruction::BinaryOps opflt, Function *func, BasicBlock *block, BasicBlock *allocblock);
+		enum Instruction::BinaryOps opflt, FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
 
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
-
-	virtual void accept(Visitor &v) override;
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
 	int getOperator() const { return op; };
 
-	virtual BasicDataType getResultType(BasicBlock *block, BasicBlock *allocblock) override;
+	virtual DataType getDataType() override;
 
-	virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override;
+	virtual bool isConstExpr() override;
+	
 };
-
-#endif

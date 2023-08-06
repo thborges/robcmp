@@ -1,22 +1,20 @@
 
 #pragma once
 
-#include "Header.h"
+#include "HeaderGlobals.h"
+#include "Variable.h"
 
-typedef struct {
-    BasicDataType fieldDataType;
-    char *fieldName;
+class Field : public Variable {
+public:
     unsigned startBit;
     unsigned bitWidth;
-} Field;
+    Field(const string& Name, DataType dt) : Variable(name) {
+        setDataType(dt);
+    }
+};
 
 class Structure {
 public:
     int nextBit;
-    map<string, Field> fields;
-};
-
-class ComplexIdentifier {
-public:
-    vector<string> names;
+    map<string, Field*> fields;
 };

@@ -1,23 +1,11 @@
 %{
-
-#include "Header.h"
+#include <FlexDependencies.h>
 #include "Language_gen_y.hpp"
 
 extern void unescape(char *s);
+void update_loc(location_t *yylloc, int lineno, int leng, char *text);
 
-static void update_loc(location_t *yylloc, int lineno, int leng, char *text) {
-	yylloc->first_line = yylloc->last_line;
-	yylloc->last_line = yylloc->last_column;
-	if (yylloc->last_line == lineno)
-		yylloc->last_column += leng;
-	else {
-		yylloc->last_line = lineno;
-		yylloc->last_column = text + leng - strrchr(text, '\n');
-	}
-}
-	
 #define YY_USER_ACTION update_loc(yylloc, yylineno, yyleng, yytext);
-
 %}
 
 %option noinput nounput noyywrap
@@ -26,6 +14,10 @@ static void update_loc(location_t *yylloc, int lineno, int leng, char *text) {
 %option prefix="MAIN"
 
 %x COMMENT
+
+A [a-zA-Z_]
+D [0-9]
+ID {A}({A}|{D})*
 
 %%
 
@@ -40,17 +32,6 @@ static void update_loc(location_t *yylloc, int lineno, int leng, char *text) {
 "register"				{ return TOK_REGISTER; }
 "volatile"				{ return TOK_VOLATILE; }
 "const"					{ return TOK_CONST; }
-"void"					{ return TOK_VOID; }
-"bool"					{ return TOK_FBOOL; }
-"char"					{ return TOK_FCHAR; }
-"int8"					{ return TOK_FINT8; }
-"int16"					{ return TOK_FINT16; }
-"int32"					{ return TOK_FINT32; }
-"int64"					{ return TOK_FINT64; }
-"float"					{ return TOK_FFLOAT; }
-"double"				{ return TOK_FDOUBLE; }
-"long"					{ return TOK_FLONG; }
-"unsigned"				{ return TOK_FUNSIGNED; }
 "return"				{ return TOK_RETURN; }
 "true"					{ return TOK_TRUE; }
 "false"					{ return TOK_FALSE; }
@@ -123,8 +104,12 @@ static void update_loc(location_t *yylloc, int lineno, int leng, char *text) {
 ","						{ return ','; }
 ";"						{ return ';'; }
 
-[a-zA-Z_][a-zA-Z0-9_]*	{ yylval->ident = strndup(yytext, yyleng); 
+{ID}					{ yylval->ident = strndup(yytext, yyleng); 
 						  return TOK_IDENTIFIER; }
+
+{ID}(\.{ID})+			{ yylval->ident = strndup(yytext, yyleng);
+						  return TOK_XIDENTIFIER;
+						}
 
 [0-9]+\.[0-9]+			{ char *aux = strndup(yytext, yyleng);
 						  yylval->nfloat = strtof(aux, NULL);
@@ -160,9 +145,24 @@ static void update_loc(location_t *yylloc, int lineno, int leng, char *text) {
 						  unescape(yylval->str);
 						  return TOK_STRING; }
 
+'\\?.'					{ char *aux = strndup(yytext+1, yyleng-2);
+						  unescape(aux);
+						  yylval->nint = aux[0];
+						  free(aux);
+						  return TOK_INTEGER; }
+
  /* deixar por último. Caractere não reconhecido pelo alfabeto. */
 .						{ yyerror(yylloc, NULL, COLOR_RED "lexical error:" COLOR_RED " caractere nao pertence ao alfabeto da linguagem:"); }
 
 %%
 
-
+void update_loc(location_t *loc, int lineno, int leng, char *text) {
+	loc->first_line = loc->last_line;
+	loc->last_line = loc->last_column;
+	if (loc->last_line == lineno)
+		loc->last_column += leng;
+	else {
+		loc->last_line = lineno;
+		loc->last_column = text + leng - strrchr(text, '\n');
+	}
+}

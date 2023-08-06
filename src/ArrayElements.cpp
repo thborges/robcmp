@@ -1,27 +1,28 @@
-#include "Header.h"
+
+#include "ArrayElements.h"
 
 ArrayElements::ArrayElements() {};
 
-void ArrayElements::append(ArrayElement& e) {
+void ArrayElements::append(ArrayElement *e) {
 	elements.push_back(e);
 };
 	
-unsigned ArrayElements::getArraySize() const {
+unsigned ArrayElements::getArraySize() {
 	unsigned r = 0;
 	for(auto& i : elements)
-		r += i.count;
+		r += i->count;
 	return r;
 };
 
-unsigned ArrayElements::getStructSize() const {
+unsigned ArrayElements::getStructSize() {
 	return elements.size();
 }
 
-BasicDataType ArrayElements::getArrayType(BasicBlock *block, BasicBlock *allocblock) const {
+DataType ArrayElements::getArrayType(FunctionImpl *func) {
 	unsigned intsize = 0;
 	unsigned floatsize = 0;
 	for(auto& i : elements) {
-		BasicDataType dt = i.value->getResultType(block, allocblock);
+		DataType dt = i->value->getDataType();
 		if (buildTypes->isIntegerDataType(dt) && intsize < buildTypes->bitWidth(dt))
 			intsize = buildTypes->bitWidth(dt);
 		
@@ -53,10 +54,10 @@ BasicDataType ArrayElements::getArrayType(BasicBlock *block, BasicBlock *allocbl
 	}
 }
 
-Node *ArrayElements::getStructElement(int position) const {
-	return elements[position].value;
+Node *ArrayElements::getStructElement(int position) {
+	return elements[position]->value;
 }
 
-unsigned ArrayElements::getElementCount(int position) const {
-	return elements[position].count;
+unsigned ArrayElements::getElementCount(int position) {
+	return elements[position]->count;
 }

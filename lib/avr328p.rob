@@ -5,36 +5,38 @@
 void main();
 void __init();
 void __bad_irq();
+void __do_copy_data();
+void __do_clear_bss();
 
 void __vectors() {
 	/* atmega328p has 26 interruptions */
 	/* FIXME: provide proper interrupt functions instead of __bad_irq after implementing "weak" attribute for functions */
-	asm "jmp __init";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
-	asm "jmp __bad_irq";
+	asm "rjmp __init";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
+	asm "rjmp __bad_irq";
 }
 
 void __bad_irq() {
@@ -42,15 +44,37 @@ void __bad_irq() {
 	__vectors();
 }
 
-register int8 SREG at 0x3f;
-register int16 STACK at 0x3d;
+const offset = 0;
+register int8 SREG at (0x3f + offset);
+register int16 STACK at (0x3d + offset);
 
 void __init() {
-	// clear SREG, set STACK at RAM top and call main
-	// if main returns, reset. 
+	// clear r1 (zero reg)
+	asm "eor r1, r1";
+
+	// clear SREG
 	SREG = 0;
+	//asm "out 0x3f, r1";
+
+	// set STACK at RAM top and call main
 	STACK = 0x0AFF;
+	/*asm "ldi r28, 0xFF";
+	asm "ldi r29, 0x0A";
+	asm "out 0x3e, r29";
+	asm "out 0x3d, r28";*/
+
+	// copy global vars init data
+	//__do_copy_data();
+
+	// clear vars initialized as zero
+	//__do_clear_bss();
+
 	main();
+
+	// if main returns, reset. 
 	__vectors();
 }
 
+void sleep_cpu() {
+	asm "sleep";
+}

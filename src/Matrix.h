@@ -1,13 +1,22 @@
-#ifndef __Matrix_H__
-#define __Matrix_H__
 
-class Matrix: public Node {
+#pragma once
+
+#include "MatrixElements.h"
+#include "Array.h"
+
+class Matrix: public LinearDataStructure {
 private:
-	string name;
 	MatrixElements *melements;
 public:
-	Matrix(const char *n, MatrixElements *me) : name(n), melements(me) { }
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
-};
+	Matrix(const char *n, MatrixElements *me);
 
-#endif
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
+
+	virtual Node *getElementIndex(Node *p1, Node *p2) override;
+
+	std::vector<MatrixElement*> const& getElements() {
+		return melements->getElements();
+	}
+
+	void accept(Visitor& v) override;
+};

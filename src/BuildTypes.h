@@ -20,6 +20,7 @@ struct DataTypeInfo {
     Type *llvmType;
     unsigned dwarfEnc;
     DIType *diType;
+    DIDerivedType *diPointerType;
     SourceLocation *sl;
     bool isDefined;
     bool isComplex;
@@ -32,13 +33,14 @@ struct DataTypeInfo {
         this->llvmType = NULL;
         this->dwarfEnc = 0;
         this->diType = NULL;
+        this->diPointerType = NULL;
         this->isDefined = false;
         this->isComplex = false;
     }
 
     DataTypeInfo(const char* name, unsigned bitWidth, Type *llvmType, unsigned dwarfEnc):
         name(name), bitWidth(bitWidth), llvmType(llvmType), dwarfEnc(dwarfEnc), diType(NULL),
-        sl(NULL), isDefined(true), isComplex(false) {};
+        diPointerType(NULL), sl(NULL), isDefined(true), isComplex(false) {};
 };
 
 class BuildTypes {
@@ -59,7 +61,7 @@ public:
 
     BuildTypes(DataType targetPointerType);
 
-    DataType addDataType(Node* userType, Type* llvmType);
+    DataType addDataType(Node* userType, Type* llvmType, unsigned typeBitWidth = 0);
 
     DataType getType(const string& name, bool createUndefined = false);
 
@@ -81,6 +83,11 @@ public:
     DIType *diType(unsigned tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].diType;
+    }
+
+    DIDerivedType *diPointerType(unsigned tid) {
+        assert(tid != -1 && "Undefined type");
+        return tinfo[tid].diPointerType;
     }
 
     SourceLocation *location(unsigned tid) {

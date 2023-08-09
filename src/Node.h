@@ -17,12 +17,9 @@ protected:
 	set<DataQualifier> qualifiers;
 	Node *scope = nullptr;
 
-	virtual void setChildrenScope(Node *scope);
-
 public:
 	Node() {}
 	Node(vector<Node*> &&children);
-	Node(vector<Node*> &&children, bool constructor);
 
 	virtual ~Node();
 
@@ -57,10 +54,6 @@ public:
 	virtual Node* findMember(const string& name);
 
 	void addChild(Node *n);
-
-	vector<Node*> const& getChildren() {
-		return node_children;
-	}
 
 	map<string, NamedNode*> const& getSymbols();
 
@@ -101,9 +94,6 @@ public:
 
 	NamedNode(const string &name, vector<Node*> &&children) :
 		Node(std::move(children)), name(name) {}
-
-	NamedNode(const string &name, vector<Node*> &&children, bool constructor) :
-		Node(std::move(children), constructor), name(name) {}
 
 	string const getName() const override {
 		return name;

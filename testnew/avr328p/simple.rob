@@ -1,5 +1,0 @@
-
-int16 main() {
-	asm "sleep";
-}
-

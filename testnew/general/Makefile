@@ -4,8 +4,11 @@ ALL_TT=$(patsubst %.rob,out/%.tt,$(wildcard *.rob))
 ALL_OO=$(patsubst %.rob,out/%.o,$(wildcard *.rob))
 
 ROBCMP=../../robcmp
+
+ifndef OPT
 #OPT=-g -O0
 OPT=-Oz
+endif
 
 all: out ${ALL}
 

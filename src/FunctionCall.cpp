@@ -52,7 +52,7 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 			Value *var = leftValue;
 			if (leftValue == NULL) {
 				Builder->SetInsertPoint(allocblock);
-				var = Builder->CreateAlloca(buildTypes->llvmType(dt), globalAddrSpace, 0, leftName);
+				var = Builder->CreateAlloca(buildTypes->llvmType(dt), dataAddrSpace, 0, leftName);
 			}
 			vector<Value*> args;
 			args.push_back(var);
@@ -109,6 +109,9 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 	vector<Value*> args;
 	for (int i = 0; i < parameters->getNumParams(); i++){
 		Value *valor = parameters->getParamElement(i)->generate(func, block, allocblock);
+		if (!valor)
+			return NULL;
+			
 		DataType pdt = fsymbol->getParameters().getParamType(i);
 		if (!buildTypes->isComplex(pdt)) {
 			//TODO: we don't support cohercion between user types yet

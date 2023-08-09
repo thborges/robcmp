@@ -8,7 +8,7 @@ Program::Program() {
 
 	if (debug_info) {
 		mainmodule->addModuleFlag(Module::Warning, "Debug Info Version", DEBUG_METADATA_VERSION);
-		mainmodule->addModuleFlag(Module::Warning, "Dwarf Version", 2);
+		mainmodule->addModuleFlag(Module::Warning, "Dwarf Version", 4);
 		DBuilder = make_unique<DIBuilder>(*mainmodule);
 		RobDbgInfo.cunit = DBuilder->createCompileUnit(dwarf::DW_LANG_C,
 			DBuilder->createFile(this->file, std::filesystem::current_path().string()),
@@ -118,7 +118,7 @@ void Program::generate() {
 	st.visit(*this);
 
 	// generate the program!
-	for(auto n: getChildren())
+	for(auto n: children())
 		n->generate(NULL, NULL, global_alloc);
 
 	if (debug_info)

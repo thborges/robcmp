@@ -9,7 +9,7 @@
 
 using namespace std;
 
-const string file_not_found = "No such file or directory '%s'\n";
+static const char *file_not_found = "No such file or directory '%s'.";
 
 typedef void* yyscan_t;
 extern int errorsfound;

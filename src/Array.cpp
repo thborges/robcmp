@@ -59,8 +59,9 @@ Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 			constantValues.push_back(dyn_cast<Constant>(a));
 		ArrayRef<Constant*> constantRefs(constantValues);
 		GlobalVariable *gv = new GlobalVariable(*mainmodule, arrayType, 
-			false, GlobalValue::ExternalLinkage, ConstantArray::get(arrayType, constantRefs), name);
-		//gv->setDSOLocal(true);
+			false, GlobalValue::InternalLinkage, 
+			ConstantArray::get(arrayType, constantRefs), name);
+		gv->setDSOLocal(true);
 		gv->setAlignment(Align(2));
 		alloc = gv;
 
@@ -74,7 +75,7 @@ Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 
 	} else {
 		Builder->SetInsertPoint(allocblock);
-		alloc = Builder->CreateAlloca(arrayType, globalAddrSpace, 0, name);
+		alloc = Builder->CreateAlloca(arrayType, dataAddrSpace, 0, name);
 
 		RobDbgInfo.emitLocation(this);
 		Builder->SetInsertPoint(block);

@@ -325,22 +325,10 @@ __divmodhi4_exit:
     ret
 ENDF __divmodhi4
 
-/*
- * Clear the bss data
- */
-DEFUN __do_clear_bss
-	ldi	r17, hi8(__bss_end)
-	ldi	r26, lo8(__bss_start)
-	ldi	r27, hi8(__bss_start)
-	rjmp	.do_clear_bss_start
-.do_clear_bss_loop:
-	st	X+, __zero_reg__
-.do_clear_bss_start:
-	cpi	r26, lo8(__bss_end)
-	cpc	r27, r17
-	brne	.do_clear_bss_loop
-ENDF __do_clear_bss
 
+/*
+ * Copy data and clear bss
+ */
 
 DEFUN __do_copy_data
 	ldi	r17, hi8(__data_end)
@@ -348,12 +336,28 @@ DEFUN __do_copy_data
 	ldi	r27, hi8(__data_start)
 	ldi	r30, lo8(__data_load_start)
 	ldi	r31, hi8(__data_load_start)
-	rjmp	.do_copy_data_start
-.do_copy_data_loop:
+	rjmp __do_copy_data_start
+__do_copy_data_loop:
 	lpm	r0, Z+
 	st	X+, r0
-.do_copy_data_start:
+__do_copy_data_start:
 	cpi	r26, lo8(__data_end)
 	cpc	r27, r17
-	brne	.do_copy_data_loop
+	brne __do_copy_data_loop
+    ret
 ENDF __do_copy_data
+
+DEFUN __do_clear_bss
+	ldi	r17, hi8(__bss_end)
+	ldi	r26, lo8(__bss_start)
+	ldi	r27, hi8(__bss_start)
+	rjmp __do_clear_bss_start
+__do_clear_bss_loop:
+	st	X+, __zero_reg__
+__do_clear_bss_start:
+	cpi	r26, lo8(__bss_end)
+	cpc	r27, r17
+	brne __do_clear_bss_loop
+    ret
+ENDF __do_clear_bss
+

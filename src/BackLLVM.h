@@ -13,7 +13,9 @@ typedef struct {
 	const DataType pointerType;
 } TargetInfo;
 
-extern unsigned int globalAddrSpace;
+extern unsigned int codeAddrSpace;
+extern unsigned int dataAddrSpace;
+
 enum SupportedTargets {native, avr328p, stm32f1, esp32, __last_target};
 extern enum SupportedTargets currentTargetId;
 #define currentTarget (supportedTargets[currentTargetId])

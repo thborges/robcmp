@@ -11,6 +11,8 @@ class UserType: public NamedNode {
 private:
     vector<string> implements;
     void createDataType();
+    map<string, unsigned> startBits;
+    bool declaration = false;
 
 public:
 
@@ -23,4 +25,9 @@ public:
 
     void accept(Visitor& v) override;
 
+    unsigned getFieldStartBit(Node *field);
+
+    void setDeclaration(bool d) {
+        declaration = d;
+    }
 };

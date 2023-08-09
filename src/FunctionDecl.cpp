@@ -41,8 +41,8 @@ Value *FunctionDecl::generate(FunctionImpl*, BasicBlock *, BasicBlock *allocbloc
 
 	Type *xtype = buildTypes->llvmType(dt);
 	FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
-	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, globalAddrSpace, name, mainmodule);
-	//nfunc->setDSOLocal(true);
+	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, codeAddrSpace, name, mainmodule);
+	nfunc->setDSOLocal(true);
 	nfunc->setCallingConv(CallingConv::C);
 
 	func = nfunc;

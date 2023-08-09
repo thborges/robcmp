@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include "Field.h"
 #include "Variable.h"
 
 class Scalar: public Variable {

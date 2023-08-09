@@ -30,8 +30,6 @@
 %type <ident> TOK_IDENTIFIER TOK_XIDENTIFIER ident_or_xident
 %type <str> TOK_STRING asminline
 %type <nint> TOK_STEPPER
-%type <field> struct_field
-%type <structure> struct_fields
 %type <str> error
 %type <nodes> intf_decls
 
@@ -52,15 +50,15 @@ programa : gstmts {
 };
 
 gstmts : gstmts gstmt {
-	$1->push_back($gstmt);
-	//$gstmt->setScope(program);
+	if ($gstmt) { // TOK_USE returns NULL
+		$1->push_back($gstmt);
+	}
 }
 
 gstmts : gstmt {
 	$$ = new vector<Node*>();
 	if ($gstmt) {
 		$$->push_back($gstmt);
-		//$gstmt->setScope(program);
 		$gstmt->setLocation(@gstmt);
 	}
 }
@@ -304,42 +302,10 @@ printstmt : TOK_PRINT TOK_STRING		{ $$ = new Print(new StringConst($2)); }
 		  | TOK_PRINT expr				{ $$ = new Print($2); }
 
 registerstmt : TOK_REGISTER TOK_IDENTIFIER[type] TOK_IDENTIFIER[name] TOK_AT expr ';' {
-				 $$ = new Pointer($name, buildTypes->getType($type, true), $5);
-				 $$->setQualifier(qvolatile);
-				 $$->setLocation(@name);
-			   }
-			 | TOK_REGISTER TOK_IDENTIFIER[type] TOK_IDENTIFIER[name] TOK_AT expr '{' struct_fields '}' {
-				 $$ = new Pointer($name, buildTypes->getType($type, true), $5, $7);
-				 $$->setLocation(@name);
-			   }
-			 ;
-
-struct_fields : struct_fields struct_field {
-				  $2->startBit = $1->nextBit;
-	              $1->fields[$2->getName()] = $2;
-				  $1->nextBit += $2->bitWidth;
-				  $$ = $1;
-				}
-              | struct_field {
-			      Structure *s = new Structure();
-				  $1->startBit = 0;
-				  s->fields[$1->getName()] = $1;
-				  s->nextBit = $1->bitWidth;
-				  $$ = s;
-				}
-			  ;
-
-struct_field : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] ';' {
-				 Field *s = new Field($id, buildTypes->getType($type, true));
-				 s->bitWidth = buildTypes->bitWidth(s->getDataType());
-				 $$ = s;
-			   }
-			 | TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] ':' TOK_INTEGER[bit] ';' {
-				 Field *s = new Field($id, buildTypes->getType($type, true));
-				 s->bitWidth = (unsigned)$bit;
-				 $$ = s;
-			   }
-             ;
+	$$ = new Pointer($name, buildTypes->getType($type, true), $5);
+	$$->setQualifier(qvolatile);
+	$$->setLocation(@name);
+}
 
 asminline : TOK_ASM TOK_STRING { $$ = $2; }
 		  ;

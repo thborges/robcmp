@@ -10,17 +10,23 @@ void UserType::createDataType() {
     std::vector<Type*> elements;
 
     int idx = 0;
-    for(auto nn : this->getSymbols()) {
-        Scalar *s = dynamic_cast<Scalar*>(nn.second);
+    unsigned startBit = 0;
+    for(auto child : this->children()) {
+        Scalar *s = dynamic_cast<Scalar*>(child);
         if (s) {
             DataType sdt = s->getDataType();
             elements.push_back(buildTypes->llvmType(sdt));
             s->setGEPIndex(idx++);
+
+            //FIXME: Fix for data alignment on non-packed structure/type
+            startBits[s->getName()] = startBit;
+            startBit += buildTypes->bitWidth(s->getDataType());
         }
     }
+    unsigned bitWidth = startBit;
 
-    StructType *uttype = StructType::create(global_context, ArrayRef<Type*>(elements), name);
-    dt = buildTypes->addDataType(this, uttype);
+    StructType *uttype = StructType::create(global_context, ArrayRef<Type*>(elements), name, true);
+    dt = buildTypes->addDataType(this, uttype, bitWidth);
     if (dt == BuildTypes::undefinedType) {
         yyerrorcpp("Type " + name + " alread defined.", this);
         yyerrorcpp(name + " was first defined here.", buildTypes->location(dt));
@@ -56,7 +62,7 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
             fields.push_back(c);
         }
     }
-    
+
     // generate functions
     for(auto & [key, stmt] : getSymbols()) {
         if (FunctionImpl *f = dynamic_cast<FunctionImpl*>(stmt)) {
@@ -64,6 +70,7 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
             f->addThisArgument(dt);
             for(auto &field : fields)
                 f->addSymbol(dynamic_cast<NamedNode*>(field));
+            f->setExternal(declaration);
             f->generate(func, block, allocblock);
         }
     }
@@ -73,11 +80,18 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
         std::move(fields), *this->getLoct(), true);
     finit->addThisArgument(dt);
     finit->setUserTypeName(name);
+    finit->setExternal(declaration);
     addChild(finit);
     addSymbol(finit);
-    return finit->generate(func, block, allocblock);
+    finit->generate(func, block, allocblock);
+
+    return NULL;
 }
 
 void UserType::accept(Visitor& v) {
 	v.visit(*this);
+}
+
+unsigned UserType::getFieldStartBit(Node *field) {
+    return startBits[field->getName()];
 }

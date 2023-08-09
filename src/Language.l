@@ -158,7 +158,7 @@ ID {A}({A}|{D})*
 
 void update_loc(location_t *loc, int lineno, int leng, char *text) {
 	loc->first_line = loc->last_line;
-	loc->last_line = loc->last_column;
+	loc->first_column = loc->last_column;
 	if (loc->last_line == lineno)
 		loc->last_column += leng;
 	else {

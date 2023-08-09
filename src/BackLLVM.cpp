@@ -16,6 +16,7 @@
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/Host.h>
 #include <llvm/MC/TargetRegistry.h>
+#include <llvm/MC/SubtargetFeature.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
@@ -33,7 +34,9 @@ std::unique_ptr<DIBuilder> DBuilder;
 struct DebugInfo RobDbgInfo;
 std::unique_ptr<BuildTypes> buildTypes;
 
-unsigned int globalAddrSpace = 0;
+unsigned int codeAddrSpace = 1;
+unsigned int dataAddrSpace = 0;
+
 enum SupportedTargets currentTargetId;
 extern char *build_outputfilename;
 
@@ -47,6 +50,13 @@ void print_llvm_ir(char opt_level) {
 
 	std::string defaultt = sys::getDefaultTargetTriple();
 	supportedTargets[0].triple = defaultt.c_str();
+    SubtargetFeatures Features;
+    StringMap<bool> HostFeatures;
+    if (sys::getHostCPUFeatures(HostFeatures))
+        for (auto &F : HostFeatures)
+            Features.AddFeature(F.first(), F.second);
+    supportedTargets[0].features = Features.getString().c_str();
+	
 	TargetInfo ai = currentTarget;
 
 	std::string Error;
@@ -63,6 +73,7 @@ void print_llvm_ir(char opt_level) {
 
 	mainmodule->setDataLayout(targetMachine->createDataLayout());
 	mainmodule->setTargetTriple(ai.triple);
+	mainmodule->setFramePointer(FramePointerKind::All);
 
 	PassBuilder passBuilder(targetMachine);
 	auto loopAnalysisManager = LoopAnalysisManager{};

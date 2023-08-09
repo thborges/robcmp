@@ -36,14 +36,18 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 			return NULL;
 		
 		FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
-		func = Function::Create(ftype, Function::ExternalLinkage, globalAddrSpace, getFinalName(), mainmodule);
+		func = Function::Create(ftype, Function::ExternalLinkage, codeAddrSpace, getFinalName(), mainmodule);
 	}
 
-	//func->setDSOLocal(true);
+	if (isExternal())
+		return NULL;
+
+	func->setDSOLocal(true);
 	llvm::AttrBuilder attrs(global_context);
 	//attrs.addAttribute(Attribute::MinSize);
 	attrs.addAttribute("target-cpu", currentTarget.cpu);
-	//attrs.addAttribute("frame-pointer", "all");
+	attrs.addAttribute("frame-pointer", "all");
+	attrs.addAttribute("stack-protector-buffer-size", "8");
 	
 	if (name == "init") // inline constructors
 		attrs.addAttribute(Attribute::InlineHint);
@@ -51,7 +55,7 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 	if (name == "__vectors") { // FIXME: remove after adding functions attributes to language
 		func->setSection(".vectors");
 	}
-
+	
 	func->setAttributes(llvm::AttributeList().addFnAttributes(global_context, attrs));
 	func->setCallingConv(CallingConv::C);
 
@@ -61,7 +65,7 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 		funit = DBuilder->createFile(RobDbgInfo.cunit->getFilename(), RobDbgInfo.cunit->getDirectory());
 		DIScope *fcontext = funit;
 		sp = DBuilder->createFunction(fcontext, getFinalName(), StringRef(), funit, this->getLineNo(),
-			getFunctionDIType(), this->getLineNo(), DINode::FlagPrototyped, DISubprogram::SPFlagDefinition);
+			getFunctionDIType(), this->getLineNo(), DINode::FlagZero, DISubprogram::SPFlagDefinition);
 		func->setSubprogram(sp);
 		RobDbgInfo.push_scope(funit, sp);
 	}
@@ -82,7 +86,7 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 
 		Value *variable = &Arg;
 		if (!buildTypes->isComplex(ptype))
-			variable = Builder->CreateAlloca(buildTypes->llvmType(ptype), globalAddrSpace, 0, argname);
+			variable = Builder->CreateAlloca(buildTypes->llvmType(ptype), dataAddrSpace, 0, argname);
 		
 		if (argname == "#this") {
 			thisArg = variable;
@@ -96,7 +100,7 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 		if (debug_info) {
 			DILocalVariable *d = DBuilder->createParameterVariable(sp, argname, Idx+1, funit,
 				this->getLineNo(), buildTypes->diType(ptype), true);
-			DBuilder->insertDeclare(variable, d, DBuilder->createExpression(),
+			DBuilder->insertDeclare(variable, d, RobDbgInfo.getFixedOffsetExpression(),
 				DILocation::get(sp->getContext(), this->getLineNo(), 0, sp),
 				falloc);
 		}

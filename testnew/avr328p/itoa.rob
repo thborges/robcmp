@@ -1,4 +1,6 @@
 
+use serial;
+
 chars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
 result = {0:18};
@@ -102,23 +104,35 @@ bool check16(int8 id) {
 	return ret;
 }
 
-void sleep_cpu();
+void print_result(avr5_serial s) {
+	i = 0;
+	while result[i] != 0 {
+		s.write(result[i]);
+		i++;
+	}
+	s.write('\n');
+}
 
 int16 main() {
+	mcu = avr5mcu();
+	serial = avr5_serial();
+	serial.start(mcu, 9600);
+
 	ret = true;
 	i = 0;
 	while i < numbers.size and ret == true {
 		itoa(numbers[i], 10);
 		ret = check10(i);
+		print_result(serial);
+
 		if ret == true {
 			itoa(numbers[i], 16);
 			ret = check16(i);
+			print_result(serial);
 		}
 		i++;
 	}
 
-	sleep_cpu();
-	
 	if ret == true {
 		return 0;
 	} else {

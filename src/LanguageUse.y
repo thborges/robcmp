@@ -2,58 +2,60 @@
 %name-prefix="USE"
 //%define api.prefix {USE} // not working in Bison 3.8.2
 %define parse.error verbose
+
+// enable this to trace the parser. Also, set USEDebug=1 at Scanner.cpp.
 //%define parse.trace
 
 %code provides {
   #define YY_DECL int USElex(YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t yyscanner)
   YY_DECL;
   void yyerror(YYLTYPE *yyloc, yyscan_t yyscanner, const char *msg);
-  //#define YYDEBUG 1
 }
 
-%type<nodes> gstmts
-%type<node> gstmt register interface type ignores ignore_once ignore use
-%type<node> function function_decl function_impl var_decl
+%type<nodes> globals type_stmts
+%type<node> global register interface type ignore_stmt ignore use type_stmt
+%type<node> function function_decl function_impl var_decl cast ignore_param
 %type<fps> function_params
 %type<fp> function_param
 %type<nodes> intf_decls
 %type<node> const_expr
 %type<ident> TOK_IDENTIFIER
 %type<nint> TOK_INTEGER
-%type<structure> struct_fields
-%type<field> struct_field
 %type<strings> type_impls
-%type<str> error;
+%type<nint> qualifier
+
+%printer { fprintf(yyo, "'%s'", $$); } <ident>
+%printer { fprintf(yyo, "'%s'", $$ ? $$->getName().c_str() : ""); } <node>
 
 %%
 
-programa : gstmts {
-	for(auto stmt : *($gstmts)) {
+programa : globals {
+	for(auto stmt : *($globals)) {
 		program->addChild(stmt);
 	}
 }
 
-gstmts : gstmts gstmt {
-	$1->push_back($gstmt);
-	//$gstmt->setScope(program);
-}
-
-gstmts : gstmt {
-	$$ = new vector<Node*>();
-	if ($gstmt) {
-		$$->push_back($gstmt);
-		//$gstmt->setScope(program);
-		$gstmt->setLocation(@gstmt);
+globals : globals global {
+	if ($global) {
+		$1->push_back($global);
 	}
 }
 
-gstmt : register
-	  | interface
-	  | type
-	  | function
-	  | var_decl
-      | ignore_once
-	  | use
+globals : global {
+	$$ = new vector<Node*>();
+	if ($global) {
+		$global->setLocation(@global);
+		$$->push_back($global);
+	}
+}
+
+global : use
+	   | interface
+	   | type
+	   | register
+	   | function
+	   | var_decl { $$ = NULL; } // don't export global vars
+	   | qualifier var_decl { $$ = NULL; }
 
 use : TOK_USE TOK_IDENTIFIER ';' {
 	parseUseFile($2, @TOK_USE);
@@ -67,22 +69,24 @@ function_decl : TOK_IDENTIFIER[type] TOK_IDENTIFIER '(' function_params ')' ';' 
     $$->setLocation(@type);
 }
 
-function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' '{' ignores '}'[ef] {
+function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' '{' ignore_stmts '}'[ef] {
 	vector<Node*> auxvec;
-	$$ = new FunctionImpl(buildTypes->getType($type, true), $id, $function_params,
-			std::move(auxvec), @ef); 
-    $$->setLocation(@type);
+	FunctionImpl *func = new FunctionImpl(buildTypes->getType($type, true), $id, $function_params,
+		std::move(auxvec), @ef);
+	func->setExternal(true);
+    func->setLocation(@type);
+	$$ = func;
 }
 
 function_params: function_params ',' function_param {
     $1 -> append($3);
-    $$ = $1; 
+    $$ = $1;
 }
 
 function_params: function_param {
     FunctionParams *fps = new FunctionParams();
     fps->append($1);
-    $$ = fps; 
+    $$ = fps;
 }
 
 function_params: %empty {
@@ -99,37 +103,6 @@ register : TOK_REGISTER TOK_IDENTIFIER[type] TOK_IDENTIFIER[name] TOK_AT const_e
 	$$->setQualifier(qvolatile);
 	$$->setLocation(@name);
 }
-
-register : TOK_REGISTER TOK_IDENTIFIER[type] TOK_IDENTIFIER[name] TOK_AT const_expr '{' struct_fields '}' {
-	$$ = new Pointer($name, buildTypes->getType($type, true), $5, $7);
-	$$->setLocation(@name);
-}
-
-struct_fields : struct_fields struct_field {
-				  $2->startBit = $1->nextBit;
-	              $1->fields[$2->getName()] = $2;
-				  $1->nextBit += $2->bitWidth;
-				  $$ = $1;
-				}
-              | struct_field {
-			      Structure *s = new Structure();
-				  $1->startBit = 0;
-				  s->fields[$1->getName()] = $1;
-				  s->nextBit = $1->bitWidth;
-				  $$ = s;
-				}
-			  ;
-
-struct_field : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] ';' {
-				 Field *s = new Field($id, buildTypes->getType($type, true));
-				 s->bitWidth = buildTypes->bitWidth(s->getDataType());
-				 $$ = s;
-			   }
-			 | TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] ':' TOK_INTEGER[bit] ';' {
-				 Field *s = new Field($id, buildTypes->getType($type, true));
-				 s->bitWidth = (unsigned)$bit;
-				 $$ = s;
-			   }
 
 interface : TOK_INTF TOK_IDENTIFIER '{' intf_decls '}' {
 	$$ = new Interface($TOK_IDENTIFIER, std::move(*$intf_decls));
@@ -151,14 +124,18 @@ intf_decls : function_decl {
 	$$->push_back($function_decl);
 }
 
-type : TOK_TYPE TOK_IDENTIFIER TOK_IMPL type_impls '{' gstmts '}' {
-	$$ = new UserType($TOK_IDENTIFIER, std::move(*$gstmts), std::move(*$type_impls));
-	$$->setLocation(@TOK_TYPE);
+type : TOK_TYPE TOK_IDENTIFIER TOK_IMPL type_impls '{' type_stmts '}' {
+	UserType *ut = new UserType($TOK_IDENTIFIER, std::move(*$type_stmts), std::move(*$type_impls));
+	ut->setLocation(@TOK_TYPE);
+	ut->setDeclaration(true);
+	$$ = ut;
 }
 
-type : TOK_TYPE TOK_IDENTIFIER '{' gstmts '}' {
-	$$ = new UserType($TOK_IDENTIFIER, std::move(*$gstmts));
-	$$->setLocation(@TOK_TYPE);
+type : TOK_TYPE TOK_IDENTIFIER '{' type_stmts '}' {
+	UserType *ut = new UserType($TOK_IDENTIFIER, std::move(*$type_stmts));
+	ut->setLocation(@TOK_TYPE);
+	ut->setDeclaration(true);
+	$$ = ut;
 }
 
 type_impls : type_impls ',' TOK_IDENTIFIER {
@@ -171,30 +148,68 @@ type_impls : TOK_IDENTIFIER {
 	$$->push_back($1);
 }
 
-var_decl : TOK_IDENTIFIER '=' const_expr ';' { $$ = new Scalar($1, $3); };
+type_stmts : type_stmts type_stmt {
+	$$->push_back($type_stmt);
+}
+
+type_stmts : type_stmt {
+	$$ = new vector<Node*>();
+	$$->push_back($type_stmt);
+}
+
+type_stmt : var_decl
+		  | qualifier[q] var_decl	{ $var_decl->setQualifier((DataQualifier)$q); $$ = $2; }
+          | function_impl
+
+qualifier : TOK_CONST		{ $$ = qconst; }
+		  | TOK_VOLATILE	{ $$ = qvolatile; }
+
+var_decl : TOK_IDENTIFIER '=' const_expr ';'	{ $$ = new Scalar($1, $3); }
+var_decl : TOK_IDENTIFIER '=' cast ';'			{ $$ = new Scalar($1, $3); }
 
 const_expr : TOK_INTEGER    { $$ = getNodeForIntConst($1); }
+           | TOK_TRUE		{ $$ = new Int1(1); }
+           | TOK_FALSE		{ $$ = new Int1(0); }
+		   //TODO: Add other constant nodes here!
 
-ignores : ignores ignore_once
-        | ignore_once
+cast : TOK_IDENTIFIER[id] '(' ignore_param ')' {
+	ParamsCall *pc = new ParamsCall();
+	pc->append(new Node());
+	$$ = new FunctionCall($id, pc);
+	$$->setLocation(@id);
+}
 
-ignore_once : ignore ';'	{ $$ = NULL; }
-		    | error ';'		{ $$ = NULL; }
-			| error '}'		{ $$ = NULL; }
+ignore_param : ignore_p	{ $$ = NULL; }
+			 | error	{ $$ = NULL; }
 
-/* put here any symbol that can start a stmt (except globals)
- * to be precise, the FIRST(stmt)
+/* put here any symbol that can start a expr.
+ * to be precise, the FIRST(expr)
  */
-ignore : TOK_IDENTIFIER { YYERROR; }
-	   | TOK_WHILE      { YYERROR; }
-	   | TOK_RETURN     { YYERROR; }
-	   | TOK_CONST      { YYERROR; }
-	   | TOK_VOLATILE   { YYERROR; }
-	   | TOK_IF         { YYERROR; }
-	   | TOK_LOOP       { YYERROR; }
-	   | TOK_ASM        { YYERROR; }
-	   | TOK_PRINT      { YYERROR; }
-	   | TOK_DELAY      { YYERROR; }
+ignore_p : TOK_INTEGER		{ YYERROR; }
+		 | TOK_IDENTIFIER	{ YYERROR; }
+
+ignore_stmts : ignore_stmts ignore_stmt
+    		   | ignore_stmt
+
+ignore_stmt : ignore						{ $$ = NULL; }
+			| error '{' ignore_stmts '}'	{ $$ = NULL; }
+		    | error	';'						{ $$ = NULL; }
+
+/* put here any symbol that can start a stmt (except globals).
+ * to be precise, the FIRST(stmt) of Language.y
+ */
+ignore : TOK_IDENTIFIER  { YYERROR; }
+	   | TOK_XIDENTIFIER { YYERROR; }
+	   | TOK_WHILE       { YYERROR; }
+	   | TOK_RETURN      { YYERROR; }
+	   | TOK_CONST       { YYERROR; }
+	   | TOK_VOLATILE    { YYERROR; }
+	   | TOK_IF          { YYERROR; }
+	   | TOK_ELSE        { YYERROR; }
+	   | TOK_LOOP        { YYERROR; }
+	   | TOK_ASM         { YYERROR; }
+	   | TOK_PRINT       { YYERROR; }
+	   | TOK_DELAY       { YYERROR; }
 
 %%
 

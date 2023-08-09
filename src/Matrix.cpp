@@ -72,8 +72,10 @@ Value *Matrix::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			constantValues.push_back(dyn_cast<Constant>(a));
 		ArrayRef<Constant*> constantRefs(constantValues);
 		GlobalVariable *gv = new GlobalVariable(*mainmodule, arrayType, 
-			false, GlobalValue::ExternalLinkage, ConstantArray::get(arrayType, constantRefs), name);
-		//gv->setDSOLocal(true);
+			false, GlobalValue::InternalLinkage, 
+			ConstantArray::get(arrayType, constantRefs), name);
+		gv->setDSOLocal(true);
+		gv->setAlignment(Align(2));
 		alloc = gv;
 	} else {
 		alloc = new AllocaInst(arrayType, 0, name, allocblock);

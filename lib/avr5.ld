@@ -7,33 +7,32 @@ OUTPUT_ARCH(avr:5)
 
 SECTIONS
 {
-  .text : {
+  .text : AT (0x0) {
   	_start__vectors = .;
 	KEEP(*(.vectors))
-	. = __vectors_size;
-	_end_vectors = .;
 	. = ALIGN(2);
+	_end_vectors = .;
 	_stext = .;
      *(.progmem*)
     . = ALIGN(2);
     *(.text)
     . = ALIGN(2);
     *(.text.*)
+	. = ALIGN(2);
      _etext = . ;
-  }  > text
+  }
 
-  .data : {
+  .data : AT (ADDR(.text) + SIZEOF(.text)) {
      PROVIDE (__data_start = .) ;
     *(.data)
     *(.data*)
     *(.rodata)  /* We need to include .rodata here if gcc is used */
     *(.rodata*) /* with -fdata-sections.  */
     . = ALIGN(2);
-     _edata = . ;
      PROVIDE (__data_end = .) ;
-  }  > data AT> text
+  }  > data
 
-  .bss  ADDR(.data) + SIZEOF (.data)   : AT (ADDR (.bss)) {
+  .bss : AT (ADDR (.bss)) {
      PROVIDE (__bss_start = .) ;
     *(.bss)
      *(.bss*)
@@ -70,8 +69,9 @@ SECTIONS
   } > user_signatures
 
   /* DWARF 3 */
-  .debug_pubtypes 0 : { *(.debug_pubtypes) }
-  .debug_ranges   0 : { *(.debug_ranges) }
+  .debug_pubtypes 1 : { *(.debug_pubtypes) }
+  .debug_ranges   1 : { *(.debug_ranges) }
   /* DWARF Extension.  */
-  .debug_macro    0 : { *(.debug_macro) }
+  .debug_macro    1 : { *(.debug_macro) }
 }
+

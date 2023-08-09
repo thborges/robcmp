@@ -42,6 +42,15 @@ DIScope* DebugInfo::currScope() {
 	return scopes.back();
 }
 
+DIExpression *DebugInfo::getFixedOffsetExpression() {
+	// TODO: For some unknown reason (to me), we need to offset 
+	// the var declaration by one to see its actual value
+	SmallVector<uint64_t, 8> Ops;
+	DIExpression *ex = DBuilder->createExpression();
+	ex->appendOffset(Ops, 1);
+	return DIExpression::prependOpcodes(ex, Ops, false);
+}
+
 void DebugInfo::declareVar(Node *n, Value *alloc, BasicBlock *allocblock) {
 	DataType dt = n->getDataType();
 	llvm::DIType *dty = buildTypes->diType(dt);
@@ -51,7 +60,8 @@ void DebugInfo::declareVar(Node *n, Value *alloc, BasicBlock *allocblock) {
 	auto sp = RobDbgInfo.currScope();
 	auto funit = RobDbgInfo.currFile();
 	DILocalVariable *d = DBuilder->createAutoVariable(
-		sp, n->getName(), funit, n->getLineNo(), dty, true);
-	DBuilder->insertDeclare(alloc, d, DBuilder->createExpression(),
+		sp, n->getName(), funit, n->getLineNo(), dty);
+	
+	DBuilder->insertDeclare(alloc, d, getFixedOffsetExpression(),
 		DILocation::get(sp->getContext(), n->getLineNo(), n->getColNo(), sp), allocblock);
 }

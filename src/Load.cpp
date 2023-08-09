@@ -4,6 +4,7 @@
 #include "Scalar.h"
 #include "FunctionImpl.h"
 #include "Variable.h"
+#include "Pointer.h"
 
 DataType Load::getDataType() {
 	if (dt == BuildTypes::undefinedType) {
@@ -18,7 +19,7 @@ DataType Load::getDataType() {
 Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
 	Node *isymbol = ident.getSymbol(getScope());
-	if (isymbol->isConstExpr())
+	if (isymbol && isymbol->isConstExpr())
 		return isymbol->getLLVMValue(func);
 	
 	Variable *symbol = dynamic_cast<Variable*>(isymbol);
@@ -41,7 +42,28 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 	if (ident.isComplex()) {
 		Identifier istem = ident.getStem();
 		Node *stem = istem.getSymbol(getScope());
-		alloc = symbol->getLLVMValue(stem);
+
+		// Pointers need a custom procedure: load the stem and get the 
+		// requested bit value through bit shifting
+		Pointer *reg = dynamic_cast<Pointer*>(stem);
+		if (reg && buildTypes->isComplex(reg->getDataType())) {
+			alloc = reg->getLLVMValue(NULL);
+			Type *req_eq_ty = Type::getIntNTy(global_context, buildTypes->bitWidth(reg->getDataType()));
+			Value *v = Builder->CreateLoad(req_eq_ty, alloc, reg->hasQualifier(qvolatile), "ptrvalue");
+			/* this code does:
+			 *   v = symbol->value << pointerbits - field_start - field_width
+			 *   v = v >> pointer_bits - field_width
+			 */
+			int bs = buildTypes->bitWidth(reg->getDataType()) - buildTypes->bitWidth(symbol->getDataType());
+			unsigned fieldStartBit = reg->getFieldStartBit(symbol);
+			if (bs - fieldStartBit > 0)
+				v = Builder->CreateShl(v, ConstantInt::get(req_eq_ty, bs - fieldStartBit));
+			if (bs > 0)
+				v = Builder->CreateLShr(v, ConstantInt::get(req_eq_ty, bs));
+			return Builder->CreateTrunc(v, buildTypes->llvmType(symbol->getDataType()));
+		} else {
+			alloc = symbol->getLLVMValue(stem);
+		}
 		
 		if (stem->hasQualifier(qvolatile))
 			symbol->setQualifier(qvolatile);

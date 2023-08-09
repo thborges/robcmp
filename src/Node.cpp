@@ -8,14 +8,7 @@
 
 Node::~Node() {}
 
-Node::Node(vector<Node*> &&children, bool constructor) : node_children(children) {
-	// scalars alread has their scope set in the type
-	if (!constructor)
-		setChildrenScope(this);
-}
-
 Node::Node(vector<Node*> &&children) : node_children(children) {
-	setChildrenScope(this);
 }
 
 std::vector<Node *> const& Node::children() const {
@@ -83,18 +76,12 @@ void Node::setScope(Node *s) {
 	}*/
 }
 
-void Node::setChildrenScope(Node *s) {
-	for(auto& n : node_children) {
-		//n->setScope(s);
-	}
-}
-
 Value* Node::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	return NULL;
 }
 
 Value* Node::generateChildren(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
-	for(Node *n: getChildren()) {
+	for(Node *n: children()) {
 		Value *b = n->generate(func, block, allocblock);
 		if (b && b->getValueID() == Value::BasicBlockVal) 
 			block = (BasicBlock*)b;

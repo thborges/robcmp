@@ -47,13 +47,11 @@
 	MatrixElements *mes;
 	FunctionParams *fps;
 	ParamsCall *pc;
-	Structure *structure;
 	vector<Node*> *nodes;
 	vector<string> *strings;
 	ArrayElement *ae;
 	MatrixElement *me;
 	FunctionParam *fp;
-	Field *field;
 }
 
 %start programa

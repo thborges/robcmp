@@ -1,0 +1,11 @@
+
+type avr5mcu {
+
+    int32 clock() {
+        return 16000000;
+    }
+
+    void sleep() {
+        asm "sleep";
+    }
+}

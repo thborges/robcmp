@@ -64,7 +64,7 @@ bool parseFile(const string& source) {
 
     FILE *f = fopen(file_path.c_str(), "r");
     if (f == NULL) {
-        fprintf(stderr, file_not_found.c_str(), file_path.c_str());
+        fprintf(stderr, file_not_found, file_path.c_str());
         return false;
     }
 
@@ -105,7 +105,8 @@ bool parseUseFile(const string& use, location_t loc) {
     FILE *f = findFile(file_name, file_path);
 
     if (f == NULL) {
-        fprintf(stderr, file_not_found.c_str(), file_name.c_str());
+        SourceLocation s(loc);
+        yyerrorcpp(string_format(file_not_found, file_name.c_str()), &s);
         return false;
     }
 
@@ -131,7 +132,7 @@ bool parseUseFile(const string& use, location_t loc) {
     buildStackScanner.push_back(scanner);
 
 	MAINset_in(f, scanner);
-    extern int USEdebug;
+    //extern int USEdebug;
     //USEdebug = 1;
 	USEparse(scanner);
 	MAINlex_destroy(scanner);

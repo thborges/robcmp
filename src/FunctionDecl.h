@@ -9,6 +9,8 @@ protected:
 	FunctionParams *parameters;
 	Function *func = NULL;
 	bool declaration = true;
+	bool constructor = false;
+	bool external = false;
 
 	bool validateAndGetArgsTypes(std::vector<Type*> &args);
 
@@ -20,9 +22,10 @@ public:
 
 	FunctionBase(DataType dt, string name, FunctionParams *fp, vector<Node*> &&stmts,
 		bool constructor = false) :
-		NamedNode(name, std::move(stmts), constructor) {
+		NamedNode(name, std::move(stmts)) {
 		this->dt = dt;
 		this->parameters = fp;
+		this->constructor = constructor;
 	}
 
 	FunctionParams& getParameters() {
@@ -43,6 +46,18 @@ public:
 
 	bool isDeclaration() {
 		return declaration;
+	}
+
+	bool isConstructor() {
+		return constructor;
+	}
+
+	void setExternal(bool e) {
+		external = e;
+	}
+
+	bool isExternal() {
+		return external;
 	}
 };
 

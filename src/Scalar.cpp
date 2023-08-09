@@ -3,6 +3,7 @@
 #include "Coercion.h"
 #include "FunctionImpl.h"
 #include "BackLLVM.h"
+#include "Pointer.h"
 
 Scalar::Scalar(Identifier ident, Node *e) :
 	Variable(ident.getFullName()), expr(e) {
@@ -21,10 +22,19 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 	if (!symbol)
 		return NULL;
 
+	Pointer *reg = NULL;
+	Node *stem = NULL;
 	if (ident.isComplex()) {
 		Identifier istem = ident.getStem();
-		Node *stem = istem.getSymbol(getScope());
-		alloc = symbol->getLLVMValue(stem);
+		stem = istem.getSymbol(getScope());
+
+		// Pointers need to load the stem, get its alloc
+		reg = dynamic_cast<Pointer*>(stem);
+		if (reg && buildTypes->isComplex(reg->getDataType())) {
+			alloc = reg->getLLVMValue(NULL);
+		} else {
+			alloc = symbol->getLLVMValue(stem);
+		}
 		
 		if (stem->hasQualifier(qvolatile))
 			symbol->setQualifier(qvolatile);
@@ -76,8 +86,8 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 				ret = alloc = exprvc;
 			else {
 				GlobalVariable *gv = new GlobalVariable(*mainmodule, buildTypes->llvmType(dt),
-					false, GlobalValue::CommonLinkage, exprvc, name);
-				//gv->setDSOLocal(true);
+					false, GlobalValue::InternalLinkage, exprvc, name);
+				gv->setDSOLocal(true);
 				ret = alloc = gv;
 
 				if (debug_info) {
@@ -88,7 +98,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			}
 		} else {
 			Builder->SetInsertPoint(allocblock);
-			AllocaInst *temp = Builder->CreateAlloca(exprv->getType(), globalAddrSpace, 0, name);
+			AllocaInst *temp = Builder->CreateAlloca(exprv->getType(), dataAddrSpace, 0, name);
 			temp->setAlignment(Align(1));
 			alloc = temp;
 			Builder->SetInsertPoint(block);
@@ -102,7 +112,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 
 	} else { // variable already allocated
 		
-		if (symbol->hasQualifier(qconst)) {
+		if (symbol->hasQualifier(qconst) && !func->isConstructor()) {
 			yyerrorcpp("Constant '" + symbol->getName() + "' can not be changed.", this);
 			return NULL;
 		}
@@ -110,47 +120,48 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 		Type *currty = buildTypes->llvmType(symbol->getDataType());
 		Builder->SetInsertPoint(block);
 
-		/*
-		if (complexIdent) {
-			// this code does:
-			//   symbol->value &= ~(0x11... << field.startBit)
-			//   symbol->value |= (exprv << field.startBit)
-			//
-
-			// Coerce the left side to the field size
-			exprv = Coercion::Convert(exprv, buildTypes->llvmType(field.fieldDataType), block, expr);
-			// Expand to the left side size
-			exprv = Coercion::Convert(exprv, leftvty, block, expr);
-			
-			// Prepare the mask
-			Constant *allone = Constant::getAllOnesValue(Type::getIntNTy(global_context, field.bitWidth));
-			Constant *ones = ConstantExpr::getZExt(allone, leftvty);
-
-			if (field.startBit > 0) {
-				Constant *shiftl = ConstantInt::get(leftvty, field.startBit);
-				ones = ConstantExpr::getShl(ones, shiftl);
-				exprv = Builder->CreateShl(exprv, shiftl, "shift");
-			}
-			Constant *mask = ConstantExpr::getNot(ones);
-
-			// Load pointer value
-			Load ld(id);
-			ld.setLocation(expr);
-			Value *leftv = ld.generate(func, block, allocblock);
-
-			// Apply mask, than or
-			Builder->SetInsertPoint(block); //caution, after generate!
-			Value *vaftermask = Builder->CreateAnd(leftv, mask, "mask");
-			nvalue = Builder->CreateOr(vaftermask, exprv, "setbits");
-		} else {*/
-		
-		// TODO: remove this check after converting Coercion to use DataType
-		//       instead of llvm::Type
-		Value *nvalue;
-		if (allocall)
+		if (allocall) {
+			// constructor result
 			return allocall;
-		else {
-			nvalue = Coercion::Convert(exprv, currty, block, expr);
+
+		} else {
+			Value *nvalue;
+
+			// Pointers need a custom procedure: load the stem, set the
+			// requested bit value through bit shifting, and store the new value
+			if (reg && buildTypes->isComplex(reg->getDataType())) {		
+				/* this code does:
+				*   symbol->value &= ~(0x11... << fieldStartBit)
+				*   symbol->value |= (exprv << fieldStartBit)
+				*/
+				Type *req_eq_ty = Type::getIntNTy(global_context, buildTypes->bitWidth(reg->getDataType()));
+				Value *v = Builder->CreateLoad(req_eq_ty, alloc, reg->hasQualifier(qvolatile), "ptrvalue");
+
+				// Prepare the mask
+				unsigned bitWidth = buildTypes->bitWidth(symbol->getDataType());
+				Constant *allone = Constant::getAllOnesValue(Type::getIntNTy(global_context, bitWidth));
+				Constant *ones = ConstantExpr::getZExt(allone, req_eq_ty);
+
+				// Coerce the rvalue to the req size
+				exprv = Coercion::Convert(exprv, req_eq_ty, block, expr);
+				exprv = Builder->CreateAnd(exprv, ones, "truncrval");
+
+				unsigned fieldStartBit = reg->getFieldStartBit(symbol);
+				if (fieldStartBit > 0) {
+					Constant *shiftl = ConstantInt::get(req_eq_ty, fieldStartBit);
+					ones = ConstantExpr::getShl(ones, shiftl);
+					exprv = Builder->CreateShl(exprv, shiftl, "shift");
+				}
+				Constant *mask = ConstantExpr::getNot(ones);
+
+				// Apply mask, than or
+				Value *vaftermask = Builder->CreateAnd(v, mask, "mask");
+				nvalue = Builder->CreateOr(vaftermask, exprv, "setbits");
+
+			} else {
+				nvalue = Coercion::Convert(exprv, currty, block, expr);
+			}
+
 			return Builder->CreateStore(nvalue, alloc, symbol->hasQualifier(qvolatile));
 		}
 	}

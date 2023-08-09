@@ -2,6 +2,7 @@
 #include "BuildTypes.h"
 #include "Node.h"
 #include "Variable.h"
+#include "BackLLVM.h"
 
 BuildTypes::BuildTypes(DataType targetPointerType) {
     tinfo[tvoid]    = {"void",          0, Type::getVoidTy(global_context),    dwarf::DW_ATE_address};
@@ -33,6 +34,7 @@ BuildTypes::BuildTypes(DataType targetPointerType) {
             if (t > 0) // no void
                 bitWidth = dl.getTypeAllocSizeInBits(info.llvmType);
             info.diType = DBuilder->createBasicType(info.name, bitWidth, info.dwarfEnc);
+            info.diPointerType = DBuilder->createPointerType(info.diType, 8);
         }
     }
 }
@@ -42,20 +44,24 @@ DataType BuildTypes::getType(const string& name, bool createUndefined) {
     if (ut == namedTypes.end()) {
         if (createUndefined)
             return addDataType(DataTypeInfo(name));
-    } else if (tinfo[ut->second].isDefined) {
+    } else if (tinfo[ut->second].isDefined || createUndefined) {
         return ut->second;
     }
     return undefinedType;
 }
 
-DataType BuildTypes::addDataType(Node* userType, Type* llvmType) {
+DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBitWidth) {
     const string& name = userType->getName();
     auto udt = namedTypes.find(name);
     DataType id;
 
     const DataLayout &dl = mainmodule->getDataLayout();
-    uint64_t bitWidth = dl.getTypeAllocSizeInBits(llvmType);
     uint32_t align = dl.getABITypeAlign(llvmType).value();
+
+    uint64_t bitWidth = typeBitWidth;
+    if (typeBitWidth == 0)
+        typeBitWidth = dl.getTypeAllocSizeInBits(llvmType);
+
     
     if (udt == namedTypes.end()) {
         DataTypeInfo info(name.c_str(), bitWidth, llvmType, 0);
@@ -69,6 +75,7 @@ DataType BuildTypes::addDataType(Node* userType, Type* llvmType) {
     info.isDefined = true;
     info.isComplex = true;
     info.dwarfEnc = 0;
+    info.bitWidth = bitWidth;
     
     if (debug_info) {
         unsigned offset = 0;
@@ -100,6 +107,8 @@ DataType BuildTypes::addDataType(Node* userType, Type* llvmType) {
         info.diType = DBuilder->createClassType(RobDbgInfo.currScope(), name,
             RobDbgInfo.currFile(), userType->getLineNo(), bitWidth, align, 0,
             DINode::DIFlags::FlagZero, nullptr, dielems);
+        unsigned ptbw = tinfo[currentTarget.pointerType].bitWidth;
+        info.diPointerType = DBuilder->createPointerType(info.diType, 8);
     }
     return id;
 }

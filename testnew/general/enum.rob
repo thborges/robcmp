@@ -1,0 +1,27 @@
+
+enum Enum {A = 0x24, B = 10, C, D, E = 200}
+
+type withenum {
+	value = Enum.A;
+}
+
+Enum func(Enum e) {
+	if e == Enum.A {
+		return Enum.B;
+	} else {
+		return Enum.E;
+	}
+}
+
+int16 main() {
+	a = Enum.B;
+	b = func(a);
+	c = withenum();
+
+	if a == b or c.value == Enum.B {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+

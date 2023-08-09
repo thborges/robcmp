@@ -4,23 +4,9 @@
 #include "Node.h"
 #include "Variable.h"
 #include "ArrayElements.h"
+#include "NamedConst.h"
 
 class ArrayElements;
-
-class NamedConst: public NamedNode {
-protected:
-	Node *value;
-public:
-	NamedConst(const char *name, Node *value) : NamedNode(name), value(value) {
-		dt = value->getDataType();
-	}
-	virtual Value *getLLVMValue(Node *stem) override {
-		return value->generate(NULL, NULL, NULL); //FIXME
-	}
-	virtual bool isConstExpr() override {
-		return true;
-	}
-};
 
 class LinearDataStructure: public Variable {
 protected:

@@ -61,7 +61,8 @@ public:
 
     BuildTypes(DataType targetPointerType);
 
-    DataType addDataType(Node* userType, Type* llvmType, unsigned typeBitWidth = 0);
+    DataType addDataType(Node* userType, Type* llvmType, 
+        unsigned typeBitWidth = 0, bool isEnum = false);
 
     DataType getType(const string& name, bool createUndefined = false);
 

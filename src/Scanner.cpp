@@ -41,14 +41,14 @@ void MAINerror(location_t *loc, yyscan_t scanner, const char *s) {
 void yyerrorcpp(const string& s, SourceLocation *n) {
 	string e = COLOR_RED "semantic error: " COLOR_RESET + s;
 		fprintf(stderr, "%s:%d:%d: %s\n", 
-		n->getFile(), n->getLineNo(), n->getColNo(), s.c_str());
+		n->getFile().c_str(), n->getLineNo(), n->getColNo(), s.c_str());
 	errorsfound++;
 }
 
 void yywarncpp(const string& s, SourceLocation *n) {
 	string e = COLOR_BLUE "semantic warning: " COLOR_RESET + s;
 	fprintf(stderr, "%s:%d:%d %s\n", 
-		n->getFile(), n->getLineNo(), n->getColNo(), e.c_str());
+		n->getFile().c_str(), n->getLineNo(), n->getColNo(), e.c_str());
 }
 
 bool parseFile(const string& source) {

@@ -42,6 +42,8 @@ ID {A}({A}|{D})*
 "implements"			{ return TOK_IMPL; }
 "use"					{ return TOK_USE; }
 
+"enum"					{ return TOK_ENUM; }
+
 "if"					{ return TOK_IF; }
 "else"					{ return TOK_ELSE; }
 

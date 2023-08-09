@@ -57,5 +57,6 @@
 #include "InlineAssembly.h"
 #include "Interface.h"
 #include "UserType.h"
+#include "Enum.h"
 
 extern Node* getNodeForIntConst(int64_t i);

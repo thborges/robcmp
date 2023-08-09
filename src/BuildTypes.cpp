@@ -50,7 +50,8 @@ DataType BuildTypes::getType(const string& name, bool createUndefined) {
     return undefinedType;
 }
 
-DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBitWidth) {
+DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBitWidth,
+    bool isEnum) {
     const string& name = userType->getName();
     auto udt = namedTypes.find(name);
     DataType id;
@@ -73,7 +74,7 @@ DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBi
     info.sl = userType;
     info.llvmType = llvmType;
     info.isDefined = true;
-    info.isComplex = true;
+    info.isComplex = !isEnum;
     info.dwarfEnc = 0;
     info.bitWidth = bitWidth;
     

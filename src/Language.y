@@ -12,7 +12,7 @@
 %type <node> term term2 expr factor stmt gstmt condblock whileblock logicexpr
 %type <node> logicterm logicfactor TOK_AND TOK_OR printstmt fe eventblock unary
 %type <node> funcblock func_decl func_impl returnblock registerstmt
-%type <node> interfacestmt typestmt attribution
+%type <node> interfacestmt typestmt attribution enum_item enum
 %type <strings> typestmt_impls
 %type <ae> element
 %type <aes> elements relements
@@ -31,7 +31,7 @@
 %type <str> TOK_STRING asminline
 %type <nint> TOK_STEPPER
 %type <str> error
-%type <nodes> intf_decls
+%type <nodes> intf_decls enum_items
 
 %%
 
@@ -70,9 +70,33 @@ gstmt : TOK_USE TOK_IDENTIFIER ';' 					{ parseUseFile($2, @TOK_USE); $$ = NULL;
 	  | interfacestmt								{ $$ = $1; }
 	  | typestmt									{ $$ = $1; }
 	  | fe											{ $$ = $1; }
+	  | enum                                        { $$ = $1; }
 	  | error ';'									{ /* error recovery until next ';' */
 													  $$ = new Int8(0); // evita falha de segmentacao
 													};
+
+
+enum : TOK_ENUM TOK_IDENTIFIER[id] '{' enum_items '}' {
+	$$ = new Enum($id, std::move(*$enum_items));
+}
+
+enum_items : enum_items[items] ',' enum_item {
+	$items->push_back($enum_item);
+	$$ = $1;
+}
+
+enum_items : enum_item {
+	$$ = new vector<Node*>();
+	$$->push_back($enum_item);
+}
+
+enum_item : TOK_IDENTIFIER[id] '=' TOK_INTEGER[intg] {
+	$$ = new NamedConst($id, new Int8($intg));
+}
+
+enum_item : TOK_IDENTIFIER[id] {
+	$$ = new NamedConst($id);
+}
 
 attribution : ident_or_xident[id] '=' expr {
 	$$ = new Scalar($id, $expr);

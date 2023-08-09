@@ -12,9 +12,10 @@
   void yyerror(YYLTYPE *yyloc, yyscan_t yyscanner, const char *msg);
 }
 
-%type<nodes> globals type_stmts
+%type<nodes> globals type_stmts enum_items
 %type<node> global register interface type ignore_stmt ignore use type_stmt
 %type<node> function function_decl function_impl var_decl cast ignore_param
+%type<node> enum enum_item
 %type<fps> function_params
 %type<fp> function_param
 %type<nodes> intf_decls
@@ -54,12 +55,35 @@ global : use
 	   | type
 	   | register
 	   | function
+	   | enum
 	   | var_decl { $$ = NULL; } // don't export global vars
 	   | qualifier var_decl { $$ = NULL; }
 
 use : TOK_USE TOK_IDENTIFIER ';' {
 	parseUseFile($2, @TOK_USE);
 	$$ = NULL;
+}
+
+enum : TOK_ENUM TOK_IDENTIFIER[id] '{' enum_items '}' {
+	$$ = new Enum($id, std::move(*$enum_items));
+}
+
+enum_items : enum_items[items] ',' enum_item {
+	$items->push_back($enum_item);
+	$$ = $1;
+}
+
+enum_items : enum_item {
+	$$ = new vector<Node*>();
+	$$->push_back($enum_item);
+}
+
+enum_item : TOK_IDENTIFIER[id] '=' TOK_INTEGER[intg] {
+	$$ = new NamedConst($id, new Int8($intg));
+}
+
+enum_item : TOK_IDENTIFIER[id] {
+	$$ = new NamedConst($id);
 }
 
 function : function_decl | function_impl

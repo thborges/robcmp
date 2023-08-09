@@ -5,13 +5,16 @@
 
 class Int8: public Node {
 private:
-	char number;
+	int8_t number;
 	bool IsSigned;
 
 public:
-	Int8(char n, bool IsSigned = false): number(n), IsSigned(IsSigned) {}
-	char getNumber() const { return number; }
+	Int8(int8_t n, bool IsSigned = false): number(n), IsSigned(IsSigned) {}
+
+	int8_t getNumber() const { return number; }
+
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
+	
 	virtual bool isConstExpr() override {
 		return true;
 	}

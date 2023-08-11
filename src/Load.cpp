@@ -38,7 +38,7 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 	RobDbgInfo.emitLocation(this);
 	Builder->SetInsertPoint(block);
 	
-	Value *alloc;
+	Value *alloc = NULL;
 	if (ident.isComplex()) {
 		Identifier istem = ident.getStem();
 		Node *stem = istem.getSymbol(getScope());

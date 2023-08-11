@@ -71,7 +71,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 
 	// variable not allocated
 	if (alloc == NULL) {
-		Value *ret;
+		Value *ret = NULL;
 		setDataType(exprv_dt);
 
 		auto sp = RobDbgInfo.currScope();
@@ -125,7 +125,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			return allocall;
 
 		} else {
-			Value *nvalue;
+			Value *nvalue = NULL;
 
 			// Pointers need a custom procedure: load the stem, set the
 			// requested bit value through bit shifting, and store the new value

@@ -10,7 +10,7 @@ Program *program;
 int errorsfound = 0;
 
 char *build_outputfilename;
-vector<string> includeDirs;
+vector<filesystem::path> includeDirs;
 vector<filesystem::path> buildStack;
 vector<yyscan_t> buildStackScanner;
 int buildStackTop;
@@ -26,7 +26,7 @@ int USEparse(yyscan_t scanner);
 
 void yyerror(location_t *loc, yyscan_t scanner, const char *s) {
 	fprintf(stderr, "%s:%d:%d: %s\n", 
-		build_filename(), loc->first_line, loc->first_column, s);
+		build_file()->string().c_str(), loc->first_line, loc->first_column, s);
 	errorsfound++;
 }
 
@@ -62,9 +62,9 @@ bool parseFile(const string& source) {
 	includeDirs.push_back(file_path.parent_path());
 	includeDirs.push_back("./");
 
-    FILE *f = fopen(file_path.c_str(), "r");
+    FILE *f = fopen(file_path.string().c_str(), "r");
     if (f == NULL) {
-        fprintf(stderr, file_not_found, file_path.c_str());
+        cerr << string_format(file_not_found, file_path.string().c_str());
         return false;
     }
 
@@ -88,7 +88,7 @@ FILE *findFile(string file_name, filesystem::path& file_path) {
     for(auto dirit = rbegin(includeDirs); dirit != rend(includeDirs); ++dirit) {
         filesystem::path test_path(*dirit);
         test_path /= file_name;
-        FILE *f = fopen(test_path.c_str(), "r");
+        FILE *f = fopen(test_path.string().c_str(), "r");
         if (f) {
             file_path = test_path;
             return f;
@@ -155,6 +155,6 @@ int build_filecolno() {
     return MAINget_column(buildStackScanner[buildStackTop]);
 }
 
-const char* build_filename() {
-    return buildStack[buildStackTop].c_str();
+const filesystem::path* build_file() {
+    return &buildStack[buildStackTop];
 }

@@ -13,7 +13,7 @@ static const char *file_not_found = "No such file or directory '%s'.";
 
 typedef void* yyscan_t;
 extern int errorsfound;
-extern vector<string> includeDirs;
+extern vector<filesystem::path> includeDirs;
 extern vector<filesystem::path> buildStack;
 extern int buildStackTop;
 extern vector<yyscan_t> buildStackScanner;
@@ -27,6 +27,6 @@ void yywarncpp(const string& s, SourceLocation *n);
 bool parseFile(const string &source);
 bool parseUseFile(const string& use, location_t loc);
 
-const char* build_filename();
+const filesystem::path* build_file();
 int build_filecolno();
 int build_filelineno();

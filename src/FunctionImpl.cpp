@@ -39,6 +39,11 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 		func = Function::Create(ftype, Function::ExternalLinkage, codeAddrSpace, getFinalName(), mainmodule);
 	}
 
+#ifdef __MINGW64__
+	if (name == "main")
+		func->setName("__main");
+#endif
+	
 	if (isExternal())
 		return NULL;
 

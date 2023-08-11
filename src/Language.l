@@ -166,3 +166,15 @@ void update_loc(location_t *loc, int lineno, int leng, char *text) {
 		loc->last_column = text + leng - strrchr(text, '\n');
 	}
 }
+
+#ifdef __MINGW64__
+char *strndup(const char *s, size_t n) {
+	size_t len = strnlen(s, n);
+	char *newstr = (char*)malloc(len+1);
+	if (!newstr)
+		return NULL;
+	newstr[len] = '\0';
+	return (char*)memcpy(newstr, s, len);
+}
+#endif
+

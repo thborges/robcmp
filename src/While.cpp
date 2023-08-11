@@ -4,6 +4,7 @@
 
 While::While(Node *e) : expr(e) {
 	addChild(e);
+	stmts = NULL;
 }
 
 While::While(Node *e, vector<Node*> &&ss) : While(e) {

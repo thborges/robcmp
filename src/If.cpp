@@ -7,6 +7,7 @@ If::If(Node *e, vector<Node*> &&tst): expr(e) {
 	addChild(expr);
 	thenst = new Node(std::move(tst));
 	addChild(thenst);
+	elsest = NULL;
 }
 
 If::If(Node *e, vector<Node*> &&tst, vector<Node*> &&est): If(e, std::move(tst)) {

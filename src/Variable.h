@@ -6,7 +6,7 @@
 
 class Variable: public NamedNode {
 protected:
-    Value *alloc;
+    Value *alloc = NULL;
     Identifier ident;
 
 public:

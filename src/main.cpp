@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// set current target and basic build types
-	initTarget(targetarch);
+	setTarget(targetarch);
 
 	if (!parseFile(buildFileName))
 		exit(1);

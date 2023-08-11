@@ -3,7 +3,7 @@
 #include "BackLLVM.h"
 
 Program::Program() {
-	mainmodule = new Module(this->file, global_context);
+	mainmodule = new Module(this->getFile(), global_context);
 	Builder = make_unique<IRBuilder<>>(global_context);
 
 	if (debug_info) {
@@ -11,7 +11,7 @@ Program::Program() {
 		mainmodule->addModuleFlag(Module::Warning, "Dwarf Version", 4);
 		DBuilder = make_unique<DIBuilder>(*mainmodule);
 		RobDbgInfo.cunit = DBuilder->createCompileUnit(dwarf::DW_LANG_C,
-			DBuilder->createFile(this->file, std::filesystem::current_path().string()),
+			DBuilder->createFile(this->getFile(), std::filesystem::current_path().string()),
 			"Robcmp", false, "", 0);
 
 		// global scope

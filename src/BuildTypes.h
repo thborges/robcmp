@@ -65,53 +65,53 @@ public:
 
     DataType getType(const string& name, bool createUndefined = false);
 
-    const char *name(unsigned tid) {
+    const char *name(DataType tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].name.c_str();
     }
 
-    const unsigned bitWidth(unsigned tid) {
+    const unsigned bitWidth(DataType tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].bitWidth;
     }
 
-    Type *llvmType(unsigned tid) {
+    Type *llvmType(DataType tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].llvmType;
     }
 
-    DIType *diType(unsigned tid) {
+    DIType *diType(DataType tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].diType;
     }
 
-    DIDerivedType *diPointerType(unsigned tid) {
+    DIDerivedType *diPointerType(DataType tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].diPointerType;
     }
 
-    SourceLocation *location(unsigned tid) {
+    SourceLocation *location(DataType tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].sl;
     }
 
-    bool isIntegerDataType(unsigned tid) const {
+    bool isIntegerDataType(DataType tid) const {
         return tid >= tint8 && tid <= tint64u;
     }
 
-    bool isSignedDataType(unsigned tid) const {
+    bool isSignedDataType(DataType tid) const {
         return tid >= tint8 && tid <= tint64;
     }
 
-    bool isUnsignedDataType(unsigned tid) const {
+    bool isUnsignedDataType(DataType tid) const {
         return tid >= tint8u && tid <= tint64u;
     }
 
-    bool isFloatDataType(unsigned tid) const {
+    bool isFloatDataType(DataType tid) const {
 	    return tid >= tfloat && tid <= tldouble;
     }
 
-    bool isComplex(unsigned tid) {
+    bool isComplex(DataType tid) {
         return tinfo[tid].isComplex;
     }
 

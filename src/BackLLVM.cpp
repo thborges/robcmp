@@ -1,4 +1,5 @@
 
+#include <iostream>
 #include <map>
 
 #include <llvm/IR/Value.h>
@@ -42,20 +43,41 @@ extern char *build_outputfilename;
 
 void print_llvm_ir(char opt_level) {
 	
-	InitializeAllTargetInfos();
-	InitializeAllTargets();
-	InitializeAllTargetMCs();
-	InitializeAllAsmParsers();
-	InitializeAllAsmPrinters();
+	if (currentTarget.backend == rb_native) {
+		// Native target init
+		InitializeNativeTarget();
+		InitializeNativeTargetAsmParser();
+		InitializeNativeTargetAsmPrinter();
+	} else if (currentTarget.backend == rb_avr) {
+		// AVR target init
+		LLVMInitializeAVRTargetInfo();
+		LLVMInitializeAVRTarget();
+		LLVMInitializeAVRTargetMC();
+		LLVMInitializeAVRAsmParser();
+		LLVMInitializeAVRAsmPrinter();
+	} else if (currentTarget.backend == rb_arm) {
+		// ARM target init
+		LLVMInitializeARMTargetInfo();
+		LLVMInitializeARMTarget();
+		LLVMInitializeARMTargetMC();
+		LLVMInitializeARMAsmParser();
+		LLVMInitializeARMAsmPrinter();
+	} else {
+		cerr << "No backend set for target " << currentTarget.triple << ".\n";
+		return;
+	}
 
 	std::string defaultt = sys::getDefaultTargetTriple();
 	supportedTargets[0].triple = defaultt.c_str();
     SubtargetFeatures Features;
     StringMap<bool> HostFeatures;
-    if (sys::getHostCPUFeatures(HostFeatures))
-        for (auto &F : HostFeatures)
+    if (sys::getHostCPUFeatures(HostFeatures)) {
+        for (auto &F : HostFeatures) {
             Features.AddFeature(F.first(), F.second);
-    supportedTargets[0].features = Features.getString().c_str();
+		}
+	}
+	static string nativeFeatures = Features.getString();
+    supportedTargets[0].features = nativeFeatures.c_str();
 	
 	TargetInfo ai = currentTarget;
 

@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "HeaderExternals.h"
+
 typedef struct {
 	int first_line;
 	int first_column;
@@ -8,17 +10,17 @@ typedef struct {
 	int last_column;
 } location_t;
 
-extern const char *build_filename();
+extern const filesystem::path* build_file();
 extern int build_filecolno();
 extern int build_filelineno();
 
 class SourceLocation {
 protected:
 	location_t sloc;
-	const char* file;
+	const filesystem::path *file;
 public:
     SourceLocation() {
-        file = build_filename();
+        file = build_file();
 		sloc.first_column = build_filecolno();
 		sloc.first_line = build_filelineno();
     }
@@ -47,7 +49,7 @@ public:
 		return &sloc;
 	}
 
-	virtual const char* getFile() const {
-		return file;
+	virtual const string getFile() const {
+		return file->string();
 	}
 };

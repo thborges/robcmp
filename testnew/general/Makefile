@@ -7,10 +7,8 @@ OS=$(shell uname -o)
 
 ifeq ($(OS), Msys)
 ROBCMP=../../build/robcmp.exe
-ENTRY=__main
 else
 ROBCMP=../../build/robcmp
-ENTRY=main
 endif
 
 ifndef OPT
@@ -36,8 +34,10 @@ out/%.ll : %.rob ${ROBCMP} Makefile
 out/%.tt : %.rob
 	@-./runtest.sh $< $(patsubst %.rob,out/%,$<) 
 
+ifeq ($(OS), Msys)
 % : %.o
-	ld.lld -e ${ENTRY} $< -o $@
+	${LD} -e __main $< -o $@
+endif
 
 test: ${ALL_TT}
 

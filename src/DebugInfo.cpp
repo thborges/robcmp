@@ -1,6 +1,7 @@
 #include "HeaderGlobals.h"
 #include "SourceLocation.h"
 #include "Node.h"
+#include "BackLLVM.h"
 
 void DebugInfo::emitLocation(SourceLocation *s) {
 	if (!debug_info)
@@ -45,10 +46,14 @@ DIScope* DebugInfo::currScope() {
 DIExpression *DebugInfo::getFixedOffsetExpression() {
 	// TODO: For some unknown reason (to me), we need to offset 
 	// the var declaration by one to see its actual value
-	SmallVector<uint64_t, 8> Ops;
-	DIExpression *ex = DBuilder->createExpression();
-	ex->appendOffset(Ops, 1);
-	return DIExpression::prependOpcodes(ex, Ops, false);
+	if (currentTarget().backend == rb_avr) {
+		SmallVector<uint64_t, 8> Ops;
+		DIExpression *ex = DBuilder->createExpression();
+		ex->appendOffset(Ops, 1);
+		return DIExpression::prependOpcodes(ex, Ops, false);
+	} else {
+		return DBuilder->createExpression();
+	}
 }
 
 void DebugInfo::declareVar(Node *n, Value *alloc, BasicBlock *allocblock) {

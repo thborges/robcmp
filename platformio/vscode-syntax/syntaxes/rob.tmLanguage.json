@@ -42,7 +42,7 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.rob",
-				"match": "\\b(while|loop|if|else|delay|print|return|register|at|volatile|const|type|interface|implements|use|and|or)\\b"
+				"match": "\\b(while|loop|if|else|delay|print|return|register|at|volatile|const|type|interface|implements|use|and|or|enum)\\b"
 			}]
 		},
 		"types": {
@@ -73,7 +73,7 @@
 		"functions": {
 			"patterns": [{
 				"name": "support.function.rob",
-				"match": "\\b(\\w+(?=\\())\\b"
+				"match": "\\b(\\w+(?=\\s*\\())\\b"
 			}]
 		},
 		"ident": {

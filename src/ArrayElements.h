@@ -21,7 +21,7 @@ public:
 	unsigned getStructSize ();
 	unsigned getElementCount (int position);
 	Node *getStructElement (int position);
-	DataType getArrayType(FunctionImpl *func);
+	DataType getArrayType();
 	
 	std::vector<ArrayElement*> const& getElements() {
 		return elements;

@@ -140,6 +140,7 @@ bool parseUseFile(const string& use, location_t loc) {
 
     buildStackTop--;
     buildStackScanner.pop_back();
+    buildStack.pop_back();
 
     return true;
 }

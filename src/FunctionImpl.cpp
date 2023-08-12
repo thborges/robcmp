@@ -50,7 +50,7 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 	func->setDSOLocal(true);
 	llvm::AttrBuilder attrs(global_context);
 	//attrs.addAttribute(Attribute::MinSize);
-	attrs.addAttribute("target-cpu", currentTarget.cpu);
+	attrs.addAttribute("target-cpu", currentTarget().cpu);
 	attrs.addAttribute("frame-pointer", "all");
 	attrs.addAttribute("stack-protector-buffer-size", "8");
 	

@@ -67,6 +67,10 @@ public:
 		return dt;
 	}
 
+	virtual Type *getLLVMType() {
+		return buildTypes->llvmType(getDataType());
+	}
+
 	void setQualifier(DataQualifier dq) {
 		qualifiers.insert(dq);
 	}

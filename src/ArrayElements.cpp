@@ -18,7 +18,7 @@ unsigned ArrayElements::getStructSize() {
 	return elements.size();
 }
 
-DataType ArrayElements::getArrayType(FunctionImpl *func) {
+DataType ArrayElements::getArrayType() {
 	unsigned intsize = 0;
 	unsigned floatsize = 0;
 	for(auto& i : elements) {

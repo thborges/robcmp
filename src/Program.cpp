@@ -18,7 +18,7 @@ Program::Program() {
 		RobDbgInfo.push_scope(RobDbgInfo.cunit->getFile(), RobDbgInfo.cunit);
 	}
 	
-	buildTypes = make_unique<BuildTypes>(currentTarget.pointerType);
+	buildTypes = make_unique<BuildTypes>(currentTarget().pointerType);
 	global_alloc = BasicBlock::Create(global_context, "global");
 }
 
@@ -116,6 +116,11 @@ void Program::generate() {
 	// instrumentation passes
 	SymbolizeTree st;
 	st.visit(*this);
+
+	/*std::fstream fs;
+	fs.open("ast", std::fstream::out);
+	PrintAstVisitor(fs).visit(p);
+	fs.close();*/
 
 	// generate the program!
 	for(auto n: children())

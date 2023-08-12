@@ -27,7 +27,7 @@ unsigned MatrixElements::getColumnCount() {
 	return biggest_r;
 }
 
-DataType MatrixElements::getMatrixType(FunctionImpl *func) {
+DataType MatrixElements::getMatrixType() {
 	unsigned intsize = 0;
 	unsigned floatsize = 0;
 	for(auto& j : elements) {

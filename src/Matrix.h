@@ -7,6 +7,11 @@
 class Matrix: public LinearDataStructure {
 private:
 	MatrixElements *melements;
+	ArrayType *matrixType = NULL;
+	void createDataType();
+	unsigned int lines = 0;
+	unsigned int cols = 0;
+
 public:
 	Matrix(const char *n, MatrixElements *me);
 
@@ -19,4 +24,6 @@ public:
 	}
 
 	void accept(Visitor& v) override;
+
+	virtual Type *getLLVMType() override;
 };

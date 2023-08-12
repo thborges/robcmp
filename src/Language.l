@@ -50,26 +50,8 @@ ID {A}({A}|{D})*
 "while"					{ return TOK_WHILE; }
 "loop"					{ return TOK_LOOP; }
 
-"print"					{ return TOK_PRINT; }
-
-"in"[0-9]+				{ yylval->port = strndup(yytext+2, yyleng-2);
-						  return TOK_IN;
-						}
-
-"out"[0-9]+				{ yylval->port = strndup(yytext+3, yyleng-3);
-						  return TOK_OUT;
-						}
-
-"stepper"[0-2]+			{ yylval->nint = atoi(strndup(yytext+7, yyleng-7));
-						  return TOK_STEPPER;
-						}
-
-"servo"					{ return TOK_SERVO; }
-
 "quando"                { return TOK_QUANDO; }
 "esta"                  { return TOK_ESTA; }
-
-"delay"					{ return TOK_DELAY; }
 
 "and"					{ return TOK_AND; }
 "or"					{ return TOK_OR; }

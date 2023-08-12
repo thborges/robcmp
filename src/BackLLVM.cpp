@@ -41,21 +41,29 @@ unsigned int dataAddrSpace = 0;
 enum SupportedTargets currentTargetId;
 extern char *build_outputfilename;
 
+TargetInfo supportedTargets[__last_target] = {
+	{rb_native, "", "", "", "", tint64}, // default target
+	{rb_avr,    "avr328p", "avr", "atmega328p", "+avr5", tint16},
+	{rb_arm,    "stm32f1", "thumbv7m-none-eabi", "cortex-m3", "", tint32},
+	{rb_xtensa, "esp32",   "xtensa",  "", "", tint32},
+};
+
 void print_llvm_ir(char opt_level) {
 	
-	if (currentTarget.backend == rb_native) {
+	const TargetInfo& ai = currentTarget();
+	if (ai.backend == rb_native) {
 		// Native target init
 		InitializeNativeTarget();
 		InitializeNativeTargetAsmParser();
 		InitializeNativeTargetAsmPrinter();
-	} else if (currentTarget.backend == rb_avr) {
+	} else if (ai.backend == rb_avr) {
 		// AVR target init
 		LLVMInitializeAVRTargetInfo();
 		LLVMInitializeAVRTarget();
 		LLVMInitializeAVRTargetMC();
 		LLVMInitializeAVRAsmParser();
 		LLVMInitializeAVRAsmPrinter();
-	} else if (currentTarget.backend == rb_arm) {
+	} else if (ai.backend == rb_arm) {
 		// ARM target init
 		LLVMInitializeARMTargetInfo();
 		LLVMInitializeARMTarget();
@@ -63,7 +71,7 @@ void print_llvm_ir(char opt_level) {
 		LLVMInitializeARMAsmParser();
 		LLVMInitializeARMAsmPrinter();
 	} else {
-		cerr << "No backend set for target " << currentTarget.triple << ".\n";
+		cerr << "No backend set for target " << ai.triple << ".\n";
 		return;
 	}
 
@@ -78,8 +86,6 @@ void print_llvm_ir(char opt_level) {
 	}
 	static string nativeFeatures = Features.getString();
     supportedTargets[0].features = nativeFeatures.c_str();
-	
-	TargetInfo ai = currentTarget;
 
 	std::string Error;
 	auto Target = TargetRegistry::lookupTarget(ai.triple, Error);
@@ -147,3 +153,16 @@ void print_llvm_ir(char opt_level) {
 	}
 }
 
+const TargetInfo& currentTarget() {
+	return supportedTargets[currentTargetId];
+}
+
+void setTarget(const char *targetarch) {
+	currentTargetId = st_native; //native
+	for(int t = st_native; t < __last_target; t++) {
+		if (strcmp(targetarch, supportedTargets[t].name) == 0) {
+			currentTargetId = static_cast<enum SupportedTargets>(t);
+			break;
+		}
+	}
+}

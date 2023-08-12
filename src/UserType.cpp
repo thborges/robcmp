@@ -12,10 +12,9 @@ void UserType::createDataType() {
     int idx = 0;
     unsigned startBit = 0;
     for(auto child : this->children()) {
-        Scalar *s = dynamic_cast<Scalar*>(child);
+        Variable *s = dynamic_cast<Variable*>(child);
         if (s) {
-            DataType sdt = s->getDataType();
-            elements.push_back(buildTypes->llvmType(sdt));
+            elements.push_back(s->getLLVMType());
             s->setGEPIndex(idx++);
 
             //FIXME: Fix for data alignment on non-packed structure/type
@@ -58,11 +57,20 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
     // get vars
     vector<Node*> fields;
     for(auto & [key, stmt] : getSymbols()) {
-        if (Scalar *c = dynamic_cast<Scalar*>(stmt)) {
+        if (Variable *c = dynamic_cast<Variable*>(stmt)) {
             fields.push_back(c);
         }
     }
-
+    
+    // generate init function/constructor
+    FunctionParams *fp = new FunctionParams();
+    FunctionImpl *finit = new FunctionImpl((DataType)tvoid, "init", fp, 
+        std::move(fields), *this->getLoct(), true);
+    finit->addThisArgument(dt);
+    finit->setUserTypeName(name);
+    finit->setExternal(declaration);
+    finit->generate(func, block, allocblock);
+    
     // generate functions
     for(auto & [key, stmt] : getSymbols()) {
         if (FunctionImpl *f = dynamic_cast<FunctionImpl*>(stmt)) {
@@ -75,16 +83,8 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
         }
     }
 
-    FunctionParams *fp = new FunctionParams();
-    FunctionImpl *finit = new FunctionImpl((DataType)tvoid, "init", fp, 
-        std::move(fields), *this->getLoct(), true);
-    finit->addThisArgument(dt);
-    finit->setUserTypeName(name);
-    finit->setExternal(declaration);
     addChild(finit);
     addSymbol(finit);
-    finit->generate(func, block, allocblock);
-
     return NULL;
 }
 

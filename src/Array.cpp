@@ -4,23 +4,33 @@
 #include "BackLLVM.h"
 #include "Visitor.h"
 #include "Int16.h"
+#include "FunctionImpl.h"
 
 Array::Array(const char *n, ArrayElements *aes) : LinearDataStructure(n), elements(aes) {
 	NamedConst *nc = new NamedConst("size", getNodeForIntConst(aes->getArraySize()));
 	addChild(nc);
+	dt = tarray;
 }
 
-Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
+void Array::createDataType() {
+	if (arrayType != NULL)
+		return;
+
 	//Create an Array of Type Int8, and Size = size.
 	size = elements->getArraySize();
 	Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size);
 	
 	//Get Type of elements in Array of Elements, and define as I.
-	element_dt = elements->getArrayType(func);
+	element_dt = elements->getArrayType();
 	Type* I = buildTypes->llvmType(element_dt);
 
 	//Declare array type.
-	ArrayType* arrayType = ArrayType::get(I, size);
+	arrayType = ArrayType::get(I, size);
+}
+
+Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
+	
+	createDataType();
 	
 	//Generate array elements
 	unsigned int struct_size = elements->getStructSize();
@@ -29,15 +39,16 @@ Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 	vector<Value*> elementValues;
 	elementValues.reserve(elements->getArraySize());
 	for (int i=0; i<struct_size; i++) {
+		Node* elValue = elements->getStructElement(i);
+		Value *val = elValue->generate(func, block, allocblock);
+		if (!val)
+			return NULL;
+		val = Coercion::Convert(val, arrayType->getElementType(), block, elValue);
+		if (!dyn_cast<Constant>(val))
+			allConst = false;
+
 		unsigned elCount = elements->getElementCount(i);
-		for (int j=0; j<elCount; j++) {
-			Node* elValue = elements->getStructElement(i);
-			Value *val = elValue->generate(func, block, allocblock);
-			if (!val)
-				return NULL;
-			val = Coercion::Convert(val, I, block, elValue);
-			if (!dyn_cast<Constant>(val))
-				allConst = false;
+		for (int j=0; j < elCount; j++) {
 			elementValues.push_back(val);
 		}
 	}
@@ -67,7 +78,7 @@ Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 
 		if (debug_info) {
 			auto di_ptr = DBuilder->createPointerType(buildTypes->diType(getElementDt()), 
-				buildTypes->bitWidth(currentTarget.pointerType));
+				buildTypes->bitWidth(currentTarget().pointerType));
 			auto *d = DBuilder->createGlobalVariableExpression(sp, name, "",
 				funit, this->getLineNo(), di_ptr, false);
 			gv->addDebugInfo(d);
@@ -75,7 +86,11 @@ Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 
 	} else {
 		Builder->SetInsertPoint(allocblock);
-		alloc = Builder->CreateAlloca(arrayType, dataAddrSpace, 0, name);
+
+		if (getGEPIndex() != -1)
+			alloc = getLLVMValue(func);
+		else
+			alloc = Builder->CreateAlloca(arrayType, dataAddrSpace, 0, name);
 
 		RobDbgInfo.emitLocation(this);
 		Builder->SetInsertPoint(block);
@@ -96,4 +111,9 @@ Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 
 void Array::accept(Visitor& v) {
 	v.visit(*this);
+}
+
+Type* Array::getLLVMType() {
+	createDataType();
+	return arrayType;
 }

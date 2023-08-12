@@ -25,22 +25,22 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 		yyerrorcpp("Variable " + ident.getFullName() + " not defined or not an array/matrix.", this);
 		return NULL;
 	}
-	auto sym = rsym->getLLVMValue(func);
 
-	// sym type can be GlobalVariable or AllocInst
-	Type *ty = NULL;
-	if (auto *aux = dyn_cast<AllocaInst>(sym))
-		ty = aux->getAllocatedType();
-	else if (auto *aux = dyn_cast<GlobalVariable>(sym))
-		ty = aux->getValueType();
-
-	ArrayType *arrayTy = NULL;
-	if (ty->isArrayTy()) {
-		arrayTy = (ArrayType*)ty;
-	}
-	else {
-		yyerrorcpp("LLVM Symbol " + ident.getFullName() + " is not an array.", this);
-		return NULL;
+	Value *alloc = NULL;
+	if (ident.isComplex()) {
+		Identifier istem = ident.getStem();
+		Node *stem = istem.getSymbol(getScope());
+		alloc = rsym->getLLVMValue(stem);
+		
+		if (stem->hasQualifier(qvolatile))
+			rsym->setQualifier(qvolatile);
+		
+		// TODO: When accessing a.x.func(), need to load a and gep x
+		//Load loadstem(ident.getStem());
+		//loadstem.setParent(this->parent);
+		//stem = loadstem.generate(func, block, allocblock);
+	} else {
+		alloc = rsym->getLLVMValue(func);
 	}
 
 	Node *indn = getElementIndex(rsym);
@@ -52,7 +52,7 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 
 	Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 	Value* indexList[2] = {zero, indice};
-	GetElementPtrInst* ptr = GetElementPtrInst::Create(arrayTy, sym, ArrayRef<Value*>(indexList), "", block);
+	GetElementPtrInst* ptr = GetElementPtrInst::Create(rsym->getLLVMType(), alloc, ArrayRef<Value*>(indexList), "", block);
 	LoadInst *ret = new LoadInst(ptr->getResultElementType(), ptr, ident.getFullName(), false, block);
 	return ret;
 }

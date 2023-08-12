@@ -4,7 +4,7 @@
 %define parse.error verbose
 
 // enable this to trace the parser. Also, set USEDebug=1 at Scanner.cpp.
-//%define parse.trace
+%define parse.trace
 
 %code provides {
   #define YY_DECL int USElex(YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t yyscanner)
@@ -12,18 +12,25 @@
   void yyerror(YYLTYPE *yyloc, yyscan_t yyscanner, const char *msg);
 }
 
-%type<nodes> globals type_stmts enum_items
-%type<node> global register interface type ignore_stmt ignore use type_stmt
-%type<node> function function_decl function_impl var_decl cast ignore_param
-%type<node> enum enum_item
-%type<fps> function_params
-%type<fp> function_param
-%type<nodes> intf_decls
-%type<node> const_expr
-%type<ident> TOK_IDENTIFIER
-%type<nint> TOK_INTEGER
-%type<strings> type_impls
-%type<nint> qualifier
+%type <nodes> globals type_stmts enum_items interface_decls
+%type <nodes> stmts
+%type <node> global register interface type type_stmt use
+%type <node> function function_decl function_impl
+%type <node> enum enum_item const_expr expr interface_impl
+%type <node> simplevar_decl cast constructor
+%type <node> ignore_stmt ignore_param ignore
+%type <strings> type_impls
+
+%type <ae> element
+%type <aes> elements relements array
+%type <me> melement
+%type <mes> melements matrix
+
+%type <fps> function_params
+%type <fp> function_param
+
+%type <ident> TOK_IDENTIFIER
+%type <nint> TOK_INTEGER qualifier
 
 %printer { fprintf(yyo, "'%s'", $$); } <ident>
 %printer { fprintf(yyo, "'%s'", $$ ? $$->getName().c_str() : ""); } <node>
@@ -56,8 +63,8 @@ global : use
 	   | register
 	   | function
 	   | enum
-	   | var_decl { $$ = NULL; } // don't export global vars
-	   | qualifier var_decl { $$ = NULL; }
+	   | simplevar_decl ';' { $$ = NULL; } // don't export global vars
+	   | qualifier simplevar_decl ';' { $$ = NULL; }
 
 use : TOK_USE TOK_IDENTIFIER ';' {
 	parseUseFile($2, @TOK_USE);
@@ -88,19 +95,22 @@ enum_item : TOK_IDENTIFIER[id] {
 
 function : function_decl | function_impl
 
-function_decl : TOK_IDENTIFIER[type] TOK_IDENTIFIER '(' function_params ')' ';' {
-    $$ = new FunctionDecl(buildTypes->getType($type, true), $2, $4);
+function_decl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' ';' {
+    $$ = new FunctionDecl(buildTypes->getType($type, true), $id, $function_params);
     $$->setLocation(@type);
 }
 
-function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' '{' ignore_stmts '}'[ef] {
-	vector<Node*> auxvec;
+function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' '{' stmts '}'[ef] {
+	vector<Node*> stmts;
 	FunctionImpl *func = new FunctionImpl(buildTypes->getType($type, true), $id, $function_params,
-		std::move(auxvec), @ef);
+		std::move(stmts), @ef);
 	func->setExternal(true);
     func->setLocation(@type);
 	$$ = func;
 }
+
+qualifier : TOK_CONST		{ $$ = qconst; }
+		  | TOK_VOLATILE	{ $$ = qvolatile; }
 
 function_params: function_params ',' function_param {
     $1 -> append($3);
@@ -128,8 +138,8 @@ register : TOK_REGISTER TOK_IDENTIFIER[type] TOK_IDENTIFIER[name] TOK_AT const_e
 	$$->setLocation(@name);
 }
 
-interface : TOK_INTF TOK_IDENTIFIER '{' intf_decls '}' {
-	$$ = new Interface($TOK_IDENTIFIER, std::move(*$intf_decls));
+interface : TOK_INTF TOK_IDENTIFIER '{' interface_decls[intf] '}' {
+	$$ = new Interface($TOK_IDENTIFIER, std::move(*$intf));
 	$$->setLocation(@TOK_INTF);
 }
 
@@ -138,14 +148,23 @@ interface : TOK_INTF TOK_IDENTIFIER '{' '}' {
 	$$->setLocation(@TOK_INTF);
 }
 
-intf_decls : intf_decls function_decl {
+interface_decls : interface_decls function_decl {
 	$1->push_back($function_decl);
 	$$ = $1;
 }
 
-intf_decls : function_decl {
+interface_decls : function_decl {
 	$$ = new vector<Node*>();
 	$$->push_back($function_decl);
+}
+
+//FIXME: Interface only allows function_decls!
+interface_impl : TOK_IDENTIFIER[id] '=' TOK_IDENTIFIER[intfname] '{' type_stmts '}' {
+	vector<string> intf;
+	intf.push_back($intfname);
+	UserType *ut = new UserType($id, std::move(*$type_stmts), std::move(intf));
+	ut->setLocation(@id);
+	$$ = ut;
 }
 
 type : TOK_TYPE TOK_IDENTIFIER TOK_IMPL type_impls '{' type_stmts '}' {
@@ -173,30 +192,72 @@ type_impls : TOK_IDENTIFIER {
 }
 
 type_stmts : type_stmts type_stmt {
-	$$->push_back($type_stmt);
+	if ($type_stmt)
+		$$->push_back($type_stmt);
 }
 
 type_stmts : type_stmt {
 	$$ = new vector<Node*>();
-	$$->push_back($type_stmt);
+	if ($type_stmt)
+		$$->push_back($type_stmt);
 }
 
-type_stmt : var_decl
-		  | qualifier[q] var_decl	{ $var_decl->setQualifier((DataQualifier)$q); $$ = $2; }
+type_stmt : simplevar_decl ';'
+		  | qualifier[q] simplevar_decl ';'	{ $simplevar_decl->setQualifier((DataQualifier)$q); $$ = $2; }
           | function_impl
+		  | interface_impl
+		  | enum
 
-qualifier : TOK_CONST		{ $$ = qconst; }
-		  | TOK_VOLATILE	{ $$ = qvolatile; }
+simplevar_decl : TOK_IDENTIFIER[id] '=' expr	{ $$ = new Scalar($id, $expr);   $$->setLocation(@id); }
+simplevar_decl : TOK_IDENTIFIER[id] '=' array	{ $$ = new Array($id, $array);   $$->setLocation(@id); }
+simplevar_decl : TOK_IDENTIFIER[id] '=' matrix	{ $$ = new Matrix($id, $matrix); $$->setLocation(@id); }
 
-var_decl : TOK_IDENTIFIER '=' const_expr ';'	{ $$ = new Scalar($1, $3); }
-var_decl : TOK_IDENTIFIER '=' cast ';'			{ $$ = new Scalar($1, $3); }
+array : '{' elements '}'	{ $$ = $elements; }
+matrix : '{' melements '}'	{ $$ = $melements; }
+
+melements : melements ',' melement {
+	$1->append($3);
+	$$ = $1;
+}
+
+melements : melement {
+	MatrixElements *mes = new MatrixElements();
+	mes->append($1);
+	$$ = mes;
+}
+
+melement : relements ':' TOK_INTEGER	{ $$ = new MatrixElement($1, (unsigned)$3); }
+	     | relements					{ $$ = new MatrixElement($1, 1);}
+	 
+relements : '{' elements '}'			{ $$ = $2; }
+
+elements : elements ',' element			{ $1->append($3);
+										  $$ = $1; }
+		 | element						{ ArrayElements *aes = new ArrayElements();
+										  aes->append($1);
+										  $$ = aes; }
+
+element : expr ':' TOK_INTEGER		{ $$ = new ArrayElement($1, (unsigned)$3); }
+        | expr						{ $$ = new ArrayElement($1, 1); }
 
 const_expr : TOK_INTEGER    { $$ = getNodeForIntConst($1); }
            | TOK_TRUE		{ $$ = new Int1(1); }
            | TOK_FALSE		{ $$ = new Int1(0); }
 		   //TODO: Add other constant nodes here!
+		   
+expr : const_expr
+	 | cast
+	 | constructor
+	 //TODO: Add other expr nodes here!
 
 cast : TOK_IDENTIFIER[id] '(' ignore_param ')' {
+	ParamsCall *pc = new ParamsCall();
+	pc->append(new Node());
+	$$ = new FunctionCall($id, pc);
+	$$->setLocation(@id);
+}
+
+constructor : TOK_IDENTIFIER[id] '(' ')' {
 	ParamsCall *pc = new ParamsCall();
 	pc->append(new Node());
 	$$ = new FunctionCall($id, pc);
@@ -211,13 +272,13 @@ ignore_param : ignore_p	{ $$ = NULL; }
  */
 ignore_p : TOK_INTEGER		{ YYERROR; }
 		 | TOK_IDENTIFIER	{ YYERROR; }
+		 
+stmts : stmts ignore_stmt	{ $$ = NULL; }
+	  | ignore_stmt			{ $$ = NULL; }
 
-ignore_stmts : ignore_stmts ignore_stmt
-    		   | ignore_stmt
-
-ignore_stmt : ignore						{ $$ = NULL; }
-			| error '{' ignore_stmts '}'	{ $$ = NULL; }
-		    | error	';'						{ $$ = NULL; }
+ignore_stmt : ignore				{ $$ = NULL; }
+			| error '{' stmts '}'	{ $$ = NULL; }
+		    | error	';'				{ $$ = NULL; }
 
 /* put here any symbol that can start a stmt (except globals).
  * to be precise, the FIRST(stmt) of Language.y

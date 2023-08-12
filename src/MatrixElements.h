@@ -21,7 +21,7 @@ public:
 	unsigned getColumnCount();
 	unsigned getLineCount();
 	unsigned getElementCount(int position);
-	DataType getMatrixType(FunctionImpl *func);
+	DataType getMatrixType();
 	
 	std::vector<MatrixElement*> const& getElements() {
 		return elements;

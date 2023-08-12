@@ -9,6 +9,11 @@ BuildTypes::BuildTypes(DataType targetPointerType) {
     tinfo[tbool]    = {"bool",          1, Type::getInt1Ty(global_context),    dwarf::DW_ATE_boolean};
     tinfo[tchar]    = {"char",          8, Type::getInt8Ty(global_context),    dwarf::DW_ATE_unsigned_char};
     tinfo[tint2]    = {"int2",          2, Type::getIntNTy(global_context, 2), dwarf::DW_ATE_signed};
+    tinfo[tint3]    = {"int3",          3, Type::getIntNTy(global_context, 3), dwarf::DW_ATE_signed};
+    tinfo[tint4]    = {"int4",          4, Type::getIntNTy(global_context, 4), dwarf::DW_ATE_signed};
+    tinfo[tint5]    = {"int5",          5, Type::getIntNTy(global_context, 5), dwarf::DW_ATE_signed};
+    tinfo[tint6]    = {"int6",          6, Type::getIntNTy(global_context, 6), dwarf::DW_ATE_signed};
+    tinfo[tint7]    = {"int7",          7, Type::getIntNTy(global_context, 7), dwarf::DW_ATE_signed};
     tinfo[tint8]    = {"int8",          8, Type::getInt8Ty(global_context),    dwarf::DW_ATE_signed};
     tinfo[tint16]   = {"int16",        16, Type::getInt16Ty(global_context),   dwarf::DW_ATE_signed};
     tinfo[tint32]   = {"int32",        32, Type::getInt32Ty(global_context),   dwarf::DW_ATE_signed};
@@ -60,9 +65,8 @@ DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBi
     uint32_t align = dl.getABITypeAlign(llvmType).value();
 
     uint64_t bitWidth = typeBitWidth;
-    if (typeBitWidth == 0)
+    if (typeBitWidth == 0 && llvmType->isSized())
         typeBitWidth = dl.getTypeAllocSizeInBits(llvmType);
-
     
     if (udt == namedTypes.end()) {
         DataTypeInfo info(name.c_str(), bitWidth, llvmType, 0);
@@ -108,7 +112,7 @@ DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBi
         info.diType = DBuilder->createClassType(RobDbgInfo.currScope(), name,
             RobDbgInfo.currFile(), userType->getLineNo(), bitWidth, align, 0,
             DINode::DIFlags::FlagZero, nullptr, dielems);
-        unsigned ptbw = tinfo[currentTarget.pointerType].bitWidth;
+        unsigned ptbw = tinfo[currentTarget().pointerType].bitWidth;
         info.diPointerType = DBuilder->createPointerType(info.diType, 8);
     }
     return id;

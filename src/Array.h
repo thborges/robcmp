@@ -23,6 +23,9 @@ class Array: public LinearDataStructure {
 private:
 	unsigned int size;
 	ArrayElements *elements;
+	ArrayType *arrayType = NULL;
+	void createDataType();
+
 public:
 	Array(const char *n, ArrayElements *aes);
 
@@ -37,4 +40,7 @@ public:
 	}
 
 	virtual void accept(Visitor& v) override;
+
+	virtual Type *getLLVMType() override;
+
 };

@@ -10,9 +10,10 @@ class Visitor;
 class UserType: public NamedNode {
 private:
     vector<string> implements;
-    void createDataType();
     map<string, unsigned> startBits;
     bool declaration = false;
+
+    void createDataType();
 
 public:
 

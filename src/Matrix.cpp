@@ -4,12 +4,15 @@
 #include "BinaryOp.h"
 #include "Visitor.h"
 #include "Int16.h"
+#include "BackLLVM.h"
+#include "FunctionImpl.h"
 
 Matrix::Matrix(const char *n, MatrixElements *me) : LinearDataStructure(n), melements(me) {
 	NamedConst *rows = new NamedConst("rows", getNodeForIntConst(me->getLineCount()));
 	NamedConst *cols = new NamedConst("cols", getNodeForIntConst(me->getColumnCount()));
 	addChild(rows);
 	addChild(cols);
+	dt = tarray; //FIXME
 }
 
 Node* Matrix::getElementIndex(Node *p1, Node *p2) {
@@ -23,15 +26,7 @@ Value *Matrix::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 	/*
 	 * Matrix is generated as an array and accessed latter accordingly!
 	 */
-	
-	//Get Type of elements in Vector of Elements, and define as I.
-	element_dt = melements->getMatrixType(func);
-	Type* I = buildTypes->llvmType(element_dt);
-	
-	// The matrix size
-	unsigned int lines = melements->getLineCount();
-	unsigned int cols = melements->getColumnCount();
-	ArrayType* arrayType = ArrayType::get(I, lines * cols);
+	createDataType();
 
 	// Allocate elements. Supported formats:
 	// {{1:3}:3, {1:2,2}:2}
@@ -48,7 +43,7 @@ Value *Matrix::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 				Value *val = elValue->generate(func, block, allocblock);
 				if (!val)
 					return NULL;
-				val = Coercion::Convert(val, I, block, elValue);
+				val = Coercion::Convert(val, matrixType->getElementType(), block, elValue);
 				if (!dyn_cast<Constant>(val))
 					allConst = false;
 				for (int l=0; l < k->count; l++)
@@ -63,6 +58,9 @@ Value *Matrix::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 		return NULL;
 	}
 
+	auto sp = RobDbgInfo.currScope();
+	auto funit = RobDbgInfo.currFile();
+
 	//Allocate matrix as a vector.
 	//Allocate array.
 	if (allocblock == global_alloc) { // when alloc is global
@@ -71,23 +69,40 @@ Value *Matrix::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 		for(auto &a : elementValues)
 			constantValues.push_back(dyn_cast<Constant>(a));
 		ArrayRef<Constant*> constantRefs(constantValues);
-		GlobalVariable *gv = new GlobalVariable(*mainmodule, arrayType, 
+		GlobalVariable *gv = new GlobalVariable(*mainmodule, matrixType, 
 			false, GlobalValue::InternalLinkage, 
-			ConstantArray::get(arrayType, constantRefs), name);
+			ConstantArray::get(matrixType, constantRefs), name);
 		gv->setDSOLocal(true);
 		gv->setAlignment(Align(2));
 		alloc = gv;
+
+		if (debug_info) {
+			auto di_ptr = DBuilder->createPointerType(buildTypes->diType(getElementDt()), 
+				buildTypes->bitWidth(currentTarget().pointerType));
+			auto *d = DBuilder->createGlobalVariableExpression(sp, name, "",
+				funit, this->getLineNo(), di_ptr, false);
+			gv->addDebugInfo(d);
+		}
+
 	} else {
-		alloc = new AllocaInst(arrayType, 0, name, allocblock);
+		Builder->SetInsertPoint(allocblock);
+
+		if (getGEPIndex() != -1)
+			alloc = getLLVMValue(func);
+		else
+			alloc = Builder->CreateAlloca(matrixType, dataAddrSpace, 0, name);
+
+		RobDbgInfo.emitLocation(this);
+		Builder->SetInsertPoint(block);
 
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 		StoreInst *store = NULL;
 		for(unsigned index = 0; index < elementValues.size(); index++) {
 			Value *idx = ConstantInt::get(Type::getInt32Ty(global_context), index);
 			Value* indexList[2] = {zero, idx};
-			GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, alloc, 
-				ArrayRef<Value*>(indexList), "", block);
-			store = new StoreInst(elementValues[index], gep, false, block);
+			Value* gep = Builder->CreateGEP(matrixType, alloc, 
+				ArrayRef<Value*>(indexList), "elem");
+			store = Builder->CreateStore(elementValues[index], gep, false);
 		}
 	}
 
@@ -96,4 +111,23 @@ Value *Matrix::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 
 void Matrix::accept(Visitor& v) {
 	v.visit(*this);
+}
+
+void Matrix::createDataType() {
+	if (matrixType != NULL)
+		return;
+
+	//Get Type of elements in Vector of Elements, and define as I.
+	element_dt = melements->getMatrixType();
+	Type* I = buildTypes->llvmType(element_dt);
+	
+	// The matrix size
+	lines = melements->getLineCount();
+	cols = melements->getColumnCount();
+	matrixType = ArrayType::get(I, lines * cols);
+}
+
+Type* Matrix::getLLVMType() {
+	createDataType();
+	return matrixType;
 }

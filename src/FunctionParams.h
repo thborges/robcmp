@@ -28,7 +28,7 @@ public:
 	FunctionParams();
 	void append(FunctionParam *fp);
 	
-	unsigned getNumParams();
+	unsigned getNumCodedParams();
 	DataType getParamType (int position);
 	const string getParamName (int position);
 

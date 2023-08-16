@@ -25,6 +25,8 @@ struct DataTypeInfo {
     SourceLocation *sl;
     bool isDefined;
     bool isComplex;
+    bool isInterface;
+    bool isInternal;
 
     DataTypeInfo() {}
 
@@ -37,11 +39,14 @@ struct DataTypeInfo {
         this->diPointerType = NULL;
         this->isDefined = false;
         this->isComplex = false;
+        this->isInternal = false;
+        this->isInterface = false;
     }
 
     DataTypeInfo(const char* name, unsigned bitWidth, Type *llvmType, unsigned dwarfEnc):
         name(name), bitWidth(bitWidth), llvmType(llvmType), dwarfEnc(dwarfEnc), diType(NULL),
-        diPointerType(NULL), sl(NULL), isDefined(true), isComplex(false) {};
+        diPointerType(NULL), sl(NULL), isDefined(true), isComplex(false), isInternal(false),
+        isInterface(false) {};
 };
 
 class BuildTypes {
@@ -77,10 +82,7 @@ public:
         return tinfo[tid].bitWidth;
     }
 
-    Type *llvmType(DataType tid) {
-        assert(tid != -1 && "Undefined type");
-        return tinfo[tid].llvmType;
-    }
+    Type *llvmType(DataType tid);
 
     DIType *diType(DataType tid) {
         assert(tid != -1 && "Undefined type");
@@ -114,9 +116,29 @@ public:
     }
 
     bool isComplex(DataType tid) {
+        assert(tid != -1 && "Undefined type");
         return tinfo[tid].isComplex;
     }
 
+    bool isInternal(DataType tid) {
+        assert(tid != -1 && "Undefined type");
+        return tinfo[tid].isInternal;
+    }
+
+    void setInternal(DataType tid, bool v) {
+        assert(tid != -1 && "Undefined type");
+        tinfo[tid].isInternal = v;
+    }
+
+    void setInterface(DataType tid, bool v) {
+        assert(tid != -1 && "Undefined type");
+        tinfo[tid].isInterface = v;
+    }
+
+    bool isInterface(DataType tid) {
+        assert(tid != -1 && "Undefined type");
+        return tinfo[tid].isInterface;
+    }
 };
 
 // TODO: Replace all places with buildType::name

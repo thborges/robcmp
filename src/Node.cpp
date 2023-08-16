@@ -22,14 +22,17 @@ void Node::accept(Visitor& v) {
 Node* Node::findMember(const string& name) {
 	// look for pseudo fields (array, matrix, register)
 	Node *m = findSymbol(name, false);
+	if (!m) {
+		// getDataType forces getting the dataType, case it was not queried yet
+		DataType this_dt = getDataType();
+		if (this_dt == BuildTypes::undefinedType)
+			return m;
 
-	// force getting dataType in case it was not queried yet
-	DataType this_dt = getDataType();
-
-	if (!m && this_dt != BuildTypes::undefinedType) {
 		// look for fields in the base type
 		const char *ut_name = buildTypes->name(this_dt);
 		Node *ut = findSymbol(ut_name);
+		if (!ut)
+			return NULL;
 		m = ut->findSymbol(name, false);
 	}
 	return m;
@@ -53,8 +56,8 @@ void Node::addChild(Node *n) {
 }
 
 void Node::addSymbol(NamedNode *nm) {
-    // if the variable is already defined in a parent scope,
-    // don't add it to symbols table in inner scopes.
+    // if the variable is already defined here or in a parent
+	// scope, don't add it again.
     if (!findSymbol(nm->getName(), true)) {
 		symbols[nm->getName()] = nm;
     }
@@ -68,12 +71,6 @@ void Node::setScope(Node *s) {
 	if (scope != NULL)
 		assert(scope == NULL && "node already has a scope");
 	scope = s;
-/*	if (hasName())
-		s->symbols[getName()] = dynamic_cast<NamedNode*>(this);
-	for(auto& n : node_children) {
-		if (!n->scope)
-			n->setScope(s);
-	}*/
 }
 
 Value* Node::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
@@ -89,7 +86,16 @@ Value* Node::generateChildren(FunctionImpl *func, BasicBlock *block, BasicBlock 
 	return block;
 }
 
-extern Node* getNodeForIntConst(int64_t i) {
+Type* Node::getLLVMType() {
+	DataType aux = getDataType();
+	Type *taux = buildTypes->llvmType(getDataType());
+	if (buildTypes->isInterface(aux))
+		return taux->getPointerTo();
+	else
+		return taux;
+}
+
+Node* getNodeForIntConst(int64_t i) {
 	if (i >= SCHAR_MIN && i <= SCHAR_MAX)
 		return new Int8(i);
 	else if (i >= SHRT_MIN && i <= SHRT_MAX)

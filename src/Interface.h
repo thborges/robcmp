@@ -8,7 +8,9 @@ private:
 	void createDataType();
 
 public:
-	Interface(const string& name) : NamedNode(name) {}
+	Interface(const string& name) : NamedNode(name) {
+		createDataType();
+	}
 
     Interface(const string& name, vector<Node*> stmts): NamedNode(name, std::move(stmts)) {
 		createDataType();
@@ -17,4 +19,6 @@ public:
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
 	bool validateImplementation(UserType *ut);
+
+	
 };

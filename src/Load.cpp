@@ -8,7 +8,7 @@
 
 DataType Load::getDataType() {
 	if (dt == BuildTypes::undefinedType) {
-		Node *rsym = ident.getSymbol(getScope());
+		Node *rsym = ident.getSymbol(getScope(), false);
 		if (rsym) {
 			dt = rsym->getDataType();
 		}
@@ -18,13 +18,20 @@ DataType Load::getDataType() {
 
 Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
-	Node *isymbol = ident.getSymbol(getScope());
+	Node *isymbol = ident.getSymbol(getScope(), false);
+	if (!isymbol)
+		isymbol = ident.getSymbol(func, false);
+	
 	if (isymbol && isymbol->isConstExpr())
 		return isymbol->getLLVMValue(func);
 	
 	Variable *symbol = dynamic_cast<Variable*>(isymbol);
-	if (!symbol)
+	if (!symbol) {
+        yyerrorcpp("Symbol " + ident.getFullName() + " not found.", this);
 		return NULL;
+	}
+
+	dt = isymbol->getDataType();
 
 	if (block == NULL && (allocblock == NULL || allocblock == global_alloc)) {
 		// trying to load a variable to initialize a global one.
@@ -79,26 +86,12 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 	if (!alloc)
 		return NULL; // Caused by an error on previous statement that defines the symbol
 	
-	if (buildTypes->isComplex(symbol->getDataType()))
+	if (buildTypes->isComplex(symbol->getDataType())) 
 		return alloc;
 	else {
 		Type *ty = buildTypes->llvmType(symbol->getDataType());
 		return Builder->CreateLoad(ty, alloc, symbol->hasQualifier(qvolatile), ident.getFullName());
 	}
-
-	/*if (complexIdent) {
-		// this code does:
-		//   v = symbol->value << pointerbits - field_start - field_width
-		//   v = v >> pointer_bits - field_width
-		//
-
-		int bs = buildTypes->bitWidth(rsym->dt) - field.bitWidth;
-		if (bs - field.startBit > 0)
-			v = Builder->CreateShl(v, ConstantInt::get(ty, bs - field.startBit));
-		if (bs > 0)
-			v = Builder->CreateAShr(v, ConstantInt::get(ty, bs));
-		v = Builder->CreateTrunc(v, buildTypes->llvmType(field.fieldDataType));
-	}*/
 }
 
 bool Load::isConstExpr() {

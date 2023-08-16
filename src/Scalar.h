@@ -4,7 +4,7 @@
 #include "Variable.h"
 
 class Scalar: public Variable {
-private:
+protected:
 	Node *expr;
 
 public:

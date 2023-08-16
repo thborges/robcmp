@@ -58,5 +58,6 @@
 #include "Interface.h"
 #include "UserType.h"
 #include "Enum.h"
+#include "MemCopy.h"
 
 extern Node* getNodeForIntConst(int64_t i);

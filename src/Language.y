@@ -34,7 +34,6 @@
 %type <ndouble> TOK_DOUBLE
 %type <nldouble> TOK_LDOUBLE
 %type <str> TOK_STRING asminline
-%type <nint> TOK_STEPPER
 
 %%
 
@@ -275,6 +274,7 @@ stmt : ident_or_xident '+' '+' ';'					{ $$ = new Scalar($1, new BinaryOp(new Lo
 	 | ident_or_xident '[' expr ']' '=' expr ';'	{ $$ = new UpdateArray($1, $3, $6);}
 	 | ident_or_xident '[' expr ']' '[' expr ']' '=' expr ';'	{ $$ = new UpdateMatrix($1, $3, $6, $9); }
 	 | asminline ';'											{ $$ = new InlineAssembly($1); $$->setLocation(@1); }
+	 | qualifier simplevar_decl ';'								{ $$ = $2; $$->setQualifier((DataQualifier)$1); }
 	 | simplevar_decl ';'
 	 | complexvar_set ';'
 	 | returnblock ';'
@@ -394,12 +394,17 @@ unary : '-' factor	{ $$ = new BinaryOp($2, '*', getNodeForIntConst(-1)); }
       ;
 
 call_or_cast : ident_or_xident[id] '(' paramscall ')' {
-	$$ = new FunctionCall($id, $paramscall);
+	if (strncmp("copy", $id, 4) == 0 && $paramscall->getNumParams() == 1)
+		$$ = new MemCopy($paramscall->getParamElement(0));
+	//else if buildTypes->get($id) && complex, call constructor
+	else {
+		$$ = new FunctionCall($id, $paramscall);
+	}
 	$$->setLocation(@id);
 }
 
 paramscall : paramscall ',' expr {
-	$1 -> append($3);
+	$1->append($3);
 	$$ = $1;
 }
 

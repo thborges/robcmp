@@ -12,8 +12,10 @@ private:
     vector<string> implements;
     map<string, unsigned> startBits;
     bool declaration = false;
+    UserType *parent = NULL;
+    unsigned bitWidth = 0;
 
-    void createDataType();
+    bool createDataType();
 
 public:
 
@@ -31,4 +33,21 @@ public:
     void setDeclaration(bool d) {
         declaration = d;
     }
+
+    UserType* getParent() {
+        return parent;
+    }
+
+    void setParent(UserType *ut) {
+        parent = ut;
+    }
+
+    virtual const string getName() const override;
+
+    virtual void addSymbol(NamedNode *nm) override;
+
+    unsigned getBitWidth() {
+        return bitWidth;
+    }
+
 };

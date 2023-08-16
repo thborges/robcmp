@@ -7,11 +7,12 @@
 #include "Load.h"
 #include "Visitor.h"
 #include "BackLLVM.h"
+#include "UserType.h"
 
 DataType FunctionCall::getDataType() {
 	
 	if (dt == BuildTypes::undefinedType) {
-		// is a cast?
+		// is a cast or constructor?
 		dt = buildTypes->getType(ident.getFullName());
 		if (parameters->getNumParams() <= 1 && dt != BuildTypes::undefinedType) {
 			return dt;
@@ -32,6 +33,7 @@ void FunctionCall::loadFunctionStem(FunctionImpl *func, BasicBlock *block, Basic
 
 Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
+	RobDbgInfo.emitLocation(this);
 	string name = ident.getFullName();
 
 	// check if it is a cast call
@@ -45,25 +47,37 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 			Cast ca(dt, parameters->getParamElement(0));
 			return ca.generate(func, block, allocblock);
 
-		} else if (p == 0) { // it's a constructor
-			RobDbgInfo.emitLocation(this);
-			
+		} else if (p == 0) { // it's a constructor			
 			// alloc
-			Value *var = leftValue;
-			if (leftValue == NULL) {
+			Value *var = leftValue->getLLVMValue(func);
+			if (var == NULL) {
 				Builder->SetInsertPoint(allocblock);
-				var = Builder->CreateAlloca(buildTypes->llvmType(dt), dataAddrSpace, 0, leftName);
+				var = Builder->CreateAlloca(buildTypes->llvmType(dt), dataAddrSpace, 0, 
+					leftValue->getName());
+				leftValue->setAlloca(var);
+				leftValue->setDataType(dt);
+				if (debug_info)
+					RobDbgInfo.declareVar(this, var, allocblock);
 			}
 			vector<Value*> args;
 			args.push_back(var);
 
 			// call #init
 			Node *type = findSymbol(name);
+			if (!type)
+				return NULL;
 			Node *fsymbol = type->findMember("init");
-			FunctionImpl *initfunc = dynamic_cast<FunctionImpl*>(fsymbol);
+			if (!fsymbol)
+				return NULL;
+			FunctionBase *initfunc = dynamic_cast<FunctionBase*>(fsymbol);
+			
+			if (initfunc->needsParent()) {
+				args.push_back(initfunc->findMember("#this")->getLLVMValue(NULL));
+			}
+
 			Builder->SetInsertPoint(block);
 			Builder->CreateCall(initfunc->getLLVMFunction(), ArrayRef<Value*>(args));
-			return var;
+			return NULL;
 		}
 	}
 
@@ -76,32 +90,49 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 	}
 
 	FunctionBase *fsymbol = dynamic_cast<FunctionBase*>(symbol);
-	Function *cfunc = dyn_cast<Function>(symbol->getLLVMValue(func));
-	if (fsymbol == NULL || cfunc == NULL) {
+	if (fsymbol == NULL) {
 		yyerrorcpp("Symbol " + name + " is not a function.", this);
 		return NULL;
 	}
 
 	dt = fsymbol->getDataType();
 
-	bool this_param = false;
-	Value *stem = NULL;
+	int additionalParams = 0;
+	Value *parent = NULL;
+	DataType parentdt = BuildTypes::undefinedType;
+	Value *stem = func->getThisArg();
+	DataType stemdt = func->getThisArgDt();
+	if (stem)
+		additionalParams = 1;
+
+	Builder->SetInsertPoint(block);
 	if (ident.isComplex()) {
 		Identifier istem = ident.getStem();
 		Node *n = istem.getSymbol(getScope());
-		stem = n->getLLVMValue(func);
+		
+		if (buildTypes->isInternal(n->getDataType())) {
+			parent = func->getThisArg();
+			parentdt = func->getThisArgDt();
+			stem = n->getLLVMValue(func);
+			stemdt = n->getDataType();
+			additionalParams = 2;
+		}
+		else {
+			stem = n->getLLVMValue(func);
+			stemdt = n->getDataType();
+			additionalParams = 1;
+		}
 		
 		// TODO: When accessing a.x.func(), need to load a and gep x
 		//Load loadstem(ident.getStem());
 		//loadstem.setParent(this->parent);
 		//stem = loadstem.generate(func, block, allocblock);
-		
-		this_param = true;
 	}
 
-	if (fsymbol->getNumParams() != parameters->getNumParams() + this_param) {
+	if (fsymbol->getNumCodedParams() != parameters->getNumParams()) {
 		yyerrorcpp(string_format("Function %s has %d argument(s) but was called with %d.",
-			name.c_str(), fsymbol->getNumParams(), parameters->getNumParams()), this);
+			name.c_str(), fsymbol->getNumCodedParams(), 
+			parameters->getNumParams()), this);
 		yywarncpp("The function declaration is here.", symbol);
 		return NULL;
 	}
@@ -113,7 +144,9 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 			return NULL;
 			
 		DataType pdt = fsymbol->getParameters().getParamType(i);
-		if (!buildTypes->isComplex(pdt)) {
+		if (buildTypes->isInterface(pdt)) {
+			valor = Builder->CreateLoad(valor->getType()->getPointerTo(), valor, "defer");
+		} else if (!buildTypes->isComplex(pdt)) {
 			//TODO: we don't support cohercion between user types yet
 			Type *pty = buildTypes->llvmType(pdt);
 			valor = Coercion::Convert(valor, pty, block, this);
@@ -121,12 +154,23 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 		args.push_back(valor);
 	}
 
-	if (this_param)
+	if (stem) {
+		if (buildTypes->isInterface(stemdt))
+			stem = Builder->CreateLoad(stem->getType()->getPointerTo(), stem, "defer");
 		args.push_back(stem);
+	}
+	if (parent) {
+		if (buildTypes->isInterface(parentdt))
+			parent = Builder->CreateLoad(parent->getType()->getPointerTo(), parent, "defer");
+		args.push_back(parent);
+	}
 
 	ArrayRef<Value*> argsRef(args);
 
-	RobDbgInfo.emitLocation(this);
+	Builder->SetInsertPoint(allocblock);
+	Value *vfunc = symbol->getLLVMValue(func);
+	Function *cfunc = dyn_cast<Function>(vfunc);
+
 	Builder->SetInsertPoint(block);
 	return Builder->CreateCall(cfunc, argsRef);
 }

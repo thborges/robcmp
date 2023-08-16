@@ -62,7 +62,6 @@ DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBi
     DataType id;
 
     const DataLayout &dl = mainmodule->getDataLayout();
-    uint32_t align = dl.getABITypeAlign(llvmType).value();
 
     uint64_t bitWidth = typeBitWidth;
     if (typeBitWidth == 0 && llvmType->isSized())
@@ -81,6 +80,8 @@ DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBi
     info.isComplex = !isEnum;
     info.dwarfEnc = 0;
     info.bitWidth = bitWidth;
+    info.isInternal = false;
+    info.isInterface = false;
     
     if (debug_info) {
         unsigned offset = 0;
@@ -97,6 +98,10 @@ DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBi
         int i = 0;
         elems.reserve(members.size());
         for(Node *m : members) {
+            DataType mdt = m->getDataType();
+            if (mdt == -1 || tinfo[mdt].bitWidth == 0) {
+                continue;
+            }
             Type *memberTy = llvmType->getContainedType(i);
             uint64_t memberBitWidth = dl.getTypeSizeInBits(memberTy);
             uint32_t memberAlign = dl.getABITypeAlign(memberTy).value();
@@ -110,10 +115,17 @@ DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBi
         }
         auto dielems = DBuilder->getOrCreateArray(elems);
         info.diType = DBuilder->createClassType(RobDbgInfo.currScope(), name,
-            RobDbgInfo.currFile(), userType->getLineNo(), bitWidth, align, 0,
+            RobDbgInfo.currFile(), userType->getLineNo(), bitWidth, 1, 0,
             DINode::DIFlags::FlagZero, nullptr, dielems);
         unsigned ptbw = tinfo[currentTarget().pointerType].bitWidth;
         info.diPointerType = DBuilder->createPointerType(info.diType, 8);
     }
     return id;
+}
+
+Type *BuildTypes::llvmType(DataType tid) {
+    if (tid == -1)
+        return NULL;
+    else
+        return tinfo[tid].llvmType;
 }

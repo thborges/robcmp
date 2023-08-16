@@ -7,8 +7,8 @@ if exists("b:current_syntax")
     finish
 endif
 
-syn keyword keywords while loop if else delay print return register at volatile const asm type use enum
-syn keyword typeKeywords void char int8 int16 int32 int64 long unsigned float double bool
+syn keyword keywords while loop if else delay print return register at volatile const asm type use interface copy
+syn keyword typeKeywords void char int8 int16 int32 int64 long unsigned float double bool enum
 syn keyword operatorKeywords and or quando esta servo
 syn keyword booleanKeyword true false
 
@@ -21,9 +21,9 @@ syn match outPortKey "\<out\d\+\>"
 syn match stringSpecial "\\."
 syn match commentLine "\/\/.*"
 
-syn region commentBlock start="/\*" end="\*/" fold containedin=stmtBlock
+syn region stmtBlock start="{" end="}" fold contains=ALL transparent
 syn region stringConstant start=+"+ skip=+\\\\\|\\"+  end=+"+ contains=stringSpecial
-syn region stmtBlock start="{" end="}" keepend transparent fold
+syn region commentBlock start="/\*" end="\*/" fold contains=ALL 
 
 let b:current_syntax = "rob"
 

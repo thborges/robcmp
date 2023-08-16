@@ -116,6 +116,7 @@ void print_llvm_ir(char opt_level) {
 	passBuilder.crossRegisterProxies(
 	    loopAnalysisManager, functionAnalysisManager, cGSCCAnalysisManager, moduleAnalysisManager);
 
+	bool debugopt = false;
 	OptimizationLevel ol;
 	switch (opt_level) {
 		case '0': ol = OptimizationLevel::O0; break;
@@ -123,8 +124,17 @@ void print_llvm_ir(char opt_level) {
 		case '2': ol = OptimizationLevel::O2; break;
 		case '3': ol = OptimizationLevel::O3; break;
 		case 's': ol = OptimizationLevel::Os; break;
+		case 'd': debugopt = true; break;
 		case 'z':
 		default : ol = OptimizationLevel::Oz; break;
+	}
+
+	// This is used to see the llvm IR prior to any analysis.
+	// Sometimes when adding new features, we want to see the IR even
+	// it being invalid.
+	if (debugopt) {
+		mainmodule->print(outs(), nullptr);
+		return;
 	}
 
 	ModulePassManager modulePassManager;

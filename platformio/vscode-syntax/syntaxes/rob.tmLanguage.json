@@ -42,13 +42,13 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.rob",
-				"match": "\\b(while|loop|if|else|delay|print|return|register|at|volatile|const|type|interface|implements|use|and|or|enum)\\b"
+				"match": "\\b(while|loop|if|else|delay|print|return|register|at|volatile|const|type|interface|implements|use|and|or|copy)\\b"
 			}]
 		},
 		"types": {
 			"patterns": [{
 				"name": "storage.type.rob",
-				"match": "\\b(void|char|int8|int16|int32|int64|long|unsigned|float|double|bool)\\b"
+				"match": "\\b(void|char|int8|int16|int32|int64|long|unsigned|float|double|bool|enum)\\b"
 			},
 			{
 				"match": "(\\w+)\\s+(\\w+)[\\(\\),]",

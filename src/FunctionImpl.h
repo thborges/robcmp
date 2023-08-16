@@ -9,9 +9,14 @@ class Visitor;
 class FunctionImpl: public FunctionBase {
 private:
 	SourceLocation endfunction;
-	DataType thisArgDt = BuildTypes::undefinedType;
 	Value *thisArg = NULL;
-	string userTypeName;
+	DataType parentArgDt = BuildTypes::undefinedType;
+	Value *parentArg = NULL;
+	bool preGenerated = false;
+	BasicBlock *falloc = NULL;
+	BasicBlock *fblock = NULL;
+
+	bool preGenerate();
 	
 public:
 	FunctionImpl(DataType dt, string name, FunctionParams *fp, vector<Node*> &&stmts, location_t ef,
@@ -23,27 +28,25 @@ public:
 
 	bool validateImplementation(FunctionDecl *decl);
 
-	void addThisArgument(DataType dt);
+	void addParentArgument(DataType dt);
 
 	Value *getThisArg() const {
 		return thisArg;
 	}
 
-	DataType getThisArgDt() const {
-		return thisArgDt;
+	Value *getParentArg() const {
+		return parentArg;
 	}
 
-	void setUserTypeName(const string& ut) {
-		userTypeName = ut;
+	DataType getParentArgDt() const {
+		return parentArgDt;
 	}
 
-	string getFinalName() {
-		if (userTypeName == "")
-			return name;
-		else
-			return userTypeName + "#" + name;
+	virtual bool needsParent() override {
+		return parentArg != NULL;
 	}
 
 	virtual void accept(Visitor& v) override;
-	
+
+	virtual Value *getLLVMValue(Node *) override;
 };

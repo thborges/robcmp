@@ -13,7 +13,7 @@ char *build_outputfilename;
 vector<filesystem::path> includeDirs;
 vector<filesystem::path> buildStack;
 vector<yyscan_t> buildStackScanner;
-int buildStackTop;
+int buildStackCurrent;
 
 int USElex(YYSTYPE *yylval_param, location_t *yylloc_param, yyscan_t yyscanner) {
 	return MAINlex(yylval_param, yylloc_param, yyscanner);
@@ -25,8 +25,8 @@ int MAINlex_destroy(yyscan_t yyscanner);
 int USEparse(yyscan_t scanner);
 
 void yyerror(location_t *loc, yyscan_t scanner, const char *s) {
-	fprintf(stderr, "%s:%d:%d: %s\n", 
-		build_file()->string().c_str(), loc->first_line, loc->first_column, s);
+	fprintf(stderr, ":%d:%d: %s\n", 
+		loc->first_line, loc->first_column, s);
 	errorsfound++;
 }
 
@@ -55,7 +55,7 @@ bool parseFile(const string& source) {
 	
     filesystem::path file_path(source);
     buildStack.push_back(file_path);
-    buildStackTop = 0;
+    buildStackCurrent = 0;
 	
     // search for use files in the path of build_filename;
 	// next in the working dir; next in the -I dirs (right from left)
@@ -113,6 +113,8 @@ bool parseUseFile(const string& use, location_t loc) {
     auto it = find(buildStack.begin(), buildStack.end(), file_path);
     if (it != buildStack.end()) {
         // circular dependency
+        //#define PRINT_DEPENDENCY_LOOP
+        #ifdef PRINT_DEPENDENCY_LOOP
         SourceLocation sl(loc);
         yywarncpp(string_format("circular dependency for %s", file_path.c_str()), &sl);
         while (it != buildStack.end()) {
@@ -120,12 +122,14 @@ bool parseUseFile(const string& use, location_t loc) {
             it++;
         }
         fprintf(stderr, "\t%s\n", file_path.c_str());
+        #endif
         fclose(f);
         return true;
     }
 
+    static int buildStackBackup = buildStackCurrent;
     buildStack.push_back(file_path);
-    buildStackTop++;
+    buildStackCurrent = buildStack.size()-1;
 
     yyscan_t scanner;
 	MAINlex_init(&scanner);
@@ -138,9 +142,9 @@ bool parseUseFile(const string& use, location_t loc) {
 	MAINlex_destroy(scanner);
     fclose(f);
 
-    buildStackTop--;
+    buildStackCurrent = buildStackBackup;
     buildStackScanner.pop_back();
-    buildStack.pop_back();
+    //buildStack.pop_back();
 
     return true;
 }
@@ -149,13 +153,13 @@ int MAINget_lineno(yyscan_t yyscanner);
 int MAINget_column(yyscan_t yyscanner);
 
 int build_filelineno() {
-    return MAINget_lineno(buildStackScanner[buildStackTop]);
+    return MAINget_lineno(buildStackScanner[buildStackScanner.size()-1]);
 }
 
 int build_filecolno() {
-    return MAINget_column(buildStackScanner[buildStackTop]);
+    return MAINget_column(buildStackScanner[buildStackScanner.size()-1]);
 }
 
 const filesystem::path* build_file() {
-    return &buildStack[buildStackTop];
+    return &buildStack[buildStackCurrent];
 }

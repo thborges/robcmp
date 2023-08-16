@@ -8,6 +8,7 @@ class Visitor;
 class NamedNode;
 class UserType;
 class FunctionImpl;
+class Variable;
 
 class Node : public SourceLocation {
 protected:
@@ -39,7 +40,7 @@ public:
 		return false;
 	}
 
-	virtual string const getName() const {
+	virtual const string getName() const {
 		return "";
 	}
 
@@ -67,9 +68,7 @@ public:
 		return dt;
 	}
 
-	virtual Type *getLLVMType() {
-		return buildTypes->llvmType(getDataType());
-	}
+	virtual Type *getLLVMType();
 
 	void setQualifier(DataQualifier dq) {
 		qualifiers.insert(dq);
@@ -83,7 +82,7 @@ public:
 		return NULL;
 	}
 
-	virtual void setLeftValue(Value *lv, const string& name) {}
+	virtual void setLeftValue(Variable *symbol) {}
 
 	friend class UserType;
 	friend class Program;
@@ -99,7 +98,7 @@ public:
 	NamedNode(const string &name, vector<Node*> &&children) :
 		Node(std::move(children)), name(name) {}
 
-	string const getName() const override {
+	virtual const string getName() const override {
 		return name;
 	}
 

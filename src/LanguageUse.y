@@ -293,8 +293,6 @@ ignore : TOK_IDENTIFIER  { YYERROR; }
 	   | TOK_ELSE        { YYERROR; }
 	   | TOK_LOOP        { YYERROR; }
 	   | TOK_ASM         { YYERROR; }
-	   | TOK_PRINT       { YYERROR; }
-	   | TOK_DELAY       { YYERROR; }
 
 %%
 

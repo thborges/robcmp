@@ -2,6 +2,15 @@
 #include "FunctionDecl.h"
 #include "BackLLVM.h"
 
+void FunctionBase::addThisArgument(DataType dt) {
+	thisArgDt = dt;
+	FunctionParam *fp = new FunctionParam("#this", dt);
+	fp->setScope(this);
+	parameters->append(fp);
+	symbols[fp->getName()] = fp;
+}
+
+
 bool FunctionBase::validateAndGetArgsTypes(std::vector<Type*> &argsty) {
 	bool valid = true;
 	Type *xtype = buildTypes->llvmType(dt);
@@ -9,7 +18,7 @@ bool FunctionBase::validateAndGetArgsTypes(std::vector<Type*> &argsty) {
 		yyerrorcpp(string_format("Type %s not defined.", buildTypes->name(dt)), this);
 		valid = false;
 	}
-	for (int i = 0; i < parameters->getNumParams(); i++) {
+	for (int i = 0; i < parameters->getParameters().size(); i++) {
 		DataType dt = parameters->getParamType(i);
 		Type *atype = buildTypes->llvmType(dt);
 		if (buildTypes->isComplex(dt)) {
@@ -41,7 +50,7 @@ Value *FunctionDecl::generate(FunctionImpl*, BasicBlock *, BasicBlock *allocbloc
 
 	Type *xtype = buildTypes->llvmType(dt);
 	FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
-	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, codeAddrSpace, name, mainmodule);
+	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, codeAddrSpace, getFinalName(), mainmodule);
 	nfunc->setDSOLocal(true);
 	nfunc->setCallingConv(CallingConv::C);
 

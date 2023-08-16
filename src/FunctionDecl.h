@@ -11,6 +11,8 @@ protected:
 	bool declaration = true;
 	bool constructor = false;
 	bool external = false;
+	DataType thisArgDt = BuildTypes::undefinedType;
+	string userTypeName;
 
 	bool validateAndGetArgsTypes(std::vector<Type*> &args);
 
@@ -40,8 +42,8 @@ public:
 		return func;
 	}
 
-	unsigned getNumParams() const {
-		return parameters->getNumParams();
+	unsigned getNumCodedParams() const {
+		return parameters->getNumCodedParams();
 	}
 
 	bool isDeclaration() {
@@ -58,6 +60,27 @@ public:
 
 	bool isExternal() {
 		return external;
+	}
+
+	void addThisArgument(DataType dt);
+	
+	DataType getThisArgDt() const {
+		return thisArgDt;
+	}
+
+	void setUserTypeName(const string& ut) {
+		userTypeName = ut;
+	}
+
+	string getFinalName() {
+		if (userTypeName == "")
+			return name;
+		else
+			return userTypeName + "#" + name;
+	}
+
+	virtual bool needsParent() {
+		return false;
 	}
 };
 

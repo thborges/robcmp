@@ -2,10 +2,24 @@
 #include "Interface.h"
 #include "UserType.h"
 #include "FunctionImpl.h"
+#include "FunctionDecl.h"
+#include "Int1.h"
 
 void Interface::createDataType() {
-    StructType *intftype = StructType::create(global_context, name);
-    unsigned dt = buildTypes->addDataType(this, intftype);
+    // TRY: prevent opaque type
+    // the interface type is replaced at link stage
+    /*Scalar *no_opaque = new Scalar("no_opaque", new Int1(0));
+    no_opaque->setGEPIndex(0);
+    addChild(no_opaque);
+    addSymbol(no_opaque);
+    
+    std::vector<Type*> elements;
+    elements.push_back(Type::getInt1Ty(global_context));
+
+    StructType *intftype = StructType::create(global_context, ArrayRef<Type*>(elements), getName());*/
+    StructType *intftype = StructType::create(global_context, getName());
+    dt = buildTypes->addDataType(this, intftype);
+    buildTypes->setInterface(dt, true);
     if (dt == BuildTypes::undefinedType) {
         yyerrorcpp("Type " + name + " alread defined.", this);
         yyerrorcpp(name + " was first defined here.", buildTypes->location(dt));
@@ -13,10 +27,27 @@ void Interface::createDataType() {
 }
 
 Value *Interface::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
-    /*printf("Interface %s defined with:\n", name.c_str());
-    for(const auto n : getSymbols()) {
-        printf("\t%s\n", n.first.c_str());
-    }*/
+
+    // generate init function/constructor
+    /*FunctionParams *fp = new FunctionParams();
+    FunctionDecl *finit = new FunctionDecl((DataType)tvoid, "init", fp);
+    finit->addThisArgument(dt);
+    finit->setUserTypeName(getName());
+    finit->setExternal(true);
+    addChild(finit);
+    addSymbol(finit);*/
+
+    // set function parameters
+    for(Node *n : node_children) {
+        FunctionDecl *fd = dynamic_cast<FunctionDecl*>(n);
+        if (fd) {
+            fd->setUserTypeName(getName());
+            fd->addThisArgument(dt);
+            fd->setExternal(true);
+            fd->generate(func, block, allocblock);
+        }
+    }
+
     return NULL;
 }
 

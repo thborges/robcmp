@@ -6,6 +6,6 @@ mkdir -p ~/.platformio/packages
 ln -sf `realpath platform` ~/.platformio/platforms/robcmp
 ln -sf `realpath toolchain-robcmp` ~/.platformio/packages/toolchain-robcmp
 code --install-extension vscode-syntax/robcmpsyntax-0.0.1.vsix
-echo "Open the samples folder and try to build and upload!"
-echo "	code samples/avr328p"
-echo "	code samples/stm32f1"
+echo "Open the examples folder and try to build and upload!"
+echo "	code examples/avr328p-blink"
+echo "	code examples/stm32f1"

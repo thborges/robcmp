@@ -27,7 +27,6 @@ if mcu == "stm32f1":
     ldflags.append("-Tstm32f1.ld")
 elif mcu == "atmega328p":
     ldflags.append("-Tavr328p.ld")
-    ldflags.append("-Tdata=0x800100")
     ldflags.append(join(ldscripts_folder, "avr5.o"))
     sources += Glob(join(ldscripts_folder, "avr328p.rob"))
 else:
@@ -43,6 +42,13 @@ elif build_type == "release":
     robcmp_args.append("-Oz")
     ldflags.append("--gc-sections")
 robcmp_args.append("$SOURCE")
+
+if board.startswith("avr"):
+	print("Will use avr-gdb from robcmp")
+	avr_gdb = join(platform.get_package_dir("toolchain-robcmp"), "bin", "avr-gdb")
+	env.Replace(
+		GDB=avr_gdb
+	)
 
 env.Append(
     BUILDERS=dict(
@@ -96,7 +102,7 @@ if upload_protocol == "serial":
             UPLOADERFLAGS=["-C", avrdude_cfg, "-v", "-V", "-c", "arduino", "-p", "m328p", "-U"],
             UPLOADCMD='$UPLOADER $UPLOADERFLAGS flash:w:${SOURCE}:i -P $UPLOAD_PORT'
         )
-        
+
     else:
         sys.stderr.write("Upload protocol %s doesn't support mcu %s\n" % (upload_protocol, mcu))
         env.Exit(1)
@@ -111,7 +117,7 @@ elif upload_protocol == "stlink":
                            "-c", "program $SOURCE reset 0x08000000 exit"],
             UPLOADCMD="$UPLOADER $UPLOADERFLAGS"
         )
-        
+
     else:
         sys.stderr.write("Upload protocol %s doesn't support mcu %s\n" % (upload_protocol, mcu))
         env.Exit(1)

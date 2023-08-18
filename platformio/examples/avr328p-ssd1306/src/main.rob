@@ -1,0 +1,32 @@
+/*
+ * Robcmp examples: SSD1306 SPI
+ */
+
+use avr5mcu;
+use ssd1306;
+
+//bind avr5mcu to mmcu;
+//bind avr5mcu.b0 to ssd1306.reset
+//bind avr5mcu.spi1 to ssd1306.spi
+//alias avr5mcu.b5 to ;
+//led[digital,pwm,asdfs]
+// 
+
+int16 main() {
+
+	mmcu = avr5mcu();
+	spi = mmcu.spi;
+	spi.init();
+
+	display = ssd1306();
+	display.init();
+
+	loop {
+		led = true;
+		//mcu.set_led(true);
+		mcu.wait(100000);
+
+		//mcu.set_led(false);
+		mcu.wait(100000);
+	}
+}

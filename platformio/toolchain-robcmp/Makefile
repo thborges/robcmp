@@ -25,7 +25,24 @@ ifeq ($(LLVM_SIZE),)
     $(error "Can't find llvm-size!")
 endif
 
-TOOLS=$(LLVM_OBJCOPY) $(LLVM_LD) $(LLVM_SIZE) ../../robcmp
+AVR_GDB=$(shell which avr-gdb)
+ifeq ($(AVR_GDB),)
+    $(error "Can't find avr-gdb!")
+endif
+
+AVR_OBJDUMP=$(shell which avr-objdump)
+ifeq ($(AVR_OBJDUMP),)
+    $(error "Can't find avr-objdump!")
+endif
+
+
+TOOLS=$(LLVM_OBJCOPY) \
+	$(LLVM_LD) \
+	$(LLVM_SIZE) \
+	$(AVR_GDB) \
+	$(AVR_OBJDUMP) \
+	../../build/robcmp \
+	../../build/robcmp-simavr-debug
 
 ifeq ($(OS),Windows_NT)
     uname_S := Windows
@@ -36,6 +53,7 @@ endif
 ifeq ($(uname_S), Darwin)
 	suffix=darwin_x86_64
 	SED=gsed
+	LIBS=$(shell ./libllvmpathosx.sh ${LLVM_LD})
 endif
 ifeq ($(uname_S), Linux)
 	suffix=linux_x86_64

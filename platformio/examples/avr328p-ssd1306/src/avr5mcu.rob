@@ -1,0 +1,97 @@
+
+use mcu;
+use ports;
+use databus;
+
+use avr5regs;
+
+type avr5mcu implements mcu {
+	
+	/* implement this idea later!
+	template digport<port_config, mode, port> {
+		void mode(m port_mode) { port_config = mode; }
+		void set(bool v) { port = v; }
+		bool get() { return port; }
+	}
+	b0 = digport<ddrb.b0, io_digital, portb.b0>
+	*/
+
+	b0 = digitalport {
+		void mode(port_mode m) { ddrb.b0 = m; }
+		void set(bool v) { portb.b0 = v; }
+		bool get() { return portb.b0; }
+	}
+
+	b1 = digitalport {
+		void mode(port_mode m) { ddrb.b1 = m; }
+		void set(bool v) { portb.b1 = v; }
+		bool get() { return portb.b1; }
+	}
+
+	b2 = digitalport {
+		void mode(port_mode m) { ddrb.b2 = m; }
+		void set(bool v) { portb.b2 = v; }
+		bool get() { return portb.b2; }
+	}
+
+	b3 = digitalport {
+		void mode(port_mode m) { ddrb.b3 = m; }
+		void set(bool v) { portb.b3 = v; }
+		bool get() { return portb.b3; }
+	}
+
+	b4 = digitalport {
+		void mode(port_mode m) { ddrb.b4 = m; }
+		void set(bool v) { portb.b4 = v; }
+		bool get() { return portb.b4; }
+	}
+
+	b5 = digitalport {
+		void mode(port_mode m) { ddrb.b5 = m; }
+		void set(bool v) { portb.b5 = v; }
+		bool get() { return portb.b5; }
+	}
+
+	void enable_led() {
+		b5.mode(port_mode.output);
+	}
+
+	void set_led(bool s) {
+		b5.set(s);
+	}
+
+	void wait(int32 q) {
+		volatile i = q;
+		while i > 0 {
+			i--;
+		}
+	}
+
+	spi = databus {
+		void setup(int32 speed) {
+			b3.mode(port_mode.output);
+			b4.mode(port_mode.output);
+			b5.mode(port_mode.output);
+			spcr.MSTR = true; // master?	
+		}
+		void enable() {
+			spcr.SPE = true;
+		}
+		void disable() {
+			spcr.SPE = false;
+		}
+		void write(int8 b) {
+			sprd = b;
+			while spsr.SPIF == false;
+		}
+		int8 read() {
+			//FIXME
+			while spsr.SPIF == false;
+			return spdr;
+		}
+		bool has_data() {
+			//FIXME
+			return spsr.SPIF;
+		}
+	}
+}

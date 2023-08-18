@@ -1,0 +1,45 @@
+
+type portb_t {
+	b0 = false;
+	b1 = false;
+	b2 = false;
+	b3 = false;
+	b4 = false;
+	b5 = false;
+	ignore = int2();
+}
+
+register portb_t portb at 0x25;
+register portb_t ddrb at 0x24;
+
+/*
+ * SPI stuff
+ */
+
+type spcr_t {
+	SPR0 = false;
+	SPR1 = false;
+	CPHA = false;
+	CPOL = false;
+	MSTR = false;
+	DORD = false;
+	SPE = false;
+	SPIE = false;
+}
+
+// SPI Control Register
+register spcr_t spcr at 0x4c;
+
+type spsr_t {
+	SPI2x = false;
+	_reserved = int5(0);
+	WCOL = false;
+	SPIF = false;
+}
+
+// SPI Status Register
+register spsr_t spsr at 0x4d;
+
+// SPI Data Register
+register int8 spdr at 0x4e;
+

@@ -4,21 +4,21 @@ Robcmp is a compiler for a programming language designed for robotics, developed
 
 Currently, Robcmp is integrated with the AVR and ARM backends of LLVM, and is able to upload code to avr328p and stm32f1 based boards. The language is still in the experimental stage and lacks support for various features, including string processing, dynamic arrays, debugging, and others. We warmly welcome any contributions in these areas, whether in the form of pull requests, financial aid for our students, or any other form of assistance. If you are interested in the project, please feel free to reach out to us!
 
-To install and integrate robcmp with Visual Code and Platformio, please follow the instructions below.
+You can install Robcmp in Visual Code and Platformio following the instructions below.
 
-The project initially began in 2015 as a framework for building LLVM compiler frontends, utilizing the compiler backend available at https://github.com/avr-llvm/llvm. Its primary objective at the time was to provide basic support for academics enrolled in the Compiler course, enabling them to construct their own language and run it on Arduino boards. Over time, the AVR backend was integrated into LLVM as an experimental feature and eventually became a fully supported backend.
+The project initially began in 2015 as a framework for building LLVM compiler frontends, utilizing the compiler backend available at https://github.com/avr-llvm/llvm. Its primary objective at the time was to provide basic support for academics enrolled in the Compiler course, enabling them to construct their own language and run it on Arduino boards. Over time, the AVR backend was integrated into LLVM as experimental and eventually became a fully supported backend.
 
 # Setup
 
-To test robcmp in your computer, run the following commands in a console after installing Visual Code and the Platformio extension. There is basic support for syntax highlighting, automatic building and uploading to some AVR and STM32 based boards.
+To test robcmp in your computer, run the following commands in a console after installing Visual Code and the Platformio extension. There are support for syntax highlighting, building, uploading and debugging for some AVR and STM32 based boards. You can even test your AVR project in an integrated simulator.
 
 ```
-[Linux] wget https://thborges.github.io/robcmp/download/robcmp-Linux-x86_64-0.1.tar.gz
-[Osx]   wget https://thborges.github.io/robcmp/download/robcmp-Darwin-x86_64-0.1.tar.gz
+[Linux] wget https://bit.ly/robcmp-linux-00-2 -O robcmp-linux-0.2.tar.gz
+[Osx]   wget https://bit.ly/robcmp-darwin-0-2 -O robcmp-darwin-0.2.tar.gz
 mkdir robcmp && cd robcmp && tar xfz robcmp-*.tar.gz
 ./install
-code samples/avr328p-blink [for avr]
-code samples/stm32f1-blink [for stm32]
+code examples/avr328p-blink [for avr]
+code examples/stm32f1-blink [for stm32]
 ```
 
 This commands will install the robcmp platform in ~/.platformio/platforms and the syntax highlight extension in ~/.vscode/extensions. The last command will open the basic-blink sample on vscode. Hit build and then upload it to a supported board.

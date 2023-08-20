@@ -40,13 +40,16 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 		
 		// call with only one parameter is a cast
 		if (p == 1) {
-			Cast ca(dt, parameters->getParamElement(0));
+			Node *param = parameters->getParamElement(0);
+			Cast ca(dt, param);
 			ca.setScope(this);
-			ca.children()[0]->setScope(&ca);
+			if (!param->getScope())
+				param->setScope(&ca);
 			return ca.generate(func, block, allocblock);
 
 		} else if (p == 0) { // it's a constructor			
 			// alloc
+			Builder->SetInsertPoint(block);
 			Value *var = leftValue->getLLVMValue(func);
 			if (var == NULL) {
 				Builder->SetInsertPoint(allocblock);
@@ -55,7 +58,7 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 				leftValue->setAlloca(var);
 				leftValue->setDataType(dt);
 				if (debug_info)
-					RobDbgInfo.declareVar(this, var, allocblock);
+					RobDbgInfo.declareVar(leftValue, var, allocblock);
 			}
 			vector<Value*> args;
 			args.push_back(var);
@@ -69,12 +72,15 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 				return NULL;
 			FunctionBase *initfunc = dynamic_cast<FunctionBase*>(fsymbol);
 			
+			Builder->SetInsertPoint(block);
+
 			if (initfunc->needsParent()) {
-				args.push_back(initfunc->findMember("#this")->getLLVMValue(NULL));
+				Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
+				Value *ptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
+				args.push_back(ptr);
 			}
 
-			Builder->SetInsertPoint(block);
-			Builder->CreateCall(initfunc->getLLVMFunction(), ArrayRef<Value*>(args));
+			CallInst *c = Builder->CreateCall(initfunc->getLLVMFunction(), ArrayRef<Value*>(args));
 			return NULL;
 		}
 	}
@@ -93,46 +99,32 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 		return NULL;
 	}
 
-	dt = fsymbol->getDataType();
-
-	int additionalParams = 0;
-	Value *parent = NULL;
-	DataType parentdt = BuildTypes::undefinedType;
-	Value *stem = func->getThisArg();
-	DataType stemdt = func->getThisArgDt();
-	if (stem)
-		additionalParams = 1;
-
-	Builder->SetInsertPoint(block);
-	if (ident.isComplex()) {
-		Identifier istem = ident.getStem();
-		Node *n = istem.getSymbol(getScope());
-		
-		if (buildTypes->isInternal(n->getDataType())) {
-			parent = func->getThisArg();
-			parentdt = func->getThisArgDt();
-			stem = n->getLLVMValue(func);
-			stemdt = n->getDataType();
-			additionalParams = 2;
-		}
-		else {
-			stem = n->getLLVMValue(func);
-			stemdt = n->getDataType();
-			additionalParams = 1;
-		}
-		
-		// TODO: When accessing a.x.func(), need to load a and gep x
-		//Load loadstem(ident.getStem());
-		//loadstem.setParent(this->parent);
-		//stem = loadstem.generate(func, block, allocblock);
-	}
-
 	if (fsymbol->getNumCodedParams() != parameters->getNumParams()) {
 		yyerrorcpp(string_format("Function %s has %d argument(s) but was called with %d.",
 			name.c_str(), fsymbol->getNumCodedParams(), 
 			parameters->getNumParams()), this);
 		yywarncpp("The function declaration is here.", symbol);
 		return NULL;
+	}
+
+	dt = fsymbol->getDataType();
+
+	Value *stem = func->getThisArg();
+	DataType stemdt = func->getThisArgDt();
+	bool stemIsPointerToPointer = false;
+
+	Builder->SetInsertPoint(block);
+	if (ident.isComplex()) {
+		Identifier istem = ident.getStem();
+		Node *n = istem.getSymbol(getScope());
+		stem = n->getLLVMValue(func);
+		stemdt = n->getDataType();
+		stemIsPointerToPointer = n->isPointerToPointer();
+		
+		// TODO: When accessing a.x.func(), need to load a and gep x
+		//Load loadstem(ident.getStem());
+		//loadstem.setParent(this->parent);
+		//stem = loadstem.generate(func, block, allocblock);
 	}
 
 	vector<Value*> args;
@@ -152,15 +144,11 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 		args.push_back(valor);
 	}
 
+	// this parameter
 	if (stem) {
-		if (buildTypes->isInterface(stemdt))
+		if (stemIsPointerToPointer)
 			stem = Builder->CreateLoad(stem->getType()->getPointerTo(), stem, "defer");
 		args.push_back(stem);
-	}
-	if (parent) {
-		if (buildTypes->isInterface(parentdt))
-			parent = Builder->CreateLoad(parent->getType()->getPointerTo(), parent, "defer");
-		args.push_back(parent);
 	}
 
 	ArrayRef<Value*> argsRef(args);

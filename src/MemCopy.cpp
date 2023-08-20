@@ -18,12 +18,13 @@ Value* MemCopy::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
     Type *exprvty = exprv->getType();
 
     Type *leftvty;
-    Builder->SetInsertPoint(allocblock);
+    Builder->SetInsertPoint(block);
     Value *dest = leftValue->getLLVMValue(func);
     if (dest) {
         leftvty = dest->getType();
     } else {
         leftvty = buildTypes->llvmType(dt);
+        Builder->SetInsertPoint(allocblock);
         dest = Builder->CreateAlloca(leftvty, dataAddrSpace, nullptr, leftValue->getName());
         leftValue->setAlloca(dest);
         leftValue->setDataType(dt);
@@ -37,15 +38,16 @@ Value* MemCopy::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
         return NULL;
     }
 
-    Value *srcalloc = Builder->CreateAlloca(exprvty, dataAddrSpace, nullptr, "src");
+    //Builder->SetInsertPoint(allocblock);
+    //Value *srcalloc = Builder->CreateAlloca(exprvty, dataAddrSpace, nullptr, "src");
 
-    Builder->SetInsertPoint(block);
-    Value *src = Builder->CreateStore(exprv, srcalloc);
+    //Builder->SetInsertPoint(block);
+    //Value *src = Builder->CreateStore(exprv, srcalloc);
 
     const DataLayout &dl = mainmodule->getDataLayout();
     Value *size = ConstantInt::get(Type::getInt32Ty(global_context), dl.getTypeAllocSize(leftvty));
 
-    Builder->CreateMemCpy(dest, Align(1), srcalloc, Align(1), size);
+    Builder->CreateMemCpy(dest, Align(1), exprv, Align(1), size);
 
     return NULL;
 }

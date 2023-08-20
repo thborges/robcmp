@@ -6,6 +6,8 @@
 class Load: public Node {
 private:
 	Identifier ident;
+	Variable *leftValue = NULL;
+	
 public:
 	Load(const char* i): ident(i) {	}
 	Load(Identifier i): ident(i) { }
@@ -16,4 +18,5 @@ public:
 
 	virtual bool isConstExpr() override;
 
+	virtual void setLeftValue(Variable *symbol) override;
 };

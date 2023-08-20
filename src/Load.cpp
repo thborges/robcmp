@@ -86,9 +86,15 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 	if (!alloc)
 		return NULL; // Caused by an error on previous statement that defines the symbol
 	
-	if (buildTypes->isComplex(symbol->getDataType())) 
+	if (buildTypes->isComplex(symbol->getDataType())) {
+		if (symbol->isPointerToPointer()) {
+			Type *ty = buildTypes->llvmType(symbol->getDataType())->getPointerTo();	
+			return Builder->CreateLoad(ty, alloc, symbol->hasQualifier(qvolatile), "deref");
+		}
+		if (leftValue)
+			leftValue->setPointerToPointer(true);
 		return alloc;
-	else {
+	} else {
 		Type *ty = buildTypes->llvmType(symbol->getDataType());
 		return Builder->CreateLoad(ty, alloc, symbol->hasQualifier(qvolatile), ident.getFullName());
 	}
@@ -97,4 +103,8 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 bool Load::isConstExpr() {
 	Variable *symbol = dynamic_cast<Variable*>(ident.getSymbol(getScope()));
 	return symbol && symbol->isConstExpr();
+}
+
+void Load::setLeftValue(Variable *symbol) {
+    leftValue = symbol;
 }

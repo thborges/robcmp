@@ -13,6 +13,7 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/InlineAsm.h>
+#include <llvm/IR/Verifier.h>
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/Host.h>
@@ -134,6 +135,16 @@ void print_llvm_ir(char opt_level) {
 	// it being invalid.
 	if (debugopt) {
 		mainmodule->print(outs(), nullptr);
+
+		for(auto &f : mainmodule->getFunctionList()) {
+			if (verifyFunction(f, &llvm::errs())) {
+				cerr << "Error(s) detected while verifying function " << f.getName().str() << endl;
+			}
+		}
+
+		if (verifyModule(*mainmodule), &llvm::errs())
+			cerr << "Error(s) detected while verifying the global module." << endl;
+
 		return;
 	}
 
@@ -174,5 +185,11 @@ void setTarget(const char *targetarch) {
 			currentTargetId = static_cast<enum SupportedTargets>(t);
 			break;
 		}
+	}
+
+	// must set cpu before function generation
+	if (currentTargetId == st_native) {
+		static string defaultcpu = sys::getHostCPUName().str();
+		supportedTargets[0].cpu = defaultcpu.c_str();
 	}
 }

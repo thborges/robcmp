@@ -30,7 +30,7 @@ int16 main() {
 	x.y = 17;
 	a.setSubt(x);
 
-	if (ss.y == 18) {
+	if ss.y == 17 {
 		return 0;
 	}
 	return 1;

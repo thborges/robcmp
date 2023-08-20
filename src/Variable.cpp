@@ -13,11 +13,16 @@ Value *Variable::getLLVMValue(Node *stem) {
 		if (func && func->getThisArg()) {
 			// generating a function of a type: get the gep on #this or #parent parameters
 			Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
-			alloc = Builder->CreateStructGEP(thisTy, func->getThisArg(), gepidx, "gepthis");
+			Value *ptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
+			alloc = Builder->CreateStructGEP(thisTy, ptr, gepidx, "gepthis");
 		} else {
 			// accessing a var of a user type: get the gep in the scope (user type) of the scalar
 			Type *udt = buildTypes->llvmType(stem->getDataType());
-			alloc = Builder->CreateStructGEP(udt, stem->getLLVMValue(NULL), gepidx, "gepu"); // FIXME
+			Value *ptr = stem->getLLVMValue(NULL);
+			if (stem->isPointerToPointer()) {
+				ptr = Builder->CreateLoad(udt->getPointerTo(), ptr, "deref");
+			}
+			alloc = Builder->CreateStructGEP(udt, ptr, gepidx, "gepu"); // FIXME
 		}
 	}
 	return alloc;

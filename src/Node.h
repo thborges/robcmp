@@ -17,6 +17,7 @@ protected:
 	DataType dt = BuildTypes::undefinedType;
 	set<DataQualifier> qualifiers;
 	Node *scope = nullptr;
+	bool pointerToPointer = false;
 
 public:
 	Node() {}
@@ -83,6 +84,14 @@ public:
 	}
 
 	virtual void setLeftValue(Variable *symbol) {}
+
+	bool isPointerToPointer() {
+		return pointerToPointer;
+	}
+
+	void setPointerToPointer(bool v) {
+		pointerToPointer = v;
+	}
 
 	friend class UserType;
 	friend class Program;

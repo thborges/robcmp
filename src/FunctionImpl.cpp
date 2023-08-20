@@ -51,11 +51,12 @@ bool FunctionImpl::preGenerate() {
 	attrs.addAttribute("frame-pointer", "all");
 	attrs.addAttribute("stack-protector-buffer-size", "8");
 	
-	/*if (name == "init") // inline constructors
+	if ((name == "init") ||
+		(node_children.size() == 1)) {
+		// inline constructors and functions with only one node.
+		// TODO: Check the resulting binary size.
 		attrs.addAttribute(Attribute::InlineHint);
-	else
-	if (node_children.size() == 1)
-		attrs.addAttribute(Attribute::AlwaysInline);*/
+	}
 	
 	if (name == "__vectors") { // FIXME: remove after adding functions attributes to language
 		func->setSection(".vectors");
@@ -78,7 +79,7 @@ bool FunctionImpl::preGenerate() {
 	if (isExternal())
 		return true;
 
-	falloc = BasicBlock::Create(global_context, "entry", func);
+	falloc = BasicBlock::Create(global_context, "", func);
 	fblock = BasicBlock::Create(global_context, "body", func);
 	
 	RobDbgInfo.emitLocation(this);
@@ -91,11 +92,13 @@ bool FunctionImpl::preGenerate() {
 		const string& argname = fp->getName();
 
 		Arg.setName(argname);
-		//Arg.addAttr(Attribute::NoUndef);
 
-		Value *variable = &Arg;
-		if (!buildTypes->isComplex(ptype))
-			variable = Builder->CreateAlloca(buildTypes->llvmType(ptype), dataAddrSpace, 0, argname);
+		Type *talloc = buildTypes->llvmType(ptype);
+		if (buildTypes->isComplex(ptype)) {
+			talloc = talloc->getPointerTo();
+			fp->setPointerToPointer(true);
+		}
+		Value *variable = Builder->CreateAlloca(talloc, dataAddrSpace, 0, argname);
 		
 		if (argname == "#this") {
 			thisArg = variable;
@@ -105,8 +108,7 @@ bool FunctionImpl::preGenerate() {
 		
 		fp->setAlloca(variable);
 		
-		if (!buildTypes->isComplex(ptype))
-			Builder->CreateStore(&Arg, variable, false);
+		Builder->CreateStore(&Arg, variable, false);
 
 		if (debug_info) {
 			DILocalVariable *d = DBuilder->createParameterVariable(sp, argname, Idx+1, funit,
@@ -141,9 +143,11 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 		BasicBlock *lb = (BasicBlock*)last_block;
 		Builder->SetInsertPoint(lb);
 		RobDbgInfo.emitLocation(&endfunction);
-		if (lb->sizeWithoutDebug() == 0 && !lb->hasNPredecessorsOrMore(1))
+		if (lb->sizeWithoutDebug() == 0 && !lb->hasNPredecessorsOrMore(1) &&
+			lb != fblock) {
 			lb->eraseFromParent();
-		else if (lb->getTerminator() == NULL) {
+
+		} else if (lb->getTerminator() == NULL) {
 			Type *xtype = buildTypes->llvmType(dt);
 			if (!xtype->isVoidTy()) {
 				yyerrorcpp("Missing return statement in function " + name, &endfunction);

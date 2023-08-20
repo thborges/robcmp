@@ -17,13 +17,13 @@ Scalar::Scalar(const char* ident, Node *e): Variable(ident), expr(e) {
 Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
 	RobDbgInfo.emitLocation(this);
-	Builder->SetInsertPoint(allocblock);
 
 	Node *isymbol = ident.getSymbol(getScope());
 	Variable *symbol = dynamic_cast<Variable*>(isymbol);
 	if (!symbol)
 		return NULL;
 
+	Builder->SetInsertPoint(block);
 	Pointer *reg = NULL;
 	Node *stem = NULL;
 	if (ident.isComplex()) {
@@ -47,8 +47,9 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 		//stem = loadstem.generate(func, block, allocblock);
 	}
 
-	// tell the allocated left value to an eventual
-	// constructor initializing a user type field
+	// set the allocated left value to:
+	//  - a constructor initializing a user type field
+	//  - a load for a new variable
 	expr->setLeftValue(symbol);
 
 	Value *exprv = expr->generate(func, block, allocblock);
@@ -56,6 +57,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 		return NULL;
 	DataType exprv_dt = expr->getDataType();
 
+	Builder->SetInsertPoint(block);
 	if (!alloc)
 		alloc = symbol->getLLVMValue(func);
 	

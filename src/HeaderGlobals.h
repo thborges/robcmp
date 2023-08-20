@@ -33,7 +33,7 @@ struct DebugInfo {
 extern struct DebugInfo RobDbgInfo;
 
 // Error messages
-void yyerrorcpp(const string& s, SourceLocation *n);
+void yyerrorcpp(const string& s, SourceLocation *n, bool semantic = true);
 void yywarncpp(const string& s, SourceLocation *n);
 
 template<typename ... Args>

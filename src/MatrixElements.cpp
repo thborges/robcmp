@@ -7,7 +7,7 @@ void MatrixElements::append(MatrixElement *m) {
 	elements.push_back(m);
 };
 	
-unsigned MatrixElements::getLineCount() {
+unsigned MatrixElements::getRowCount() {
 	unsigned r = 0;
 	for(auto& e : elements)
 		r += e->count;

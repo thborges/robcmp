@@ -62,3 +62,5 @@ avr-ld
 .vscode
 refdatasheets
 build
+test/general/out
+test/avr328p/out

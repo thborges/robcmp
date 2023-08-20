@@ -31,22 +31,30 @@ void yyerror(location_t *loc, yyscan_t scanner, const char *s) {
 }
 
 void USEerror(location_t *loc, yyscan_t scanner, const char *s) {
-    yyerror(loc, scanner, s);
+    SourceLocation l(*loc);
+	yyerrorcpp(s, &l, false);
 }
 
 void MAINerror(location_t *loc, yyscan_t scanner, const char *s) {
-	yyerror(loc, scanner, s);
+    SourceLocation l(*loc);
+	yyerrorcpp(s, &l, false);
 }
 
-void yyerrorcpp(const string& s, SourceLocation *n) {
-	string e = COLOR_RED "semantic error: " COLOR_RESET + s;
-		fprintf(stderr, "%s:%d:%d: %s\n", 
-		n->getFile().c_str(), n->getLineNo(), n->getColNo(), s.c_str());
+void yyerrorcpp(const string& s, SourceLocation *n, bool semantic) {
+    string e;
+    if (semantic)
+	    e = COLOR_RED "semantic error: " COLOR_RESET + s;
+    else {
+        e = regex_replace(s, regex("syntax error[,:]?"), COLOR_RED "syntax error:" COLOR_RESET);
+    }
+
+    fprintf(stderr, "%s:%d:%d: %s\n", 
+		n->getFile().c_str(), n->getLineNo(), n->getColNo(), e.c_str());
 	errorsfound++;
 }
 
 void yywarncpp(const string& s, SourceLocation *n) {
-	string e = COLOR_BLUE "semantic warning: " COLOR_RESET + s;
+	string e = COLOR_BLUE "warning: " COLOR_RESET + s;
 	fprintf(stderr, "%s:%d:%d %s\n", 
 		n->getFile().c_str(), n->getLineNo(), n->getColNo(), e.c_str());
 }

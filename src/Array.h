@@ -31,9 +31,7 @@ public:
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
-	virtual Node *getElementIndex(Node *p1, Node *p2) override {
-		return p1;
-	}
+	virtual Node *getElementIndex(Node *p1, Node *p2) override;
 
 	std::vector<ArrayElement*> getElements() {
 		return elements->getElements();

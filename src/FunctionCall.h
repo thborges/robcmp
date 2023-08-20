@@ -16,9 +16,12 @@ private:
 public:
 	FunctionCall(const string& name, ParamsCall *pc): ident(name) {
 		parameters = pc;
+		node_children.reserve(pc->getNumParams());
+		node_children.insert(end(node_children), pc->getParameters().begin(),
+			pc->getParameters().end());
 	}
+	
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
-	void loadFunctionStem(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
 
 	virtual DataType getDataType() override;
 

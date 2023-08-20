@@ -1,0 +1,13 @@
+
+int16 func (bool a){
+	if a == true {
+		return 1;
+	}
+	else {
+		return 2;
+	}
+}
+
+int16 main() {
+	return func(true) - 1;
+}

@@ -1,0 +1,14 @@
+
+int16 main(){
+	a = {3, 2, 1};
+	if a[1] != 2 {
+		return 1;
+	}
+
+	b = {2, 2, 4};
+	if b[a[1]] != 4 {
+		return 1;
+	}
+
+	return 0;
+}

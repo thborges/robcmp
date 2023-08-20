@@ -8,10 +8,7 @@ void ParamsCall::append(Node *n) {
 };
 	
 unsigned ParamsCall::getNumParams() const {
-	unsigned r = 0;
-	for(auto& i : parameters)
-		r += 1;
-	return r;
+	return parameters.size();
 };
 
 Node *ParamsCall::getParamElement(int position) const {

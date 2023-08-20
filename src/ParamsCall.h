@@ -12,6 +12,10 @@ public:
 	
 	unsigned getNumParams() const;
 	Node *getParamElement (int position) const;
+
+	std::vector<Node *> const& getParameters() {
+		return parameters;
+	}
 };
 
 #endif

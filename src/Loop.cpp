@@ -1,20 +1,35 @@
-#include "Header.h"
 
-Loop::Loop(Node *stms) : stmts(stms) {
-	node_children.reserve(1);
-	node_children.push_back(stms);
+#include "Loop.h"
+#include "FunctionImpl.h"
+
+Loop::Loop(vector<Node*> &&stms) : Node(std::move(stms)) {
 }
 
-Value *Loop::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-	BasicBlock *bodyloop = BasicBlock::Create(global_context, "loop_body", func, 0);
+Value *Loop::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
+	BasicBlock *bodyloop = BasicBlock::Create(global_context, "loop_body", 
+		func->getLLVMFunction(), 0);
+	
+	RobDbgInfo.emitLocation(this);
+
+	// go to loop
+	Builder->SetInsertPoint(block);
+	Builder->CreateBr(bodyloop);
+
 	// alloc instructions inside bodyloop should go to allocblock to prevent repeatedly allocation
-	Value *newb = stmts->generate(func, bodyloop, allocblock); 
-	BranchInst::Create(bodyloop, bodyloop);
-	BranchInst::Create(bodyloop, block);
-	BasicBlock *endloop = BasicBlock::Create(global_context, "loop_end", func, 0);
-	return endloop;
-}
+	Value *newb = generateChildren(func, bodyloop, allocblock); 
 
-void Loop::accept(Visitor& v) {
-	v.visit(*this);
+	// identify last while body block
+	BasicBlock *endbody = bodyloop;
+	if (newb->getValueID() == Value::BasicBlockVal)
+		endbody = (BasicBlock*)newb;
+	
+	// if end block already has a terminator, don't generate branch
+	if (!((BasicBlock*)endbody)->getTerminator()) {
+		Builder->SetInsertPoint(endbody);
+		Builder->CreateBr(bodyloop);
+	}
+
+	BasicBlock *endloop = BasicBlock::Create(global_context, "loop_end", 
+		func->getLLVMFunction(), 0);
+	return endloop;
 }

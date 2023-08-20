@@ -1,30 +1,38 @@
 
-#include "Header.h"
+#include "If.h"
+#include "FunctionImpl.h"
+#include "Visitor.h"
 
-If::If(Node *e, Node *tst, Node *est) : expr(e), thenst(tst), elsest(est) {
-	node_children.reserve(3);
-	node_children.push_back(expr);
-	node_children.push_back(thenst);
-
-	if (est != NULL)
-		node_children.push_back(elsest);
+If::If(Node *e, vector<Node*> &&tst): expr(e) {
+	addChild(expr);
+	thenst = new Node(std::move(tst));
+	addChild(thenst);
+	elsest = NULL;
 }
 
-Value *If::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+If::If(Node *e, vector<Node*> &&tst, vector<Node*> &&est): If(e, std::move(tst)) {
+	elsest = new Node(std::move(est));
+	addChild(elsest);
+}
+
+Value *If::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	Value *exprv = expr->generate(func, block, allocblock);
 
-	BasicBlock *thenb = BasicBlock::Create(global_context, "if_then", func, 0);
-	Value *thennewb = thenst->generate(func, thenb, allocblock);
+	BasicBlock *thenb = BasicBlock::Create(global_context, "if_then", 
+		func->getLLVMFunction(), 0);
+	Value *thennewb = thenst->generateChildren(func, thenb, allocblock);
 
 	Value *elsenewb = NULL;
-	BasicBlock *elseb = BasicBlock::Create(global_context, "if_else", func, 0);
+	BasicBlock *elseb = BasicBlock::Create(global_context, "if_else", 
+		func->getLLVMFunction(), 0);
 	if (elsest != 0) {
-		elsenewb = elsest->generate(func, elseb, allocblock);
+		elsenewb = elsest->generateChildren(func, elseb, allocblock);
 	}
 	
 	BranchInst::Create(thenb, elseb, exprv, block);
 
-	BasicBlock *mergb = BasicBlock::Create(global_context, "if_cont", func, 0);
+	BasicBlock *mergb = BasicBlock::Create(global_context, "if_cont", 
+		func->getLLVMFunction(), 0);
 		
 	// identify last then block
 	BasicBlock *lastthen = thenb;
@@ -49,5 +57,4 @@ Value *If::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
 
 void If::accept(Visitor& v) {
 	v.visit(*this);
-}
-
+} 

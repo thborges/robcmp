@@ -2,21 +2,22 @@
 #pragma once
 
 #include "Node.h"
+#include "Array.h"
+#include "Identifier.h"
 
 class LoadArray: public Node {
 protected:
-	string ident;
+	Identifier ident;
 	Node *position;
-	RobSymbol *rsym = NULL;
+	LinearDataStructure *rsym = NULL;
 public:
-	LoadArray(const char *i, Node *pos): ident(i), position(pos) {}
+	LoadArray(const char *i, Node *pos);
 
-	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
-	virtual Type* getLLVMResultType(BasicBlock *block, BasicBlock *allocblock);
-
-	virtual Node *getLoadIndex(RobSymbol *rsym, BasicBlock *block, BasicBlock *allocblock) {
-		return position;
+	virtual Node *getElementIndex(LinearDataStructure *arr) {
+		return arr->getElementIndex(position, NULL);
 	}
 
+	virtual DataType getDataType() override;
 };

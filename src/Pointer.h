@@ -1,19 +1,16 @@
-#ifndef __REGISTER_H__
-#define __REGISTER_H__
 
-#include "Header.h"
+#pragma once
 
-class Pointer: public Node {
+#include "Variable.h"
+
+class Pointer: public Variable {
 private:
-	LanguageDataType type;
     Node *address;
-	string name;
-	bool isVolatile;
+	
 public:
-	Pointer(const char *name, LanguageDataType type, Node *address, bool isVolatile = false): 
-		name(name), type(type), address(address), isVolatile(isVolatile) {}
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
-	virtual void accept(Visitor &v) override;
-};
+	Pointer(const char *name, DataType type, Node *address);
 
-#endif
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
+
+	unsigned getFieldStartBit(Node *symbol);
+};

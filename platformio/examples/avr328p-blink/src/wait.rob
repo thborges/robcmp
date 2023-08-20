@@ -1,0 +1,7 @@
+
+void wait(int32 q) {
+	volatile i = q;
+	while (i > 0) {
+		i--;
+	}
+}

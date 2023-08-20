@@ -1,19 +1,38 @@
-#ifndef __FUNCTION_PARAMS_H__
-#define __FUNCTION_PARAMS_H__
+#pragma once
 
 #include "Node.h"
+#include "Variable.h"
+
+class FunctionParam: public Variable {
+public:
+	FunctionParam(const char *name, DataType dt): Variable(name) {
+		this->dt = dt;
+	}
+		
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
+		return NULL;
+	}
+
+	void setAlloca(Value *alloc) {
+		this->alloc = alloc;
+	}
+
+	friend class FunctionImpl;
+};
 
 class FunctionParams {
 private:
+	std::vector<FunctionParam*> parameters;
+
 public:
-	std::vector<FunctionParam> parameters;
 	FunctionParams();
-	void append(FunctionParam& fp);
+	void append(FunctionParam *fp);
 	
-	unsigned getNumParams() const;
-	Type *getParamType (int position) const;
-	const char *getParamElement (int position) const;
+	unsigned getNumCodedParams();
+	DataType getParamType (int position);
+	const string getParamName (int position);
+
+	std::vector<FunctionParam*> const& getParameters() {
+		return parameters;
+	}
 };
-
-#endif
-

@@ -1,25 +1,30 @@
-#include "Header.h"
+#include "FlexDependencies.h"
+#include "Language_gen_y.hpp"
+
+#include "BinaryOp.h"
 #include "Int8.h"
+#include "Coercion.h"
 
 BinaryOp::BinaryOp(Node *l, int op, Node *r) {
 	this->lhsn = l;
 	this->rhsn = r;
 	this->op = op;
-	this->node_children.reserve(2);
-	this->node_children.push_back(lhsn);
-	this->node_children.push_back(rhsn);
+	this->addChild(lhsn);
+	this->addChild(rhsn);
 }
 
 Value *BinaryOp::logical_operator(enum Instruction::BinaryOps op, 
-	Function *func, BasicBlock *block, BasicBlock *allocblock) {
+	FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
 	Value *lhs = lhsn->generate(func, block, allocblock);
 	Value *rhs = rhsn->generate(func, block, allocblock);
-	return BinaryOperator::Create(op, lhs, rhs, "logicop", block);
+
+	Builder->SetInsertPoint(block);
+	return Builder->CreateBinOp(op, lhs, rhs, "logicop");
 }
 
 Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint, 
-	enum Instruction::BinaryOps opflt, Function *func, BasicBlock *block, BasicBlock *allocblock) {
+	enum Instruction::BinaryOps opflt, FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
 	Value *lhs = lhsn->generate(func, block, allocblock);
 	Value *rhs = rhsn->generate(func, block, allocblock);
@@ -30,6 +35,8 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 	Type *Ty2 = rhs->getType();
 
 	enum Instruction::BinaryOps llvmop;
+
+	Builder->SetInsertPoint(block);
 
 	if (Ty1->isIntegerTy() && Ty2->isIntegerTy()) {
 		/*fallback SDiv disabled
@@ -42,9 +49,9 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 		}*/
 
 		if (opint == Instruction::Shl || opint == Instruction::LShr) {
-			// sext the left operator if we know the rside bitwidth
+			// zext the left operator if we know the rside bitwidth
 			Constant *c = NULL;
-			if (rhsn->isConstExpr(block, allocblock)) {
+			if (rhsn->isConstExpr()) {
 				Value *v = rhsn->generate(NULL, block, allocblock);
 				c = dyn_cast<Constant>(v);
 			}
@@ -52,11 +59,11 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 				int64_t v = c->getUniqueInteger().getZExtValue();
 				if (Ty1->getIntegerBitWidth() < v) {
 					if (v >= 8 && v <= 15)
-						lhs = new SExtInst(lhs, Type::getInt16Ty(global_context), "sext16", block);
+						lhs = Builder->CreateZExt(lhs, Type::getInt16Ty(global_context), "zext16");
 					else if (v >= 16 && v <= 31)
-						lhs = new SExtInst(lhs, Type::getInt32Ty(global_context), "sext32", block);
+						lhs = Builder->CreateZExt(lhs, Type::getInt32Ty(global_context), "zext32");
 					else if (v >= 32 && v <= 63)
-						lhs = new SExtInst(lhs, Type::getInt64Ty(global_context), "sext64", block);
+						lhs = Builder->CreateZExt(lhs, Type::getInt64Ty(global_context), "zext64");
 					else
 						yyerrorcpp("Number of shift bits exceeds the max int precision for left side.", this);
 					Ty1 = lhs->getType();
@@ -73,9 +80,9 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 	}
 	else {
 		if (Ty1->isIntegerTy())
-			lhs = new SIToFPInst(lhs, Ty2, "castitof", block);
+			lhs = Builder->CreateSIToFP(lhs, Ty2, "castitof");
 		else if (Ty2->isIntegerTy())
-			rhs = new SIToFPInst(rhs, Ty1, "castitof", block);
+			rhs = Builder->CreateSIToFP(rhs, Ty1, "castitof");
 		llvmop = opflt;
 	}
 
@@ -101,45 +108,49 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 		}
 	}
 	
-	return BinaryOperator::Create(llvmop, lhs, rhs, "binop", block);
+	return Builder->CreateBinOp(llvmop, lhs, rhs, "binop");
 }
 
-Type *BinaryOp::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
-	Type *lty = lhsn->getLLVMResultType(block, allocblock);
-	Type *rty = rhsn->getLLVMResultType(block, allocblock);
-	if (lty->isIntegerTy() && rty->isIntegerTy()) {
-		if (op == TOK_LSHIFT || op == TOK_RSHIFT) {
-			// sext the left operator if we know the rside bitwidth
-			Constant *c = NULL;
-			if (rhsn->isConstExpr(block, allocblock)) {
-				Value *v = rhsn->generate(NULL, block, allocblock);
-				c = dyn_cast<Constant>(v);
-			}
-			if (c) {
-				int64_t v = c->getUniqueInteger().getZExtValue();
-				if (lty->getIntegerBitWidth() < v) {
-					if (v >= 8 && v <= 15)
-						return Type::getInt16Ty(global_context);
-					else if (v >= 16 && v <= 31)
-						return Type::getInt32Ty(global_context);
-					else if (v >= 32 && v <= 63)
-						return Type::getInt64Ty(global_context);
-					else
-						return NULL;
+DataType BinaryOp::getDataType() {
+	if (dt == BuildTypes::undefinedType) {
+		DataType lty = lhsn->getDataType();
+		DataType rty = rhsn->getDataType();
+		if (buildTypes->isIntegerDataType(lty) && buildTypes->isIntegerDataType(rty)) {
+			if (op == TOK_LSHIFT || op == TOK_RSHIFT) {
+				// zext the left operator if we know the rside bitwidth
+				Constant *c = NULL;
+				if (rhsn->isConstExpr()) {
+					Value *v = rhsn->generate(NULL, NULL, NULL);
+					c = dyn_cast<Constant>(v);
+				}
+				if (c) {
+					int64_t v = c->getUniqueInteger().getZExtValue();
+					if (buildTypes->bitWidth(lty) < v) {
+						if (v >= 8 && v <= 15)
+							dt = tint16;
+						else if (v >= 16 && v <= 31)
+							dt = tint32;
+						else if (v >= 32 && v <= 63)
+							dt = tint64;
+						else
+							dt = tvoid;
+					}
 				}
 			}
+			dt = buildTypes->bitWidth(lty) > buildTypes->bitWidth(rty) ? lty : rty;
+			
+		} else {
+			if (buildTypes->isIntegerDataType(lty))
+				dt = rty;
+			else
+				dt = lty;
 		}
-		return lty->getIntegerBitWidth() > rty->getIntegerBitWidth() ? lty : rty;
-		
-	} else {
-		if (lty->isIntegerTy())
-			return rty;
-		else
-			return lty;
 	}
+	return dt;
 }
 
-Value *BinaryOp::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+Value *BinaryOp::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
+	RobDbgInfo.emitLocation(this);
 	switch (op) {
 		case '+' : return binary_operator(Instruction::Add, Instruction::FAdd, func, block, allocblock);
 		case '-' : return binary_operator(Instruction::Sub, Instruction::FSub, func, block, allocblock);
@@ -157,11 +168,7 @@ Value *BinaryOp::generate(Function *func, BasicBlock *block, BasicBlock *allocbl
 	}
 }
 
-void BinaryOp::accept(Visitor& v) {
-	v.visit(*this);
-}
-
-bool BinaryOp::isConstExpr(BasicBlock *block, BasicBlock *allocblock) {
-	return lhsn->isConstExpr(block, allocblock) && 
-		rhsn->isConstExpr(block, allocblock);
+bool BinaryOp::isConstExpr() {
+	return lhsn->isConstExpr() && 
+		rhsn->isConstExpr();
 }

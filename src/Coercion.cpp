@@ -1,4 +1,6 @@
-#include "Header.h"
+#include "Coercion.h"
+#include "HeaderGlobals.h"
+#include "BuildTypes.h"
 
 unsigned Coercion::GetFloatingPointBitwidth(Type *ty) {
 	switch (ty->getTypeID()) {
@@ -16,10 +18,13 @@ unsigned Coercion::GetFloatingPointBitwidth(Type *ty) {
 	}
 }
 
-Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocation *loc){
+Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocation *loc, bool isCast){
 
 	Value *r = v;
 	Type *ty = v->getType();
+
+	RobDbgInfo.emitLocation(loc);
+	Builder->SetInsertPoint(block);
 	
 	if (ty != destty){
 		//Float to Integer
@@ -27,15 +32,16 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 			if (Constant *c = dyn_cast<Constant>(v))
 				r = ConstantExpr::getFPToSI(c, destty);
 			else
-				r = new FPToSIInst(v, destty, "fptosi", block);
-			yywarncpp("Float point converted to integer.", loc);
+				r = Builder->CreateFPToSI(v, destty, "fptosi");
+			if (!isCast)
+				yywarncpp("Float point converted to integer.", loc);
 		}
 		//Integer to Float
 		else if (destty->isFloatingPointTy() && ty->isIntegerTy()){
 			if (Constant *c = dyn_cast<Constant>(v))
 				r = ConstantExpr::getSIToFP(c, destty);
 			else
-				r = new SIToFPInst(v, destty, "sitofp", block);
+				r = Builder->CreateSIToFP(v, destty, "sitofp");
 		}
 		//Floating point to Floating point
 		else if (ty->isFloatingPointTy() && destty->isFloatingPointTy()) {
@@ -45,31 +51,35 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 				if (Constant *c = dyn_cast<Constant>(v))
 					r = ConstantExpr::getFPExtend(c, destty);
 				else
-					r = new FPExtInst(v, destty, "fpext", block);
+					r = Builder->CreateFPExt(v, destty, "fpext");
 			else if (dtybw < tybw) {
 				if (Constant *c = dyn_cast<Constant>(v))
 					r = ConstantExpr::getFPTrunc(c, destty);
 				else
-					r = new FPTruncInst(v, destty, "fptrunc", block);
-				yywarncpp("Float point value truncated.", loc);
+					r = Builder->CreateFPTrunc(v, destty, "fptrunc");
+				if (!isCast)
+					yywarncpp("Float point value truncated.", loc);
 			}
 		}
 		//Generic ExtInt to Int
 		else if (destty->isIntegerTy() && ty->isIntegerTy()){
-			unsigned wty = dyn_cast<IntegerType>(ty)->getBitWidth();
-			unsigned wdestty = dyn_cast<IntegerType>(destty)->getBitWidth();
+			unsigned wty = ty->getIntegerBitWidth();
+			unsigned wdestty = destty->getIntegerBitWidth();
 			if (wty > wdestty){
 				if (Constant *c = dyn_cast<Constant>(v))
 					r = ConstantExpr::getTrunc(c, destty);
 				else
-					r = new TruncInst(v, destty, "trunc", block);
-				yywarncpp("Integer value truncated.", loc);
+					r = Builder->CreateTrunc(v, destty, "trunc");
+				if (!isCast) {
+					yywarncpp(string_format("Integer value truncated from int%d to int%d.", 
+						wty, wdestty), loc);
+				}
 			}
 			else if (wty < wdestty) {
 				if (Constant *c = dyn_cast<Constant>(v))
 					r = ConstantExpr::getSExt(c, destty);
 				else
-					r = new SExtInst(v, destty, "sext", block);
+					r = Builder->CreateSExt(v, destty, "sext");
 			}
 		}
 		else if (!destty->isPointerTy()) {

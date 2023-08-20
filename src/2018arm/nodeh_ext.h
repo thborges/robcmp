@@ -8,7 +8,7 @@ private:
 public:
 	ServoGoto(Node *position): pos(position) {}
 
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 		// value for the two parameters
 		vector<Value*> args;
 		args.push_back(pos->generate(func, block, allocblock));
@@ -37,7 +37,7 @@ private:
 public:
 	StepperGoto(int stepper, Node *position): stp(stepper), pos(position) {}
 
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 		// value for the two parameters
 		Int16 nstp(stp);
 

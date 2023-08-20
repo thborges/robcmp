@@ -1,6 +1,8 @@
-#ifndef __OUTPORT_H__
-#define __OUTPORT_H__
+
+#pragma once
+
 #include "Node.h"
+#include "Int8.h"
 #include "Int16.h"
 #include "Float.h"
 
@@ -10,7 +12,5 @@ private:
 	Node *expr;
 public:
 	OutPort (const char *p, Node *e);
-	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 };
-
-#endif

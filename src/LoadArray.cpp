@@ -1,59 +1,59 @@
-#include "Header.h"
 
-Type* LoadArray::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
-	if (!rsym)
-		rsym = search_symbol(ident, allocblock, block);
-	if (rsym) {
-		Type *ty = NULL;
-		if (auto *aux = dyn_cast<AllocaInst>(rsym->value))
-			ty = aux->getAllocatedType();
-		else if (auto *aux = dyn_cast<GlobalVariable>(rsym->value))
-			ty = aux->getValueType();
-		
-		if (ty->isArrayTy()) {
-			ArrayType *arrayTy = (ArrayType*)ty;
-			return arrayTy->getArrayElementType();
-		}
-	}
-	return NULL;
+#include "LoadArray.h"
+#include "Array.h"
+#include "FunctionImpl.h"
+
+LoadArray::LoadArray(const char *i, Node *pos): ident(i), position(pos) {
+	addChild(pos);
 }
 
-Value *LoadArray::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-	rsym = search_symbol(ident, allocblock, block);	
-	/* TODO */
+DataType LoadArray::getDataType() {
+	if (dt == BuildTypes::undefinedType) {
+		if (!rsym)
+			rsym = dynamic_cast<LinearDataStructure*>(ident.getSymbol(getScope()));
+		if (rsym)
+			dt = rsym->getElementDt();
+	}
+	return dt;
+}
+
+Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
+	
+	if (!rsym)
+		rsym = dynamic_cast<LinearDataStructure*>(ident.getSymbol(getScope()));
 	if (rsym == NULL) {
-		yyerrorcpp("Variable " + ident + " not defined.", this);
-		return NULL;
-	}
-	auto sym = rsym->value;
-
-	// sym type can be GlobalVariable or AllocInst
-	Type *ty = NULL;
-	if (auto *aux = dyn_cast<AllocaInst>(sym))
-		ty = aux->getAllocatedType();
-	else if (auto *aux = dyn_cast<GlobalVariable>(sym))
-		ty = aux->getValueType();
-
-	ArrayType *arrayTy = NULL;
-	if (ty->isArrayTy()) {
-		arrayTy = (ArrayType*)ty;
-	}
-	else {
-		yyerrorcpp("Symbol " + ident + " is not an array.", this);
+		yyerrorcpp("Variable " + ident.getFullName() + " not defined or not an array/matrix.", this);
 		return NULL;
 	}
 
-	Node *indn = getLoadIndex(rsym, block, allocblock);
+	Value *alloc = NULL;
+	if (ident.isComplex()) {
+		Identifier istem = ident.getStem();
+		Node *stem = istem.getSymbol(getScope());
+		alloc = rsym->getLLVMValue(stem);
+		
+		if (stem->hasQualifier(qvolatile))
+			rsym->setQualifier(qvolatile);
+		
+		// TODO: When accessing a.x.func(), need to load a and gep x
+		//Load loadstem(ident.getStem());
+		//loadstem.setParent(this->parent);
+		//stem = loadstem.generate(func, block, allocblock);
+	} else {
+		alloc = rsym->getLLVMValue(func);
+	}
+
+	Node *indn = getElementIndex(rsym);
 	Value *indice = indn->generate(func, block, allocblock);
-	if (!indice->getType()->isIntegerTy()){
-		yyerrorcpp("Index to update " + ident + " elements should be of type integer.", this);
+	if (!indice || !indice->getType()->isIntegerTy()){
+		yyerrorcpp("Index to access " + ident.getFullName() + " elements must be of type integer.", this);
 		return NULL;
 	}
 
 	Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 	Value* indexList[2] = {zero, indice};
-	GetElementPtrInst* ptr = GetElementPtrInst::Create(arrayTy, sym, ArrayRef<Value*>(indexList), "", block);
-	LoadInst *ret = new LoadInst(ptr->getResultElementType(), ptr, ident, false, block);
+	GetElementPtrInst* ptr = GetElementPtrInst::Create(rsym->getLLVMType(), alloc, ArrayRef<Value*>(indexList), "", block);
+	LoadInst *ret = new LoadInst(ptr->getResultElementType(), ptr, ident.getFullName(), false, block);
 	return ret;
 }
 

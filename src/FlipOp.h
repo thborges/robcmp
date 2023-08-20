@@ -7,18 +7,17 @@
 class FlipOp: public Node {
 private:
 	Node *value;
+
 public:
 	FlipOp(Node *value);
 
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
-	virtual void accept(Visitor &v) override;
-
-	virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override {
-		return value->getLLVMResultType(block, allocblock);
+	virtual DataType getDataType() override {
+		return value->getDataType();
 	}
 
-	virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override;
+	virtual bool isConstExpr() override;
 };
 
 #endif

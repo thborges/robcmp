@@ -1,21 +1,19 @@
-#ifndef __LOAD_H__
-#define __LOAD_H__
+#pragma once
+
 #include "Node.h"
+#include "Identifier.h"
 
 class Load: public Node {
 private:
-	string ident;
+	Identifier ident;
 public:
-	Load(const char *i): ident(i) {}
+	Load(const char* i): ident(i) {	}
+	Load(Identifier i): ident(i) { }
+ 
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+	virtual DataType getDataType() override;
 
-	string getIdent() const { return ident; };
+	virtual bool isConstExpr() override;
 
-	virtual void accept(Visitor& v) override;
-
-	virtual Type* getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override;
-
-	bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override;
 };
-#endif

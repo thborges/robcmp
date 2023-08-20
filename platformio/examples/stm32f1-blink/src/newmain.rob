@@ -1,0 +1,106 @@
+
+/*
+ * Sample Blink Led on port 13 for STM32F1
+ */
+
+// CLOCK GATES FOR IO
+const RCC_BASE = 0x40021000;
+register int32 APB2EN at (RCC_BASE + 0x18) {
+	bool afio;
+	bool _res1;
+	bool iopa;
+	bool iopb;
+	bool iopc;
+	bool iopd;
+	bool iope;
+	bool iopf;
+	bool iopg;
+	bool adc1;
+	bool adc2;
+	bool tim1;
+	bool spi1;
+	bool tim8;
+	bool usart1;
+	bool adc3;
+	int8 _res2: 3;
+	bool tim9;
+	bool tim10;
+	bool tim11;
+}
+
+// GPIO PORTC base address
+const GPIO_PORTC_BASE = 0x40011000;
+
+// PORTC registers
+register int32 GPIOC_CRH at (GPIO_PORTC_BASE + 0x4) {
+	int8 mode8: 2;
+	int8 cnf8: 2;
+	int8 mode9: 2;
+	int8 cnf9: 2;
+	int8 mode10: 2;
+	int8 cnf10: 2;
+	int8 mode11: 2;
+	int8 cnf11: 2;
+	int8 mode12: 2;
+	int8 cnf12: 2;
+	int8 mode13: 2;
+	int8 cnf13: 2;
+	int8 mode14: 2;
+	int8 cnf14: 2;
+	int8 mode15: 2;
+	int8 cnf15: 2;
+}
+
+register int32 GPIOC_ODR at (GPIO_PORTC_BASE + 0xC) {
+	bool odr0;
+	bool odr1;
+	bool odr2;
+	bool odr3;
+	bool odr4;
+	bool odr5;
+	bool odr6;
+	bool odr7;
+	bool odr8;
+	bool odr9;
+	bool odr10;
+	bool odr11;
+	bool odr12;
+	bool odr13;
+	bool odr14;
+	bool odr15;
+}
+
+const PIN_MODE_INPUT = 0x0;
+const PIN_MODE_OUTPUT10MHz = 0x1;
+const PIN_MODE_OUTPUT2MHz = 0x2;
+const PIN_MODE_OUTPUT50MHz = 0x3;
+
+const INPUT_MODE_ANALOG = 0x0;
+const INPUT_MODE_FLOATING = 0x1;
+const INPUT_MODE_PULLUPDOWN = 0x2;
+
+const OUTPUT_MODE_PUSHPULL = 0x0;
+const OUTPUT_MODE_OPENDRAIN = 0x1;
+const OUTPUT_MODE_APUSH_PULL = 0x2;
+const OUTPUT_MODE_AOPENDRAIN = 0x3;
+
+void wait();
+
+void main() {
+
+	// Enable port C clock gate.
+    APB2EN.iopc = true;
+
+	// PORT C, PIN 13 as OUTPUT 50MHz
+	GPIOC_CRH.mode13 = PIN_MODE_OUTPUT50MHz;
+	
+	// PORT C, PIN13 as PUSHPULL
+	GPIOC_CRH.cnf13 = OUTPUT_MODE_PUSHPULL;
+
+	loop {
+		GPIOC_ODR.odr13 = false;
+		wait();
+		GPIOC_ODR.odr13 = true;
+		wait();
+	}
+}

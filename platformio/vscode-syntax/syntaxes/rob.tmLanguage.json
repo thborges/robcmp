@@ -42,25 +42,38 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.rob",
-				"match": "\\b(while|loop|if|delay|print|return|register|at|volatile|const)\\b"
+				"match": "\\b(while|loop|if|else|delay|print|return|register|at|volatile|const|type|interface|implements|use|and|or|copy)\\b"
 			}]
 		},
 		"types": {
 			"patterns": [{
 				"name": "storage.type.rob",
-				"match": "\\b(void|char|int8|int16|int32|int64|long|unsigned|float|double|bool)\\b"
+				"match": "\\b(void|char|int8|int16|int32|int64|long|unsigned|float|double|bool|enum)\\b"
+			},
+			{
+				"match": "(\\w+)\\s+(\\w+)[\\(\\),]",
+				"captures": {
+					"1": { "name": "storage.type.rob" },
+					"2": { "name": "variable.name.rob" }
+				}
 			}]
 		},
 		"numeric-consts": {
 			"patterns": [{
 				"name": "constant.numeric.rob",
 				"match": "\\b(\\d+\\.\\d+L?D?|\\d+|0x[0-9a-fA-F]+|0b[0-1]+)\\b"
+			},{
+				"name": "constant.numeric.rob",
+				"match": "'\\\\?.'"
+			},{
+				"name": "constant.numeric.rob",
+				"match": "\\b(true|false)\\b"
 			}]
 		},
 		"functions": {
 			"patterns": [{
 				"name": "support.function.rob",
-				"match": "\\b([a-zA-Z_][a-zA-Z0-9_]*(?=\\())\\b"
+				"match": "\\b(\\w+(?=\\s*\\())\\b"
 			}]
 		},
 		"ident": {

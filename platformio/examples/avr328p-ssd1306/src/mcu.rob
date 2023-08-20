@@ -1,0 +1,6 @@
+
+interface mcu {
+    void wait(int32 us);
+    void enable_led();
+	void set_led(bool s);
+}

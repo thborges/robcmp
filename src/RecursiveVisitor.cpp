@@ -1,7 +1,7 @@
 
-#include "Header.h"
+#include "RecursiveVisitor.h"
 
-void RecursiveVisitor::visit(Node const& n) {
+void RecursiveVisitor::visit(Node& n) {
 	if (before(n)) { return; }
 
 	for (auto &c : n.children()) {

@@ -1,31 +1,112 @@
-#ifndef NODE_H
-#define NODE_H
+
+#pragma once
+
+#include "SourceLocation.h"
+#include "BuildTypes.h"
 
 class Visitor;
+class NamedNode;
+class UserType;
+class FunctionImpl;
+class Variable;
 
 class Node : public SourceLocation {
 protected:
-	std::vector<Node *> node_children;
+	map<string, NamedNode*> symbols;
+	vector<Node*> node_children;
+	DataType dt = BuildTypes::undefinedType;
+	set<DataQualifier> qualifiers;
+	Node *scope = nullptr;
+
 public:
+	Node() {}
+	Node(vector<Node*> &&children);
+
 	virtual ~Node();
 
-	virtual bool isFunctionDecl();
-
-	virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) {
+	virtual bool isConstExpr() {
 		return false;
 	}
 	
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) = 0;
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
+	
+	virtual Value *generateChildren(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
 
 	virtual std::vector<Node *> const& children() const;
+	
 	virtual void accept(Visitor &);
 
-	virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) {
-		/* this method should be overrided in descending classes 
-		 * that define vars/consts
-		 */
+	virtual bool hasName() {
+		return false;
+	}
+
+	virtual const string getName() const {
+		return "";
+	}
+
+	Node *getScope() {
+		return scope;
+	}
+
+	virtual void setScope(Node *s);
+
+	virtual Node* findSymbol(const string& name, bool recursive = true);
+	
+	virtual Node* findMember(const string& name);
+
+	void addChild(Node *n);
+
+	map<string, NamedNode*> const& getSymbols();
+
+	virtual void addSymbol(NamedNode *nm);
+
+	void setDataType(DataType dt) {
+		this->dt = dt;
+	}
+
+	virtual DataType getDataType() {
+		return dt;
+	}
+
+	virtual Type *getLLVMType();
+
+	void setQualifier(DataQualifier dq) {
+		qualifiers.insert(dq);
+	}
+
+	bool hasQualifier(DataQualifier dq) const {
+		return qualifiers.count(dq) == 1;
+	}
+
+	virtual Value* getLLVMValue(Node *stem) {
 		return NULL;
 	}
+
+	virtual void setLeftValue(Variable *symbol) {}
+
+	friend class UserType;
+	friend class Program;
 };
 
-#endif
+class NamedNode: public Node {
+protected:
+	string name;
+
+public:
+	NamedNode(const string &name) : name(name) {}
+
+	NamedNode(const string &name, vector<Node*> &&children) :
+		Node(std::move(children)), name(name) {}
+
+	virtual const string getName() const override {
+		return name;
+	}
+
+	void setName(const string& nname) {
+		name = nname;
+	}
+
+	bool hasName() override {
+		return true;
+	}
+};

@@ -1,0 +1,34 @@
+{
+  "build": {
+    "f_cpu": "16000000L",
+    "mcu": "atmega328p",
+    "variant": "standard"
+  },
+  "debug": {
+    "target_mcu": "atmega328p",
+    "tools": {
+      "robcmp": {
+        "init_cmds": [
+          "target remote $DEBUG_PORT",
+          "$INIT_BREAK",
+          "$LOAD_CMDS"
+        ],
+        "port": ":1234",
+        "server": {
+          "package": "toolchain-robcmp",
+          "executable": "bin/robcmp-simavr-debug"
+        }
+      }
+    }
+  },
+  "name": "ATmega328P/PA",
+  "upload": {
+    "maximum_ram_size": 2048,
+    "maximum_size": 32768,
+    "protocol": "arduino",
+    "require_upload_port": true,
+    "speed": 115200
+  },
+  "url": "https://www.microchip.com/wwwproducts/en/ATmega328P",
+  "vendor": "Microchip"
+}

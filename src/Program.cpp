@@ -1,9 +1,25 @@
-#include "Header.h"
+#include "Program.h"
+#include "SymbolizeTree.h"
+#include "BackLLVM.h"
 
-Program::Program(Stmts *stmts) {
-	this->stmts = stmts;
-	node_children.reserve(1);
-	node_children.push_back(stmts);
+Program::Program() {
+	mainmodule = new Module(this->getFile(), global_context);
+	Builder = make_unique<IRBuilder<>>(global_context);
+
+	if (debug_info) {
+		mainmodule->addModuleFlag(Module::Warning, "Debug Info Version", DEBUG_METADATA_VERSION);
+		mainmodule->addModuleFlag(Module::Warning, "Dwarf Version", 4);
+		DBuilder = make_unique<DIBuilder>(*mainmodule);
+		RobDbgInfo.cunit = DBuilder->createCompileUnit(dwarf::DW_LANG_C,
+			DBuilder->createFile(this->getFile(), std::filesystem::current_path().string()),
+			"Robcmp", false, "", 0);
+
+		// global scope
+		RobDbgInfo.push_scope(RobDbgInfo.cunit->getFile(), RobDbgInfo.cunit);
+	}
+	
+	buildTypes = make_unique<BuildTypes>(currentTarget().pointerType);
+	global_alloc = BasicBlock::Create(global_context, "global");
 }
 
 void Program::declara_auxiliary_c_funcs() {
@@ -91,31 +107,25 @@ void Program::declara_auxiliary_c_funcs() {
 	i16div->setCallingConv(CallingConv::C);*/
 }
 
-Value *Program::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+Value *Program::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	return NULL;
 }
 
 void Program::generate() {
 
-	// conversion between robcmp data types to llvm data types
-	robTollvmDataType[tvoid]    = Type::getVoidTy(global_context);
-	robTollvmDataType[tbool]    = Type::getInt1Ty(global_context);
-	robTollvmDataType[tchar]    = Type::getInt8Ty(global_context);
-	robTollvmDataType[tint8]    = Type::getInt8Ty(global_context);
-	robTollvmDataType[tint16]   = Type::getInt16Ty(global_context);
-	robTollvmDataType[tint32]   = Type::getInt32Ty(global_context);
-	robTollvmDataType[tint64]   = Type::getInt64Ty(global_context);
-	robTollvmDataType[tint8u]   = Type::getInt8Ty(global_context);
-	robTollvmDataType[tint16u]  = Type::getInt16Ty(global_context);
-	robTollvmDataType[tint32u]  = Type::getInt32Ty(global_context);
-	robTollvmDataType[tint64u]  = Type::getInt64Ty(global_context);
-	robTollvmDataType[tfloat]   = Type::getFloatTy(global_context);
-	robTollvmDataType[tdouble]  = Type::getDoubleTy(global_context);
-	robTollvmDataType[tldouble] = Type::getFP128Ty(global_context);
+	// instrumentation passes
+	SymbolizeTree st;
+	st.visit(*this);
 
-	mainmodule = new Module(build_filename, global_context);
-	global_alloc = BasicBlock::Create(global_context, "global");
+	/*std::fstream fs;
+	fs.open("ast", std::fstream::out);
+	PrintAstVisitor(fs).visit(p);
+	fs.close();*/
 
 	// generate the program!
-	stmts->generate(NULL, NULL, global_alloc);
+	for(auto n: children())
+		n->generate(NULL, NULL, global_alloc);
+
+	if (debug_info)
+		DBuilder->finalize();
 }

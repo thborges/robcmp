@@ -1,28 +1,95 @@
-#ifndef __FUNCTIONDECL_H__
-#define __FUNCTIONDECL_H__
+#pragma once
 
 #include "Node.h"
+#include "FunctionParams.h"
+#include "Variable.h"
 
-class FunctionDecl: public Node {
-private:
-	Node *stmts;
-	LanguageDataType tipo;
-	string name;
+class FunctionBase: public NamedNode {
+protected:
 	FunctionParams *parameters;
+	Function *func = NULL;
+	bool declaration = true;
+	bool constructor = false;
+	bool external = false;
+	DataType thisArgDt = BuildTypes::undefinedType;
+	string userTypeName;
+
+	bool validateAndGetArgsTypes(std::vector<Type*> &args);
+
 public:
-	FunctionDecl(LanguageDataType tipo, string name, FunctionParams *fp, Node *stmts){
-		this->tipo = tipo;
-		this->stmts = stmts;
-		this->name = name;
+	FunctionBase(DataType dt, string name, FunctionParams *fp) : NamedNode(name) {
+		this->dt = dt;
 		this->parameters = fp;
 	}
-	
-	bool isFunctionDecl() {
-		return true;
+
+	FunctionBase(DataType dt, string name, FunctionParams *fp, vector<Node*> &&stmts,
+		bool constructor = false) :
+		NamedNode(name, std::move(stmts)) {
+		this->dt = dt;
+		this->parameters = fp;
+		this->constructor = constructor;
 	}
 
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock);
+	FunctionParams& getParameters() {
+		return *parameters;
+	}
 
+	virtual Value *getLLVMValue(Node *) override {
+		return func;
+	}
+
+	virtual Function *getLLVMFunction() {
+		return func;
+	}
+
+	unsigned getNumCodedParams() const {
+		return parameters->getNumCodedParams();
+	}
+
+	bool isDeclaration() {
+		return declaration;
+	}
+
+	bool isConstructor() {
+		return constructor;
+	}
+
+	void setExternal(bool e) {
+		external = e;
+	}
+
+	bool isExternal() {
+		return external;
+	}
+
+	void addThisArgument(DataType dt);
+	
+	DataType getThisArgDt() const {
+		return thisArgDt;
+	}
+
+	void setUserTypeName(const string& ut) {
+		userTypeName = ut;
+	}
+
+	string getFinalName() {
+		if (userTypeName == "")
+			return name;
+		else
+			return userTypeName + "#" + name;
+	}
+
+	virtual bool needsParent() {
+		return false;
+	}
 };
 
-#endif
+class FunctionDecl: public FunctionBase {
+public:
+	FunctionDecl(DataType dt, string name, FunctionParams *fp) : 
+		FunctionBase(dt, name, fp) {
+		declaration = true;
+	}
+
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
+};

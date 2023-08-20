@@ -1,0 +1,38 @@
+
+interface intf {
+	void print(int8 v);
+}
+
+type sub_t {
+	y = 18;
+}
+
+type main_t {
+	a = 0;
+	ss = sub_t();
+
+	void setSubt(sub_t v) {
+		ss = copy(v);
+	}
+
+	ii = intf {
+		void print(int8 v) {
+			return;
+		}
+	}
+}
+
+int16 main() {
+	a = main_t();
+	ss = a.ss;
+
+	x = sub_t();
+	x.y = 17;
+	a.setSubt(x);
+
+	if (ss.y == 18) {
+		return 0;
+	}
+	return 1;
+}
+	

@@ -1,23 +1,27 @@
 %{
-
-#include "Header.h"
-#include "bison.hpp"
+#include <FlexDependencies.h>
+#include "Language_gen_y.hpp"
 
 extern void unescape(char *s);
+void update_loc(location_t *yylloc, int lineno, int leng, char *text);
 
-extern int yycolno;
-extern int yycolnew;
-#define YY_USER_ACTION yycolno = yycolnew; yycolnew += yyleng;
-
+#define YY_USER_ACTION update_loc(yylloc, yylineno, yyleng, yytext);
 %}
 
+%option noinput nounput noyywrap
 %option yylineno
+%option reentrant bison-locations
+%option prefix="MAIN"
+
 %x COMMENT
+
+A [a-zA-Z_]
+D [0-9]
+ID {A}({A}|{D})*
 
 %%
 
-[ \t\r]					{ /* ignore spaces */ }
-[\n]					{ yycolnew = 0; yycolno = 0; }
+[ \t\r\n]				{ /* ignore spaces */ }
 "/*"					{ yymore(); BEGIN COMMENT; }
 <COMMENT>[^*]			{ yymore(); }
 <COMMENT>"*"/[^/]		{ yymore(); }
@@ -29,21 +33,17 @@ extern int yycolnew;
 "register"				{ return TOK_REGISTER; }
 "volatile"				{ return TOK_VOLATILE; }
 "const"					{ return TOK_CONST; }
-"void"					{ return TOK_VOID; }
-"bool"					{ return TOK_FBOOL; }
-"char"					{ return TOK_FCHAR; }
-"int8"					{ return TOK_FINT8; }
-"int16"					{ return TOK_FINT16; }
-"int32"					{ return TOK_FINT32; }
-"int64"					{ return TOK_FINT64; }
-"float"					{ return TOK_FFLOAT; }
-"double"				{ return TOK_FDOUBLE; }
-"long"					{ return TOK_FLONG; }
-"unsigned"				{ return TOK_FUNSIGNED; }
 "return"				{ return TOK_RETURN; }
 "true"					{ return TOK_TRUE; }
 "false"					{ return TOK_FALSE; }
 "at"					{ return TOK_AT; }
+"asm"					{ return TOK_ASM; }
+"type"					{ return TOK_TYPE; }
+"interface"				{ return TOK_INTF; }
+"implements"			{ return TOK_IMPL; }
+"use"					{ return TOK_USE; }
+
+"enum"					{ return TOK_ENUM; }
 
 "if"					{ return TOK_IF; }
 "else"					{ return TOK_ELSE; }
@@ -51,24 +51,8 @@ extern int yycolnew;
 "while"					{ return TOK_WHILE; }
 "loop"					{ return TOK_LOOP; }
 
-"in"[0-9]+				{ yylval.port = strndup(yytext+2, yyleng-2);
-						  return TOK_IN;
-						}
-
-"out"[0-9]+				{ yylval.port = strndup(yytext+3, yyleng-3);
-						  return TOK_OUT;
-						}
-
-"stepper"[0-2]+			{ yylval.nint = atoi(strndup(yytext+7, yyleng-7));
-						  return TOK_STEPPER;
-						}
-
-"servo"					{ return TOK_SERVO; }
-
 "quando"                { return TOK_QUANDO; }
 "esta"                  { return TOK_ESTA; }
-
-"delay"					{ return TOK_DELAY; }
 
 "and"					{ return TOK_AND; }
 "or"					{ return TOK_OR; }
@@ -101,49 +85,81 @@ extern int yycolnew;
 ">>"					{ return TOK_RSHIFT; }
 
 ":"						{ return ':'; }
+"."						{ return '.'; }
 ","						{ return ','; }
 ";"						{ return ';'; }
 
-[a-zA-Z_][a-zA-Z0-9_]*	{ yylval.ident = strndup(yytext, yyleng); 
+{ID}					{ yylval->ident = strndup(yytext, yyleng); 
 						  return TOK_IDENTIFIER; }
 
+{ID}(\.{ID})+			{ yylval->ident = strndup(yytext, yyleng);
+						  return TOK_XIDENTIFIER;
+						}
+
 [0-9]+\.[0-9]+			{ char *aux = strndup(yytext, yyleng);
-						  yylval.nfloat = strtof(aux, NULL);
+						  yylval->nfloat = strtof(aux, NULL);
 						  free(aux);
 						  return TOK_FLOAT; }
 
 [0-9]+\.[0-9]+D			{ char *aux = strndup(yytext, yyleng);
-						  yylval.ndouble = strtod(aux, NULL);
+						  yylval->ndouble = strtod(aux, NULL);
 						  free(aux);
 						  return TOK_DOUBLE; }
 
 [0-9]+\.[0-9]+LD		{ char *aux = strndup(yytext, yyleng);
-						  yylval.nldouble = strtold(aux, NULL);
+						  yylval->nldouble = strtold(aux, NULL);
 						  free(aux);
 						  return TOK_LDOUBLE; }
 
 "0x"[0-9a-fA-F]+		{ char *aux = strndup(yytext, yyleng);
-						  yylval.nint = strtoll(aux, NULL, 16);
+						  yylval->nint = strtoll(aux, NULL, 16);
 						  free(aux);
 						  return TOK_INTEGER; }
 
 "0b"[0-1]+				{ char *aux = strndup(yytext+2, yyleng-2);
-						  yylval.nint = strtoll(aux, NULL, 2);
+						  yylval->nint = strtoll(aux, NULL, 2);
 						  free(aux);
 						  return TOK_INTEGER; }
 
 [0-9]+					{ char *aux = strndup(yytext, yyleng);
-						  yylval.nint = strtoll(aux, NULL, 10);
+						  yylval->nint = strtoll(aux, NULL, 10);
 						  free(aux);
 						  return TOK_INTEGER; }
 
-\"([^\\\"]|\\.)*\"		{ yylval.str = strndup(yytext+1, yyleng-2);
-						  unescape(yylval.str);
+\"([^\\\"]|\\.)*\"		{ yylval->str = strndup(yytext+1, yyleng-2);
+						  unescape(yylval->str);
 						  return TOK_STRING; }
 
+'\\?.'					{ char *aux = strndup(yytext+1, yyleng-2);
+						  unescape(aux);
+						  yylval->nint = aux[0];
+						  free(aux);
+						  return TOK_INTEGER; }
+
  /* deixar por último. Caractere não reconhecido pelo alfabeto. */
-.						{ yyerror("lexical error, caractere nao pertence ao alfabeto da linguagem:"); }
+.						{ yyerror(yylloc, NULL, COLOR_RED "lexical error:" COLOR_RED " caractere nao pertence ao alfabeto da linguagem:"); }
 
 %%
 
+void update_loc(location_t *loc, int lineno, int leng, char *text) {
+	loc->first_line = loc->last_line;
+	loc->first_column = loc->last_column;
+	if (loc->last_line == lineno)
+		loc->last_column += leng;
+	else {
+		loc->last_line = lineno;
+		loc->last_column = text + leng - strrchr(text, '\n');
+	}
+}
+
+#ifdef __MINGW64__
+char *strndup(const char *s, size_t n) {
+	size_t len = strnlen(s, n);
+	char *newstr = (char*)malloc(len+1);
+	if (!newstr)
+		return NULL;
+	newstr[len] = '\0';
+	return (char*)memcpy(newstr, s, len);
+}
+#endif
 

@@ -1,35 +1,48 @@
 
 #include "Pointer.h"
+#include "BackLLVM.h"
+#include "UserType.h"
 
-Value *Pointer::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
+Pointer::Pointer(const char *name, DataType type, Node *address): 
+    Variable(name), address(address) {
+    dt = type;
+    addChild(address);
+}
+
+Value *Pointer::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock)
 {
-	auto sym = search_symbol(name);
-	if (sym != NULL) {
+	auto sym = findSymbol(name, true);
+	if (sym != NULL && sym != this) {
 		yyerrorcpp("Register/pointer " + name + " already defined.", this);
 		yyerrorcpp(name + " was first defined here.", sym);
 		return NULL;
 	}
 
     // generate code to produce the address
-    Value *addri = address->generate(func, block, allocblock);
-    if (addri == NULL) {
+    Value *addr = address->generate(func, block, allocblock);
+    if (addr == NULL) {
         yyerrorcpp("Unable to compute the address for '" + name + "' register.", this);
         return NULL;
     }
 
-    Value *addrp = NULL;
-    if (Constant *addrc = dyn_cast<Constant>(addri))
-        addrp = ConstantExpr::getIntToPtr(addrc, Type::getInt64PtrTy(global_context)); // FIXME: What is the method to get an opaque pointer type?
-    else
-        addrp = new IntToPtrInst(addri, Type::getInt64PtrTy(global_context), name, allocblock);
-        
-    Type *ty = robTollvmDataType[type];
-    DataQualifier vol = isVolatile ? qvolatile : qnone;
-    tabelasym[allocblock][name] = new RobSymbol(addrp, vol, ty);
-    return addrp;
+    Type *targetPointerType = buildTypes->llvmType(dt)->getPointerTo();
+    
+    if (allocblock == global_alloc) {
+        Constant *addr_num = dyn_cast<Constant>(addr);
+        assert(addr_num && "FIXME: global pointer defined without constant address.");
+        alloc = ConstantExpr::getIntToPtr(addr_num, targetPointerType);
+        return alloc;
+    } else {
+        RobDbgInfo.emitLocation(this);
+        Builder->SetInsertPoint(block);
+        alloc = Builder->CreateIntToPtr(addr, targetPointerType, name);
+        return alloc;
+    }
 }
 
-void Pointer::accept(Visitor &v) {
-	v.visit(*this); 
+unsigned Pointer::getFieldStartBit(Node *field) {
+    Node *dtsymbol = findSymbol(buildTypes->name(getDataType()));
+    UserType *ut = dynamic_cast<UserType*>(dtsymbol);
+    assert(ut && "Can't get field start bit from a non-complex type.");
+    return ut->getFieldStartBit(field);
 }
-

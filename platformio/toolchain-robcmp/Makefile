@@ -8,9 +8,9 @@ ifeq ($(LLVM_LD),)
 	LLVM_LD=$(shell which ld.lld)
 endif
 
-AVR_LD=$(shell which avr-ld)
-ifeq ($(AVR_LD),)
-    $(error "Can't find avr-ld!")
+LLVM_SIZE=$(shell which llvm-size-16)
+ifeq ($(LLVM_SIZE),)
+	LLVM_SIZE=$(shell which llvm-size)
 endif
 
 ifeq ($(LLVM_LD),)
@@ -21,7 +21,28 @@ ifeq ($(LLVM_OBJCOPY),)
     $(error "Can't find llvm-objcopy!")
 endif
 
-TOOLS=$(LLVM_OBJCOPY) $(LLVM_LD) $(AVR_LD) ../../robcmp
+ifeq ($(LLVM_SIZE),)
+    $(error "Can't find llvm-size!")
+endif
+
+AVR_GDB=$(shell which avr-gdb)
+ifeq ($(AVR_GDB),)
+    $(error "Can't find avr-gdb!")
+endif
+
+AVR_OBJDUMP=$(shell which avr-objdump)
+ifeq ($(AVR_OBJDUMP),)
+    $(error "Can't find avr-objdump!")
+endif
+
+
+TOOLS=$(LLVM_OBJCOPY) \
+	$(LLVM_LD) \
+	$(LLVM_SIZE) \
+	$(AVR_GDB) \
+	$(AVR_OBJDUMP) \
+	../../build/robcmp \
+	../../build/robcmp-simavr-debug
 
 ifeq ($(OS),Windows_NT)
     uname_S := Windows
@@ -32,12 +53,15 @@ endif
 ifeq ($(uname_S), Darwin)
 	suffix=darwin_x86_64
 	SED=gsed
+	LIBS=$(shell ./libllvmpathosx.sh ${LLVM_LD})
 endif
 ifeq ($(uname_S), Linux)
 	suffix=linux_x86_64
 	SED=sed
-	LIBS=$(shell ./libllvmpath ${LLVM_LD})
+	LIBS=$(shell ./libllvmpath.sh ${LLVM_LD})
 endif
+
+LIBS += ../../lib/*.ld ../../lib/*.o ../../lib/*.rob
 
 version=$(shell cat version)
 

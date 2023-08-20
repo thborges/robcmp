@@ -1,0 +1,91 @@
+
+void main();
+void __init();
+void __bad_irq();
+
+void __vectors() {
+	/* atmega328p has 26 interruptions */
+	asm "jmp __init";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+	asm "jmp __bad_irq";
+}
+
+void __bad_irq() {
+	__vectors();
+}
+
+register int8 SREG at 0x3f;
+register int16 STACK at 0x3d;
+
+void __init() {
+	SREG = 0;
+	STACK = 0x0AFF;
+	main();
+	loop { asm "nop"; }
+}
+
+register int8 ddrb at 0x24 {
+ 	bool pin8;
+	bool pin9;
+	bool pin10;
+	bool pin11;
+	bool pin12;
+	bool pin13;
+}
+
+register int8 portb at 0x25 {
+	bool pin8;
+	bool pin9;
+	bool pin10;
+	bool pin11;
+	bool pin12;
+	bool pin13;
+}
+
+void wait(int32 qtd) {
+	volatile q = qtd;
+	while(q > 0) {
+		q--;
+	}
+}
+
+void main() {
+	ddrb.pin13 = true; //output
+	i = 10;
+	loop {
+		// blink
+		portb.pin13 = false;
+		wait(i*100000);
+		portb.pin13 = true;
+		wait(i*100000);
+		
+		i--;
+		if (i == 0) {
+			i = 10;
+		}
+	}
+}
+

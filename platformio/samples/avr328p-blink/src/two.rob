@@ -1,7 +1,0 @@
-
-void wait() {
-	volatile i = 50000;
-	while (i > 0) {
-		i--;
-	}
-}

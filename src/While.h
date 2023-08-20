@@ -1,5 +1,5 @@
-#ifndef __WHILE_H__
-#define __WHILE_H__
+
+#pragma once
 
 #include "Node.h"
 
@@ -7,10 +7,10 @@ class While: public Node {
 private:
 	Node *expr;
 	Node *stmts;
+	
 public:
-	While(Node *e, Node *stms);
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
-	virtual void accept(Visitor& v) override;
-};
+	While(Node *e);
+	While(Node *e, vector<Node*> &&stmts);
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
-#endif
+};

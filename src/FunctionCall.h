@@ -1,19 +1,34 @@
-#ifndef __FUNCTIONCALL_H__
-#define __FUNCTIONCALL_H__
+
+#pragma once
+
 #include "Node.h"
+#include "ParamsCall.h"
+#include "Identifier.h"
+#include "Variable.h"
 
 class FunctionCall: public Node {
 private:
-	string name;
+	Identifier ident;
 	ParamsCall *parameters;
+	Node *symbol = NULL;
+	Variable *leftValue = NULL;
+
 public:
-	FunctionCall(string name, ParamsCall *pc) {
-		this->name = name;
-		this->parameters = pc;
+	FunctionCall(const string& name, ParamsCall *pc): ident(name) {
+		parameters = pc;
 	}
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
+	void loadFunctionStem(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
 
-	Type* getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override;
+	virtual DataType getDataType() override;
+
+	virtual void setLeftValue(Variable *symbol) override {
+		leftValue = symbol;
+	}
+
+	std::vector<Node *> const& getParameters() {
+		return parameters->getParameters();
+	}
+
+	void accept(Visitor& v) override;
 };
-
-#endif

@@ -1,15 +1,36 @@
-#include "Header.h"
+#include "Array.h"
+#include "ArrayElements.h"
+#include "Coercion.h"
+#include "BackLLVM.h"
+#include "Visitor.h"
+#include "Int16.h"
+#include "FunctionImpl.h"
 
-Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
+Array::Array(const char *n, ArrayElements *aes) : LinearDataStructure(n), elements(aes) {
+	NamedConst *nc = new NamedConst("size", getNodeForIntConst(aes->getArraySize()));
+	addChild(nc);
+	dt = tarray;
+}
+
+void Array::createDataType() {
+	if (arrayType != NULL)
+		return;
+
 	//Create an Array of Type Int8, and Size = size.
 	size = elements->getArraySize();
 	Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size);
 	
 	//Get Type of elements in Array of Elements, and define as I.
-	Type* I = elements->getArrayType(block, allocblock);
+	element_dt = elements->getArrayType();
+	Type* I = buildTypes->llvmType(element_dt);
 
 	//Declare array type.
-	ArrayType* arrayType = ArrayType::get(I, size);
+	arrayType = ArrayType::get(I, size);
+}
+
+Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
+	
+	createDataType();
 	
 	//Generate array elements
 	unsigned int struct_size = elements->getStructSize();
@@ -18,15 +39,16 @@ Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 	vector<Value*> elementValues;
 	elementValues.reserve(elements->getArraySize());
 	for (int i=0; i<struct_size; i++) {
+		Node* elValue = elements->getStructElement(i);
+		Value *val = elValue->generate(func, block, allocblock);
+		if (!val)
+			return NULL;
+		val = Coercion::Convert(val, arrayType->getElementType(), block, elValue);
+		if (!dyn_cast<Constant>(val))
+			allConst = false;
+
 		unsigned elCount = elements->getElementCount(i);
-		for (int j=0; j<elCount; j++) {
-			Node* elValue = elements->getStructElement(i);
-			Value *val = elValue->generate(func, block, allocblock);
-			if (!val)
-				return NULL;
-			val = Coercion::Convert(val, I, block, elValue);
-			if (!dyn_cast<Constant>(val))
-				allConst = false;
+		for (int j=0; j < elCount; j++) {
 			elementValues.push_back(val);
 		}
 	}
@@ -37,8 +59,10 @@ Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 		return NULL;
 	}
 
+	auto sp = RobDbgInfo.currScope();
+	auto funit = RobDbgInfo.currFile();
+
 	//Allocate array.
-	Value* var;
 	if (allocblock == global_alloc) { // when alloc is global
 		vector<Constant*> constantValues;
 		constantValues.reserve(elementValues.size());
@@ -46,23 +70,50 @@ Value *Array::generate(Function *func, BasicBlock *block, BasicBlock *allocblock
 			constantValues.push_back(dyn_cast<Constant>(a));
 		ArrayRef<Constant*> constantRefs(constantValues);
 		GlobalVariable *gv = new GlobalVariable(*mainmodule, arrayType, 
-			false, GlobalValue::ExternalLinkage, ConstantArray::get(arrayType, constantRefs), name);
-		var = gv;
+			false, GlobalValue::InternalLinkage, 
+			ConstantArray::get(arrayType, constantRefs), name);
+		gv->setDSOLocal(true);
+		gv->setAlignment(Align(2));
+		alloc = gv;
+
+		if (debug_info) {
+			auto di_ptr = DBuilder->createPointerType(buildTypes->diType(getElementDt()), 
+				buildTypes->bitWidth(currentTarget().pointerType));
+			auto *d = DBuilder->createGlobalVariableExpression(sp, name, "",
+				funit, this->getLineNo(), di_ptr, false);
+			gv->addDebugInfo(d);
+		}
+
 	} else {
-		var = new AllocaInst(arrayType, 0, name, allocblock);
+		Builder->SetInsertPoint(allocblock);
+
+		if (getGEPIndex() != -1)
+			alloc = getLLVMValue(func);
+		else
+			alloc = Builder->CreateAlloca(arrayType, dataAddrSpace, 0, name);
+
+		RobDbgInfo.emitLocation(this);
+		Builder->SetInsertPoint(block);
 
 		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 		StoreInst *store = NULL;
 		for(unsigned index = 0; index < elementValues.size(); index++) {
 			Value *idx = ConstantInt::get(Type::getInt32Ty(global_context), index);
 			Value* indexList[2] = {zero, idx};
-			GetElementPtrInst* gep = GetElementPtrInst::Create(arrayType, var, 
-				ArrayRef<Value*>(indexList), "", block);
-			store = new StoreInst(elementValues[index], gep, false, block);
+			Value* gep = Builder->CreateGEP(arrayType, alloc, 
+				ArrayRef<Value*>(indexList), "elem");
+			store = Builder->CreateStore(elementValues[index], gep, false);
 		}
 	}
 
-	//Add array to table of symbols.
-	tabelasym[allocblock][name] = new RobSymbol(var);
-	return var;
+	return alloc;
+}
+
+void Array::accept(Visitor& v) {
+	v.visit(*this);
+}
+
+Type* Array::getLLVMType() {
+	createDataType();
+	return arrayType;
 }

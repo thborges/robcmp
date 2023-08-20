@@ -43,9 +43,11 @@
 
 # Generated
 robcmp
-bison.hpp
 run_test/out/*
-src/Language_y.output
+src/*_y.output
+src/*_gen_*.*
+src/*_gen.y
+src/*_l.cpp
 .vscode/**
 *.tar.gz
 *.bin
@@ -58,3 +60,5 @@ llvm-objcopy
 llvm-ranlib
 avr-ld
 .vscode
+refdatasheets
+build

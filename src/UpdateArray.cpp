@@ -1,13 +1,21 @@
-#include "Header.h"
 
-Value *UpdateArray::generate(Function *func, BasicBlock *block, BasicBlock *allocblock) {
-		auto rsym = search_symbol(ident, allocblock, block);
-		/* TODO */
+#include "UpdateArray.h"
+#include "Coercion.h"
+#include "Array.h"
+#include "FunctionImpl.h"
+
+UpdateArray::UpdateArray(const char *i, Node *pos, Node *expr): ident(i), position(pos), expr(expr) {
+	addChild(pos);
+	addChild(expr);
+}
+
+Value *UpdateArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
+		Node *rsym = ident.getSymbol(getScope());
 		if (rsym == NULL) {
-			yyerrorcpp("Variable " + ident + " not defined.", this);
 			return NULL;
 		}
-		auto sym = rsym->value;
+		LinearDataStructure *arr = dynamic_cast<LinearDataStructure*>(rsym);
+		Value *sym = rsym->getLLVMValue(func);
 
 		// sym type can be GlobalVariable or AllocInst
 		Type *ty = NULL;
@@ -21,14 +29,14 @@ Value *UpdateArray::generate(Function *func, BasicBlock *block, BasicBlock *allo
 			arrayTy = (ArrayType*)ty;
 		}
 		else {
-			yyerrorcpp("Symbol " + ident + " is not an array.", this);
+			yyerrorcpp("Symbol " + ident.getFullName() + " is not an array.", this);
 			return NULL;
 		}
 
-		Node *indn = getUpdateIndex(rsym, block, allocblock);
+		Node *indn = getElementIndex(arr);
 		Value *indice = indn->generate(func, block, allocblock);
-		if (!indice->getType()->isIntegerTy()){
-			yyerrorcpp("Index to update " + ident + " elements should be of type integer.", this);
+		if (!indice || !indice->getType()->isIntegerTy()){
+			yyerrorcpp("Index to update " + ident.getFullName() + " elements must be of type integer.", this);
 			return NULL;
 		}
 

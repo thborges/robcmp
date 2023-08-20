@@ -1,15 +1,20 @@
-#ifndef __RETURN_H__
-#define __RETURN_H__
+
+#pragma once
+
 #include "Node.h"
 
 class Return: public Node {
 private:
 	Node *node;
 public:
+	Return() {
+		node = NULL;
+	}
+
 	Return(Node *n) {
+		addChild(n);
 		this->node = n;
 	}
-	Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock); 
+	
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 };
-
-#endif

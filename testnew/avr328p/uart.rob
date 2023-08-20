@@ -1,0 +1,17 @@
+
+use serial;
+
+int16 main() {
+    mcu = avr5mcu();
+
+    serial = avr5_serial();
+    serial.start(mcu, 9600);
+
+    serial.write('A');
+    serial.write('B');
+    serial.write('C');
+    serial.write('\n');
+
+    return 0;
+}
+

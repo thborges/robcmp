@@ -7,12 +7,13 @@ private:
 	float number;
 public:
 	Float(float n): number(n) {}
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
-	virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override {
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
+	virtual bool isConstExpr() override {
 		return true;
 	}
-	virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override {
-		return Type::getFloatTy(global_context);
+	
+	virtual DataType getDataType() override {
+		return tfloat;
 	}
 };
 

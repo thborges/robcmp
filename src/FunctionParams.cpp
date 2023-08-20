@@ -1,19 +1,25 @@
-#include "Header.h"
+
+#include "FunctionParams.h"
 
 FunctionParams::FunctionParams() {};
 
-void FunctionParams::append(FunctionParam& e) {
+void FunctionParams::append(FunctionParam *e) {
 	parameters.push_back(e);
 };
 	
-unsigned FunctionParams::getNumParams() const {
-	return parameters.size();
+unsigned FunctionParams::getNumCodedParams() {
+	unsigned num = 0;
+	for(auto p : parameters) {
+		if (p->getName()[0] != '#') // don't count parameters #this and #parent
+			num++;
+	}
+	return num;
 };
 
-Type *FunctionParams::getParamType(int position) const {
-	return robTollvmDataType[parameters[position].type];
+DataType FunctionParams::getParamType(int position) {
+	return parameters[position]->getDataType();
 }
 
-const char *FunctionParams::getParamElement(int position) const {
-	return parameters[position].name;
+const string FunctionParams::getParamName(int position) {
+	return parameters[position]->getName();
 }

@@ -1,0 +1,127 @@
+
+use mcu;
+use ports;
+use databus;
+
+type ssd1306 {
+    mmcu = mcu();
+    datacmd = digitalport();
+    reset = digitalport();
+    select = digitalport();
+    spi = databus();
+
+    enum powerstate {
+        SLEEP = 0xAE,
+        ON = 0xAF
+    }
+
+    enum commands {
+        SET_DISP_START_LINE	    = 0x40,
+        SET_SEG_REMAP_0  	    = 0xA0,
+        SET_SEG_REMAP_127	    = 0xA1,
+        SET_MULTIPLEX_RATIO     = 0xA8,
+        SET_COM_SCAN_NORMAL	    = 0xC0,
+        SET_COM_SCAN_INVERTED	= 0xC8,
+        SET_VERTICAL_OFFSET     = 0xD3,
+        SET_WIRING_SCHEME       = 0xDA,
+        SET_DISP_CLOCK          = 0xD5,
+        SET_PRECHARGE_PERIOD    = 0xD9,
+        SET_VCOM_DESELECT_LEVEL = 0xDB,
+        SET_CONTRAST		    = 0x81,
+        RESUME_TO_RAM_CONTENT	= 0xA4,
+        DISPLAY_MODE_NORMAL     = 0xA6,
+        DISPLAY_MODE_INVERTED   = 0xA7,
+        MEM_ADDRESSING 		    = 0x20,
+        CHARGE_PUMP_REGULATOR 	= 0x8D,
+        CHARGE_PUMP_ON   	    = 0x14,
+        NOP                     = 0xE3
+    }
+
+    enum displayorientation {NORMAL, NORMAL_MIRRORED, UPSIDE_DOWN, UPSIDE_DOWN_MIRRORED}
+
+    void init_display() {
+        datacmd.mode(port_mode.output);
+        reset.mode(port_mode.output);
+        select.mode(port_mode.output);
+
+        reset_display();
+        write_command(powerstate.SLEEP);
+        
+        write_command(commands.SET_MULTIPLEX_RATIO);
+        write_command(0x3F);
+
+        write_command(commands.SET_VERTICAL_OFFSET);
+        write_command(0x00);
+
+        write_command(commands.SET_DISP_START_LINE);
+
+        set_display_orientation(displayorientation.NORMAL);
+
+        write_command(commands.SET_WIRING_SCHEME);
+        write_command(0x12);
+
+        set_contrast(0x7F);
+
+        write_command(commands.RESUME_TO_RAM_CONTENT);
+        
+        write_command(commands.DISPLAY_MODE_NORMAL);
+
+        // Horizontal memory addressing mode
+        write_command(commands.MEM_ADDRESSING);
+        write_command(0x00);
+        
+        write_command(commands.SET_DISP_CLOCK);
+        
+        //FIXME on RobCmp: The warning here is due to write_command
+        // receiving a signed parameter. We need to implement/fix unsignedness
+        write_command(0x80);
+        
+        write_command(commands.CHARGE_PUMP_REGULATOR);
+        write_command(commands.CHARGE_PUMP_ON);
+
+        write_command(powerstate.ON);
+    }
+
+    void set_display_orientation(displayorientation o) {
+        if (o == displayorientation.NORMAL or
+            o == displayorientation.NORMAL_MIRRORED) {
+            write_command(commands.SET_SEG_REMAP_0);
+        } else {
+            write_command(commands.SET_SEG_REMAP_127);
+        }
+
+        if (o == displayorientation.NORMAL_MIRRORED or
+            o == displayorientation.UPSIDE_DOWN) {
+            write_command(commands.SET_COM_SCAN_INVERTED);
+        } else {
+            write_command(commands.SET_COM_SCAN_NORMAL);
+        }
+    }
+
+    void set_contrast(int8 c) {
+        write_command(commands.SET_CONTRAST);
+        write_command(c);      
+    }
+
+    void reset_display() {
+        reset.set(true);
+        mcu.wait(3);
+        reset.set(false);
+        mcu.wait(3);
+        reset.set(true);
+    }
+
+    void write_command(int8 c) {
+        datacmd.set(false);
+        select.set(false);
+        spi.write(c);
+        select.set(true);
+    }
+
+    void write_data(int8 d) {
+        datacmd.set(true);
+        select.set(false);
+        spi.write(d);
+        select.set(true);  
+    }
+}

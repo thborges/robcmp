@@ -1,28 +1,22 @@
 
-#include "Header.h"
+#include "Cast.h"
+#include "Coercion.h"
 
-Type *Cast::getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) { 
-    return robTollvmDataType[dt];
-}
-
-Value *Cast::generate(Function *func, BasicBlock *block, BasicBlock *allocblock)
+Value *Cast::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock)
 {
     Value *exprv = expr->generate(func, block, allocblock);
     if (!exprv)
         return NULL;
 
-    Type *destty = robTollvmDataType[dt];
-    Value *ret = Coercion::Convert(exprv, destty, block, expr);
+    Type *destty = buildTypes->llvmType(dt);
+    Value *ret = Coercion::Convert(exprv, destty, block, expr, true);
 
     if (ret == NULL) {
-        yyerrorcpp("Can't cast from '" + getTypeName(exprv->getType()) + "' to '" + 
-            LanguageDataTypeNames[dt], this);
+        yyerrorcpp(string_format("Can't cast from '%s' to '%s'.",
+            buildTypes->name(expr->getDataType()),
+            buildTypes->name(dt)), this);
         return NULL;
     }
 
     return ret;
-}
-
-void Cast::accept(Visitor &v) {
-	v.visit(*this); 
 }

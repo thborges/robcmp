@@ -6,17 +6,22 @@ class Int16: public Node {
 private:
 	short number;
 	bool IsSigned;
+
 public:
 	Int16(short n, bool IsSigned = false): number(n), IsSigned(IsSigned) {}
+	
 	short getNumber() const { return number; }
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
-	virtual void accept(Visitor &v) override;
-	virtual bool isConstExpr(BasicBlock *block, BasicBlock *allocblock) override {
+	
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
+
+	virtual bool isConstExpr() override {
 		return true;
 	}
-	virtual Type *getLLVMResultType(BasicBlock *block, BasicBlock *allocblock) override {
-		return Type::getInt16Ty(global_context);
+
+	virtual DataType getDataType() override {
+		return tint16;
 	}
+
 };
 
 #endif

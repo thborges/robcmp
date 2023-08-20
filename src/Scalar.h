@@ -1,21 +1,23 @@
-#ifndef __SCALAR_H__
-#define __SCALAR_H__
-#include "Node.h"
-#include "Float.h"
 
-class Scalar: public Node {
-private:
-	string name;
+#pragma once
+
+#include "Variable.h"
+
+class Scalar: public Variable {
+protected:
 	Node *expr;
-	DataQualifier qualifier;
+
 public:
-	Scalar(const char *n, Node *e, DataQualifier qualifier = qnone);
+	Scalar(const char* ident, Node *e);
 
-	virtual Value *generate(Function *func, BasicBlock *block, BasicBlock *allocblock) override;
+	Scalar(Identifier ident, Node *e);
 
-	string getIdent() const { return name; };
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
-	virtual void accept(Visitor& v) override;
+	virtual bool isConstExpr() override {
+		return hasQualifier(qconst) && expr->isConstExpr();
+	}
+
+	virtual DataType getDataType() override;
+
 };
-
-#endif

@@ -54,8 +54,9 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 	}
 
 	Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
-	Value* indexList[2] = {zero, indice};
-	GetElementPtrInst* ptr = (GetElementPtrInst*)Builder->CreateGEP(rsym->getLLVMType(), alloc, ArrayRef<Value*>(indexList), "gep");
-	LoadInst *ret = Builder->CreateLoad(ptr->getResultElementType(), ptr, ident.getFullName());
+	Value *indexList[2] = {zero, indice};
+	Value *ptr = Builder->CreateGEP(rsym->getLLVMType(), alloc, ArrayRef<Value*>(indexList), "gep");
+	Type *elemType = buildTypes->llvmType(rsym->getElementDt());
+	LoadInst *ret = Builder->CreateLoad(elemType, ptr, ident.getFullName());
 	return ret;
 }

@@ -26,6 +26,9 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 		return NULL;
 	}
 
+	RobDbgInfo.emitLocation(this);
+	Builder->SetInsertPoint(block);
+
 	Value *alloc = NULL;
 	if (ident.isComplex()) {
 		Identifier istem = ident.getStem();
@@ -52,8 +55,7 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 
 	Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 	Value* indexList[2] = {zero, indice};
-	GetElementPtrInst* ptr = GetElementPtrInst::Create(rsym->getLLVMType(), alloc, ArrayRef<Value*>(indexList), "", block);
-	LoadInst *ret = new LoadInst(ptr->getResultElementType(), ptr, ident.getFullName(), false, block);
+	GetElementPtrInst* ptr = (GetElementPtrInst*)Builder->CreateGEP(rsym->getLLVMType(), alloc, ArrayRef<Value*>(indexList), "gep");
+	LoadInst *ret = Builder->CreateLoad(ptr->getResultElementType(), ptr, ident.getFullName());
 	return ret;
 }
-

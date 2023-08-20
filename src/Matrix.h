@@ -9,7 +9,7 @@ private:
 	MatrixElements *melements;
 	ArrayType *matrixType = NULL;
 	void createDataType();
-	unsigned int lines = 0;
+	unsigned int rows = 0;
 	unsigned int cols = 0;
 
 public:

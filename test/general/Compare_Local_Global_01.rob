@@ -1,0 +1,24 @@
+
+matriz = {{7, 8}, {9,10}};
+
+int16 fa(int16 i, int16 j) {
+	localmatriz = {{7,8},{9,10}};
+	return localmatriz[i][j];
+}
+
+int16 main()
+{
+	i = 0;
+	while i < 2 {
+		j = 0;
+		while j < 2 {
+			if matriz[i][j] != fa(i,j) {
+				return 1;
+			}
+			j++;
+		}
+		i++;
+	}
+
+	return 0;
+}

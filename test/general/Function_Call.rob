@@ -1,0 +1,10 @@
+
+int16 b() {
+	t = 0;
+	return t;
+}
+
+int16 main() {
+	return b();
+}
+

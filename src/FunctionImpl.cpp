@@ -141,11 +141,12 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 		BasicBlock *lb = (BasicBlock*)last_block;
 		Builder->SetInsertPoint(lb);
 		RobDbgInfo.emitLocation(&endfunction);
-		if (lb->getTerminator() == NULL) {
+		if (lb->sizeWithoutDebug() == 0 && !lb->hasNPredecessorsOrMore(1))
+			lb->eraseFromParent();
+		else if (lb->getTerminator() == NULL) {
 			Type *xtype = buildTypes->llvmType(dt);
 			if (!xtype->isVoidTy()) {
-				Value *ret = ConstantInt::get(xtype, 0);
-				Builder->CreateRet(ret);
+				yyerrorcpp("Missing return statement in function " + name, &endfunction);
 			} else
 				Builder->CreateRetVoid();
 		}

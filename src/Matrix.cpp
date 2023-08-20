@@ -8,7 +8,7 @@
 #include "FunctionImpl.h"
 
 Matrix::Matrix(const char *n, MatrixElements *me) : LinearDataStructure(n), melements(me) {
-	NamedConst *rows = new NamedConst("rows", getNodeForIntConst(me->getLineCount()));
+	NamedConst *rows = new NamedConst("rows", getNodeForIntConst(me->getRowCount()));
 	NamedConst *cols = new NamedConst("cols", getNodeForIntConst(me->getColumnCount()));
 	addChild(rows);
 	addChild(cols);
@@ -16,6 +16,26 @@ Matrix::Matrix(const char *n, MatrixElements *me) : LinearDataStructure(n), mele
 }
 
 Node* Matrix::getElementIndex(Node *p1, Node *p2) {
+	
+	// if constants, validate indexes
+	if (p1->isConstExpr()) {
+		Value *p1v = p1->generate(NULL, NULL, NULL);
+		Constant *c = dyn_cast<Constant>(p1v);
+		int64_t v = c->getUniqueInteger().getZExtValue();
+		if (v >= rows) {
+			yyerrorcpp(string_format("Matrix %s row index (%d) out of bounds.", name.c_str(), v), p1);
+		}
+	}
+
+	if (p2->isConstExpr()) {
+		Value *p1v = p2->generate(NULL, NULL, NULL);
+		Constant *c = dyn_cast<Constant>(p1v);
+		int64_t v = c->getUniqueInteger().getZExtValue();
+		if (v >= cols) {
+			yyerrorcpp(string_format("Matrix %s col index (%d) out of bounds.", name.c_str(), v), p2);
+		}
+	}
+
 	//Generate index of element
 	Node *mcols = getNodeForIntConst(melements->getColumnCount());
 	return new BinaryOp(new BinaryOp(p1, '*', mcols), '+', p2);
@@ -33,7 +53,7 @@ Value *Matrix::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 	// {{1,1,1},{1,1,1},{1,1,1},{1,1,2},{1,1,2}}
 	bool allConst = true;
 	vector<Value*> elementValues;
-	elementValues.reserve(lines * cols);
+	elementValues.reserve(rows * cols);
 	for(MatrixElement *i: getElements()) {
 		unsigned elCount = i->count;
 		
@@ -122,9 +142,9 @@ void Matrix::createDataType() {
 	Type* I = buildTypes->llvmType(element_dt);
 	
 	// The matrix size
-	lines = melements->getLineCount();
+	rows = melements->getRowCount();
 	cols = melements->getColumnCount();
-	matrixType = ArrayType::get(I, lines * cols);
+	matrixType = ArrayType::get(I, rows * cols);
 }
 
 Type* Matrix::getLLVMType() {

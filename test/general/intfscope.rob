@@ -1,0 +1,46 @@
+
+interface intf {
+	int16 get();
+	void set(int16 s);
+}
+
+type somevar {
+	a = int16(0);
+	
+	pa = intf {
+		a = int8(0);
+		int16 get() { return a; }
+		void set(int16 s) { a = s; }
+	}
+
+	int16 internaltest() {
+		pa.set(22);
+		return pa.get();
+	}
+
+	void set(int16 v) {
+		a = v;
+	}
+
+	int16 get() {
+		return a;
+	}
+}
+
+int16 main() {
+	sv = somevar();
+	
+	in = sv.internaltest();
+	
+	sv.set(18);
+	sva = sv.get();
+	
+	ex = 33;
+
+	if (in == 22 and ex == 33 and sva == 18) {
+		return 0;
+	} else {
+		return 1;
+	}
+}
+

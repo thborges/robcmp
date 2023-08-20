@@ -27,10 +27,6 @@ DataType FunctionCall::getDataType() {
 	return dt;
 }
 
-void FunctionCall::loadFunctionStem(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
-
-}
-
 Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
 	RobDbgInfo.emitLocation(this);
@@ -45,6 +41,8 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 		// call with only one parameter is a cast
 		if (p == 1) {
 			Cast ca(dt, parameters->getParamElement(0));
+			ca.setScope(this);
+			ca.children()[0]->setScope(&ca);
 			return ca.generate(func, block, allocblock);
 
 		} else if (p == 0) { // it's a constructor			

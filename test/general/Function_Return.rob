@@ -1,0 +1,21 @@
+
+void fa(int16 a) {
+	a = a + 1;
+}
+
+int16 fb(int16 b) {
+	b = b + 1;
+	if b == 2 {
+		return b;
+	}
+	return 0;
+}
+
+int16 main(){
+	fa(1);
+	if fb(2) == 0 {
+		return 0;
+	} else {
+		return 1;
+	}
+}

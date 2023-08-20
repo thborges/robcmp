@@ -117,3 +117,15 @@ Type* Array::getLLVMType() {
 	createDataType();
 	return arrayType;
 }
+
+Node *Array::getElementIndex(Node *p1, Node *p2) {
+	if (p1->isConstExpr()) {
+		Value *p1v = p1->generate(NULL, NULL, NULL);
+		Constant *c = dyn_cast<Constant>(p1v);
+		int64_t v = c->getUniqueInteger().getZExtValue();
+		if (v >= size) {
+			yyerrorcpp(string_format("Array %s index (%d) out of bounds.", name.c_str(), v), p1);
+		}
+	}
+	return p1;
+}

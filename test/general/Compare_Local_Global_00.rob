@@ -1,0 +1,18 @@
+
+vector = {7, 8, 9, 10};
+
+int16 fa(int16 i) {
+	localvector = {7, 8, 9, 10};
+	return localvector[i];
+}
+
+int16 main(){
+	i = 0;
+	while i < 4 {
+		if vector[i] != fa(i) {
+			return 1;
+		}
+		i++;
+	}
+	return 0;
+}

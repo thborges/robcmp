@@ -37,7 +37,7 @@ Value *CmpOp::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 		rexp = Coercion::Convert(rexp, tl, block, rexpn);
 	else if (tl->isIntegerTy() && tr->isFloatingPointTy())
 		lexp = Coercion::Convert(lexp, tr, block, lexpn);
-	else {
+	else if (tl->isIntegerTy() && tr->isIntegerTy()) {
 		// left and right are integers
 		isFloatPointCmp = false;
 		unsigned tlbw = tl->getIntegerBitWidth();

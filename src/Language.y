@@ -307,6 +307,11 @@ condblock : TOK_IF logicexpr '{' stmts '}' elseblock {
 }
 
 elseblock : TOK_ELSE '{' stmts '}' { $$ = $stmts; }
+elseblock : TOK_ELSE condblock { 
+	auto *nodes = new vector<Node*>();
+	nodes->push_back($condblock);
+	$$ = nodes;
+}
 
 /*
  * Repetition

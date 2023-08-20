@@ -1,0 +1,10 @@
+
+int16 main(){
+	a = true;
+	if (a == true){
+		return 0;
+	}
+	else {
+		return 1;
+	}
+}

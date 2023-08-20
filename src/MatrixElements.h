@@ -19,7 +19,7 @@ public:
 	void append(MatrixElement *m);
 	
 	unsigned getColumnCount();
-	unsigned getLineCount();
+	unsigned getRowCount();
 	unsigned getElementCount(int position);
 	DataType getMatrixType();
 	

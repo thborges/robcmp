@@ -18,7 +18,7 @@ extern vector<filesystem::path> includeDirs;
 void yyerror(location_t *loc, yyscan_t scanner, const char *s);
 void USEerror(location_t *loc, yyscan_t scanner, const char *s);
 void MAINerror(location_t *loc, yyscan_t scanner, const char *s);
-void yyerrorcpp(const string& s, SourceLocation *n);
+void yyerrorcpp(const string& s, SourceLocation *n, bool semantic);
 void yywarncpp(const string& s, SourceLocation *n);
 
 bool parseFile(const string &source);

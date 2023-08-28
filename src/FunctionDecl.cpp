@@ -4,7 +4,7 @@
 
 void FunctionBase::addThisArgument(DataType dt) {
 	thisArgDt = dt;
-	FunctionParam *fp = new FunctionParam("#this", dt);
+	FunctionParam *fp = new FunctionParam(":this", dt);
 	fp->setScope(this);
 	parameters->append(fp);
 	symbols[fp->getName()] = fp;

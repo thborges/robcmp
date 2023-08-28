@@ -11,7 +11,7 @@ Value *Variable::getLLVMValue(Node *stem) {
 		
 		FunctionImpl *func = dynamic_cast<FunctionImpl*>(stem);
 		if (func && func->getThisArg()) {
-			// generating a function of a type: get the gep on #this or #parent parameters
+			// generating a function of a type: get the gep on :this or :parent parameters
 			Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
 			Value *ptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
 			alloc = Builder->CreateStructGEP(thisTy, ptr, gepidx, "gepthis");

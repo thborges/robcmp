@@ -12,7 +12,7 @@ protected:
 	bool constructor = false;
 	bool external = false;
 	DataType thisArgDt = BuildTypes::undefinedType;
-	string userTypeName;
+	string prefixName;
 
 	bool validateAndGetArgsTypes(std::vector<Type*> &args);
 
@@ -68,15 +68,15 @@ public:
 		return thisArgDt;
 	}
 
-	void setUserTypeName(const string& ut) {
-		userTypeName = ut;
+	void setPrefixName(const string& prefix) {
+		prefixName = prefix;
 	}
 
 	string getFinalName() {
-		if (userTypeName == "")
+		if (prefixName == "")
 			return name;
 		else
-			return userTypeName + "#" + name;
+			return prefixName + ":" + name;
 	}
 
 	virtual bool needsParent() {

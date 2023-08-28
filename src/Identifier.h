@@ -24,4 +24,6 @@ public:
     }
 
     Identifier getStem();
+
+    string const getLastName() const;
 };

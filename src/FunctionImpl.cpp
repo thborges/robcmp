@@ -100,9 +100,9 @@ bool FunctionImpl::preGenerate() {
 		}
 		Value *variable = Builder->CreateAlloca(talloc, dataAddrSpace, 0, argname);
 		
-		if (argname == "#this") {
+		if (argname == ":this") {
 			thisArg = variable;
-		} else if (argname == "#parent") {
+		} else if (argname == ":parent") {
 			parentArg = variable;
 		}
 		
@@ -208,7 +208,7 @@ bool FunctionImpl::validateImplementation(FunctionDecl *decl) {
 
 void FunctionImpl::addParentArgument(DataType dt) {
 	parentArgDt = dt;
-	FunctionParam *fp = new FunctionParam("#parent", dt);
+	FunctionParam *fp = new FunctionParam(":parent", dt);
 	fp->setScope(this);
 	parameters->append(fp);
 	symbols[fp->getName()] = fp;

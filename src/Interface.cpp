@@ -41,7 +41,7 @@ Value *Interface::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
     for(Node *n : node_children) {
         FunctionDecl *fd = dynamic_cast<FunctionDecl*>(n);
         if (fd) {
-            fd->setUserTypeName(getName());
+            fd->setPrefixName(getName());
             fd->addThisArgument(dt);
             fd->setExternal(true);
             fd->generate(func, block, allocblock);

@@ -13,7 +13,7 @@
 
 class ParentScalar: public Scalar {
 public:
-    ParentScalar(DataType parentDt) : Scalar("parent", new Load("#parent")) {
+    ParentScalar(DataType parentDt) : Scalar("parent", new Load(":parent")) {
         expr->setScope(this);
         dt = parentDt;
         pointer = pm_pointer;
@@ -151,7 +151,7 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
     finit->addThisArgument(dt);
     if (parent)
         finit->addParentArgument(parent->getDataType());
-    finit->setUserTypeName(getName());
+    finit->setPrefixName(getName());
     finit->setExternal(declaration);
     finit->generate(func, block, allocblock);
 
@@ -162,7 +162,7 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
      */
     for(auto & [key, stmt] : getSymbols()) {
         if (FunctionImpl *f = dynamic_cast<FunctionImpl*>(stmt)) {
-            f->setUserTypeName(getName());
+            f->setPrefixName(getName());
             f->addThisArgument(dt);
             for(auto &field : fields)
                 f->addSymbol(dynamic_cast<NamedNode*>(field));
@@ -192,7 +192,7 @@ unsigned UserType::getFieldStartBit(Node *field) {
 
 const string UserType::getName() const {
     if (parent)
-        return parent->getName() + "#" + NamedNode::getName();
+        return parent->getName() + ":" + NamedNode::getName();
     else
         return NamedNode::getName();
 }

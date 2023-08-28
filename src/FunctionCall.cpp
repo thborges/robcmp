@@ -63,7 +63,7 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 			vector<Value*> args;
 			args.push_back(var);
 
-			// call #init
+			// call :init
 			Node *type = findSymbol(name);
 			if (!type)
 				return NULL;
@@ -109,17 +109,16 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 
 	dt = fsymbol->getDataType();
 
+	Node *stemSymbol = NULL;
 	Value *stem = func->getThisArg();
 	DataType stemdt = func->getThisArgDt();
-	bool stemIsPointerToPointer = false;
 
 	Builder->SetInsertPoint(block);
 	if (ident.isComplex()) {
 		Identifier istem = ident.getStem();
-		Node *n = istem.getSymbol(getScope());
-		stem = n->getLLVMValue(func);
-		stemdt = n->getDataType();
-		stemIsPointerToPointer = n->isPointerToPointer();
+		stemSymbol = istem.getSymbol(getScope());
+		stem = stemSymbol->getLLVMValue(func);
+		stemdt = stemSymbol->getDataType();
 		
 		// TODO: When accessing a.x.func(), need to load a and gep x
 		//Load loadstem(ident.getStem());
@@ -145,8 +144,8 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 	}
 
 	// this parameter
-	if (stem) {
-		if (stemIsPointerToPointer)
+	if (stemSymbol) {
+		if (stemSymbol->isPointerToPointer())
 			stem = Builder->CreateLoad(stem->getType()->getPointerTo(), stem, "defer");
 		args.push_back(stem);
 	}
@@ -156,6 +155,22 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 	Builder->SetInsertPoint(allocblock);
 	Value *vfunc = symbol->getLLVMValue(func);
 	Function *cfunc = dyn_cast<Function>(vfunc);
+
+	// when calling an interface function, generate a complete name
+	// to enable injection at link time (symbol name substitution)
+	if (stemSymbol && buildTypes->isInterface(stemSymbol->getDataType())) {
+		string inject_name = stemSymbol->getScope()->getName() + ":";
+		inject_name.append(stemSymbol->getName() + ":");
+		inject_name.append(ident.getLastName());
+		Function *intf_cfunc = mainmodule->getFunction(inject_name);
+		if (!intf_cfunc) {
+			intf_cfunc = Function::Create(cfunc->getFunctionType(), Function::ExternalLinkage, 
+				codeAddrSpace, inject_name, mainmodule);
+			intf_cfunc->setDSOLocal(true);
+			intf_cfunc->setCallingConv(CallingConv::C);
+		}
+		cfunc = intf_cfunc;
+	}
 
 	Builder->SetInsertPoint(block);
 	return Builder->CreateCall(cfunc, argsRef);

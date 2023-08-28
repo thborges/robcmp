@@ -28,3 +28,10 @@ Identifier Identifier::getStem() {
     size_t last = ident.find_last_of('.');
     return ident.substr(0, last);
 }
+
+ string const Identifier::getLastName() const {
+    if (!complex)
+        return ident;
+    else
+        return ident.substr(ident.find_last_of(".")+1);
+}

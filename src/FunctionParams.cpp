@@ -10,7 +10,7 @@ void FunctionParams::append(FunctionParam *e) {
 unsigned FunctionParams::getNumCodedParams() {
 	unsigned num = 0;
 	for(auto p : parameters) {
-		if (p->getName()[0] != '#') // don't count parameters #this and #parent
+		if (p->getName()[0] != ':') // don't count parameters :this and :parent
 			num++;
 	}
 	return num;

@@ -46,8 +46,11 @@ typedef struct {
 	unsigned count;
 } MatrixElement;
 
-#include "bison.hpp"
+#include "bison_Language.hpp"
+#include "bison_Spec.hpp"
 
+extern int specerror(const char *s);
+extern int speclex();
 
 extern int mainerror(const char *s);
 extern int mainlex();

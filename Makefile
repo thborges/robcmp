@@ -25,7 +25,7 @@ all: $(COMPILER_NAME)
 	lex -o $@ $<
 
 %_y.cpp: %.y
-	bison -Wall --report=state --defines=$(SRC)/bison.hpp -o $@ $<
+	bison -Wall --report=state --defines=$(SRC)/bison_$(*F).hpp -o $@ $<
 
 $(COMPILER_NAME): ${YACS} ${LEXS} ${CPPS}
 	${CC} -std=c++11 ${FLAGS} ${DFLAGS} ${SRC}/*.o ${LLVMLIBS} -o $(BIN)/$@

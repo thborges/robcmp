@@ -42,6 +42,11 @@ ID {A}({A}|{D})*
 "implements"			{ return TOK_IMPL; }
 "use"					{ return TOK_USE; }
 
+"bind"					{ return TOK_BIND; }
+"to"					{ return TOK_TO; }
+"singleton"				{ return TOK_SINGLETON; }
+"transient"				{ return TOK_TRANSIENT; }
+
 "enum"					{ return TOK_ENUM; }
 
 "if"					{ return TOK_IF; }

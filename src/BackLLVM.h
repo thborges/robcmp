@@ -25,3 +25,6 @@ extern enum SupportedTargets currentTargetId;
 extern TargetInfo supportedTargets[__last_target];
 void setTarget(const char *targetarch);
 const TargetInfo& currentTarget();
+
+enum BindScope {bs_singleton, bs_transient};
+extern map<string, vector<pair<string, BindScope>>> injections;

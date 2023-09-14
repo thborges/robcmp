@@ -17,6 +17,7 @@
 %type <node> simplevar_decl call_or_cast complexvar_set
 %type <node> term term2 expr factor stmt condblock whileblock logicexpr
 %type <node> logicterm logicfactor TOK_AND TOK_OR event unary
+%type <node> bind
 %type <strings> type_impls
 
 %type <ae> element
@@ -29,7 +30,7 @@
 %type <pc> paramscall
 
 %type <ident> TOK_IDENTIFIER TOK_XIDENTIFIER ident_or_xident
-%type <nint> TOK_INTEGER qualifier
+%type <nint> TOK_INTEGER qualifier bind_scope
 %type <nfloat> TOK_FLOAT
 %type <ndouble> TOK_DOUBLE
 %type <nldouble> TOK_LDOUBLE
@@ -69,6 +70,7 @@ global : use
 	   | enum
 	   | simplevar_decl ';'
 	   | qualifier simplevar_decl ';'	{ $$ = $2; $$->setQualifier((DataQualifier)$1); }
+	   | bind
 
 use : TOK_USE TOK_IDENTIFIER ';' {
 	parseUseFile($2, @TOK_USE);
@@ -221,6 +223,14 @@ type_stmt : simplevar_decl ';'
 simplevar_decl : TOK_IDENTIFIER[id] '=' expr	{ $$ = new Scalar($id, $expr);   $$->setLocation(@id); }
 simplevar_decl : TOK_IDENTIFIER[id] '=' array	{ $$ = new Array($id, $array);   $$->setLocation(@id); }
 simplevar_decl : TOK_IDENTIFIER[id] '=' matrix	{ $$ = new Matrix($id, $matrix); $$->setLocation(@id); }
+
+bind : TOK_BIND ident_or_xident[id] TOK_TO ident_or_xident[to] bind_scope[scope] ';' {
+	//extern map<string, vector<pair<string, BindScope>>> injections;
+	injections[$id].push_back(make_pair(string($to), BindScope($scope)));
+}
+
+bind_scope : TOK_SINGLETON { $$ = bs_singleton; }
+		   | TOK_TRANSIENT { $$ = bs_transient; }
 
 array : '{' elements '}'	{ $$ = $elements; }
 matrix : '{' melements '}'	{ $$ = $melements; }

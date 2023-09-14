@@ -39,6 +39,9 @@ std::unique_ptr<BuildTypes> buildTypes;
 unsigned int codeAddrSpace = 1;
 unsigned int dataAddrSpace = 0;
 
+// Injections
+map<string, vector<pair<string, BindScope>>> injections;
+
 enum SupportedTargets currentTargetId;
 extern char *build_outputfilename;
 

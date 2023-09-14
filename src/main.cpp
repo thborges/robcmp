@@ -10,6 +10,13 @@ void print_llvm_ir(char opt_level);
 bool debug_info;
 extern char *build_outputfilename;
 
+char *spec_filename;
+FILE *specin = NULL;
+int speclex_init(yyscan_t* scanner);
+void specset_in(FILE *_in_str, yyscan_t yyscanner); 
+int speclex_destroy(yyscan_t yyscanner);
+int specparse(yyscan_t scanner);
+
 int main(int argc, char *argv[]) {
 
 	char optimization = 'z';
@@ -50,10 +57,27 @@ int main(int argc, char *argv[]) {
 			if (i+1 < argc)
 				includeDirs.push_back(argv[++i]);
 		}
+		else if (strncmp(argv[i], "-s", 2) == 0) {
+			spec_filename = argv[++i];
+			specin = fopen(spec_filename, "r");
+			if (specin == NULL) {
+				fprintf(stderr, "Could not open file %s.\n", spec_filename);
+				exit(1);
+			}
+		}
 		else {
 			buildFileName = argv[i];
 		}
 		i++;
+	}
+
+	if (specin) {
+		yyscan_t scanner;
+		speclex_init(&scanner);
+		specset_in(specin, scanner);
+		specparse(scanner);
+		speclex_destroy(scanner);
+		fclose(specin);
 	}
 
 	// set current target and basic build types

@@ -1,9 +1,5 @@
 %{
 
-class Node;
-class Stmts;
-
-
 %}
 
 %locations
@@ -25,21 +21,49 @@ class Stmts;
   #define YYLTYPE location_t
   #endif
   #include "FlexDependencies.h"
+  #define SCANNER_OR_VISITOR
+  #include "Header.h"
 }
 
 %union {
     // char *port;
-	// char *ident;
+	char *ident;
 	char *str;
 
 
-    // Node *node;
+    Node *node;
 	// Stmts *stmt;
+	// vector<Node*> *nodes;
+
 }
 
+/* %union {
+	char *ident;
+	char *str;
+	int64_t nint;
+	float nfloat;
+	double ndouble;
+	long double nldouble;
+	Node *node;
+	ArrayElements *aes;
+	MatrixElements *mes;
+	FunctionParams *fps;
+	ParamsCall *pc;
+	vector<Node*> *nodes;
+	vector<string> *strings;
+	ArrayElement *ae;
+	MatrixElement *me;
+	FunctionParam *fp;
+} */
 
-%token SPEC_PORT SPEC_PORT_NAME SPEC_DIGITAL SPEC_BIND SPEC_IDENT SPEC_TO
+%token SPEC_PORT SPEC_PORT_NAME SPEC_DIGITAL SPEC_BIND SPEC_IDENT SPEC_TO SPEC_XIDENT
 %token SPEC_PWM SPEC_NAME SPEC_TRUE SPEC_FALSE SPEC_PORT_IDENT SPEC_STRING
+
+/* %type <nodes> globals */
+/* %type <node> global bind  */
+%type <node>  bind 
+%type <ident> SPEC_IDENT SPEC_XIDENT ident
+
 
 
 %start program
@@ -54,13 +78,19 @@ stmts : stmts stmt
     ;
 
 stmt : bind 
-    | port_statement
+    /* | port_statement */
     ;
 
-bind : SPEC_BIND SPEC_IDENT SPEC_TO SPEC_IDENT
-    ;
 
-port_statement : SPEC_PORT_NAME '{' port_attributes '}'
+bind : SPEC_BIND ident[id] SPEC_TO ident[to] ';' {
+    injections.insert({$to, make_pair(string($id), BindScope(bs_singleton))});
+}
+
+ident : SPEC_IDENT 
+	| SPEC_XIDENT
+	;
+
+/* port_statement : SPEC_PORT_NAME '{' port_attributes '}'
     ;
 
 port_attributes : port_attributes port_attribute
@@ -81,7 +111,7 @@ attribute_pwm : SPEC_PWM '=' SPEC_TRUE
     ;
 
 port_bind : SPEC_BIND '=' SPEC_IDENT {  }
-    ;
+    ; */
 
 
 %%

@@ -1,0 +1,31 @@
+interface port {
+    int8 get();
+}
+
+type b3 implements port {
+    int8 get() {
+        return 10;
+    }
+}
+
+type display {
+    a = 10;
+    reset = port();
+
+    int8 get_reset() {
+        return reset.get();
+    }
+
+}
+
+int16 main() {
+    //xxx = b3();
+    d = display();
+
+    r = d.get_reset();
+    if r == 11 {
+        return 0;
+    } else {
+        return 1;
+    }
+}

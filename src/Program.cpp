@@ -123,6 +123,40 @@ void Program::generate() {
 	fs.close();*/
 
 	// generate the program!
+	// loop pelo injections 
+
+	for (auto injection : injections) {
+		const string variableName = ":injectionName__" + injection.first;
+		Variable *injectionVariable = new Scalar(variableName, NULL);
+		map_injections[variableName] = injectionVariable;
+
+		node_children.insert(node_children.begin(), injectionVariable);
+		program->addSymbol(injectionVariable);
+	}
+
+	vector<Node *> globals;
+	for (auto injection : injections) {
+		const string variableName = ":injectionName__" + injection.first;
+		Variable *injectionVariable = new Scalar(variableName, new FunctionCall(injection.first, new ParamsCall()));
+		map_injections[variableName] = injectionVariable;
+
+		globals.push_back(injectionVariable);
+	}
+
+
+	FunctionParams *fp = new FunctionParams();
+    FunctionImpl *finit = new FunctionImpl((DataType)tvoid, ":injections", fp, 
+        std::move(globals), *this->getLoct(), true);
+
+    finit->generate(NULL, NULL, global_alloc);
+
+
+	Node *loadScope = program->findSymbol("main");
+	// new FunctionCall(":injections", new ParamsCall())
+
+
+
+
 	for(auto n: children())
 		n->generate(NULL, NULL, global_alloc);
 

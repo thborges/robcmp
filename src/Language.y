@@ -226,7 +226,7 @@ simplevar_decl : TOK_IDENTIFIER[id] '=' matrix	{ $$ = new Matrix($id, $matrix); 
 
 bind : TOK_BIND ident_or_xident[id] TOK_TO ident_or_xident[to] bind_scope[scope] ';' {
 	//extern map<string, vector<pair<string, BindScope>>> injections;
-	injections[$id].push_back(make_pair(string($to), BindScope($scope)));
+	// injections[$id].push_back(make_pair(string($to), BindScope($scope)));
 }
 
 bind_scope : TOK_SINGLETON { $$ = bs_singleton; }

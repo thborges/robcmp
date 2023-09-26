@@ -42,11 +42,10 @@ L	[a-zA-Z]
 
 "="                                   { return '='; }
 ":"                                   { return ':'; }
+";"                                   { return ';'; }
 
-{L}({L}|{D})*                         { return SPEC_PORT_NAME; }
+{L}({L}|{D})*(\.({L}|{D})*)*           { yylval->ident = strndup(yytext, yyleng); unescape(yylval->ident); return SPEC_XIDENT; }
 
-
-{L}({L}|{D})*\.*({L}|{D})*             { return SPEC_IDENT; }
 
 .                                     { specerror(yylloc, NULL, "lexical error, caractere nao pertence ao alfabeto da linguagem:"); }
 

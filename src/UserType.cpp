@@ -1,11 +1,13 @@
 
 #include "UserType.h"
+#include "HeaderGlobals.h"
 #include "Interface.h"
 #include "FunctionImpl.h"
 #include "FunctionParams.h"
 #include "FunctionCall.h"
 #include "ParamsCall.h"
 #include "Program.h"
+#include "Variable.h"
 #include "Visitor.h"
 #include "Enum.h"
 #include "Load.h"
@@ -72,7 +74,9 @@ bool UserType::createDataType() {
         }
 
         if (v) {
-            if (v->getPointerMode() == pm_unknown)
+            if (buildTypes->isInterface(v->getDataType()))
+                v->setPointer(pm_pointer);
+            else if (v->getPointerMode() == pm_unknown)
                 v->setPointer(pm_nopointer);
             
             Type *llvmType = v->getLLVMType();

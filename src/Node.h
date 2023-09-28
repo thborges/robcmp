@@ -55,7 +55,7 @@ public:
 	
 	virtual Node* findMember(const string& name);
 
-	void addChild(Node *n);
+	void addChild(Node *n, bool prepend = false);
 
 	map<string, NamedNode*> const& getSymbols();
 

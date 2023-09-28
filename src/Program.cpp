@@ -1,6 +1,10 @@
 #include "Program.h"
+#include "FunctionImpl.h"
+#include "HeaderGlobals.h"
 #include "SymbolizeTree.h"
 #include "BackLLVM.h"
+#include "NullConst.h"
+#include <cstddef>
 
 Program::Program() {
 	mainmodule = new Module(this->getFile(), global_context);
@@ -111,6 +115,32 @@ Value *Program::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
 	return NULL;
 }
 
+void Program::generateInjectionSetup() {
+	// create a function called :injections, to setup global injection vars with
+	// their singleton instances
+	FunctionParams *fp = new FunctionParams();
+    FunctionImpl *finject = new FunctionImpl((DataType)tvoid, ":injections", fp, 
+        vector<Node *>(), *this->getLoct(), true);
+
+	vector<Node *> globals;
+	for (auto &[key, itype] : injections) {
+		const string variableName = ":injectionName__" + itype.first;
+		FunctionCall *fc = new FunctionCall(itype.first, new ParamsCall());
+		fc->setScope(finject);
+		Variable *injectionVariable = new Scalar(variableName, fc);
+
+		globals.push_back(injectionVariable);
+	}
+
+	for(auto &g : globals) {
+		finject->addChild(g);
+		g->setScope(finject);
+	}
+	finject->setScope(program);
+	program->addSymbol(finject);
+    finject->generate(NULL, NULL, global_alloc);
+}
+
 void Program::generate() {
 
 	// instrumentation passes
@@ -123,42 +153,36 @@ void Program::generate() {
 	fs.close();*/
 
 	// generate the program!
-	// loop pelo injections 
 
-	for (auto injection : injections) {
-		const string variableName = ":injectionName__" + injection.first;
-		Variable *injectionVariable = new Scalar(variableName, NULL);
-		map_injections[variableName] = injectionVariable;
+	for(auto n: children()) {
+		if (FunctionImpl *func = dynamic_cast<FunctionImpl*>(n)) {
+			if (func->getName() == "main" || func->getName() == "__main") {
+				generateInjectionSetup();
+				FunctionCall *fc = new FunctionCall(":injections", new ParamsCall());
+				fc->setScope(func);
+				func->addChild(fc, true);
+			}
+		}
 
-		node_children.insert(node_children.begin(), injectionVariable);
-		program->addSymbol(injectionVariable);
-	}
-
-	vector<Node *> globals;
-	for (auto injection : injections) {
-		const string variableName = ":injectionName__" + injection.first;
-		Variable *injectionVariable = new Scalar(variableName, new FunctionCall(injection.first, new ParamsCall()));
-		map_injections[variableName] = injectionVariable;
-
-		globals.push_back(injectionVariable);
-	}
-
-
-	FunctionParams *fp = new FunctionParams();
-    FunctionImpl *finit = new FunctionImpl((DataType)tvoid, ":injections", fp, 
-        std::move(globals), *this->getLoct(), true);
-
-    finit->generate(NULL, NULL, global_alloc);
-
-
-	Node *loadScope = program->findSymbol("main");
-	// new FunctionCall(":injections", new ParamsCall())
-
-
-
-
-	for(auto n: children())
 		n->generate(NULL, NULL, global_alloc);
+
+		// if n is a UserType, there is a injection for it?
+		if (UserType *ut = dynamic_cast<UserType*>(n)) {
+			for (auto &[key, itype] : injections) {
+				if (itype.first == ut->getName()) {
+					const string variableName = ":injectionName__" + itype.first;
+					DataType var_dt = buildTypes->getType(itype.first);
+					Variable *injectionVariable = new Scalar(variableName, new NullConst(var_dt));
+					injectionVariable->setScope(program);
+					map_injections[variableName] = injectionVariable;
+
+					program->addSymbol(injectionVariable);
+					injectionVariable->generate(NULL, NULL, global_alloc);
+					break; //TODO: When implementing transient injection, change here.
+				}
+			}
+		}
+	}
 
 	if (debug_info)
 		DBuilder->finalize();

@@ -110,6 +110,11 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 
                 ld.setScope(program);
 
+				// change FunctionCall datatype to the datatype of the injected var
+				dt = ld.getDataType();
+				Node *lsymbol = findSymbol(leftValue->getName());
+				lsymbol->setDataType(dt);
+
                 return ld.generate(func, block, allocblock);
             }
 

@@ -19,11 +19,10 @@ type display {
 }
 
 int16 main() {
-    //xxx = b3();
     d = display();
 
     r = d.get_reset();
-    if r == 11 {
+    if r == 10 {
         return 0;
     } else {
         return 1;

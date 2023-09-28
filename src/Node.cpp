@@ -51,8 +51,11 @@ Node* Node::findSymbol(const string& name, bool recursive) {
 	return NULL;
 }
 
-void Node::addChild(Node *n) {
-	node_children.push_back(n);
+void Node::addChild(Node *n, bool prepend) {
+	if (prepend)
+		node_children.insert(node_children.begin(), n);
+	else
+		node_children.push_back(n);
 }
 
 void Node::addSymbol(NamedNode *nm) {

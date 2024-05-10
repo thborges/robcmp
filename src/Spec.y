@@ -70,8 +70,9 @@
 
 %%
 
-program : stmts
-    ;
+program : %empty
+        | stmts
+        ;
 
 stmts : stmts stmt
     | stmt

@@ -51,7 +51,7 @@ else
 endif
 
 ifeq ($(uname_S), Darwin)
-	suffix=darwin_x86_64
+	suffix=darwin_$(shell uname -m)
 	SED=gsed
 	LIBS=$(shell ./libllvmpathosx.sh ${LLVM_LD})
 endif

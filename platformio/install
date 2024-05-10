@@ -3,8 +3,9 @@ cd toolchain-robcmp && tar xfz ../toolchain-robcmp-*.tar.gz
 cd ..
 mkdir -p ~/.platformio/platforms
 mkdir -p ~/.platformio/packages
-ln -sf `realpath platform` ~/.platformio/platforms/robcmp
-ln -sf `realpath toolchain-robcmp` ~/.platformio/packages/toolchain-robcmp
+mkdir -p ~/.platformio/platforms/robcmp
+cp -r platform/* ~/.platformio/platforms/robcmp
+cp -r toolchain-robcmp ~/.platformio/packages/
 code --install-extension vscode-syntax/robcmpsyntax-0.0.1.vsix
 echo "Open the examples folder and try to build and upload!"
 echo "	code examples/avr328p-blink"

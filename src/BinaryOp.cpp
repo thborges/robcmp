@@ -95,28 +95,6 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 		llvmop = opflt;
 	}
 
-	Constant *c0 = dyn_cast<Constant>(lhs);
-	Constant *c1 = dyn_cast<Constant>(rhs);
-	if (c0 && c1) {
-		switch (getOperator()) {
-			case '+': return ConstantExpr::getAdd(c0, c1);
-			case '-': return ConstantExpr::getSub(c0, c1);
-			case '*': return ConstantExpr::getMul(c0, c1);
-			
-			case TOK_OR:
-			case '|': return ConstantExpr::getOr(c0, c1);
-			
-			case TOK_AND:
-			case '&': return ConstantExpr::getAnd(c0, c1);
-
-			case '^': return ConstantExpr::getXor(c0, c1);
-			case TOK_LSHIFT: return ConstantExpr::getShl(c0, c1);
-			case TOK_RSHIFT: return ConstantExpr::getLShr(c0, c1);
-			default:
-				break;
-		}
-	}
-	
 	RobDbgInfo.emitLocation(this);
 	return Builder->CreateBinOp(llvmop, lhs, rhs, "binop");
 }

@@ -16,10 +16,11 @@
 #include <llvm/IR/Verifier.h>
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/IR/LegacyPassManager.h>
-#include <llvm/Support/Host.h>
 #include <llvm/MC/TargetRegistry.h>
-#include <llvm/MC/SubtargetFeature.h>
+#include <llvm/TargetParser/Host.h>
+#include <llvm/TargetParser/SubtargetFeature.h>
 #include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/CodeGen.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
 #include <llvm/IR/AutoUpgrade.h>
@@ -172,8 +173,8 @@ void print_llvm_ir(char opt_level) {
 			exit(1);
 		}
 		legacy::PassManager pass_codegen;
-		targetMachine->addPassesToEmitFile(pass_codegen, dest, nullptr, llvm::CGFT_ObjectFile);
-		//targetMachine->addPassesToEmitFile(pass_codegen, dest, nullptr, llvm::CGFT_AssemblyFile);
+		targetMachine->addPassesToEmitFile(pass_codegen, dest, nullptr, CodeGenFileType::ObjectFile);
+		//targetMachine->addPassesToEmitFile(pass_codegen, dest, nullptr, CodeGenFileType::AssemblyFile);
 		pass_codegen.run(*mainmodule);
 		dest.close();
 	} else {

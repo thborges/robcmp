@@ -29,34 +29,22 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 	if (ty != destty){
 		//Float to Integer
 		if (ty->isFloatingPointTy() && destty->isIntegerTy()){
-			if (Constant *c = dyn_cast<Constant>(v))
-				r = ConstantExpr::getFPToSI(c, destty);
-			else
-				r = Builder->CreateFPToSI(v, destty, "fptosi");
+			r = Builder->CreateFPToSI(v, destty, "fptosi");
 			if (!isCast)
 				yywarncpp("Float point converted to integer.", loc);
 		}
 		//Integer to Float
 		else if (destty->isFloatingPointTy() && ty->isIntegerTy()){
-			if (Constant *c = dyn_cast<Constant>(v))
-				r = ConstantExpr::getSIToFP(c, destty);
-			else
-				r = Builder->CreateSIToFP(v, destty, "sitofp");
+			r = Builder->CreateSIToFP(v, destty, "sitofp");
 		}
 		//Floating point to Floating point
 		else if (ty->isFloatingPointTy() && destty->isFloatingPointTy()) {
 			unsigned tybw = GetFloatingPointBitwidth(ty);
 			unsigned dtybw = GetFloatingPointBitwidth(destty);
 			if (dtybw > tybw)
-				if (Constant *c = dyn_cast<Constant>(v))
-					r = ConstantExpr::getFPExtend(c, destty);
-				else
-					r = Builder->CreateFPExt(v, destty, "fpext");
+				r = Builder->CreateFPExt(v, destty, "fpext");
 			else if (dtybw < tybw) {
-				if (Constant *c = dyn_cast<Constant>(v))
-					r = ConstantExpr::getFPTrunc(c, destty);
-				else
-					r = Builder->CreateFPTrunc(v, destty, "fptrunc");
+				r = Builder->CreateFPTrunc(v, destty, "fptrunc");
 				if (!isCast)
 					yywarncpp("Float point value truncated.", loc);
 			}
@@ -66,20 +54,14 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 			unsigned wty = ty->getIntegerBitWidth();
 			unsigned wdestty = destty->getIntegerBitWidth();
 			if (wty > wdestty){
-				if (Constant *c = dyn_cast<Constant>(v))
-					r = ConstantExpr::getTrunc(c, destty);
-				else
-					r = Builder->CreateTrunc(v, destty, "trunc");
+				r = Builder->CreateTrunc(v, destty, "trunc");
 				if (!isCast) {
 					yywarncpp(string_format("Integer value truncated from int%d to int%d.", 
 						wty, wdestty), loc);
 				}
 			}
 			else if (wty < wdestty) {
-				if (Constant *c = dyn_cast<Constant>(v))
-					r = ConstantExpr::getSExt(c, destty);
-				else
-					r = Builder->CreateSExt(v, destty, "sext");
+				r = Builder->CreateSExt(v, destty, "sext");
 			}
 		}
 		else {

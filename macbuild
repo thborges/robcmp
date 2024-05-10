@@ -1,5 +1,5 @@
-CXX=/usr/local/robllvm/bin/clang++
-CC=/usr/local/robllvm/bin/clang
+CXX=/usr/local/opt/llvm/bin/clang++
+CC=/usr/local/opt/llvm/bin/clang
 export CXX
 export CC
 cmake -DCMAKE_BUILD_TYPE="Debug" ..

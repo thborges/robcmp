@@ -151,7 +151,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			// Prepare the mask
 			unsigned bitWidth = buildTypes->bitWidth(symbol->getDataType());
 			Constant *allone = Constant::getAllOnesValue(Type::getIntNTy(global_context, bitWidth));
-			Constant *ones = ConstantExpr::getZExt(allone, req_eq_ty);
+			Value *ones = Builder->CreateZExt(allone, req_eq_ty);
 
 			// Coerce the rvalue to the req size
 			exprv = Coercion::Convert(exprv, req_eq_ty, block, expr);
@@ -160,10 +160,10 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			unsigned fieldStartBit = reg->getFieldStartBit(symbol);
 			if (fieldStartBit > 0) {
 				Constant *shiftl = ConstantInt::get(req_eq_ty, fieldStartBit);
-				ones = ConstantExpr::getShl(ones, shiftl);
+				ones = Builder->CreateShl(ones, shiftl);
 				exprv = Builder->CreateShl(exprv, shiftl, "shift");
 			}
-			Constant *mask = ConstantExpr::getNot(ones);
+			Value *mask = Builder->CreateNot(ones);
 
 			// Apply mask, than or
 			Value *vaftermask = Builder->CreateAnd(v, mask, "mask");

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -e
+
+VERSION=14.2
+
+wget -c https://ftp.mirrorservice.org/sites/sourceware.org/pub/gdb/releases/gdb-${VERSION}.tar.xz
+
+rm -Rf gdb-${VERSION}
+tar xf gdb-${VERSION}.tar.xz
+
+cd gdb-${VERSION}
+mkdir build
+cd build
+
+CC=/usr/local/bin/gcc-14
+CXX=/usr/local/bin/g++-14
+GMP=/usr/local/opt/gmp
+MPFR=/usr/local/opt/mpfr
+CFLAGS="-I/usr/local/include"
+CPPFLAGS="-I/usr/local/include"
+export CFLAGS
+export CPPFLAGS
+export CC
+export CXX
+../configure --target=avr --with-texinfo=no --with-python=no --with-gmp=$GMP --with-mpfr=$MPFR
+make -j8
+cp gdb/gdb ../../avr-gdb
+echo "Build successfully... run ./avr-gdb to check functionality."

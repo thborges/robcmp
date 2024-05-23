@@ -19,6 +19,7 @@ int specparse(yyscan_t scanner);
 
 #include <execinfo.h>
 #include <unistd.h>
+#include <signal.h>
 void SIGSEGV_handler(int sig) {
   void *array[10];
   size_t size;

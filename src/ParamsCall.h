@@ -9,6 +9,7 @@ private:
 public:
 	ParamsCall();
 	void append(Node *pc);
+	void insert(int at, Node *pc);
 	
 	unsigned getNumParams() const;
 	Node *getParamElement (int position) const;

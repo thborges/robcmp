@@ -59,8 +59,9 @@ public:
 
 	map<string, NamedNode*> const& getSymbols();
 
+	virtual void addSymbol(const string& label, NamedNode *nm);
 	virtual void addSymbol(NamedNode *nm);
-
+	
 	void setDataType(DataType dt) {
 		this->dt = dt;
 	}

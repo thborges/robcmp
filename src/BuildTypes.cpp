@@ -1,6 +1,8 @@
 
 #include "BuildTypes.h"
+#include "HeaderGlobals.h"
 #include "Node.h"
+#include "Scanner.h"
 #include "Variable.h"
 #include "BackLLVM.h"
 
@@ -39,9 +41,42 @@ BuildTypes::BuildTypes(DataType targetPointerType) {
             if (t > 0) // no void
                 bitWidth = dl.getTypeAllocSizeInBits(info.llvmType);
             info.diType = DBuilder->createBasicType(info.name, bitWidth, info.dwarfEnc);
-            info.diPointerType = DBuilder->createPointerType(info.diType, 8);
+            info.diPointerType = DBuilder->createPointerType(info.diType, pts);
         }
     }
+}
+
+DataType BuildTypes::getArrayType(const string& elementName, SourceLocation n, bool createUndefined) {
+    string arrayTyName = elementName + "[]";
+    auto ut = namedTypes.find(arrayTyName);
+    if (ut == namedTypes.end()) {
+        if (createUndefined) {
+            auto elementTyIter = namedTypes.find(elementName);
+            auto elementInfo = tinfo[elementTyIter->second];
+            if (elementTyIter == namedTypes.end() || elementInfo.llvmType == NULL) {
+                yyerrorcpp(string_format("Type %s is not defined.", 
+                    elementName.c_str()), &n, true);
+            } else {
+                DataType dt = addDataType(DataTypeInfo(arrayTyName));
+                DataTypeInfo &info = tinfo[dt];
+                info.llvmType = ArrayType::get(elementInfo.llvmType, 0); // we couldn't know the array size at compile time
+                info.isDefined = true;
+                info.isComplex = false;
+                info.isArray = true;
+                info.bitWidth = elementInfo.bitWidth;
+                info.dwarfEnc = dwarf::DW_ATE_address;
+                if (debug_info) {
+                    info.diType = DBuilder->createArrayType(0, 0, elementInfo.diType, {});
+                    unsigned ptbw = tinfo[currentTarget().pointerType].bitWidth;
+                    info.diPointerType = DBuilder->createPointerType(elementInfo.diType, ptbw);
+                }
+                return dt;
+            }
+        }
+    } else if (tinfo[ut->second].isDefined || createUndefined) {
+        return ut->second;
+    }
+    return undefinedType;
 }
 
 DataType BuildTypes::getType(const string& name, bool createUndefined) {
@@ -118,7 +153,7 @@ DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBi
             RobDbgInfo.currFile(), userType->getLineNo(), bitWidth, 1, 0,
             DINode::DIFlags::FlagZero, nullptr, dielems);
         unsigned ptbw = tinfo[currentTarget().pointerType].bitWidth;
-        info.diPointerType = DBuilder->createPointerType(info.diType, 8);
+        info.diPointerType = DBuilder->createPointerType(info.diType, ptbw);
     }
     return id;
 }

@@ -82,11 +82,39 @@ Value *Coercion::Convert(Value *v, Type *destty, BasicBlock *block, SourceLocati
 					r = Builder->CreateSExt(v, destty, "sext");
 			}
 		}
-		else if (!destty->isPointerTy()) {
+		else {
 			yyerrorcpp("No coercion between " + getTypeName(ty) + " and " + 
 				getTypeName(destty) + " implemented.", loc);
 		}
+	} else {
+		// check composite types
+		bool distinct = ty->getNumContainedTypes() != destty->getNumContainedTypes();
+		if (!distinct && ty->getNumContainedTypes() > 0) {
+			for(int i = 0; i < ty->getNumContainedTypes(); i++) {
+				auto ity = ty->getContainedType(i);
+				auto dity = destty->getContainedType(i);
+				if (ity != dity) {
+					distinct = true;
+				} else {
+					if (ity->isIntegerTy() && dity->isIntegerTy()) {
+						unsigned wity = ity->getIntegerBitWidth();
+						unsigned wdity = dity->getIntegerBitWidth();
+						if (wity != wdity)
+							distinct = true;
+					} else if (ity->isFloatingPointTy() && dity->isFloatingPointTy()) {
+						unsigned wity = GetFloatingPointBitwidth(ity);
+						unsigned wdity = GetFloatingPointBitwidth(dity);
+						if (wity != wdity)
+							distinct = true;
+					}
+				}
+				if (distinct)
+					break;
+			}
+			if (distinct)
+				yyerrorcpp("No coercion between " + getTypeName(ty) + " and " + 
+					getTypeName(destty) + " implemented.", loc);
+		}
 	}
 	return r;
-
 }

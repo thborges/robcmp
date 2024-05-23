@@ -2,16 +2,11 @@
  * sorts the vector a and check the result
  */
 
-a = { 34, -5, 6, 0, 12, 100, 56, 22, 44, -3, -9, 12, 17, 22, 6, 11 };
-r = { -9, -5, -3, 0, 6, 6, 11, 12, 12, 17, 22, 22, 34, 44, 56, 100 };
-
-void sort(int8 n) {
-	t = 0;
-	s = 0;
-	temp = 0;
-	while t < n - 1 {
+void sort(int16[] a) {
+	t = int16(0);
+	while t < a.size - 1 {
 		s = t + 1;
-		while s < n {
+		while s < a.size {
 			if a[t] > a[s] {
 				temp = a[t];
 				a[t] = a[s];
@@ -24,7 +19,10 @@ void sort(int8 n) {
 }
 
 int16 main() {
-	sort(a.size);
+	a = {int16(34), -5, 6, 0, 12, 100, 56, 22, 44, -3, -9, 12, 17, 22, 6, 11 };
+	r = {int16(-9), -5, -3, 0, 6, 6, 11, 12, 12, 17, 22, 22, 34, 44, 56, 100 };
+	
+	sort(a);
 	i = 0;
 	while i < a.size {
 		if a[i] != r[i] {

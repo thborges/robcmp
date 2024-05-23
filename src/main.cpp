@@ -17,7 +17,23 @@ void specset_in(FILE *_in_str, yyscan_t yyscanner);
 int speclex_destroy(yyscan_t yyscanner);
 int specparse(yyscan_t scanner);
 
+#include <execinfo.h>
+#include <unistd.h>
+void SIGSEGV_handler(int sig) {
+  void *array[10];
+  size_t size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
+	signal(SIGSEGV, SIGSEGV_handler);
 
 	char optimization = 'z';
 	const char *targetarch = "";

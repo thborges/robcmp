@@ -46,11 +46,19 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 		alloc = rsym->getLLVMValue(func);
 	}
 
+	if (!alloc)
+		return NULL;
+
 	Node *indn = getElementIndex(rsym);
 	Value *indice = indn->generate(func, block, allocblock);
 	if (!indice || !indice->getType()->isIntegerTy()){
 		yyerrorcpp("Index to access " + ident.getFullName() + " elements must be of type integer.", this);
 		return NULL;
+	}
+
+	if (rsym->isPointerToPointer()) {
+		Type *ty = buildTypes->llvmType(rsym->getDataType())->getPointerTo();	
+		alloc = Builder->CreateLoad(ty, alloc, rsym->hasQualifier(qvolatile), "deref");
 	}
 
 	Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);

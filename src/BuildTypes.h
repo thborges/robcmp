@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include "HeaderGlobals.h"
+#include "SourceLocation.h"
 
 typedef int DataType;
 
@@ -27,6 +28,7 @@ struct DataTypeInfo {
     bool isComplex;
     bool isInterface;
     bool isInternal;
+    bool isArray;
 
     DataTypeInfo() {}
 
@@ -41,12 +43,13 @@ struct DataTypeInfo {
         this->isComplex = false;
         this->isInternal = false;
         this->isInterface = false;
+        this->isArray = false;
     }
 
     DataTypeInfo(const char* name, unsigned bitWidth, Type *llvmType, unsigned dwarfEnc):
         name(name), bitWidth(bitWidth), llvmType(llvmType), dwarfEnc(dwarfEnc), diType(NULL),
         diPointerType(NULL), sl(NULL), isDefined(true), isComplex(false), isInternal(false),
-        isInterface(false) {};
+        isInterface(false), isArray(false) {};
 };
 
 class BuildTypes {
@@ -71,6 +74,9 @@ public:
         unsigned typeBitWidth = 0, bool isEnum = false);
 
     DataType getType(const string& name, bool createUndefined = false);
+
+    DataType getArrayType(const string& elementName, SourceLocation n,
+        bool createUndefined = false);
 
     const char *name(DataType tid) {
         assert(tid != -1 && "Undefined type");
@@ -138,6 +144,11 @@ public:
     bool isInterface(DataType tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].isInterface;
+    }
+
+    bool isArray(DataType tid) {
+        assert(tid != -1 && "Undefined type");
+        return tinfo[tid].isArray;
     }
 };
 

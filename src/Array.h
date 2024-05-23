@@ -4,7 +4,6 @@
 #include "Node.h"
 #include "Variable.h"
 #include "ArrayElements.h"
-#include "NamedConst.h"
 
 class ArrayElements;
 
@@ -16,6 +15,18 @@ public:
 	virtual Node *getElementIndex(Node *p1, Node *p2) = 0;
 	virtual DataType getElementDt() {
 		return element_dt;
+	}
+};
+
+class ParamArray: public LinearDataStructure {
+public:
+	ParamArray(const char *n, string element_dt_name, location_t loc): LinearDataStructure(n) {
+		this->element_dt = buildTypes->getType(element_dt_name, true);
+		this->dt = buildTypes->getArrayType(element_dt_name, loc, true);
+	}
+	
+	virtual Node *getElementIndex(Node *p1, Node *p2) override {
+		return p1;
 	}
 };
 

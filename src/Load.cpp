@@ -1,7 +1,6 @@
 
 #include "Load.h"
-#include "HeaderExternals.h"
-#include "Scalar.h"
+#include "BuildTypes.h"
 #include "FunctionImpl.h"
 #include "Variable.h"
 #include "Pointer.h"
@@ -86,16 +85,17 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 	if (!alloc)
 		return NULL; // Caused by an error on previous statement that defines the symbol
 	
-	if (buildTypes->isComplex(symbol->getDataType())) {
+	DataType sdt = symbol->getDataType();
+	if (buildTypes->isComplex(sdt) || buildTypes->isArray(sdt)) {
 		if (symbol->isPointerToPointer()) {
-			Type *ty = buildTypes->llvmType(symbol->getDataType())->getPointerTo();	
+			Type *ty = buildTypes->llvmType(sdt)->getPointerTo();	
 			return Builder->CreateLoad(ty, alloc, symbol->hasQualifier(qvolatile), "deref");
 		}
 		if (leftValue)
 			leftValue->setPointerToPointer(true);
 		return alloc;
 	} else {
-		Type *ty = buildTypes->llvmType(symbol->getDataType());
+		Type *ty = buildTypes->llvmType(sdt);
 		return Builder->CreateLoad(ty, alloc, symbol->hasQualifier(qvolatile), ident.getFullName());
 	}
 }

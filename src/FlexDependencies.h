@@ -16,7 +16,7 @@ class ParamsCall;
 class Structure;
 class ArrayElement;
 class MatrixElement;
-class FunctionParam;
+class Variable;
 class Field;
 
 #include "SourceLocation.h"

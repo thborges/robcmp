@@ -40,6 +40,7 @@
 
 # Debug files
 *.dSYM/
+.cache/
 
 # Generated
 robcmp
@@ -67,3 +68,4 @@ test/general/temp.spec
 test/avr328p/out
 platformio/toolchain-robcmp/bin
 platformio/toolchain-robcmp/lib
+platformio/avr-gdb-build

@@ -25,7 +25,7 @@
 #include "FunctionCall.h"
 #include "FunctionDecl.h"
 #include "FunctionImpl.h"
-#include "FunctionParams.h"
+#include "Variable.h"
 #include "If.h"
 #include "Int1.h"
 #include "Int8.h"
@@ -60,5 +60,6 @@
 #include "Enum.h"
 #include "MemCopy.h"
 #include "BackLLVM.h"
+#include "NamedConst.h"
 
 extern Node* getNodeForIntConst(int64_t i);

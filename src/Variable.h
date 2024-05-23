@@ -15,6 +15,10 @@ protected:
 
 public:
     Variable(const string &name): NamedNode(name), ident(name) {}
+	
+	Variable(const string &name, DataType dt): NamedNode(name), ident(name) {
+		this->dt = dt;
+	}
 
     virtual Value* getLLVMValue(Node *stem) override;
 	

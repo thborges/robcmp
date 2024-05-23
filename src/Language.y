@@ -143,7 +143,11 @@ function_params: %empty {
 }
 
 function_param : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] {
-	$$ = new FunctionParam($id, buildTypes->getType($type, true));
+	$$ = new Variable($id, buildTypes->getType($type, true));
+}
+
+function_param : TOK_IDENTIFIER[type] '[' ']' TOK_IDENTIFIER[id] {
+	$$ = new ParamArray($id, $type, @type);
 }
 
 register : TOK_REGISTER TOK_IDENTIFIER[type] TOK_IDENTIFIER[name] TOK_AT expr ';' {

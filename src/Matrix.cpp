@@ -3,9 +3,9 @@
 #include "Array.h"
 #include "BinaryOp.h"
 #include "Visitor.h"
-#include "Int16.h"
 #include "BackLLVM.h"
 #include "FunctionImpl.h"
+#include "NamedConst.h"
 
 Matrix::Matrix(const char *n, MatrixElements *me) : LinearDataStructure(n), melements(me) {
 	NamedConst *rows = new NamedConst("rows", getNodeForIntConst(me->getRowCount()));

@@ -50,7 +50,7 @@
 	vector<string> *strings;
 	ArrayElement *ae;
 	MatrixElement *me;
-	FunctionParam *fp;
+	Variable *fp;
 }
 
 %start programa

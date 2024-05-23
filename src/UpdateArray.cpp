@@ -3,6 +3,7 @@
 #include "Coercion.h"
 #include "Array.h"
 #include "FunctionImpl.h"
+#include "HeaderGlobals.h"
 
 UpdateArray::UpdateArray(const char *i, Node *pos, Node *expr): ident(i), position(pos), expr(expr) {
 	addChild(pos);
@@ -25,8 +26,8 @@ Value *UpdateArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *
 			ty = aux->getValueType();
 
 		ArrayType *arrayTy = NULL;
-		if (ty->isArrayTy()) {
-			arrayTy = (ArrayType*)ty;
+		if (buildTypes->isArray(rsym->getDataType())) {
+			arrayTy = (ArrayType*)buildTypes->llvmType(rsym->getDataType());
 		}
 		else {
 			yyerrorcpp("Symbol " + ident.getFullName() + " is not an array.", this);
@@ -40,13 +41,21 @@ Value *UpdateArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *
 			return NULL;
 		}
 
-		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
-
-		Value* indexList[2] = {zero, indice};
-		GetElementPtrInst* ptr = GetElementPtrInst::Create(arrayTy, sym, ArrayRef<Value*>(indexList), "", block);
 		Value *val = expr->generate(func, block, allocblock);
 		val = Coercion::Convert(val, arrayTy->getArrayElementType(), block, this);
-		StoreInst *store = new StoreInst(val, ptr, false, block);
+
+		RobDbgInfo.emitLocation(this);
+		Builder->SetInsertPoint(block);
+
+		if (rsym->isPointerToPointer()) {
+			Type *ty = buildTypes->llvmType(rsym->getDataType())->getPointerTo();	
+			sym = Builder->CreateLoad(ty, sym, rsym->hasQualifier(qvolatile), "deref");
+		}
+
+		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
+		Value *indexList[2] = {zero, indice};
+		Value *ptr = Builder->CreateGEP(arrayTy, sym, ArrayRef<Value*>(indexList), "gep");
+		StoreInst *store = Builder->CreateStore(val, ptr, false);
 
 		return store;
 }

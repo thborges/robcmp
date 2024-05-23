@@ -19,4 +19,8 @@ public:
 	virtual bool isConstExpr() override;
 
 	virtual void setLeftValue(Variable *symbol) override;
+
+	virtual const string getName() const override {
+		return ident.getFullName();
+	}
 };

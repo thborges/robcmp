@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BuildTypes.h"
 #include "Node.h"
 #include "FunctionParams.h"
 #include "Variable.h"
@@ -20,6 +21,7 @@ public:
 	FunctionBase(DataType dt, string name, FunctionParams *fp) : NamedNode(name) {
 		this->dt = dt;
 		this->parameters = fp;
+		addPseudoParameters();
 	}
 
 	FunctionBase(DataType dt, string name, FunctionParams *fp, vector<Node*> &&stmts,
@@ -28,6 +30,25 @@ public:
 		this->dt = dt;
 		this->parameters = fp;
 		this->constructor = constructor;
+		addPseudoParameters();
+	}
+
+	void addPseudoParameters() {
+		// add a size parameter after each array
+		std::vector<Variable*> const& vparams = this->parameters->getParameters();
+		for (int i = 0; i < vparams.size(); ++i) {
+			Variable *p = vparams[i];
+			if (buildTypes->isArray(p->getDataType())) {
+				string psizename = p->getName() + ".size";
+				
+				//TODO: There is something better than fix this to Int32? Fix here and in FunctionCall::generate
+				Variable *sizep = new Variable(psizename.c_str(), tint32); 
+				this->parameters->insert(i+1, sizep);
+
+				// add a pseudo symbol to resolve to pname.size
+				p->addSymbol("size", sizep);
+			}
+		}
 	}
 
 	FunctionParams& getParameters() {

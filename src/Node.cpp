@@ -59,10 +59,14 @@ void Node::addChild(Node *n, bool prepend) {
 }
 
 void Node::addSymbol(NamedNode *nm) {
+	addSymbol(nm->getName(), nm);
+}
+
+void Node::addSymbol(const string& label, NamedNode *nm) {
     // if the variable is already defined here or in a parent
 	// scope, don't add it again.
-    if (!findSymbol(nm->getName(), true)) {
-		symbols[nm->getName()] = nm;
+    if (!findSymbol(label, true)) {
+		symbols[label] = nm;
     }
 }
 

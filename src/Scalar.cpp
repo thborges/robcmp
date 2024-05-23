@@ -16,8 +16,6 @@ Scalar::Scalar(const char* ident, Node *e): Variable(ident), expr(e) {
 
 Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
-	RobDbgInfo.emitLocation(this);
-
 	Node *isymbol = ident.getSymbol(getScope());
 	Variable *symbol = dynamic_cast<Variable*>(isymbol);
 	if (!symbol)
@@ -89,6 +87,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 				}
 			}
 		} else {
+			RobDbgInfo.emitLocation(this);
 			Builder->SetInsertPoint(allocblock);
 			AllocaInst *temp = Builder->CreateAlloca(exprv->getType(), dataAddrSpace, 0, name);
 			temp->setAlignment(Align(1));
@@ -130,6 +129,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 		if (pm == pm_pointer)
 			currty = currty->getPointerTo();
 
+		RobDbgInfo.emitLocation(this);
 		Builder->SetInsertPoint(block);
 		Value *nvalue = NULL;
 
@@ -168,6 +168,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			nvalue = Coercion::Convert(exprv, currty, block, symbol);
 		}
 
+		RobDbgInfo.emitLocation(this);
 		return Builder->CreateStore(nvalue, alloc, symbol->hasQualifier(qvolatile));
 	}
 }

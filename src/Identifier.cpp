@@ -3,6 +3,9 @@
 
 Node* Identifier::getSymbol(Node *scope, bool validate) {
 
+    if (scope == NULL)
+        assert("scope can't be null!");
+
     Node *result = scope;
     stringstream ss(ident);
     string ci;

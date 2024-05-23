@@ -14,7 +14,7 @@ Program::Program() {
 		mainmodule->addModuleFlag(Module::Warning, "Debug Info Version", DEBUG_METADATA_VERSION);
 		mainmodule->addModuleFlag(Module::Warning, "Dwarf Version", 4);
 		DBuilder = make_unique<DIBuilder>(*mainmodule);
-		RobDbgInfo.cunit = DBuilder->createCompileUnit(dwarf::DW_LANG_C,
+		RobDbgInfo.cunit = DBuilder->createCompileUnit(dwarf::DW_LANG_C11,
 			DBuilder->createFile(this->getFile(), std::filesystem::current_path().string()),
 			"Robcmp", false, "", 0);
 
@@ -156,7 +156,7 @@ void Program::generate() {
 
 	for(auto n: children()) {
 		if (FunctionImpl *func = dynamic_cast<FunctionImpl*>(n)) {
-			if (func->getName() == "main" || func->getName() == "__main") {
+			if (injections.size() > 0 && (func->getName() == "main" || func->getName() == "__main")) {
 				generateInjectionSetup();
 				FunctionCall *fc = new FunctionCall(":injections", new ParamsCall());
 				fc->setScope(func);

@@ -2,7 +2,6 @@
 #include "Language_gen_y.hpp"
 
 #include "BinaryOp.h"
-#include "Int8.h"
 #include "Coercion.h"
 
 BinaryOp::BinaryOp(Node *l, int op, Node *r) {
@@ -56,6 +55,7 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 				c = dyn_cast<Constant>(v);
 			}
 			if (c) {
+				RobDbgInfo.emitLocation(this);
 				int64_t v = c->getUniqueInteger().getZExtValue();
 				if (Ty1->getIntegerBitWidth() < v) {
 					if (v >= 8 && v <= 15)
@@ -79,6 +79,7 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 		llvmop = opint;
 	}
 	else {
+		RobDbgInfo.emitLocation(this);
 		if (Ty1->isIntegerTy())
 			lhs = Builder->CreateSIToFP(lhs, Ty2, "castitof");
 		else if (Ty2->isIntegerTy())
@@ -108,6 +109,7 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 		}
 	}
 	
+	RobDbgInfo.emitLocation(this);
 	return Builder->CreateBinOp(llvmop, lhs, rhs, "binop");
 }
 
@@ -150,7 +152,6 @@ DataType BinaryOp::getDataType() {
 }
 
 Value *BinaryOp::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
-	RobDbgInfo.emitLocation(this);
 	switch (op) {
 		case '+' : return binary_operator(Instruction::Add, Instruction::FAdd, func, block, allocblock);
 		case '-' : return binary_operator(Instruction::Sub, Instruction::FSub, func, block, allocblock);

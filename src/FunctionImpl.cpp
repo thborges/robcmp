@@ -87,14 +87,12 @@ bool FunctionImpl::preGenerate() {
 
 	unsigned Idx = 0;
 	for (auto &Arg : func->args()) {
-		FunctionParam *fp = parameters->getParameters()[Idx];
+		Variable *fp = parameters->getParameters()[Idx];
 		DataType ptype = fp->getDataType();
 		const string& argname = fp->getName();
 
-		Arg.setName(argname);
-
 		Type *talloc = buildTypes->llvmType(ptype);
-		if (buildTypes->isComplex(ptype)) {
+		if (buildTypes->isComplex(ptype) || buildTypes->isArray(ptype)) {
 			talloc = talloc->getPointerTo();
 			fp->setPointerToPointer(true);
 		}
@@ -111,8 +109,12 @@ bool FunctionImpl::preGenerate() {
 		Builder->CreateStore(&Arg, variable, false);
 
 		if (debug_info) {
+			DIType *dit = buildTypes->diType(ptype);
+			if (buildTypes->isComplex(ptype) || buildTypes->isArray(ptype))
+				dit = buildTypes->diPointerType(ptype);
+
 			DILocalVariable *d = DBuilder->createParameterVariable(sp, argname, Idx+1, funit,
-				this->getLineNo(), buildTypes->diType(ptype), true);
+				this->getLineNo(), dit, true);
 			DBuilder->insertDeclare(variable, d, RobDbgInfo.getFixedOffsetExpression(),
 				DILocation::get(sp->getContext(), this->getLineNo(), 0, sp),
 				falloc);
@@ -167,7 +169,7 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 DISubroutineType *FunctionImpl::getFunctionDIType() {
 	SmallVector<Metadata*, 8> Tys;
 	Tys.push_back(buildTypes->diType(dt)); // return type
-	for(FunctionParam *p : parameters->getParameters()) {
+	for(Variable *p : parameters->getParameters()) {
 		Tys.push_back(buildTypes->diType(p->getDataType()));
 	}
 	return DBuilder->createSubroutineType(DBuilder->getOrCreateTypeArray(Tys));
@@ -186,7 +188,7 @@ bool FunctionImpl::validateImplementation(FunctionDecl *decl) {
 	}
 	int compareno = std::min(pnum_impl, pnum_decl);
 	for(int i = 0; i < compareno; i++) {
-		FunctionParam *p = decl_parameters.getParameters()[i];
+		Variable *p = decl_parameters.getParameters()[i];
 		if (p->getDataType() != parameters->getParamType(i)) {
 			yyerrorcpp(string_format("Argument %s has distinct type in declaration '%s' and definition '%s'.",
 				parameters->getParamName(i).c_str(), buildTypes->name(p->getDataType()), 
@@ -208,7 +210,7 @@ bool FunctionImpl::validateImplementation(FunctionDecl *decl) {
 
 void FunctionImpl::addParentArgument(DataType dt) {
 	parentArgDt = dt;
-	FunctionParam *fp = new FunctionParam(":parent", dt);
+	Variable *fp = new Variable(":parent", dt);
 	fp->setScope(this);
 	parameters->append(fp);
 	symbols[fp->getName()] = fp;

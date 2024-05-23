@@ -4,28 +4,27 @@
 
 void FunctionBase::addThisArgument(DataType dt) {
 	thisArgDt = dt;
-	FunctionParam *fp = new FunctionParam(":this", dt);
+	Variable *fp = new Variable(":this", dt);
 	fp->setScope(this);
 	parameters->append(fp);
 	symbols[fp->getName()] = fp;
 }
 
-
 bool FunctionBase::validateAndGetArgsTypes(std::vector<Type*> &argsty) {
 	bool valid = true;
 	Type *xtype = buildTypes->llvmType(dt);
 	if (!xtype) {
-		yyerrorcpp(string_format("Type %s not defined.", buildTypes->name(dt)), this);
+		yyerrorcpp(string_format("Type %s is not defined.", buildTypes->name(dt)), this);
 		valid = false;
 	}
 	for (int i = 0; i < parameters->getParameters().size(); i++) {
 		DataType dt = parameters->getParamType(i);
 		Type *atype = buildTypes->llvmType(dt);
-		if (buildTypes->isComplex(dt)) {
+		if (buildTypes->isComplex(dt) || buildTypes->isArray(dt)) {
 			atype = atype->getPointerTo();
 		}
 		if (!atype) {
-			yyerrorcpp(string_format("Type %s for argument %s not defined.",
+			yyerrorcpp(string_format("Type %s for argument %s is not defined.",
 				buildTypes->name(dt), parameters->getParamName(i).c_str()), this);
 			valid = false;
 		} else {

@@ -3,36 +3,20 @@
 #include "Node.h"
 #include "Variable.h"
 
-class FunctionParam: public Variable {
-public:
-	FunctionParam(const char *name, DataType dt): Variable(name) {
-		this->dt = dt;
-	}
-		
-	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
-		return NULL;
-	}
-
-	void setAlloca(Value *alloc) {
-		this->alloc = alloc;
-	}
-
-	friend class FunctionImpl;
-};
-
 class FunctionParams {
 private:
-	std::vector<FunctionParam*> parameters;
+	std::vector<Variable*> parameters;
 
 public:
 	FunctionParams();
-	void append(FunctionParam *fp);
+	void append(Variable *fp);
+	void insert(int at, Variable *fp);
 	
 	unsigned getNumCodedParams();
 	DataType getParamType (int position);
 	const string getParamName (int position);
 
-	std::vector<FunctionParam*> const& getParameters() {
+	std::vector<Variable*> const& getParameters() {
 		return parameters;
 	}
 };

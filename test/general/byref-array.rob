@@ -1,0 +1,26 @@
+
+int32 sum_array(int16[] a);
+
+int8 main() {
+    x = {int16(0), 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    if sum_array(x) == 45 + 1 + 10 {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+int32 pass_array_pointer(int16[] b) {
+    result = b[1] + b.size;
+    return result;
+}
+
+int32 sum_array(int16[] a) {
+    i = 0;
+    result = int32(0);
+    while i < a.size  {
+        result += a[i];
+        i++;
+    }
+    return result + pass_array_pointer(a);
+}

@@ -1,4 +1,5 @@
 #include "FunctionCall.h"
+#include "BuildTypes.h"
 #include "Cast.h"
 #include "FunctionDecl.h"
 #include "FunctionImpl.h"
@@ -37,8 +38,7 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
     RobDbgInfo.emitLocation(this);
     string name = ident.getFullName();
 
-
-    // check if it is a cast call
+    // check if it is a cast call: the function name is a primitive type, e.g., int8(x)
     DataType adt = buildTypes->getType(name);
     if (adt != BuildTypes::undefinedType) {
         dt = adt;
@@ -176,19 +176,46 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 
     vector<Value*> args;
     for (int i = 0; i < parameters->getNumParams(); i++){
-        Value *valor = parameters->getParamElement(i)->generate(func, block, allocblock);
+        Node *param = parameters->getParamElement(i);
+        DataType call_dt = param->getDataType();
+        DataType def_dt = fsymbol->getParameters().getParamType(i);
+
+        Value *valor = param->generate(func, block, allocblock);
         if (!valor)
             return NULL;
-            
-        DataType pdt = fsymbol->getParameters().getParamType(i);
-        if (buildTypes->isInterface(pdt)) {
+
+        if (buildTypes->isInterface(call_dt)) {
             valor = Builder->CreateLoad(valor->getType()->getPointerTo(), valor, "defer");
-        } else if (!buildTypes->isComplex(pdt)) {
-            //TODO: we don't support cohercion between user types yet
-            Type *pty = buildTypes->llvmType(pdt);
+        } else if (buildTypes->isComplex(call_dt)) {
+            //we don't support cohercion between user types yet
+            if (call_dt != def_dt) {
+                yyerrorcpp(string_format("Argument %s expects '%s' but '%s' was provided.",
+                    fsymbol->getParameters().getParamName(i).c_str(),
+                    buildTypes->name(def_dt), 
+                    buildTypes->name(call_dt)), this);
+                yywarncpp("The function declaration is here.", fsymbol);
+            }
+        } else if (buildTypes->isArray(call_dt)) {
+            // we pass the address of the first element
+            Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
+            Value *indexList[2] = {zero, zero};
+            Value *ptr = Builder->CreateGEP(param->getLLVMType(), valor, ArrayRef<Value*>(indexList), "gep");
+            valor = ptr;
+        } else {
+            Type *pty = buildTypes->llvmType(def_dt);
             valor = Coercion::Convert(valor, pty, block, this);
         }
         args.push_back(valor);
+
+        // add a size parameter after each array
+        if (buildTypes->isArray(call_dt)) {
+            string psizename = param->getName() + ".size";
+            Load ld(psizename);
+            ld.setScope(func);
+            valor = ld.generate(func, block, allocblock);
+            valor = Coercion::Convert(valor, buildTypes->llvmType(tint32), block, this);
+            args.push_back(valor);
+        }
     }
 
     // this parameter

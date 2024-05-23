@@ -3,8 +3,8 @@
 #include "Coercion.h"
 #include "BackLLVM.h"
 #include "Visitor.h"
-#include "Int16.h"
 #include "FunctionImpl.h"
+#include "NamedConst.h"
 
 Array::Array(const char *n, ArrayElements *aes) : LinearDataStructure(n), elements(aes) {
 	NamedConst *nc = new NamedConst("size", getNodeForIntConst(aes->getArraySize()));
@@ -16,12 +16,14 @@ void Array::createDataType() {
 	if (arrayType != NULL)
 		return;
 
-	//Create an Array of Type Int8, and Size = size.
+	//Create a constant with the array size
 	size = elements->getArraySize();
 	Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size);
 	
 	//Get Type of elements in Array of Elements, and define as I.
 	element_dt = elements->getArrayType();
+	dt = buildTypes->getArrayType(buildTypes->name(element_dt),
+		*this->getLoct(), true);
 	Type* I = buildTypes->llvmType(element_dt);
 
 	//Declare array type.
@@ -89,9 +91,13 @@ Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 
 		if (getGEPIndex() != -1)
 			alloc = getLLVMValue(func);
-		else
+		else {
 			alloc = Builder->CreateAlloca(arrayType, dataAddrSpace, 0, name);
-
+			if (debug_info) {
+				RobDbgInfo.emitLocation(this);
+				RobDbgInfo.declareVar(this, alloc, allocblock);
+			}
+		}
 		RobDbgInfo.emitLocation(this);
 		Builder->SetInsertPoint(block);
 

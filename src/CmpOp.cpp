@@ -6,6 +6,7 @@
 
 CmpOp::CmpOp (Node *l, int op, Node *r) : lexpn(l), rexpn(r) {
 	this->op = op;
+	this->dt = tbool;
 	addChild(lexpn);
 	addChild(rexpn);
 }

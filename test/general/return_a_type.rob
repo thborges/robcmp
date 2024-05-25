@@ -1,0 +1,20 @@
+
+type ta {
+    x = 0;
+    y = 0;
+}
+
+ta get_ta(int8 x, int8 y) {
+    result = ta();
+    result.x = x;
+    result.y = y;
+    return result;
+}
+
+int8 main() {
+    result = get_ta(15, 20);
+    if result.x == 15 and result.y == 20 {
+        return 0;
+    }
+    return 1;
+}

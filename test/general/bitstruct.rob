@@ -26,7 +26,7 @@ int16 main() {
 
 	set_struct_kfield(x);
 
-	if x.c == true and x.k == false and x.j == true {
+	if x.c and !x.k and x.j {
 		return 0;
 	} else {
 		return 1;

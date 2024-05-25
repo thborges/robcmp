@@ -61,6 +61,9 @@ ID {A}({A}|{D})*
 "and"					{ return TOK_AND; }
 "or"					{ return TOK_OR; }
 
+"<<"					{ return TOK_LSHIFT; }
+">>"					{ return TOK_RSHIFT; }
+
 "!"						{ return '!'; }
 "<"						{ return '<'; }
 ">"						{ return '>'; }
@@ -85,8 +88,6 @@ ID {A}({A}|{D})*
 "&"						{ return '&'; }
 "^"						{ return '^'; }
 "~"						{ return '~'; }
-"<<"					{ return TOK_LSHIFT; }
-">>"					{ return TOK_RSHIFT; }
 
 ":"						{ return ':'; }
 "."						{ return '.'; }

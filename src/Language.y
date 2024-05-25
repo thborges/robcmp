@@ -16,7 +16,7 @@
 %type <node> enum enum_item interface_impl
 %type <node> simplevar_decl call_or_cast complexvar_set
 %type <node> term term2 expr factor stmt condblock whileblock logicexpr
-%type <node> logicterm logicfactor TOK_AND TOK_OR event unary
+%type <node> logicterm logicfactor TOK_AND TOK_OR event unary logicunary
 %type <node> bind
 %type <strings> type_impls
 
@@ -224,9 +224,9 @@ type_stmt : simplevar_decl ';'
 		  | interface_impl
 		  | enum
 
-simplevar_decl : TOK_IDENTIFIER[id] '=' expr	{ $$ = new Scalar($id, $expr);   $$->setLocation(@id); }
-simplevar_decl : TOK_IDENTIFIER[id] '=' array	{ $$ = new Array($id, $array);   $$->setLocation(@id); }
-simplevar_decl : TOK_IDENTIFIER[id] '=' matrix	{ $$ = new Matrix($id, $matrix); $$->setLocation(@id); }
+simplevar_decl : TOK_IDENTIFIER[id] '=' logicexpr	{ $$ = new Scalar($id, $logicexpr);	$$->setLocation(@id); }
+simplevar_decl : TOK_IDENTIFIER[id] '=' array		{ $$ = new Array($id, $array);		$$->setLocation(@id); }
+simplevar_decl : TOK_IDENTIFIER[id] '=' matrix		{ $$ = new Matrix($id, $matrix);	$$->setLocation(@id); }
 
 bind : TOK_BIND ident_or_xident[id] TOK_TO ident_or_xident[to] bind_scope[scope] ';' {
 	//extern map<string, vector<pair<string, BindScope>>> injections;
@@ -297,11 +297,10 @@ stmt : ident_or_xident '+' '+' ';'					{ $$ = new Scalar($1, new BinaryOp(new Lo
 	 | whileblock
 	 | interface_impl
 
-complexvar_set : TOK_XIDENTIFIER[id] '=' expr		{ $$ = new Scalar($id, $expr);   $$->setLocation(@id); }
-complexvar_set : TOK_XIDENTIFIER[id] '=' array		{ $$ = new Array($id, $array);   $$->setLocation(@id); }
-complexvar_set : TOK_XIDENTIFIER[id] '=' matrix		{ $$ = new Matrix($id, $matrix); $$->setLocation(@id); }
+complexvar_set : TOK_XIDENTIFIER[id] '=' logicexpr	{ $$ = new Scalar($id, $logicexpr);	$$->setLocation(@id); }
+complexvar_set : TOK_XIDENTIFIER[id] '=' array		{ $$ = new Array($id, $array);		$$->setLocation(@id); }
+complexvar_set : TOK_XIDENTIFIER[id] '=' matrix		{ $$ = new Matrix($id, $matrix);	$$->setLocation(@id); }
 
-returnblock : TOK_RETURN expr			{ $$ = new Return($2); }
 returnblock : TOK_RETURN logicexpr		{ $$ = new Return($2); }
 returnblock : TOK_RETURN				{ $$ = new Return(); }
 
@@ -367,7 +366,11 @@ logicfactor : '(' logicexpr ')'		{ $$ = $2; }
 			| expr '>''=' expr		{ $$ = new CmpOp($1, GE_OP, $4); }
 			| expr '<' expr			{ $$ = new CmpOp($1, LT_OP, $3); }
 			| expr '>' expr			{ $$ = new CmpOp($1, GT_OP, $3); }
+			| expr %expect 1
+			| logicunary
 			;
+
+logicunary : '!' logicfactor { $$ = new BinaryOp(new Int1(1), '-', $2); }
 
 /*
  * Arithmetic
@@ -392,7 +395,7 @@ term2 : term2 '&' factor    { $$ = new BinaryOp($1, '&', $3); }
 	  | factor				{ $$ = $1; }
 	  ;
 
-factor : '(' expr ')'			{ $$ = $2; }
+factor : '(' expr ')' 			{ $$ = $2; }
 	   | ident_or_xident		{ $$ = new Load($1); }
 	   | TOK_TRUE				{ $$ = new Int1(1); }
 	   | TOK_FALSE				{ $$ = new Int1(0); }

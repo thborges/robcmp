@@ -18,6 +18,14 @@ Value *BinaryOp::logical_operator(enum Instruction::BinaryOps op,
 	Value *lhs = lhsn->generate(func, block, allocblock);
 	Value *rhs = rhsn->generate(func, block, allocblock);
 
+	Type *lhsty = lhs->getType();
+	Type *rhsty = rhs->getType();
+	if (!lhsty->isIntegerTy() || !(lhsty->getIntegerBitWidth() == 1))
+		yyerrorcpp("The left side of the logical expression is not boolean.", this);
+	
+	if (!rhsty->isIntegerTy() || !(rhsty->getIntegerBitWidth() == 1))
+		yyerrorcpp("The right side of the logical expression is not boolean.", this);
+
 	Builder->SetInsertPoint(block);
 	return Builder->CreateBinOp(op, lhs, rhs, "logicop");
 }

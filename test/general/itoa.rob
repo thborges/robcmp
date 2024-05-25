@@ -1,9 +1,7 @@
 
-chars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+const chars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
-result = {0:18};
-
-void itoa(int16 value, int8 base) {
+void itoa(int16 value, int8 base, char[] result) {
 	if base < 2 or base > 16 {
 		result[0] = 0;
 		return;
@@ -78,7 +76,7 @@ base16 = {
   {'7', 'f', 'f', 'f',  0 , 0}
 };
 
-bool check10(int8 id) {
+bool check10(int8 id, char[] result) {
 	ret = true;
 	i = 0;
 	while result[i] != 0 and ret == true {
@@ -90,7 +88,7 @@ bool check10(int8 id) {
 	return ret;
 }
 
-bool check16(int8 id) {
+bool check16(int8 id, char[] result) {
 	ret = true;
 	i = 0;
 	while result[i] != 0 and ret == true {
@@ -103,14 +101,15 @@ bool check16(int8 id) {
 }
 
 int16 main() {
+	result = {0:18};
 	ret = true;
 	i = 0;
 	while i < numbers.size and ret == true {
-		itoa(numbers[i], 10);
-		ret = check10(i);
+		itoa(numbers[i], 10, result);
+		ret = check10(i, result);
 		if ret == true {
-			itoa(numbers[i], 16);
-			ret = check16(i);
+			itoa(numbers[i], 16, result);
+			ret = check16(i, result);
 		}
 		i++;
 	}

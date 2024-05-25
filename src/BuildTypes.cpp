@@ -79,6 +79,13 @@ DataType BuildTypes::getArrayType(const string& elementName, SourceLocation n, b
     return undefinedType;
 }
 
+DataType BuildTypes::getArrayElementType(DataType arrayDt) {
+    assert(isArray(arrayDt) && "arrayDt must be an array.");
+    string elementName = name(arrayDt);
+    elementName = elementName.substr(0, elementName.length()-2);
+    return getType(elementName);
+}
+
 DataType BuildTypes::getType(const string& name, bool createUndefined) {
     auto ut = namedTypes.find(name);
     if (ut == namedTypes.end()) {

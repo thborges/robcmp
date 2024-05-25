@@ -96,6 +96,7 @@ public:
 
 	friend class UserType;
 	friend class Program;
+	friend class MemCopy;
 };
 
 class NamedNode: public Node {

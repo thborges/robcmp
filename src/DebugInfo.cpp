@@ -59,6 +59,9 @@ DIExpression *DebugInfo::getFixedOffsetExpression() {
 void DebugInfo::declareVar(Node *n, Value *alloc, BasicBlock *allocblock) {
 	DataType dt = n->getDataType();
 	llvm::DIType *dty = buildTypes->diType(dt);
+	if (n->isPointerToPointer())
+		dty = buildTypes->diPointerType(dt);
+	
 	if (n->hasQualifier(qvolatile)) {
 		dty = DBuilder->createQualifiedType(dwarf::DW_TAG_volatile_type, dty);
 	}

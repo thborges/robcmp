@@ -94,7 +94,9 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			alloc = temp;
 			Builder->SetInsertPoint(block);
 			ret = Builder->CreateStore(exprv, alloc, symbol->hasQualifier(qvolatile));
-			
+
+			symbols = expr->getSymbols();
+
 			if (debug_info)
 				RobDbgInfo.declareVar(this, alloc, allocblock);
 		}

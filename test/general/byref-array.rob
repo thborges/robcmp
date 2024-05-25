@@ -3,15 +3,50 @@ int32 sum_array(int16[] a);
 
 int8 main() {
     x = {int16(0), 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    if sum_array(x) == 45 + 1 + 10 {
-        return 0;
-    } else {
-        return 1;
+
+    // y is a reference to x
+    y = x;
+    i = 0;
+    while i < y.size {
+        if y[i] != x[i] {
+            return 1;
+        }
+        i++;
     }
+
+    // w is a reference to y (same as x)
+    w = y;
+    i = 0;
+    while i < w.size {
+        if w[i] != x[i] {
+            return 1;
+        }
+        i++;
+    }
+
+    // z is a copy of y
+    z = copy(y);
+    i = 0;
+    while i < z.size {
+        z[i] = z[i] + 1;
+        if z[i] != x[i] + 1 {
+            return i;
+        }
+        i++;
+    }
+
+    zt = sum_array(w);
+    if zt != 45 + 18 + 10 {
+        return zt;
+    }
+
+    return 0;
 }
 
 int32 pass_array_pointer(int16[] b) {
-    result = b[1] + b.size;
+    c = b;
+    d = copy(b);
+    result = c[9] + d[9] + b.size;
     return result;
 }
 

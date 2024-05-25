@@ -18,4 +18,8 @@ public:
 	virtual void setLeftValue(Variable *symbol) override;
 	
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
+
+	virtual const string getName() const override {
+		return leftValue->getName();
+	}
 };

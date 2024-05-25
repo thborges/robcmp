@@ -13,21 +13,54 @@ Value* MemCopy::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
     RobDbgInfo.emitLocation(this);
     Builder->SetInsertPoint(block);
 
+    // Get src value
     Value *exprv = expr->generate(func, block, allocblock);
-    dt = expr->getDataType();
     Type *exprvty = exprv->getType();
+    dt = expr->getDataType();
 
+    // Compute the size of src
+    const DataLayout &dl = mainmodule->getDataLayout();
+    Value *size;
+    Value *nelem = NULL;
+
+    if (buildTypes->isArray(dt)) {
+        // Load the array size and compute the bytes to copy
+        DataType eldt = buildTypes->getArrayElementType(dt);
+        TypeSize eltsize = dl.getTypeAllocSize(buildTypes->llvmType(eldt));
+        ConstantInt *elbytes = ConstantInt::get(Type::getInt32Ty(global_context), eltsize);
+        Load ld("size");
+        ld.setScope(expr);
+        nelem = ld.generate(func, allocblock, allocblock);
+        Builder->SetInsertPoint(allocblock);
+        size = Builder->CreateBinOp(Instruction::Mul, elbytes, nelem, "arrsize");
+    } else {
+        TypeSize ts = dl.getTypeAllocSize(buildTypes->llvmType(dt));
+        size = ConstantInt::get(Type::getInt32Ty(global_context), ts);
+    }
+
+    // Prepare dest memory
     Type *leftvty;
-    Builder->SetInsertPoint(block);
     Value *dest = leftValue->getLLVMValue(func);
     if (dest) {
         leftvty = dest->getType();
+        //FIXME: must check the alloc size for array and matrix
     } else {
-        leftvty = buildTypes->llvmType(dt);
         Builder->SetInsertPoint(allocblock);
-        dest = Builder->CreateAlloca(leftvty, dataAddrSpace, nullptr, leftValue->getName());
+        if (buildTypes->isArray(dt)) {
+            DataType eldt = buildTypes->getArrayElementType(dt);
+            dest = Builder->CreateAlloca(buildTypes->llvmType(eldt), dataAddrSpace, nelem, leftValue->getName());
+            leftvty = buildTypes->llvmType(dt)->getPointerTo();
+        } else {
+            leftvty = buildTypes->llvmType(dt);
+            dest = Builder->CreateAlloca(buildTypes->llvmType(dt), dataAddrSpace, nelem, leftValue->getName());
+        }
+        
         leftValue->setAlloca(dest);
         leftValue->setDataType(dt);
+
+        //FIXME: only work for constant symbols
+        leftValue->symbols = expr->getSymbols();
+
         if (debug_info)
             RobDbgInfo.declareVar(this, dest, allocblock);
     }
@@ -38,15 +71,7 @@ Value* MemCopy::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
         return NULL;
     }
 
-    //Builder->SetInsertPoint(allocblock);
-    //Value *srcalloc = Builder->CreateAlloca(exprvty, dataAddrSpace, nullptr, "src");
-
-    //Builder->SetInsertPoint(block);
-    //Value *src = Builder->CreateStore(exprv, srcalloc);
-
-    const DataLayout &dl = mainmodule->getDataLayout();
-    Value *size = ConstantInt::get(Type::getInt32Ty(global_context), dl.getTypeAllocSize(leftvty));
-
+    Builder->SetInsertPoint(block);    
     Builder->CreateMemCpy(dest, Align(1), exprv, Align(1), size);
 
     return NULL;

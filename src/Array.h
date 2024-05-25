@@ -11,7 +11,7 @@ class LinearDataStructure: public Variable {
 protected:
 	DataType element_dt = BuildTypes::undefinedType;
 public:
-	LinearDataStructure(const char *n): Variable(n) {}
+	LinearDataStructure(const string &n): Variable(n) {}
 	virtual Node *getElementIndex(Node *p1, Node *p2) = 0;
 	virtual DataType getElementDt() {
 		return element_dt;
@@ -20,11 +20,16 @@ public:
 
 class ParamArray: public LinearDataStructure {
 public:
-	ParamArray(const char *n, string element_dt_name, location_t loc): LinearDataStructure(n) {
+	ParamArray(const string& n, string element_dt_name, location_t loc): LinearDataStructure(n) {
 		this->element_dt = buildTypes->getType(element_dt_name, true);
 		this->dt = buildTypes->getArrayType(element_dt_name, loc, true);
 	}
-	
+
+	ParamArray(const string &n, DataType dt): LinearDataStructure(n) {
+		this->dt = dt;
+		this->element_dt = buildTypes->getArrayElementType(dt);
+	}
+
 	virtual Node *getElementIndex(Node *p1, Node *p2) override {
 		return p1;
 	}

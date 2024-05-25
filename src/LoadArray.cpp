@@ -1,6 +1,7 @@
 
 #include "LoadArray.h"
 #include "Array.h"
+#include "BuildTypes.h"
 #include "FunctionImpl.h"
 
 LoadArray::LoadArray(const char *i, Node *pos): ident(i), position(pos) {
@@ -9,18 +10,35 @@ LoadArray::LoadArray(const char *i, Node *pos): ident(i), position(pos) {
 
 DataType LoadArray::getDataType() {
 	if (dt == BuildTypes::undefinedType) {
-		if (!rsym)
+		Node *symbol = ident.getSymbol(getScope());
+
+		// temporary fallback while matrix is not modified/fixed
+		if (!symbol || !buildTypes->isArray(symbol->getDataType())) {
 			rsym = dynamic_cast<LinearDataStructure*>(ident.getSymbol(getScope()));
-		if (rsym)
 			dt = rsym->getElementDt();
+		} else
+			dt = buildTypes->getArrayElementType(symbol->getDataType());
 	}
 	return dt;
 }
 
 Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	
-	if (!rsym)
-		rsym = dynamic_cast<LinearDataStructure*>(ident.getSymbol(getScope()));
+	bool localrsym = false;
+
+	if (!rsym) {
+		Node *symbol = ident.getSymbol(getScope());
+		rsym = dynamic_cast<LinearDataStructure*>(symbol);
+		if (!rsym) {
+			// when the array has been assigned to another var
+			if (buildTypes->isArray(symbol->getDataType())) {
+				localrsym = true;
+				rsym = new ParamArray(ident.getFullName(), symbol->getDataType());
+				rsym->setAlloca(symbol->getLLVMValue(NULL));
+				rsym->setPointerToPointer(symbol->isPointerToPointer());
+			}
+		}
+	}
 	if (rsym == NULL) {
 		yyerrorcpp("Variable " + ident.getFullName() + " not defined or not an array/matrix.", this);
 		return NULL;
@@ -46,8 +64,10 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 		alloc = rsym->getLLVMValue(func);
 	}
 
-	if (!alloc)
+	if (!alloc) {
+		yyerrorcpp("Missing the array reference to gep.", this);
 		return NULL;
+	}
 
 	Node *indn = getElementIndex(rsym);
 	Value *indice = indn->generate(func, block, allocblock);
@@ -66,5 +86,9 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 	Value *ptr = Builder->CreateGEP(rsym->getLLVMType(), alloc, ArrayRef<Value*>(indexList), "gep");
 	Type *elemType = buildTypes->llvmType(rsym->getElementDt());
 	LoadInst *ret = Builder->CreateLoad(elemType, ptr, ident.getFullName());
+
+	if (localrsym)
+		delete rsym;
+
 	return ret;
 }

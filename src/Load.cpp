@@ -31,6 +31,7 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 	}
 
 	dt = isymbol->getDataType();
+	symbols = symbol->getSymbols();
 
 	if (block == NULL && (allocblock == NULL || allocblock == global_alloc)) {
 		// trying to load a variable to initialize a global one.
@@ -89,7 +90,7 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 	if (buildTypes->isComplex(sdt) || buildTypes->isArray(sdt)) {
 		if (symbol->isPointerToPointer()) {
 			Type *ty = buildTypes->llvmType(sdt)->getPointerTo();	
-			return Builder->CreateLoad(ty, alloc, symbol->hasQualifier(qvolatile), "deref");
+			alloc = Builder->CreateLoad(ty, alloc, symbol->hasQualifier(qvolatile), "deref");
 		}
 		if (leftValue)
 			leftValue->setPointerToPointer(true);

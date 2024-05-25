@@ -78,6 +78,8 @@ public:
     DataType getArrayType(const string& elementName, SourceLocation n,
         bool createUndefined = false);
 
+    DataType getArrayElementType(DataType arrayDt);
+
     const char *name(DataType tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].name.c_str();

@@ -1,22 +1,17 @@
 
-#include "LoadArray.h"
 #include "Array.h"
+#include "LoadArray.h"
 #include "BuildTypes.h"
 #include "FunctionImpl.h"
 
-LoadArray::LoadArray(const char *i, Node *pos): ident(i), position(pos) {
+LoadArray::LoadArray(const string &i, Node *pos): BaseArrayOper(i, pos, NULL) {
 	addChild(pos);
 }
 
 DataType LoadArray::getDataType() {
 	if (dt == BuildTypes::undefinedType) {
 		Node *symbol = ident.getSymbol(getScope());
-
-		// temporary fallback while matrix is not modified/fixed
-		if (!symbol || !buildTypes->isArray(symbol->getDataType())) {
-			rsym = dynamic_cast<LinearDataStructure*>(ident.getSymbol(getScope()));
-			dt = rsym->getElementDt();
-		} else
+		if (symbol && buildTypes->isArray(symbol->getDataType()))
 			dt = buildTypes->getArrayElementType(symbol->getDataType());
 	}
 	return dt;
@@ -24,23 +19,12 @@ DataType LoadArray::getDataType() {
 
 Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	
-	bool localrsym = false;
+	Node *symbol = ident.getSymbol(getScope());
+	if (!symbol)
+		return NULL;
 
-	if (!rsym) {
-		Node *symbol = ident.getSymbol(getScope());
-		rsym = dynamic_cast<LinearDataStructure*>(symbol);
-		if (!rsym) {
-			// when the array has been assigned to another var
-			if (buildTypes->isArray(symbol->getDataType())) {
-				localrsym = true;
-				rsym = new ParamArray(ident.getFullName(), symbol->getDataType());
-				rsym->setAlloca(symbol->getLLVMValue(NULL));
-				rsym->setPointerToPointer(symbol->isPointerToPointer());
-			}
-		}
-	}
-	if (rsym == NULL) {
-		yyerrorcpp("Variable " + ident.getFullName() + " not defined or not an array/matrix.", this);
+	if (!buildTypes->isArray(symbol->getDataType())) {
+		yyerrorcpp("Variable " + ident.getFullName() + " is not an array or matrix.", this);
 		return NULL;
 	}
 
@@ -51,44 +35,53 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 	if (ident.isComplex()) {
 		Identifier istem = ident.getStem();
 		Node *stem = istem.getSymbol(getScope());
-		alloc = rsym->getLLVMValue(stem);
+		alloc = symbol->getLLVMValue(stem);
 		
 		if (stem->hasQualifier(qvolatile))
-			rsym->setQualifier(qvolatile);
+			symbol->setQualifier(qvolatile);
 		
 		// TODO: When accessing a.x.func(), need to load a and gep x
 		//Load loadstem(ident.getStem());
 		//loadstem.setParent(this->parent);
 		//stem = loadstem.generate(func, block, allocblock);
 	} else {
-		alloc = rsym->getLLVMValue(func);
+		alloc = symbol->getLLVMValue(func);
 	}
 
 	if (!alloc) {
+		// this is a compiler error
 		yyerrorcpp("Missing the array reference to gep.", this);
 		return NULL;
 	}
 
-	Node *indn = getElementIndex(rsym);
+	Node *indn = getElementIndex(symbol);
 	Value *indice = indn->generate(func, block, allocblock);
-	if (!indice || !indice->getType()->isIntegerTy()){
+	if (!indice || !indice->getType()->isIntegerTy()) { //TODO: replace by isIntegerDataType
 		yyerrorcpp("Index to access " + ident.getFullName() + " elements must be of type integer.", this);
 		return NULL;
 	}
 
-	if (rsym->isPointerToPointer()) {
-		Type *ty = buildTypes->llvmType(rsym->getDataType())->getPointerTo();	
-		alloc = Builder->CreateLoad(ty, alloc, rsym->hasQualifier(qvolatile), "deref");
+	if (symbol->isPointerToPointer()) {
+		Type *ty = buildTypes->llvmType(symbol->getDataType())->getPointerTo();	
+		alloc = Builder->CreateLoad(ty, alloc, symbol->hasQualifier(qvolatile), "deref");
 	}
 
 	Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 	Value *indexList[2] = {zero, indice};
-	Value *ptr = Builder->CreateGEP(rsym->getLLVMType(), alloc, ArrayRef<Value*>(indexList), "gep");
-	Type *elemType = buildTypes->llvmType(rsym->getElementDt());
+	Value *ptr = Builder->CreateGEP(symbol->getLLVMType(), alloc, ArrayRef<Value*>(indexList), "gep");
+	DataType elementDt = buildTypes->getArrayElementType(symbol->getDataType());
+	Type *elemType = buildTypes->llvmType(elementDt);
 	LoadInst *ret = Builder->CreateLoad(elemType, ptr, ident.getFullName());
 
-	if (localrsym)
-		delete rsym;
-
 	return ret;
+}
+
+Node* BaseArrayOper::getElementIndex(const Node *symbol) {
+	
+	// Get element
+	int rows = -1;
+	if (const Array *arr = dynamic_cast<const Array*>(symbol))
+		rows = arr->getSize();
+
+	return Array::getElementIndex(position, NULL, ident.getFullName(), rows);
 }

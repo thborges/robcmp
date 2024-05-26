@@ -29,8 +29,6 @@ BuildTypes::BuildTypes(DataType targetPointerType) {
     tinfo[tldouble] = {"long double", 128, Type::getFP128Ty(global_context),   dwarf::DW_ATE_float};
 
     unsigned pts = tinfo[targetPointerType].bitWidth;
-    Type *pty = tinfo[targetPointerType].llvmType;
-    tinfo[tarray]   = {"array", pts, pty, dwarf::DW_ATE_address};
 
     const DataLayout &dl = mainmodule->getDataLayout();
     for(int t = 0; t < __bdt_last; t++) {

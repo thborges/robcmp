@@ -33,7 +33,6 @@ class Loop;
 class UserType;
 class Variable;
 class NamedConst;
-class LinearDataStructure;
 
 #define VISITOR_DECLAREP(T, P) \
 	virtual void visit(T& n) { visit((P&)n); } \
@@ -84,9 +83,8 @@ public:
 	VISITOR_DECLAREP(FunctionDecl, FunctionBase)
 	VISITOR_DECLAREP(UserType, NamedNode)
 	VISITOR_DECLAREP(FunctionImpl, FunctionBase)
-	VISITOR_DECLAREP(LinearDataStructure, Variable)
-	VISITOR_DECLAREP(Array, LinearDataStructure)
-	VISITOR_DECLAREP(Matrix, LinearDataStructure)
+	VISITOR_DECLAREP(Array, Variable)
+	VISITOR_DECLAREP(Matrix, Variable)
 
 };
 

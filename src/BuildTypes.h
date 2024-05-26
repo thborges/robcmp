@@ -9,7 +9,7 @@ typedef int DataType;
 
 enum BasicDataType {tvoid, tbool, tchar, tint2, tint3, tint4, tint5, tint6, tint7, 
   tint8, tint16, tint32, tint64, tint8u, tint16u, tint32u, tint64u, 
-  tfloat, tdouble, tldouble, tarray,
+  tfloat, tdouble, tldouble,
   /* new types here! */
   __bdt_last};
 

@@ -2,22 +2,37 @@
 #pragma once
 
 #include "Node.h"
-#include "Array.h"
 #include "Identifier.h"
 
-class LoadArray: public Node {
+class BaseArrayOper: public Node {
 protected:
 	Identifier ident;
 	Node *position;
-	LinearDataStructure *rsym = NULL;
+	Node *position2;
 public:
-	LoadArray(const char *i, Node *pos);
+	BaseArrayOper(const string& i, Node *pos, Node *pos2): ident(i), position(pos),
+		position2(pos2) {}
+	
+	virtual Node* getElementIndex(const Node *symbol);
+
+	Node *getPosition() {
+		return position;
+	}
+	
+	Node *getPosition2() {
+		return position2;
+	}
+
+	const string getIdent() {
+		return ident.getFullName();
+	}
+};
+
+class LoadArray: public BaseArrayOper {
+public:
+	LoadArray(const string& i, Node *pos);
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
-
-	virtual Node *getElementIndex(LinearDataStructure *arr) {
-		return arr->getElementIndex(position, NULL);
-	}
 
 	virtual DataType getDataType() override;
 };

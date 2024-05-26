@@ -2,16 +2,16 @@
 #pragma once
 
 #include "Node.h"
+#include "UpdateArray.h"
+#include "LoadMatrix.h"
 
 class UpdateMatrix: public UpdateArray {
-private:
-    Node *position2;
 public:
-	UpdateMatrix(const char *i, Node *p1, Node *p2, Node *expr) : UpdateArray(i, p1, expr) {
+	UpdateMatrix(const string &i, Node *p1, Node *p2, Node *expr) : UpdateArray(i, p1, expr) {
         this->position2 = p2;
     }
 
-	virtual Node *getElementIndex(LinearDataStructure *arr) override {
-		return arr->getElementIndex(position, position2);
+	virtual Node* getElementIndex(const Node *symbol) override {
+		return LoadMatrix::getElementIndexMatrix(this, symbol);
 	}
 };

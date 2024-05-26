@@ -5,11 +5,17 @@
 #include "Visitor.h"
 #include "FunctionImpl.h"
 #include "NamedConst.h"
+#include "BinaryOp.h"
 
-Array::Array(const char *n, ArrayElements *aes) : LinearDataStructure(n), elements(aes) {
+Array::Array(const string& n, ArrayElements *aes) : Variable(n), elements(aes) {
 	NamedConst *nc = new NamedConst("size", getNodeForIntConst(aes->getArraySize()));
 	addChild(nc);
-	dt = tarray;
+}
+
+DataType Array::getDataType() {
+	if (arrayType == NULL)
+		createDataType();
+	return dt;
 }
 
 void Array::createDataType() {
@@ -79,7 +85,7 @@ Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 		alloc = gv;
 
 		if (debug_info) {
-			auto di_ptr = DBuilder->createPointerType(buildTypes->diType(getElementDt()), 
+			auto di_ptr = DBuilder->createPointerType(buildTypes->diType(element_dt), 
 				buildTypes->bitWidth(currentTarget().pointerType));
 			auto *d = DBuilder->createGlobalVariableExpression(sp, name, "",
 				funit, this->getLineNo(), di_ptr, false);
@@ -124,14 +130,33 @@ Type* Array::getLLVMType() {
 	return arrayType;
 }
 
-Node *Array::getElementIndex(Node *p1, Node *p2) {
-	if (p1->isConstExpr()) {
+Node *Array::getElementIndex(Node *p1, Node *p2, const string& name, int p1size, int p2size,
+	Node *columnNumber) {
+
+	// if constant, validate indexes
+	if (p1->isConstExpr() && p1size != -1) {
 		Value *p1v = p1->generate(NULL, NULL, NULL);
 		Constant *c = dyn_cast<Constant>(p1v);
 		int64_t v = c->getUniqueInteger().getZExtValue();
-		if (v >= size) {
-			yyerrorcpp(string_format("Array %s index (%d) out of bounds.", name.c_str(), v), p1);
+		if (v >= p1size) {
+			yyerrorcpp(string_format("Index (%d) for %s is out of bounds.",
+				v, name.c_str()), p1);
 		}
 	}
-	return p1;
+
+	if (p2 && p2->isConstExpr() && p2size != -1) {
+		Value *p1v = p2->generate(NULL, NULL, NULL);
+		Constant *c = dyn_cast<Constant>(p1v);
+		int64_t v = c->getUniqueInteger().getZExtValue();
+		if (v >= p2size) {
+			yyerrorcpp(string_format("Index (%d) for %s is out of bounds.",
+				v, name.c_str()), p2);
+		}
+	}
+
+	if (!p2) // is an array
+		return p1;
+
+	// Generate index of element for matrix
+	return new BinaryOp(new BinaryOp(p1, '*', columnNumber), '+', p2);
 }

@@ -28,7 +28,7 @@ struct DataTypeInfo {
     bool isComplex;
     bool isInterface;
     bool isInternal;
-    bool isArray;
+    unsigned char arrayDimensions;
 
     DataTypeInfo() {}
 
@@ -43,13 +43,13 @@ struct DataTypeInfo {
         this->isComplex = false;
         this->isInternal = false;
         this->isInterface = false;
-        this->isArray = false;
+        this->arrayDimensions = 0;
     }
 
     DataTypeInfo(const char* name, unsigned bitWidth, Type *llvmType, unsigned dwarfEnc):
         name(name), bitWidth(bitWidth), llvmType(llvmType), dwarfEnc(dwarfEnc), diType(NULL),
         diPointerType(NULL), sl(NULL), isDefined(true), isComplex(false), isInternal(false),
-        isInterface(false), isArray(false) {};
+        isInterface(false), arrayDimensions(0) {};
 };
 
 class BuildTypes {
@@ -76,7 +76,7 @@ public:
     DataType getType(const string& name, bool createUndefined = false);
 
     DataType getArrayType(const string& elementName, SourceLocation n,
-        bool createUndefined = false);
+        unsigned char dimensions, bool createUndefined = false);
 
     DataType getArrayElementType(DataType arrayDt);
 
@@ -150,7 +150,22 @@ public:
 
     bool isArray(DataType tid) {
         assert(tid != -1 && "Undefined type");
-        return tinfo[tid].isArray;
+        return tinfo[tid].arrayDimensions == 1;
+    }
+
+    bool isMatrix(DataType tid) {
+        assert(tid != -1 && "Undefined type");
+        return tinfo[tid].arrayDimensions == 2;
+    }
+
+    bool isArrayOrMatrix(DataType tid) {
+        assert(tid != -1 && "Undefined type");
+        return tinfo[tid].arrayDimensions > 0;
+    }
+
+    unsigned char dimensions(DataType tid) {
+        assert(tid != -1 && "Undefined type");
+        return tinfo[tid].arrayDimensions; 
     }
 };
 

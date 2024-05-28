@@ -76,23 +76,11 @@ base16 = {
   {'7', 'f', 'f', 'f',  0 , 0}
 };
 
-bool check10(int8 id, char[] result) {
+bool check(int8 id, char[][] expected, char[] result) {
 	ret = true;
 	i = 0;
-	while result[i] != 0 and ret == true {
-		if result[i] != base10[id][i] {
-			ret = false;
-		}
-		i++;
-	}
-	return ret;
-}
-
-bool check16(int8 id, char[] result) {
-	ret = true;
-	i = 0;
-	while result[i] != 0 and ret == true {
-		if result[i] != base16[id][i] {
+	while result[i] != 0 and ret {
+		if result[i] != expected[id][i] {
 			ret = false;
 		}
 		i++;
@@ -101,19 +89,19 @@ bool check16(int8 id, char[] result) {
 }
 
 int16 main() {
-	result = {0:18};
+	result = {'\0':18};
 	ret = true;
 	i = 0;
-	while i < numbers.size and ret == true {
+	while i < numbers.size and ret {
 		itoa(numbers[i], 10, result);
-		ret = check10(i, result);
-		if ret == true {
+		ret = check(i, base10, result);
+		if ret {
 			itoa(numbers[i], 16, result);
-			ret = check16(i, result);
+			ret = check(i, base16, result);
 		}
 		i++;
 	}
-	if ret == true {
+	if ret {
 		return 0;
 	} else {
 		return 1;

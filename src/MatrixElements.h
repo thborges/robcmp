@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include "Node.h"
 #include "ArrayElements.h"
 
 class MatrixElement {
@@ -14,8 +13,9 @@ public:
 class MatrixElements {
 private:
 	std::vector<MatrixElement*> elements;
+	SourceLocation location;
 public:
-	MatrixElements();
+	MatrixElements(location_t loc);
 	void append(MatrixElement *m);
 	
 	unsigned getColumnCount();

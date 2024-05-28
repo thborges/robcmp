@@ -92,7 +92,7 @@ bool FunctionImpl::preGenerate() {
 		const string& argname = fp->getName();
 
 		Type *talloc = buildTypes->llvmType(ptype);
-		if (buildTypes->isComplex(ptype) || buildTypes->isArray(ptype)) {
+		if (buildTypes->isComplex(ptype) || buildTypes->isArrayOrMatrix(ptype)) {
 			talloc = talloc->getPointerTo();
 			fp->setPointerToPointer(true);
 		}
@@ -110,7 +110,7 @@ bool FunctionImpl::preGenerate() {
 
 		if (debug_info) {
 			DIType *dit = buildTypes->diType(ptype);
-			if (buildTypes->isComplex(ptype) || buildTypes->isArray(ptype))
+			if (buildTypes->isComplex(ptype) || buildTypes->isArrayOrMatrix(ptype))
 				dit = buildTypes->diPointerType(ptype);
 
 			DILocalVariable *d = DBuilder->createParameterVariable(sp, argname, Idx+1, funit,

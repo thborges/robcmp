@@ -80,8 +80,13 @@ Value *Matrix::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 
 		if (getGEPIndex() != -1)
 			alloc = getLLVMValue(func);
-		else
+		else {
 			alloc = Builder->CreateAlloca(matrixType, dataAddrSpace, 0, name);
+			if (debug_info) {
+				RobDbgInfo.emitLocation(this);
+				RobDbgInfo.declareVar(this, alloc, allocblock);
+			}
+		}
 
 		RobDbgInfo.emitLocation(this);
 		Builder->SetInsertPoint(block);
@@ -118,7 +123,7 @@ void Matrix::createDataType() {
 	//Get Type of elements in Vector of Elements, and define as I.
 	element_dt = melements->getMatrixType();
 	dt = buildTypes->getArrayType(buildTypes->name(element_dt),
-		*this->getLoct(), true);
+		*this->getLoct(), 2, true);
 	Type* I = buildTypes->llvmType(element_dt);
 	
 	// The matrix type and size

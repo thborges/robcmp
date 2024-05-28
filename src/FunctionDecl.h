@@ -4,6 +4,7 @@
 #include "Node.h"
 #include "FunctionParams.h"
 #include "Variable.h"
+#include "Matrix.h"
 
 class FunctionBase: public NamedNode {
 protected:
@@ -34,19 +35,37 @@ public:
 	}
 
 	void addPseudoParameters() {
-		// add a size parameter after each array
+        // add a size parameter after each array, or .rows and .cols for matrixes
 		std::vector<Variable*> const& vparams = this->parameters->getParameters();
 		for (int i = 0; i < vparams.size(); ++i) {
 			Variable *p = vparams[i];
-			if (buildTypes->isArray(p->getDataType())) {
-				string psizename = p->getName() + ".size";
-				
-				//TODO: There is something better than fix this to Int32? Fix here and in FunctionCall::generate
-				Variable *sizep = new Variable(psizename.c_str(), tint32); 
-				this->parameters->insert(i+1, sizep);
 
-				// add a pseudo symbol to resolve to pname.size
-				p->addSymbol("size", sizep);
+			DataType pdt = p->getDataType();
+	        if (buildTypes->isArrayOrMatrix(pdt)) {
+				vector<string> pseudos;
+				if (buildTypes->isArray(pdt))
+					pseudos.push_back("size");
+				else if (buildTypes->isMatrix(pdt)) {
+					// let it inverted here, because of the insert below (i+1)
+					pseudos.push_back("cols");
+					pseudos.push_back("rows");
+				}
+
+            	for(const string& s: pseudos) {
+					//TODO: There is something better than fix this to Int32? Fix here and in FunctionCall::generate
+					string spname = p->getName() + "." + s;
+					Variable *sp = new Variable(spname, tint32); 
+					this->parameters->insert(i+1, sp);
+
+					// add a pseudo symbol to resolve to pname.s
+					p->addSymbol(s, sp);
+				}
+
+				// ParamMatrix need to know the number of cols to compute element indexes
+				if (buildTypes->isMatrix(pdt)) {
+					if (ParamMatrix *pm = dynamic_cast<ParamMatrix*>(p))
+						pm->setCols(vparams[i+2]);
+				}
 			}
 		}
 	}

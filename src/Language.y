@@ -30,7 +30,7 @@
 %type <pc> paramscall
 
 %type <ident> TOK_IDENTIFIER TOK_XIDENTIFIER ident_or_xident
-%type <nint> TOK_INTEGER qualifier bind_scope
+%type <nint> TOK_INTEGER TOK_CHAR qualifier bind_scope
 %type <nfloat> TOK_FLOAT
 %type <ndouble> TOK_DOUBLE
 %type <nldouble> TOK_LDOUBLE
@@ -150,6 +150,10 @@ function_param : TOK_IDENTIFIER[type] '[' ']' TOK_IDENTIFIER[id] {
 	$$ = new ParamArray($id, $type, @type);
 }
 
+function_param : TOK_IDENTIFIER[type] '[' ']' '[' ']' TOK_IDENTIFIER[id] {
+	$$ = new ParamMatrix($id, $type, @type);
+}
+
 register : TOK_REGISTER TOK_IDENTIFIER[type] TOK_IDENTIFIER[name] TOK_AT expr ';' {
 	$$ = new Pointer($name, buildTypes->getType($type, true), $5);
 	$$->setQualifier(qvolatile);
@@ -245,7 +249,7 @@ melements : melements ',' melement {
 }
 
 melements : melement {
-	MatrixElements *mes = new MatrixElements();
+	MatrixElements *mes = new MatrixElements(@melements);
 	mes->append($1);
 	$$ = mes;
 }
@@ -257,7 +261,7 @@ relements : '{' elements '}'			{ $$ = $2; }
 
 elements : elements ',' element			{ $1->append($3);
 										  $$ = $1; }
-		 | element						{ ArrayElements *aes = new ArrayElements();
+		 | element						{ ArrayElements *aes = new ArrayElements(@element);
 										  aes->append($1);
 										  $$ = aes; }
 
@@ -399,6 +403,7 @@ factor : '(' expr ')' 			{ $$ = $2; }
 	   | ident_or_xident		{ $$ = new Load($1); }
 	   | TOK_TRUE				{ $$ = new Int1(1); }
 	   | TOK_FALSE				{ $$ = new Int1(0); }
+	   | TOK_CHAR				{ $$ = new Char($1); }
 	   | TOK_INTEGER			{ $$ = getNodeForIntConst($1); }
 	   | TOK_FLOAT				{ $$ = new Float($1); }
 	   | TOK_DOUBLE				{ $$ = new Double($1); }

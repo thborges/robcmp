@@ -1,7 +1,7 @@
 
 #include "MatrixElements.h"
 
-MatrixElements::MatrixElements() {};
+MatrixElements::MatrixElements(location_t loc): location(loc) {};
 
 void MatrixElements::append(MatrixElement *m) {
 	elements.push_back(m);
@@ -28,41 +28,13 @@ unsigned MatrixElements::getColumnCount() {
 }
 
 DataType MatrixElements::getMatrixType() {
-	unsigned intsize = 0;
-	unsigned floatsize = 0;
+	set<DataType> types;
 	for(auto& j : elements) {
 		for (auto& i : j->array->getElements()) {
-			DataType dt = i->value->getDataType();
-			if (buildTypes->isIntegerDataType(dt) && intsize < buildTypes->bitWidth(dt))
-				intsize = buildTypes->bitWidth(dt);
-			
-			if (floatsize < 32 && dt == tfloat)
-				floatsize = 32;
-			else if (floatsize < 64 && dt == tdouble)
-				floatsize = 64;
-			else if (floatsize < 128 && dt == tldouble)
-				floatsize = 128;
+			types.emplace(i->value->getDataType());
 		}
 	}
-	if (intsize == 0 && floatsize == 0) {
-		yyerrorcpp("FIXME: vector of non-consts/non-numbers.", NULL);
-		return tvoid;
-	}
-	if (floatsize == 0) {
-		switch (intsize) {
-			case 1:  return tbool;
-			case 8:  return tint8;
-			case 16: return tint16;
-			case 32: return tint32;
-			default: return tint64;
-		}
-	} else {
-		switch (floatsize) {
-			case 32: return tfloat;
-			case 64: return tdouble;
-			default: return tldouble;
-		}
-	}
+	return ArrayElements::getArrayConstType(types, &location);
 }
 
 unsigned MatrixElements::getElementCount(int position) {

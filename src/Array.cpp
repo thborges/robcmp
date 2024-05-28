@@ -29,7 +29,7 @@ void Array::createDataType() {
 	//Get Type of elements in Array of Elements, and define as I.
 	element_dt = elements->getArrayType();
 	dt = buildTypes->getArrayType(buildTypes->name(element_dt),
-		*this->getLoct(), true);
+		*this->getLoct(), 1, true);
 	Type* I = buildTypes->llvmType(element_dt);
 
 	//Declare array type.

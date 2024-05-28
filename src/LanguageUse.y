@@ -136,6 +136,10 @@ function_param : TOK_IDENTIFIER[type] '[' ']' TOK_IDENTIFIER[id] {
 	$$ = new ParamArray($id, $type, @type);
 }
 
+function_param : TOK_IDENTIFIER[type] '[' ']' '[' ']' TOK_IDENTIFIER[id] {
+	$$ = new ParamMatrix($id, $type, @type);
+}
+
 register : TOK_REGISTER TOK_IDENTIFIER[type] TOK_IDENTIFIER[name] TOK_AT const_expr ';' {
 	$$ = new Pointer($name, buildTypes->getType($type, true), $5);
 	$$->setQualifier(qvolatile);
@@ -225,7 +229,7 @@ melements : melements ',' melement {
 }
 
 melements : melement {
-	MatrixElements *mes = new MatrixElements();
+	MatrixElements *mes = new MatrixElements(@melements);
 	mes->append($1);
 	$$ = mes;
 }
@@ -237,7 +241,7 @@ relements : '{' elements '}'			{ $$ = $2; }
 
 elements : elements ',' element			{ $1->append($3);
 										  $$ = $1; }
-		 | element						{ ArrayElements *aes = new ArrayElements();
+		 | element						{ ArrayElements *aes = new ArrayElements(@element);
 										  aes->append($1);
 										  $$ = aes; }
 

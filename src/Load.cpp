@@ -87,7 +87,7 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 		return NULL; // Caused by an error on previous statement that defines the symbol
 	
 	DataType sdt = symbol->getDataType();
-	if (buildTypes->isComplex(sdt) || buildTypes->isArray(sdt)) {
+	if (buildTypes->isComplex(sdt) || buildTypes->isArrayOrMatrix(sdt)) {
 		if (symbol->isPointerToPointer()) {
 			Type *ty = buildTypes->llvmType(sdt)->getPointerTo();	
 			alloc = Builder->CreateLoad(ty, alloc, symbol->hasQualifier(qvolatile), "deref");

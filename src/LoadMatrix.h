@@ -4,6 +4,7 @@
 #include "Matrix.h"
 #include "Array.h"
 #include "LoadArray.h"
+#include "Load.h"
 
 class LoadMatrix: public LoadArray {
 public:
@@ -26,7 +27,8 @@ public:
 			cols = mx->getCols();
 			mcols = getNodeForIntConst(cols);
 		} else if (const ParamMatrix *pmx = dynamic_cast<const ParamMatrix*>(symbol)) {
-			mcols = pmx->getCols();
+			mcols = new Load(pmx->getCols()->getName());
+			mcols->setScope(pmx->getCols()->getScope());
 		}
 
 		return Array::getElementIndex(matrix->getPosition(), matrix->getPosition2(),

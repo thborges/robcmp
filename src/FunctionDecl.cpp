@@ -20,7 +20,7 @@ bool FunctionBase::validateAndGetArgsTypes(std::vector<Type*> &argsty) {
 	for (int i = 0; i < parameters->getParameters().size(); i++) {
 		DataType dt = parameters->getParamType(i);
 		Type *atype = buildTypes->llvmType(dt);
-		if (buildTypes->isComplex(dt) || buildTypes->isArray(dt)) {
+		if (buildTypes->isComplex(dt) || buildTypes->isArrayOrMatrix(dt)) {
 			atype = atype->getPointerTo();
 		}
 		if (!atype) {

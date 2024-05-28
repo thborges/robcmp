@@ -28,6 +28,7 @@
 #include "Variable.h"
 #include "If.h"
 #include "Int1.h"
+#include "Char.h"
 #include "Int8.h"
 #include "Int16.h"
 #include "Int32.h"

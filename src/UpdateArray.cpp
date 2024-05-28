@@ -16,7 +16,7 @@ Value *UpdateArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *
 	if (!symbol)
 		return NULL;
 
-	if (!buildTypes->isArray(symbol->getDataType())) {
+	if (!buildTypes->isArrayOrMatrix(symbol->getDataType())) {
 		yyerrorcpp("Symbol " + ident.getFullName() + " is not an array or matrix.", this);
 		return NULL;
 	}

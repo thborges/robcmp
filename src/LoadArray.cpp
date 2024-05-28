@@ -11,7 +11,7 @@ LoadArray::LoadArray(const string &i, Node *pos): BaseArrayOper(i, pos, NULL) {
 DataType LoadArray::getDataType() {
 	if (dt == BuildTypes::undefinedType) {
 		Node *symbol = ident.getSymbol(getScope());
-		if (symbol && buildTypes->isArray(symbol->getDataType()))
+		if (symbol && buildTypes->isArrayOrMatrix(symbol->getDataType()))
 			dt = buildTypes->getArrayElementType(symbol->getDataType());
 	}
 	return dt;
@@ -23,7 +23,7 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 	if (!symbol)
 		return NULL;
 
-	if (!buildTypes->isArray(symbol->getDataType())) {
+	if (!buildTypes->isArrayOrMatrix(symbol->getDataType())) {
 		yyerrorcpp("Variable " + ident.getFullName() + " is not an array or matrix.", this);
 		return NULL;
 	}

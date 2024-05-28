@@ -175,10 +175,10 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
     }
 
     vector<Value*> args;
-    for (int i = 0; i < parameters->getNumParams(); i++){
+    for (int i = 0, j = 0; i < parameters->getNumParams(); i++, j++) {
         Node *param = parameters->getParamElement(i);
         DataType call_dt = param->getDataType();
-        DataType def_dt = fsymbol->getParameters().getParamType(i);
+        DataType def_dt = fsymbol->getParameters().getParamType(j);
 
         Value *valor = param->generate(func, block, allocblock);
         if (!valor)
@@ -195,7 +195,14 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
                     buildTypes->name(call_dt)), this);
                 yywarncpp("The function declaration is here.", fsymbol);
             }
-        } else if (buildTypes->isArray(call_dt)) {
+        } else if (buildTypes->isArrayOrMatrix(call_dt)) {
+            if (call_dt != def_dt) {
+                yyerrorcpp(string_format("Argument %s expects '%s' but '%s' was provided.",
+                    fsymbol->getParameters().getParamName(i).c_str(),
+                    buildTypes->name(def_dt), 
+                    buildTypes->name(call_dt)), this);
+            }
+
             // we pass the address of the first element
             Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
             Value *indexList[2] = {zero, zero};
@@ -207,14 +214,25 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         }
         args.push_back(valor);
 
-        // add a size parameter after each array
-        if (buildTypes->isArray(call_dt)) {
-            string psizename = param->getName() + ".size";
-            Load ld(psizename);
-            ld.setScope(func);
-            valor = ld.generate(func, block, allocblock);
-            valor = Coercion::Convert(valor, buildTypes->llvmType(tint32), block, this);
-            args.push_back(valor);
+        // add a size parameter after each array, or .rows and .cols for matrixes
+        if (buildTypes->isArrayOrMatrix(call_dt)) {
+            vector<string> params;
+            if (buildTypes->isArray(call_dt))
+                params.push_back(".size");
+            else if (buildTypes->isMatrix(call_dt)) {
+                params.push_back(".rows");
+                params.push_back(".cols");
+            }
+
+            for(const string& p: params) {
+                string pname = param->getName() + p;
+                Load ld(pname);
+                ld.setScope(func);
+                valor = ld.generate(func, block, allocblock);
+                valor = Coercion::Convert(valor, buildTypes->llvmType(tint32), block, this);
+                args.push_back(valor);
+                j++;
+            }
         }
     }
 

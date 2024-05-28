@@ -44,8 +44,13 @@ BuildTypes::BuildTypes(DataType targetPointerType) {
     }
 }
 
-DataType BuildTypes::getArrayType(const string& elementName, SourceLocation n, bool createUndefined) {
-    string arrayTyName = elementName + "[]";
+DataType BuildTypes::getArrayType(const string& elementName, SourceLocation n, 
+    unsigned char dimensions, bool createUndefined) {
+        
+    string arrayTyName = elementName;
+    for(int i = 0; i < dimensions; i++)
+        arrayTyName += "[]";
+
     auto ut = namedTypes.find(arrayTyName);
     if (ut == namedTypes.end()) {
         if (createUndefined) {
@@ -60,7 +65,7 @@ DataType BuildTypes::getArrayType(const string& elementName, SourceLocation n, b
                 info.llvmType = ArrayType::get(elementInfo.llvmType, 0); // we couldn't know the array size at compile time
                 info.isDefined = true;
                 info.isComplex = false;
-                info.isArray = true;
+                info.arrayDimensions = dimensions;
                 info.bitWidth = elementInfo.bitWidth;
                 info.dwarfEnc = dwarf::DW_ATE_address;
                 if (debug_info) {
@@ -78,9 +83,9 @@ DataType BuildTypes::getArrayType(const string& elementName, SourceLocation n, b
 }
 
 DataType BuildTypes::getArrayElementType(DataType arrayDt) {
-    assert(isArray(arrayDt) && "arrayDt must be an array.");
+    assert(isArrayOrMatrix(arrayDt) && "arrayDt must be an array or matrix.");
     string elementName = name(arrayDt);
-    elementName = elementName.substr(0, elementName.length()-2);
+    elementName = elementName.substr(0, elementName.length() - 2*dimensions(arrayDt));
     return getType(elementName);
 }
 

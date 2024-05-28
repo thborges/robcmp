@@ -24,7 +24,7 @@ protected:
 public:
 	ParamArray(const string& n, string element_dt_name, location_t loc): Variable(n) {
 		this->element_dt = buildTypes->getType(element_dt_name, true);
-		this->dt = buildTypes->getArrayType(element_dt_name, loc, true);
+		this->dt = buildTypes->getArrayType(element_dt_name, loc, 1, true);
 	}
 
 	ParamArray(const string &n, DataType dt): Variable(n) {

@@ -139,7 +139,7 @@ ID {A}({A}|{D})*
 						  unescape(aux);
 						  yylval->nint = aux[0];
 						  free(aux);
-						  return TOK_INTEGER; }
+						  return TOK_CHAR; }
 
  /* deixar por último. Caractere não reconhecido pelo alfabeto. */
 .						{ yyerror(yylloc, NULL, COLOR_RED "lexical error:" COLOR_RED " caractere nao pertence ao alfabeto da linguagem:"); }

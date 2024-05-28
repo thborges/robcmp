@@ -13,8 +13,9 @@ public:
 class ArrayElements {
 private:
 	std::vector<ArrayElement*> elements;
+	SourceLocation location;
 public:
-	ArrayElements();
+	ArrayElements(location_t loc);
 	void append(ArrayElement *e);
 	
 	unsigned getArraySize();
@@ -22,6 +23,7 @@ public:
 	unsigned getElementCount (int position);
 	Node *getStructElement (int position);
 	DataType getArrayType();
+	static DataType getArrayConstType(const set<DataType>& types, SourceLocation *location);
 	
 	std::vector<ArrayElement*> const& getElements() {
 		return elements;

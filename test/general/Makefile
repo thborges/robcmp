@@ -16,7 +16,7 @@ ifndef OPT
 OPT=-Oz
 endif
 
-all: out ${ALL}
+all: out test
 
 out:
 	mkdir -p out

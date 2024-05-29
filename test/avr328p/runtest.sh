@@ -6,7 +6,7 @@ RED="\033[0;31m"
 NC="\033[0m"
 
 echo -n "               $1"
-make -s $2 &> /dev/null
+make -s $2
 if [ "$?" -eq 0 ]; then
 	timeout 10s ${CMD} &> /dev/null
 	#./$2 &> /dev/null

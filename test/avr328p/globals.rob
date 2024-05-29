@@ -7,7 +7,7 @@ vint32 = int32(16000000);
 
 int16 main() {
 	ret = int16(1);
-	if boolean == true {
+	if boolean {
 		if vint8 + vint16 + vint32 == 16000030 {
 			ret = 0;
 		}

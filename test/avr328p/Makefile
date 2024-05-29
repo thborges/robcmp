@@ -3,7 +3,7 @@ ALL_LL=$(patsubst %.rob,out/%.ll,$(wildcard *.rob))
 ALL_TT=$(patsubst %.rob,out/%.tt,$(wildcard *.rob))
 ALL_OO=$(patsubst %.rob,out/%.o,$(wildcard *.rob)) out/avr328p.o
 
-ROBCMP=../../robcmp
+ROBCMP=../../build/robcmp
 INCLUDES=-I aux
 
 ifndef OPT
@@ -19,7 +19,7 @@ DEPENDS=${ROBCMP} Makefile
 LINK_DEPENDS=out/avr328p.o
 SERIAL_DEPENDS=out/aux/serial.o out/aux/avr5mcu.o
 
-all: out ${ALL}
+all: out test
 
 out:
 	mkdir -p out/aux

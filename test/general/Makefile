@@ -38,9 +38,13 @@ out/%.ll : %.rob ${ROBCMP} Makefile
 %.tt : %.rob
 	@-./runtest.sh $< $(patsubst %.rob,out/%,$<) 
 
-ifeq ($(OS), Msys)
 % : %.o
+ifeq ($(OS), Msys)
 	${LD} -e __main $< -o $@
+else ifeq ($(OS), Darwin)
+	${CC} $< -o $@
+else
+	${CC} -no-pie $< -o $@
 endif
 
 test: ${ALL_TT}

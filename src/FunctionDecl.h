@@ -64,7 +64,7 @@ public:
 				// ParamMatrix need to know the number of cols to compute element indexes
 				if (buildTypes->isMatrix(pdt)) {
 					if (ParamMatrix *pm = dynamic_cast<ParamMatrix*>(p))
-						pm->setCols(vparams[i+2]);
+						pm->addSymbol("cols", vparams[i+2]);
 				}
 			}
 		}

@@ -17,9 +17,11 @@ DataType Load::getDataType() {
 
 Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
-	Node *isymbol = ident.getSymbol(getScope(), false);
-	if (!isymbol)
-		isymbol = ident.getSymbol(func, false);
+	if (!isymbol) {
+		isymbol = ident.getSymbol(getScope(), false);
+		if (!isymbol)
+			isymbol = ident.getSymbol(func, false);
+	}
 	
 	if (isymbol && isymbol->isConstExpr())
 		return isymbol->getLLVMValue(func);

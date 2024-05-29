@@ -76,7 +76,7 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 	return ret;
 }
 
-Node* BaseArrayOper::getElementIndex(const Node *symbol) {
+Node* BaseArrayOper::getElementIndex(Node *symbol) {
 	
 	// Get element
 	int rows = -1;

@@ -13,7 +13,7 @@ public:
 	BaseArrayOper(const string& i, Node *pos, Node *pos2): ident(i), position(pos),
 		position2(pos2) {}
 	
-	virtual Node* getElementIndex(const Node *symbol);
+	virtual Node* getElementIndex(Node *symbol);
 
 	Node *getPosition() {
 		return position;

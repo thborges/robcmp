@@ -5,12 +5,64 @@ int32 main() {
     // 3x3 matrix of one's
     x = {{int16(1):3}:3};
 
-    zt = sum_matrix(x);
-    if zt != 9 {
+    // y is a reference to x
+    y = x;
+
+    i = 0;
+    while i < y.rows {
+        j = 0;
+        while j < y.cols {
+            if y[i][j] != x[i][j] {
+                return 1;
+            }
+            j++;
+        }
+        i++;
+    }
+
+
+    // w is a reference to y (same as x)
+    w = y;
+    i = 0;
+    while i < w.rows {
+        j = 0;
+        while j < w.cols {
+            if w[i][j] != x[i][j] {
+                return 1;
+            }
+            j++;
+        }
+        i++;
+    }
+
+    // z is a copy of y
+    z = copy(y);
+    i = 0;
+    while i < z.rows {
+        j = 0;
+        while j < z.cols {
+            z[i][j] = z[i][j] + 1;
+            if z[i][j] != x[i][j] + 1 {
+                return 1;
+            }
+            j++;
+        }
+        i++;
+    }
+
+    zt = sum_matrix(w);
+    if zt != 9 + 2 + 6 {
         return zt;
     }
 
     return 0;
+}
+
+int32 pass_matrix_pointer(int16[][] b) {
+    c = b;
+    d = copy(b);
+    result = c[1][2] + d[2][2] + b.cols + b.rows;
+    return result;
 }
 
 int32 sum_matrix(int16[][] a) {
@@ -24,5 +76,5 @@ int32 sum_matrix(int16[][] a) {
         }
         i++;
     }
-    return result;
+    return result + pass_matrix_pointer(a);
 }

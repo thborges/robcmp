@@ -13,11 +13,11 @@ public:
 		addChild(p2);
 	}
 
-	virtual Node* getElementIndex(const Node *symbol) override {
+	virtual Node* getElementIndex(Node *symbol) override {
 		return getElementIndexMatrix(this, symbol);
 	}
 
-	static Node* getElementIndexMatrix(BaseArrayOper *matrix, const Node *symbol) {
+	static Node* getElementIndexMatrix(BaseArrayOper *matrix, Node *symbol) {
 		// Get element
 		int rows = -1;
 		int cols = -1;
@@ -26,10 +26,12 @@ public:
 			rows = mx->getRows();
 			cols = mx->getCols();
 			mcols = getNodeForIntConst(cols);
-		} else if (const ParamMatrix *pmx = dynamic_cast<const ParamMatrix*>(symbol)) {
-			mcols = new Load(pmx->getCols()->getName());
-			mcols->setScope(pmx->getCols()->getScope());
+		} else if (Node *s = symbol->findSymbol("cols", false)) {
+			mcols = new Load(s);
+			mcols->setScope(symbol);
 		}
+
+		assert(mcols && "Missing the number of columns to compute the matrix element index.");
 
 		return Array::getElementIndex(matrix->getPosition(), matrix->getPosition2(),
 			matrix->getIdent(), rows, cols, mcols);

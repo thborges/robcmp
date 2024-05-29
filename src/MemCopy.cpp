@@ -33,6 +33,20 @@ Value* MemCopy::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
         nelem = ld.generate(func, allocblock, allocblock);
         Builder->SetInsertPoint(allocblock);
         size = Builder->CreateBinOp(Instruction::Mul, elbytes, nelem, "arrsize");
+    } else if (buildTypes->isMatrix(dt)) {
+        // Load the matrix size and compute the bytes to copy
+        DataType eldt = buildTypes->getArrayElementType(dt);
+        TypeSize eltsize = dl.getTypeAllocSize(buildTypes->llvmType(eldt));
+        ConstantInt *elbytes = ConstantInt::get(Type::getInt32Ty(global_context), eltsize);
+        Load ldrows("rows");
+        ldrows.setScope(expr);
+        Load ldcols("cols");
+        ldcols.setScope(expr);
+        Builder->SetInsertPoint(allocblock);
+        Value *nrows = ldrows.generate(func, allocblock, allocblock);
+        Value *ncols = ldcols.generate(func, allocblock, allocblock);
+        nelem = Builder->CreateBinOp(Instruction::Mul, nrows, ncols, "matrixelem");
+        size = Builder->CreateBinOp(Instruction::Mul, elbytes, nelem, "matrixsize");
     } else {
         TypeSize ts = dl.getTypeAllocSize(buildTypes->llvmType(dt));
         size = ConstantInt::get(Type::getInt32Ty(global_context), ts);
@@ -46,7 +60,7 @@ Value* MemCopy::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
         //FIXME: must check the alloc size for array and matrix
     } else {
         Builder->SetInsertPoint(allocblock);
-        if (buildTypes->isArray(dt)) {
+        if (buildTypes->isArrayOrMatrix(dt)) {
             DataType eldt = buildTypes->getArrayElementType(dt);
             dest = Builder->CreateAlloca(buildTypes->llvmType(eldt), dataAddrSpace, nelem, leftValue->getName());
             leftvty = buildTypes->llvmType(dt)->getPointerTo();

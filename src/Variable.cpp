@@ -13,8 +13,17 @@ Value *Variable::getLLVMValue(Node *stem) {
 		if (func && func->getThisArg()) {
 			// generating a function of a type: get the gep on :this or :parent parameters
 			Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
-			Value *ptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
-			alloc = Builder->CreateStructGEP(thisTy, ptr, gepidx, "gepthis");
+			Value *thisptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
+			if (!stem->getScope() || this->getScope() == stem->getScope()) {
+				// in the global or same scope, defer :this and gep the field
+				alloc = Builder->CreateStructGEP(thisTy, thisptr, gepidx, "gepthis");
+			} else {
+				// in distinct scopes, access :parent (gep 0) in :this and gep the field
+				Type *parentTy = buildTypes->llvmType(this->getScope()->getDataType());
+				Value *parentAlloc = Builder->CreateStructGEP(parentTy, thisptr, 0, "gepthis");
+				Value *parentptr = Builder->CreateLoad(parentTy->getPointerTo(), parentAlloc, "derefparent");
+				alloc = Builder->CreateStructGEP(parentTy, parentptr, gepidx, "gepparent");
+			}
 		} else {
 			// accessing a var of a user type: get the gep in the scope (user type) of the scalar
 			Type *udt = buildTypes->llvmType(stem->getDataType());

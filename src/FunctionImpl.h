@@ -9,13 +9,12 @@ class Visitor;
 class FunctionImpl: public FunctionBase {
 private:
 	SourceLocation endfunction;
-	Value *thisArg = NULL;
-	DataType parentArgDt = BuildTypes::undefinedType;
-	Value *parentArg = NULL;
 	bool preGenerated = false;
 	BasicBlock *falloc = NULL;
 	BasicBlock *fblock = NULL;
 
+	DIFile *funit;
+	DISubprogram *sp;
 	bool preGenerate();
 	
 public:
@@ -28,25 +27,14 @@ public:
 
 	bool validateImplementation(FunctionDecl *decl);
 
-	void addParentArgument(DataType dt);
-
-	Value *getThisArg() const {
-		return thisArg;
-	}
-
-	Value *getParentArg() const {
-		return parentArg;
-	}
-
-	DataType getParentArgDt() const {
-		return parentArgDt;
-	}
-
-	virtual bool needsParent() override {
-		return parentArg != NULL;
-	}
-
 	virtual void accept(Visitor& v) override;
 
 	virtual Value *getLLVMValue(Node *) override;
+
+	virtual Function *getLLVMFunction() override {
+		if (!preGenerated)
+			preGenerate();
+		return func;
+	}
+
 };

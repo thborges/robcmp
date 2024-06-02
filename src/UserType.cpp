@@ -3,10 +3,10 @@
 #include "HeaderGlobals.h"
 #include "Interface.h"
 #include "FunctionImpl.h"
+#include "FunctionDecl.h"
 #include "FunctionParams.h"
 #include "FunctionCall.h"
 #include "ParamsCall.h"
-#include "Program.h"
 #include "Variable.h"
 #include "Visitor.h"
 #include "Enum.h"
@@ -150,13 +150,19 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
 
     // generate init function/constructor
     FunctionParams *fp = new FunctionParams();
-    FunctionImpl *finit = new FunctionImpl((DataType)tvoid, "init", fp, 
-        std::move(fields), *this->getLoct(), true);
+    FunctionBase *finit;
+    if (declaration) {
+        finit = new FunctionDecl((DataType)tvoid, "init", fp);
+    } else {
+        finit = new FunctionImpl((DataType)tvoid, "init", fp, 
+            std::move(fields), *this->getLoct(), true);
+    }
     finit->addThisArgument(dt);
     if (parent)
         finit->addParentArgument(parent->getDataType());
     finit->setPrefixName(getName());
     finit->setExternal(declaration);
+    finit->setConstructor(true);
     finit->generate(func, block, allocblock);
 
     /* set function parameters before generate

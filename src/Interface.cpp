@@ -3,7 +3,6 @@
 #include "UserType.h"
 #include "FunctionImpl.h"
 #include "FunctionDecl.h"
-#include "Int1.h"
 
 void Interface::createDataType() {
     // TRY: prevent opaque type

@@ -74,8 +74,8 @@ map<string, NamedNode*> const& Node::getSymbols() {
 	return symbols;
 }
 
-void Node::setScope(Node *s) {
-	if (scope != NULL)
+void Node::setScope(Node *s, bool replace) {
+	if (scope != NULL && !replace)
 		assert(scope == NULL && "node already has a scope");
 	scope = s;
 }

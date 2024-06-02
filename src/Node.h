@@ -49,7 +49,7 @@ public:
 		return scope;
 	}
 
-	virtual void setScope(Node *s);
+	virtual void setScope(Node *s, bool replace = false);
 
 	virtual Node* findSymbol(const string& name, bool recursive = true);
 	

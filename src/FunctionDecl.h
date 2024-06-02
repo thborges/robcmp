@@ -13,7 +13,11 @@ protected:
 	bool declaration = true;
 	bool constructor = false;
 	bool external = false;
+	bool returnIsPointer = false;
 	DataType thisArgDt = BuildTypes::undefinedType;
+	Value *thisArg = NULL;
+	DataType parentArgDt = BuildTypes::undefinedType;
+	Value *parentArg = NULL;
 	string prefixName;
 
 	bool validateAndGetArgsTypes(std::vector<Type*> &args);
@@ -90,8 +94,16 @@ public:
 		return declaration;
 	}
 
+	void setDeclaration(bool d) {
+		declaration = d;
+	}
+
 	bool isConstructor() {
 		return constructor;
+	}
+
+	void setConstructor(bool c) {
+		constructor = c;
 	}
 
 	void setExternal(bool e) {
@@ -102,10 +114,32 @@ public:
 		return external;
 	}
 
+	void setReturnIsPointer(bool r) {
+		returnIsPointer = r;
+	}
+
 	void addThisArgument(DataType dt);
 	
 	DataType getThisArgDt() const {
 		return thisArgDt;
+	}
+
+	void addParentArgument(DataType dt);
+
+	Value *getThisArg() const {
+		return thisArg;
+	}
+
+	Value *getParentArg() const {
+		return parentArg;
+	}
+
+	DataType getParentArgDt() const {
+		return parentArgDt;
+	}
+
+	virtual bool needsParent() {
+		return parentArg != NULL;
 	}
 
 	void setPrefixName(const string& prefix) {
@@ -117,10 +151,6 @@ public:
 			return name;
 		else
 			return prefixName + ":" + name;
-	}
-
-	virtual bool needsParent() {
-		return false;
 	}
 };
 

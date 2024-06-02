@@ -5,8 +5,14 @@ use databus;
 
 use avr5regs;
 
+void __delay_us();
+
 type avr5mcu implements mcu {
 	
+	void set_interruptions(bool enabled) {
+		sreg.I = enabled;
+	}
+
 	/* implement this idea later!
 	template digport<port_config, mode, port> {
 		void mode(m port_mode) { port_config = mode; }
@@ -60,35 +66,60 @@ type avr5mcu implements mcu {
 		b5.set(s);
 	}
 
-	void wait(int32 q) {
-		volatile i = q;
-		while i > 0 {
-			i--;
+	void wait_us(int16 us) {
+		while us > 0 {
+			__delay_us();
+			us--;
+		}
+	}
+
+	void wait_ms(int16 ms) {
+		while ms > 0 {
+			wait_us(1000);
+			ms--;
 		}
 	}
 
 	spi = databus {
+		// b3 = MOSI
+		// b4 = MISO
+		// b5 = SCK
 		void setup(int32 speed) {
 			b3.mode(port_mode.output);
-			b4.mode(port_mode.output);
+			b4.mode(port_mode.input);
 			b5.mode(port_mode.output);
-			spcr.MSTR = true; // master?	
+			spcr.MSTR = true; // master
+			
+			// ignoring speed for now
+			//spcr.SPR0 = true; // fck/16
+			//spcr.SPR1 = false;
+
+			//spcr.CPOL = true;
+			//spcr.CPHA = true;
+			spsr.SPI2x = true; // 2x speed
 		}
+
 		void enable() {
 			spcr.SPE = true;
+			//spcr.SPIE = true;
 		}
+
 		void disable() {
 			spcr.SPE = false;
+			//spcr.SPIE = false;
 		}
-		void write(int8 b) {
-			sprd = b;
-			while spsr.SPIF == false;
+
+		void write(unsigned8 b) {
+			spdr = b;
+			while !spsr.SPIF;
 		}
+
 		int8 read() {
 			//FIXME
-			while spsr.SPIF == false;
+			while !spsr.SPIF;
 			return spdr;
 		}
+
 		bool has_data() {
 			//FIXME
 			return spsr.SPIF;

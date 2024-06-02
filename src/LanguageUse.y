@@ -105,6 +105,7 @@ function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' 
 	FunctionImpl *func = new FunctionImpl(buildTypes->getType($type, true), $id, $function_params,
 		std::move(stmts), @ef);
 	func->setExternal(true);
+	func->setDeclaration(true);
     func->setLocation(@type);
 	$$ = func;
 }

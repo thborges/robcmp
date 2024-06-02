@@ -4,11 +4,7 @@
 #include "BackLLVM.h"
 
 void DebugInfo::emitLocation(SourceLocation *s) {
-	if (!debug_info)
-		return;
-	if (!s)
-		return Builder->SetCurrentDebugLocation(DebugLoc());
-	if (s->getLineNo() == 0)
+	if (!debug_info || !s || s->getLineNo() == 0)
 		return;
 	
 	DIScope *scope;

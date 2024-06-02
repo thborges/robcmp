@@ -22,6 +22,7 @@
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
+#include <llvm/IR/AutoUpgrade.h>
 
 #include "BackLLVM.h"
 
@@ -101,9 +102,9 @@ void print_llvm_ir(char opt_level) {
 	}	
 
 	TargetOptions opt;
-	auto RM = optional<Reloc::Model>();
 	auto targetMachine = Target->createTargetMachine(ai.triple, 
-		ai.cpu, ai.features, opt, RM);
+		ai.cpu, ai.features, opt, Reloc::PIC_,
+		CodeModel::Small, CodeGenOptLevel::Aggressive);
 
 	mainmodule->setDataLayout(targetMachine->createDataLayout());
 	mainmodule->setTargetTriple(ai.triple);
@@ -153,6 +154,8 @@ void print_llvm_ir(char opt_level) {
 		return;
 	}
 
+	UpgradeDebugInfo(*mainmodule);
+
 	ModulePassManager modulePassManager;
 	if (ol == OptimizationLevel::O0)
 		modulePassManager = passBuilder.buildO0DefaultPipeline(ol);
@@ -172,7 +175,7 @@ void print_llvm_ir(char opt_level) {
 		targetMachine->addPassesToEmitFile(pass_codegen, dest, nullptr, llvm::CGFT_ObjectFile);
 		//targetMachine->addPassesToEmitFile(pass_codegen, dest, nullptr, llvm::CGFT_AssemblyFile);
 		pass_codegen.run(*mainmodule);
-		dest.flush();
+		dest.close();
 	} else {
 		// print IR to stdout
 		mainmodule->print(outs(), nullptr);

@@ -1,32 +1,55 @@
 /*
  * Robcmp examples: SSD1306 SPI
  */
-
 use avr5mcu;
 use ssd1306;
 
-//bind avr5mcu to mmcu;
-//bind avr5mcu.b0 to ssd1306.reset
-//bind avr5mcu.spi1 to ssd1306.spi
-//alias avr5mcu.b5 to ;
-//led[digital,pwm,asdfs]
-// 
+bind avr5mcu to global_instances.mmcu singleton;
+bind avr5mcu.spi to global_instances.spi singleton;
+bind avr5mcu to ssd1306.mmcu singleton;
+bind avr5mcu.b0 to ssd1306.reset singleton;
+bind avr5mcu.b1 to ssd1306.datacmd singleton;
+bind avr5mcu.b2 to ssd1306.select singleton;
+bind avr5mcu.spi to ssd1306.spi singleton;
+
+// for now, the binding only work inside types.
+// this is a type for holding an instance of mcu
+type global_instances {
+	mmcu = mcu();
+	spi = databus();
+}
 
 int16 main() {
 
-	mmcu = avr5mcu();
-	spi = mmcu.spi;
-	spi.init();
+	gi = global_instances();
+	mmcu = gi.mmcu;
+
+	// setup and enable SPI
+	spi = gi.spi;
+	spi.setup(0);
+	spi.enable();
 
 	display = ssd1306();
-	display.init();
-
+	display.init_display();
+	
+	data = 2;
 	loop {
-		led = true;
-		//mcu.set_led(true);
-		mcu.wait(100000);
+		mmcu.wait_ms(1000);
+		display.reset_cursor();
 
-		//mcu.set_led(false);
-		mcu.wait(100000);
+		i = 0;
+		while i < display.pages() {
+			j = int16(0);
+			while j < display.columns() {
+				display.write_data(data);
+				j++;
+			}
+			i++;
+		}
+
+		data *= 2;
+		if data == 0 {
+			data = 1;
+		}
 	}
 }

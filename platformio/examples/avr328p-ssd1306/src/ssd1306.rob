@@ -34,10 +34,21 @@ type ssd1306 {
         MEM_ADDRESSING 		    = 0x20,
         CHARGE_PUMP_REGULATOR 	= 0x8D,
         CHARGE_PUMP_ON   	    = 0x14,
+        SET_PAGE_START_ADDR     = 0xB0,
+        SET_COL_LO_NIBBLE       = 0x00,
+        SET_COL_HI_NIBBLE       = 0x10,
         NOP                     = 0xE3
     }
 
     enum displayorientation {NORMAL, NORMAL_MIRRORED, UPSIDE_DOWN, UPSIDE_DOWN_MIRRORED}
+
+    int8 pages() {
+        return 64 / 8;
+    }
+
+    int16 columns() {
+        return 128;
+    }
 
     void init_display() {
         datacmd.mode(port_mode.output);
@@ -71,9 +82,6 @@ type ssd1306 {
         write_command(0x00);
         
         write_command(commands.SET_DISP_CLOCK);
-        
-        //FIXME on RobCmp: The warning here is due to write_command
-        // receiving a signed parameter. We need to implement/fix unsignedness
         write_command(0x80);
         
         write_command(commands.CHARGE_PUMP_REGULATOR);
@@ -98,6 +106,14 @@ type ssd1306 {
         }
     }
 
+    void set_display_mode(bool inverted) {
+        if inverted {
+            write_command(commands.DISPLAY_MODE_INVERTED);
+        } else {
+            write_command(commands.DISPLAY_MODE_NORMAL);
+        }
+    }
+
     void set_contrast(int8 c) {
         write_command(commands.SET_CONTRAST);
         write_command(c);      
@@ -105,13 +121,13 @@ type ssd1306 {
 
     void reset_display() {
         reset.set(true);
-        mcu.wait(3);
+        mmcu.wait_us(3);
         reset.set(false);
-        mcu.wait(3);
+        mmcu.wait_us(3);
         reset.set(true);
     }
 
-    void write_command(int8 c) {
+    void write_command(unsigned8 c) {
         datacmd.set(false);
         select.set(false);
         spi.write(c);
@@ -123,5 +139,18 @@ type ssd1306 {
         select.set(false);
         spi.write(d);
         select.set(true);  
+    }
+
+    void reset_cursor() {
+        write_command(commands.SET_PAGE_START_ADDR);
+        write_command(commands.SET_COL_HI_NIBBLE);
+        write_command(commands.SET_COL_LO_NIBBLE);
+    }
+
+    void flip_power() {
+        write_command(powerstate.SLEEP);
+        mmcu.wait_ms(1000);
+        write_command(powerstate.ON);
+        mmcu.wait_ms(1000);
     }
 }

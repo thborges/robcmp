@@ -148,6 +148,11 @@ public:
         return tinfo[tid].isInterface;
     }
 
+    bool isUserType(DataType tid) {
+        assert(tid != -1 && "Undefined type");
+        return tinfo[tid].isComplex && !tinfo[tid].isInterface;
+    }
+
     bool isArray(DataType tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].arrayDimensions == 1;

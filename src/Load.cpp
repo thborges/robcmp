@@ -76,6 +76,12 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 		
 		if (stem->hasQualifier(qvolatile))
 			symbol->setQualifier(qvolatile);
+
+		// when the new var will be a reference to expr;
+		// we change its scope to the scope of expr (stem)
+		// this is needed by injection
+		if (leftValue)
+			leftValue->setScope(stem, true);
 		
 		// TODO: When accessing a.x.func(), need to load a and gep x
 		//Load loadstem(ident.getStem());

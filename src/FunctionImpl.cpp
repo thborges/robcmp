@@ -26,6 +26,9 @@ bool FunctionImpl::preGenerate() {
 	}
 
 	Type *xtype = buildTypes->llvmType(dt);
+	if (returnIsPointer)
+		xtype = xtype->getPointerTo();
+
 	if (fsymbol) {
 		validateImplementation(fsymbol);
 		func = mainmodule->getFunction(name);
@@ -65,9 +68,7 @@ bool FunctionImpl::preGenerate() {
 	func->setAttributes(llvm::AttributeList().addFnAttributes(global_context, attrs));
 	func->setCallingConv(CallingConv::C);
 
-	DIFile *funit;
-	DISubprogram *sp;
-	if (debug_info) {
+	if (debug_info && !declaration) {
 		funit = DBuilder->createFile(RobDbgInfo.cunit->getFilename(), RobDbgInfo.cunit->getDirectory());
 		DIScope *fcontext = funit;
 		sp = DBuilder->createFunction(fcontext, getFinalName(), StringRef(), funit, this->getLineNo(),
@@ -123,6 +124,9 @@ bool FunctionImpl::preGenerate() {
 		Idx++;
 	}
 
+	if (debug_info)
+		RobDbgInfo.pop_scope();
+
 	return true;
 }
 
@@ -131,11 +135,16 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 	if (!preGenerated) {
 		if (!preGenerate())
 			return NULL;
-	}
-	
-	if (isExternal())
+	} 
+
+	if (isExternal() || isDeclaration()) //can be declaration when came from USEparser
 		return NULL;
 
+	if (debug_info) {
+		RobDbgInfo.push_scope(funit, sp);
+		RobDbgInfo.emitLocation(this);
+	}
+	
 	Value *last_block = generateChildren(this, fblock, falloc);
 	if (!last_block)
 		last_block = fblock;
@@ -206,14 +215,6 @@ bool FunctionImpl::validateImplementation(FunctionDecl *decl) {
 	}
 
 	return result;
-}
-
-void FunctionImpl::addParentArgument(DataType dt) {
-	parentArgDt = dt;
-	Variable *fp = new Variable(":parent", dt);
-	fp->setScope(this);
-	parameters->append(fp);
-	symbols[fp->getName()] = fp;
 }
 
 void FunctionImpl::accept(Visitor& v) {

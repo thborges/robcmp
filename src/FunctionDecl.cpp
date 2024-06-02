@@ -34,6 +34,14 @@ bool FunctionBase::validateAndGetArgsTypes(std::vector<Type*> &argsty) {
 	return valid;
 }
 
+void FunctionBase::addParentArgument(DataType dt) {
+	parentArgDt = dt;
+	Variable *fp = new Variable(":parent", dt);
+	fp->setScope(this);
+	parameters->append(fp);
+	symbols[fp->getName()] = fp;
+}
+
 Value *FunctionDecl::generate(FunctionImpl*, BasicBlock *, BasicBlock *allocblock) {
 	
 	Node *symbol = findSymbol(name);
@@ -48,6 +56,9 @@ Value *FunctionDecl::generate(FunctionImpl*, BasicBlock *, BasicBlock *allocbloc
 		return NULL;
 
 	Type *xtype = buildTypes->llvmType(dt);
+	if (returnIsPointer)
+		xtype = xtype->getPointerTo();
+	
 	FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
 	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, codeAddrSpace, getFinalName(), mainmodule);
 	nfunc->setDSOLocal(true);

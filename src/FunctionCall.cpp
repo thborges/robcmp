@@ -10,10 +10,9 @@
 #include "BackLLVM.h"
 #include "UserType.h"
 #include "Program.h"
+#include "Interface.h"
 
 extern Program *program;
-
-
 
 DataType FunctionCall::getDataType() {
     
@@ -38,7 +37,11 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
     RobDbgInfo.emitLocation(this);
     string name = ident.getFullName();
 
-    // check if it is a cast call: the function name is a primitive type, e.g., int8(x)
+    /* check if it is a constructor or cast call:
+        - cast if the function name is a type, e.g., int8(x), and the call has one argument
+        - constructor if the function name is a type and the call has no argument
+    */
+
     DataType adt = buildTypes->getType(name);
     if (adt != BuildTypes::undefinedType) {
         dt = adt;
@@ -57,6 +60,7 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
             Builder->SetInsertPoint(block);
             Value *var = leftValue->getLLVMValue(func);
             if (var == NULL) {
+                // is a new left var
                 Builder->SetInsertPoint(allocblock);
                 var = Builder->CreateAlloca(buildTypes->llvmType(dt), dataAddrSpace, 0, 
                     leftValue->getName());
@@ -68,68 +72,50 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
             vector<Value*> args;
             args.push_back(var);
 
-            // call :init
+            // find the user type or interface
             Node *type = findSymbol(name);
             if (!type)
                 return NULL;
             
+            // if calling a constructor of an interface, emit code to bind it
+            if (buildTypes->isInterface(type->getDataType())) {
+                dt = type->getDataType();
 
-            Node *fsymbol = type->findMember("init");
-            if (!fsymbol) {
-                //extern map<string, vector<pair<string, BindScope>>> injections; 
-                // se presente no injection
-                // consultar b3, se não criado criar um
-                // new Scalar("<nome-variavel>", new FC("b3", new ParamsCall()))
-                // return new Load("<nome-variavel>") 
-                
                 Node *scope = leftValue->getScope();
                 UserType *parent= dynamic_cast<UserType*>(scope);
+                const string toInjection = parent ?
+                    parent->getName() + "." + leftValue->getName() :
+                    leftValue->getName();
 
-                if (parent == NULL) {
-                    return NULL;
+                const string injectFuncName = ":get_injection_for_" + toInjection;
+                Node *funcNode = findSymbol(injectFuncName);
+                FunctionBase *funcDecl = dynamic_cast<FunctionBase*>(funcNode);
+                if (!funcDecl) {
+                    funcDecl = new FunctionDecl(dt, injectFuncName, new FunctionParams());
+                    funcDecl->setReturnIsPointer(true);
+                    funcDecl->setScope(program);
+                    funcDecl->generate(NULL, NULL, global_alloc);
+                    program->addSymbol(funcDecl);
+                }
+                return Builder->CreateCall(funcDecl->getLLVMFunction());
+
+            } else {
+                // call the init constructor
+                Node *fsymbol = type->findMember("init");
+                assert(fsymbol && "the init method for the type must exists");
+                
+                FunctionBase *initfunc = dynamic_cast<FunctionBase*>(fsymbol);
+                Builder->SetInsertPoint(block);
+
+                if (initfunc->needsParent()) {
+                    Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
+                    Value *ptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
+                    args.push_back(ptr);
                 }
 
-                const string toInjection = parent->getName() + "." + leftValue->getName();
-                if (injections.count(toInjection) == 0) {
-                    return NULL;
-                }
-
-
-                const string variableName = ":injectionName__" + injections[toInjection].first;
-                // if (map_injections.count(variableName) == 0) {
-                //     Variable *injectionVariable = new Scalar(variableName, new FunctionCall(injections[toInjection].first, new ParamsCall()));
-                //     map_injections[variableName] = injectionVariable;
-
-                //     // TODO: Verificar se a função main já foi gerada
-                //     // injectionVariable->gene
-                //     program->addChild(injectionVariable);
-                //     program->addSymbol(injectionVariable);
-                // }
-
-                Load ld(variableName);
-
-                ld.setScope(program);
-
-				// change FunctionCall datatype to the datatype of the injected var
-				dt = ld.getDataType();
-				Node *lsymbol = findSymbol(leftValue->getName());
-				lsymbol->setDataType(dt);
-
-                return ld.generate(func, block, allocblock);
+                CallInst *c = Builder->CreateCall(initfunc->getLLVMFunction(), ArrayRef<Value*>(args));
+                return NULL;
             }
-
-            FunctionBase *initfunc = dynamic_cast<FunctionBase*>(fsymbol);
-            
-            Builder->SetInsertPoint(block);
-
-            if (initfunc->needsParent()) {
-                Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
-                Value *ptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
-                args.push_back(ptr);
-            }
-
-            CallInst *c = Builder->CreateCall(initfunc->getLLVMFunction(), ArrayRef<Value*>(args));
-            return NULL;
         }
     }
 
@@ -145,6 +131,12 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
     if (fsymbol == NULL) {
         yyerrorcpp("Symbol " + name + " is not a function.", this);
         return NULL;
+    } else if (ident.isComplex()) {
+        Node *stem = ident.getStem().getSymbol(getScope());
+        if (Interface *intf = dynamic_cast<Interface*>(stem)) {
+            yyerrorcpp("Can not call an interface function.", this);
+            return NULL;
+        }
     }
 
     if (fsymbol->getNumCodedParams() != parameters->getNumParams()) {
@@ -241,6 +233,11 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         if (stemSymbol->isPointerToPointer())
             stem = Builder->CreateLoad(stem->getType()->getPointerTo(), stem, "defer");
         args.push_back(stem);
+    } else if (fsymbol->getThisArgDt() != BuildTypes::undefinedType) {
+        // calling a function of the type itself, without stem
+        Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
+        Value *ptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
+        args.push_back(ptr);
     }
 
     ArrayRef<Value*> argsRef(args);
@@ -249,10 +246,23 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
     Value *vfunc = symbol->getLLVMValue(func);
     Function *cfunc = dyn_cast<Function>(vfunc);
 
-    // when calling an interface function, generate a complete name
-    // to enable injection at link time (symbol name substitution)
+    // symbol->getLLVMValue above can emit another location (preGenerate of the 
+    // function being called), so we emit location again
+    RobDbgInfo.emitLocation(this);
+
+    // when calling an interface function, we generate a larger function name,
+    // including the type name. This enable binding the correct function implementattion
+    // at the end of the build, according to the given hardware .spec
     if (stemSymbol && buildTypes->isInterface(stemSymbol->getDataType())) {
-        string inject_name = stemSymbol->getScope()->getName() + ":";
+        string inject_name;
+        
+        if (UserType *ut = dynamic_cast<UserType*>(stemSymbol->getScope()))
+            inject_name = stemSymbol->getScope()->getName() + ":";
+        else if (buildTypes->isUserType(stemSymbol->getScope()->getDataType())) {
+            inject_name = buildTypes->name(stemSymbol->getScope()->getDataType());
+            inject_name.append(":");
+        }
+
         inject_name.append(stemSymbol->getName() + ":");
         inject_name.append(ident.getLastName());
         Function *intf_cfunc = mainmodule->getFunction(inject_name);

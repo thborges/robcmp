@@ -50,4 +50,12 @@ public:
         return bitWidth;
     }
 
+    bool implementsInterface(const string& intf) {
+        return std::find(implements.begin(), implements.end(), intf) != implements.end();
+    }
+
+    DataType getDataType() override {
+        createDataType();
+        return dt;
+    }
 };

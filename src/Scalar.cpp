@@ -75,8 +75,11 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			if (symbol->hasQualifier(qconst))
 				ret = alloc = exprvc;
 			else {
-				GlobalVariable *gv = new GlobalVariable(*mainmodule, buildTypes->llvmType(dt),
-					false, GlobalValue::InternalLinkage, exprvc, name);
+				Type *gty = buildTypes->llvmType(dt);
+				if (expr->isPointerToPointer())
+					gty = gty->getPointerTo();
+				GlobalVariable *gv = new GlobalVariable(*mainmodule, gty, false, 
+					GlobalValue::InternalLinkage, exprvc, name);
 				gv->setDSOLocal(true);
 				ret = alloc = gv;
 

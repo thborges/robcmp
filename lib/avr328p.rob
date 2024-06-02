@@ -2,73 +2,85 @@
  * Robcmp interruptions vector for atmega328p
  */
 
-void main();
-void __vectors();
-
-// implemented in avr5.S
-void __do_copy_data();
-void __do_clear_bss();
-
-void __vectors() {
-	/* FIXME: provide proper interrupt functions instead of __vectors 
-	 * after implementing "weak" attribute for functions
-	 */
-
-	/* atmega328p has 26 interruptions */
-	asm "rjmp __init";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-	asm "rjmp __vectors";
-
-	asm "__init:";
-	// clear r1 (zero reg)
-	asm "clr r1";
-	// clear sreg
-	asm "out 0x3f, r1";
-	// set stack at 0x08FF (0x100+2K-1)
-	asm "ldi r28, 0xFF";
-	asm "ldi r29, 0x08";
-	asm "out 0x3e, r29";
-	asm "out 0x3d, r28";
-
-	/* same code in .rob, but it produces a larger assembly code
-	/*register int8 SREG at 0x3f;
-	register int16 STACK at 0x3d;
-	SREG = 0;
-	STACK = 0x08FF;*/
-	
-	// copy global vars init data
-	__do_copy_data();
-
-	// clear zeroed global vars 
-	__do_clear_bss();
-
-	main();
-
-	// if main returns, disable interruptions and sleep. 
-	// this is used to quit simavr in our tests
-	asm "cli";
-	asm "sleep";
-}
+ void main();
+ void __vectors();
+ 
+ // implemented in avr5.S
+ void __do_copy_data();
+ void __do_clear_bss();
+ 
+ void __default_irq() {
+	 asm "reti";
+ }
+ 
+ void __delay_us() {
+	 asm "ldi r18, 5";
+	 asm "__delay_ms_loop: dec r18";
+	 asm "brne __delay_ms_loop";
+	 asm "nop";
+ }
+ 
+ void __vectors() {
+	 /* FIXME: provide proper interrupt functions instead of __vectors 
+	  * after implementing "weak" attribute for functions
+	  */
+ 
+	 /* atmega328p has 26 interruptions */
+	 asm "rjmp __init";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+	 asm "rjmp __default_irq";
+ 
+	 asm "__init:";
+	 // clear r1 (zero reg)
+	 asm "clr r1";
+	 // clear sreg
+	 asm "out 0x3f, r1";
+	 // set stack at 0x08FF (0x100+2K-1)
+	 asm "ldi r28, 0xFF";
+	 asm "ldi r29, 0x08";
+	 asm "out 0x3e, r29";
+	 asm "out 0x3d, r28";
+ 
+	 /* same code in .rob, but it produces a larger assembly code
+	 /*register int8 SREG at 0x3f;
+	 register int16 STACK at 0x3d;
+	 SREG = 0;
+	 STACK = 0x08FF;*/
+	 
+	 // copy global vars init data
+	 __do_copy_data();
+ 
+	 // clear zeroed global vars 
+	 __do_clear_bss();
+ 
+	 main();
+ 
+	 // if main returns, disable interruptions and sleep. 
+	 // this is used to quit simavr in our tests
+	 asm "cli";
+	 asm "sleep";
+ }
+ 

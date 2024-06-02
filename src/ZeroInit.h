@@ -5,14 +5,15 @@
 #include "HeaderGlobals.h"
 #include "Node.h"
 
-class NullConst: public Node {
+class ZeroInit: public Node {
 public:
-	NullConst(DataType dt) {
+	ZeroInit(DataType dt) {
 		this->dt = dt;
 	}
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
-        return ConstantPointerNull::get(PointerType::get(buildTypes->llvmType(dt), 0));
+		return ConstantAggregateZero::get(buildTypes->llvmType(dt));
+        //return ConstantPointerNull::get(buildTypes->llvmType(dt)->getPointerTo());
     }
 
 	virtual bool isConstExpr() override {

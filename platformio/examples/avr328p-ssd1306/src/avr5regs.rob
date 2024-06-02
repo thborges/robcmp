@@ -1,4 +1,26 @@
 
+/*
+ * Global Registers
+ */
+
+type sreg_t {
+	C = false;  // Carry Flag
+	Z = false;  // Zero Flag
+	N = false;  // Negative Flag
+	V = false;  // Two’s Complement Overflow Flag
+	S = false;  // Sign Bit
+	H = false;  // Half Carry Flag
+	T = false;  // Bit Copy Storage
+	I = false;  // Global Interrupt Enable
+}
+
+register sreg_t sreg at 0x5f;
+
+
+/*
+ * IO PORTS
+ */
+
 type portb_t {
 	b0 = false;
 	b1 = false;
@@ -17,24 +39,24 @@ register portb_t ddrb at 0x24;
  */
 
 type spcr_t {
-	SPR0 = false;
-	SPR1 = false;
-	CPHA = false;
-	CPOL = false;
-	MSTR = false;
-	DORD = false;
-	SPE = false;
-	SPIE = false;
+	SPR0 = false; // SPI clock rate 0
+	SPR1 = false; // SPI clock rate 1
+	CPHA = false; // Clock phase
+	CPOL = false; // Clock polarity
+	MSTR = false; // Master
+	DORD = false; // Data order
+	SPE = false;  // SPI enable
+	SPIE = false; // SPI interruption enable
 }
 
 // SPI Control Register
 register spcr_t spcr at 0x4c;
 
 type spsr_t {
-	SPI2x = false;
+	SPI2x = false; // Double SPI speed
 	_reserved = int5(0);
-	WCOL = false;
-	SPIF = false;
+	WCOL = false;  // Write COLision flag
+	SPIF = false;  // SPI interrupt flag
 }
 
 // SPI Status Register

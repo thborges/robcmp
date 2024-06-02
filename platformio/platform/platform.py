@@ -43,10 +43,22 @@ class RobcmpPlatform(PlatformBase):
             debug["tools"] = {}
 
         if debug.get("target_mcu", ""):
-            debug["tools"]["robcmp"]["server"]["arguments"] = [
+            debug["tools"]["robcmp-led"]["server"]["arguments"] = [
                 "-f", "$PROG_PATH",
                 "-m", debug["target_mcu"],
                 "-hw", "led",
+                "-g"
+            ]
+            debug["tools"]["robcmp-ssd1306"]["server"]["arguments"] = [
+                "-f", "$PROG_PATH",
+                "-m", debug["target_mcu"],
+                "-hw", "ssd1306",
+                "-g"
+            ]
+            debug["tools"]["robcmp-hd44780"]["server"]["arguments"] = [
+                "-f", "$PROG_PATH",
+                "-m", debug["target_mcu"],
+                "-hw", "hd44780",
                 "-g"
             ]
 

@@ -7,10 +7,31 @@
   "debug": {
     "target_mcu": "atmega328p",
     "tools": {
-      "robcmp": {
+      "robcmp-led": {
         "init_cmds": [
           "target remote $DEBUG_PORT",
-          "$INIT_BREAK",
+          "$LOAD_CMDS"
+        ],
+        "port": ":1234",
+        "server": {
+          "package": "toolchain-robcmp",
+          "executable": "bin/robcmp-simavr-debug"
+        }
+      },
+      "robcmp-ssd1306": {
+        "init_cmds": [
+          "target remote $DEBUG_PORT",
+          "$LOAD_CMDS"
+        ],
+        "port": ":1234",
+        "server": {
+          "package": "toolchain-robcmp",
+          "executable": "bin/robcmp-simavr-debug"
+        }
+      },
+      "robcmp-hd44780": {
+        "init_cmds": [
+          "target remote $DEBUG_PORT",
           "$LOAD_CMDS"
         ],
         "port": ":1234",

@@ -7,12 +7,12 @@ if exists("b:current_syntax")
     finish
 endif
 
-syn keyword keywords while loop if else delay print return register at volatile const asm type use interface copy
-syn keyword typeKeywords void char int8 int16 int32 int64 long unsigned float double bool enum
+syn keyword keywords while loop if else delay print return register at volatile const asm type interface implements use copy bind to singleton transient
+syn keyword typeKeywords void char int8 int16 int32 int64 uint8 uint16 uint32 uint64 long float double bool enum
 syn keyword operatorKeywords and or quando esta servo
 syn keyword booleanKeyword true false
 
-syn match integerConstants "\<\d\+\>" 
+syn match integerConstants "\<\d\+[Uu]\?\>" 
 syn match hexConstants "\<0x[0-9a-fA-F]\+\>" 
 syn match floatConstants "\<\d\+\.\d\+L\?D\?\>"
 syn match charConstants "'\\\?.'"

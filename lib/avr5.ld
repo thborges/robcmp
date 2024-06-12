@@ -7,22 +7,22 @@ OUTPUT_ARCH(avr:5)
 
 SECTIONS
 {
-  .text : AT (0x0) {
-  	_start__vectors = .;
+  .text : {
+  _start__vectors = .;
 	KEEP(*(.vectors))
 	. = ALIGN(2);
 	_end_vectors = .;
 	_stext = .;
-     *(.progmem*)
+    *(.progmem*)
     . = ALIGN(2);
     *(.text)
     . = ALIGN(2);
     *(.text.*)
-	. = ALIGN(2);
-     _etext = . ;
-  }
+	  . = ALIGN(2);
+    _etext = . ;
+  } > text
 
-  .data : AT (ADDR(.text) + SIZEOF(.text)) {
+  .data : {
      PROVIDE (__data_start = .) ;
     *(.data)
     *(.data*)
@@ -30,12 +30,12 @@ SECTIONS
     *(.rodata*) /* with -fdata-sections.  */
     . = ALIGN(2);
      PROVIDE (__data_end = .) ;
-  }  > data
+  }  > data AT> text
 
-  .bss : AT (ADDR (.bss)) {
+  .bss ADDR(.data) + SIZEOF(.data) : AT (ADDR (.bss)) {
      PROVIDE (__bss_start = .) ;
     *(.bss)
-     *(.bss*)
+    *(.bss*)
     *(COMMON)
      PROVIDE (__bss_end = .) ;
   }  > data
@@ -43,6 +43,17 @@ SECTIONS
    __data_load_start = LOADADDR(.data);
    __data_load_end = __data_load_start + SIZEOF(.data);
   
+  /* will robcmp emits .noinit data? i.e., global vars uninitialized. 
+     this also provides __heap_start, for when we implement malloc.
+  */
+  .noinit  ADDR(.bss) + SIZEOF(.bss) : AT (ADDR (.noinit)) {
+     PROVIDE (__noinit_start = .) ;
+    *(.noinit*)
+     PROVIDE (__noinit_end = .) ;
+    _end = . ;
+     PROVIDE (__heap_start = .) ;
+  } > data
+
   /* Global data not cleared after reset.  */
   .eeprom  : {
     KEEP(*(.eeprom*))

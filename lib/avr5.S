@@ -361,3 +361,27 @@ __do_clear_bss_start:
     ret
 ENDF __do_clear_bss
 
+
+/* memset function for avr, based on avr libc */
+#define dest_hi r25
+#define dest_lo r24
+#define val_lo r22
+#define len_hi r21
+#define len_lo r20
+
+DEFUN memset
+    movw  XL, dest_lo
+    sbrs    len_lo, 0
+    rjmp    .L_memset_start
+    rjmp    .L_memset_odd
+.L_memset_loop:
+    st  X+, val_lo
+.L_memset_odd:
+    st  X+, val_lo
+.L_memset_start:
+    subi    len_lo, lo8(2)
+    sbci    len_hi, hi8(2)
+    brcc    .L_memset_loop
+    ret
+ENDF memset
+

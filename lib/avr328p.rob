@@ -9,10 +9,6 @@
  void __do_copy_data();
  void __do_clear_bss();
  
- void __default_irq() {
-	 asm "reti";
- }
- 
  void __delay_us() {
 	 asm "ldi r18, 5";
 	 asm "__delay_ms_loop: dec r18";
@@ -53,6 +49,9 @@
 	 asm "rjmp __default_irq";
 	 asm "rjmp __default_irq";
  
+	 asm "__default_irq:";
+	 asm "reti";
+	
 	 asm "__init:";
 	 // clear r1 (zero reg)
 	 asm "clr r1";

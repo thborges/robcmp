@@ -30,4 +30,3 @@ class Variable;
 
 enum BindScope {bs_singleton, bs_transient};
 extern map<string, pair<string, BindScope>> injections;
-extern map<string, Variable*> map_injections;

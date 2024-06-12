@@ -3,10 +3,9 @@
 #include "BackLLVM.h"
 
 FunctionImpl::FunctionImpl(DataType dt, string name, FunctionParams *fp, vector<Node*> &&stmts,
-	location_t ef, bool constructor) :
-	FunctionBase(dt, name, fp, std::move(stmts), constructor) {
+	location_t loc, location_t ef, bool constructor) :
+	FunctionBase(dt, name, fp, std::move(stmts), loc, constructor), endfunction(ef) {
 	this->declaration = false;
-	this->endfunction = ef;
 
 	for(auto p: fp->getParameters()) {
 		symbols[p->getName()] = p;
@@ -54,12 +53,13 @@ bool FunctionImpl::preGenerate() {
 	attrs.addAttribute("frame-pointer", "all");
 	attrs.addAttribute("stack-protector-buffer-size", "8");
 	
-	if ((name == "init") ||
-		(node_children.size() == 1)) {
+	if (attrInline) {
 		// inline constructors and functions with only one node.
 		// TODO: Check the resulting binary size.
+		//if (!debug_info)
+		attrs.addAttribute(Attribute::AlwaysInline);
+	} else if (node_children.size() == 1)
 		attrs.addAttribute(Attribute::InlineHint);
-	}
 	
 	if (name == "__vectors") { // FIXME: remove after adding functions attributes to language
 		func->setSection(".vectors");
@@ -67,6 +67,9 @@ bool FunctionImpl::preGenerate() {
 	
 	func->setAttributes(llvm::AttributeList().addFnAttributes(global_context, attrs));
 	func->setCallingConv(CallingConv::C);
+
+	if (buildTypes->isUnsignedDataType(dt))
+		func->addRetAttr(Attribute::ZExt);
 
 	if (debug_info && !declaration) {
 		funit = DBuilder->createFile(RobDbgInfo.cunit->getFilename(), RobDbgInfo.cunit->getDirectory());
@@ -91,6 +94,10 @@ bool FunctionImpl::preGenerate() {
 		Variable *fp = parameters->getParameters()[Idx];
 		DataType ptype = fp->getDataType();
 		const string& argname = fp->getName();
+		Arg.setName(argname);
+
+		if (buildTypes->isUnsignedDataType(ptype))
+			Arg.addAttr(Attribute::ZExt);
 
 		Type *talloc = buildTypes->llvmType(ptype);
 		if (buildTypes->isComplex(ptype) || buildTypes->isArrayOrMatrix(ptype)) {
@@ -217,8 +224,8 @@ bool FunctionImpl::validateImplementation(FunctionDecl *decl) {
 	return result;
 }
 
-void FunctionImpl::accept(Visitor& v) {
-	v.visit(*this);
+Node* FunctionImpl::accept(Visitor& v) {
+	return v.visit(*this);
 }
 
 Value* FunctionImpl::getLLVMValue(Node *) {

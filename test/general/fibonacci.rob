@@ -20,7 +20,7 @@ int8 main() {
 		fibonacci(20)
 	};
 
-	i = 0;
+	i = 0u;
 	while (i < check.size) {
 		if (result[i] != check[i]) {
 			return 1;

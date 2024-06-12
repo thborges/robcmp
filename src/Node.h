@@ -20,8 +20,8 @@ protected:
 	bool pointerToPointer = false;
 
 public:
-	Node() {}
-	Node(vector<Node*> &&children);
+	Node(location_t l) : SourceLocation(l) {}
+	Node(vector<Node*> &&children, location_t l);
 
 	virtual ~Node();
 
@@ -35,7 +35,7 @@ public:
 
 	virtual std::vector<Node *> const& children() const;
 	
-	virtual void accept(Visitor &);
+	virtual Node* accept(Visitor &);
 
 	virtual bool hasName() {
 		return false;
@@ -57,7 +57,7 @@ public:
 
 	void addChild(Node *n, bool prepend = false);
 
-	map<string, NamedNode*> const& getSymbols();
+	virtual map<string, NamedNode*> const& getSymbols();
 
 	virtual void addSymbol(const string& label, NamedNode *nm);
 	virtual void addSymbol(NamedNode *nm);
@@ -97,6 +97,7 @@ public:
 	friend class UserType;
 	friend class Program;
 	friend class MemCopy;
+	friend class PropagateTypes;
 };
 
 class NamedNode: public Node {
@@ -104,10 +105,10 @@ protected:
 	string name;
 
 public:
-	NamedNode(const string &name) : name(name) {}
+	NamedNode(const string &name, location_t loc) : Node(loc), name(name) {}
 
-	NamedNode(const string &name, vector<Node*> &&children) :
-		Node(std::move(children)), name(name) {}
+	NamedNode(const string &name, vector<Node*> &&children, location_t loc) :
+		Node(std::move(children), loc), name(name) {}
 
 	virtual const string getName() const override {
 		return name;
@@ -121,3 +122,6 @@ public:
 		return true;
 	}
 };
+
+extern Node* getNodeForIntConst(int64_t, location_t);
+extern Node* getNodeForUIntConst(uint64_t, location_t);

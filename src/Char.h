@@ -8,7 +8,7 @@ private:
 	char value;
 
 public:
-	Char(char v): value(v) {}
+	Char(char v, location_t loc): Node(loc), value(v) {}
 
 	char getValue() const { return value; }
 

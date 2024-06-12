@@ -3,7 +3,7 @@
  */
 
 void sort(int16[] a) {
-	t = int16(0);
+	t = 0u;
 	while t < a.size - 1 {
 		s = t + 1;
 		while s < a.size {
@@ -23,7 +23,7 @@ int16 main() {
 	r = {int16(-9), -5, -3, 0, 6, 6, 11, 12, 12, 17, 22, 22, 34, 44, 56, 100 };
 	
 	sort(a);
-	i = 0;
+	i = 0u;
 	while i < a.size {
 		if a[i] != r[i] {
 			return 1;

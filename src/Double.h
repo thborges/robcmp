@@ -1,12 +1,13 @@
-#ifndef __DOUBLE_H__
-#define __DOUBLE_H__
+
+#pragma once
+
 #include "Node.h"
 
 class Double: public Node {
 private:
-	float number;
+	double number;
 public:
-	Double(float n): number(n) {}
+	Double(double n, location_t loc): Node(loc), number(n) {}
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 	virtual bool isConstExpr() override {
 		return true;
@@ -15,5 +16,3 @@ public:
 		return tdouble;
 	}
 };
-
-#endif

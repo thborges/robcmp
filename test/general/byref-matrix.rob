@@ -8,9 +8,9 @@ int32 main() {
     // y is a reference to x
     y = x;
 
-    i = 0;
+    i = 0u;
     while i < y.rows {
-        j = 0;
+        j = 0u;
         while j < y.cols {
             if y[i][j] != x[i][j] {
                 return 1;
@@ -23,9 +23,9 @@ int32 main() {
 
     // w is a reference to y (same as x)
     w = y;
-    i = 0;
+    i = 0u;
     while i < w.rows {
-        j = 0;
+        j = 0u;
         while j < w.cols {
             if w[i][j] != x[i][j] {
                 return 1;
@@ -37,9 +37,9 @@ int32 main() {
 
     // z is a copy of y
     z = copy(y);
-    i = 0;
+    i = 0u;
     while i < z.rows {
-        j = 0;
+        j = 0u;
         while j < z.cols {
             z[i][j] = z[i][j] + 1;
             if z[i][j] != x[i][j] + 1 {
@@ -61,15 +61,15 @@ int32 main() {
 int32 pass_matrix_pointer(int16[][] b) {
     c = b;
     d = copy(b);
-    result = c[1][2] + d[2][2] + b.cols + b.rows;
+    result = c[1][2] + d[2][2] + int32(b.cols) + int32(b.rows);
     return result;
 }
 
 int32 sum_matrix(int16[][] a) {
-    i = 0;
+    i = 0u;
     result = int32(0);
     while i < a.rows  {
-        j = 0;
+        j = 0u;
         while j < a.cols {
             result += a[i][j];
             j++;

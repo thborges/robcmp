@@ -20,10 +20,10 @@ BuildTypes::BuildTypes(DataType targetPointerType) {
     tinfo[tint16]   = {"int16",        16, Type::getInt16Ty(global_context),   dwarf::DW_ATE_signed};
     tinfo[tint32]   = {"int32",        32, Type::getInt32Ty(global_context),   dwarf::DW_ATE_signed};
     tinfo[tint64]   = {"int64",        64, Type::getInt64Ty(global_context),   dwarf::DW_ATE_signed};
-    tinfo[tint8u]   = {"unsigned8",     8, Type::getInt8Ty(global_context),    dwarf::DW_ATE_unsigned};
-    tinfo[tint16u]  = {"unsigned16",   16, Type::getInt16Ty(global_context),   dwarf::DW_ATE_unsigned};
-    tinfo[tint32u]  = {"unsigned32",   32, Type::getInt32Ty(global_context),   dwarf::DW_ATE_unsigned};
-    tinfo[tint64u]  = {"unsigned64",   64, Type::getInt64Ty(global_context),   dwarf::DW_ATE_unsigned};
+    tinfo[tint8u]   = {"uint8",         8, Type::getInt8Ty(global_context),    dwarf::DW_ATE_unsigned};
+    tinfo[tint16u]  = {"uint16",       16, Type::getInt16Ty(global_context),   dwarf::DW_ATE_unsigned};
+    tinfo[tint32u]  = {"uint32",       32, Type::getInt32Ty(global_context),   dwarf::DW_ATE_unsigned};
+    tinfo[tint64u]  = {"uint64",       64, Type::getInt64Ty(global_context),   dwarf::DW_ATE_unsigned};
     tinfo[tfloat]   = {"float",        32, Type::getFloatTy(global_context),   dwarf::DW_ATE_float};
     tinfo[tdouble]  = {"double",       64, Type::getDoubleTy(global_context),  dwarf::DW_ATE_float};
     tinfo[tldouble] = {"long double", 128, Type::getFP128Ty(global_context),   dwarf::DW_ATE_float};
@@ -92,9 +92,12 @@ DataType BuildTypes::getArrayElementType(DataType arrayDt) {
 DataType BuildTypes::getType(const string& name, bool createUndefined) {
     auto ut = namedTypes.find(name);
     if (ut == namedTypes.end()) {
-        if (createUndefined)
-            return addDataType(DataTypeInfo(name));
-    } else if (tinfo[ut->second].isDefined || createUndefined) {
+        if (createUndefined) {
+            DataTypeInfo dti(name);
+            dti.isComplex = true;
+            return addDataType(dti);
+        }
+    } else /*if (tinfo[ut->second].isDefined || createUndefined)*/ {
         return ut->second;
     }
     return undefinedType;
@@ -123,6 +126,7 @@ DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBi
     info.llvmType = llvmType;
     info.isDefined = true;
     info.isComplex = !isEnum;
+    info.isEnum = isEnum;
     info.dwarfEnc = 0;
     info.bitWidth = bitWidth;
     info.isInternal = false;

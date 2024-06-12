@@ -4,7 +4,7 @@
 #include "BuildTypes.h"
 #include "FunctionImpl.h"
 
-LoadArray::LoadArray(const string &i, Node *pos): BaseArrayOper(i, pos, NULL) {
+LoadArray::LoadArray(const string &i, Node *pos, location_t loc): BaseArrayOper(i, pos, NULL, loc) {
 	addChild(pos);
 }
 

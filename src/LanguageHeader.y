@@ -24,7 +24,7 @@
 %token TOK_LOOP TOK_WHILE
 %token TOK_AND TOK_OR
 %token TOK_IDENTIFIER TOK_XIDENTIFIER
-%token TOK_CHAR
+%token TOK_CHAR TOK_UINTEGER
 %token TOK_FLOAT TOK_DOUBLE TOK_LDOUBLE TOK_INTEGER TOK_STRING TOK_TRUE TOK_FALSE
 %token TOK_FINT8 TOK_FINT16 TOK_FINT32 TOK_FINT64
 %token TOK_FFLOAT TOK_FDOUBLE TOK_FCHAR TOK_FLONG TOK_FUNSIGNED TOK_FBOOL
@@ -39,6 +39,7 @@
 	char *ident;
 	char *str;
 	int64_t nint;
+	uint64_t unint;
 	float nfloat;
 	double ndouble;
 	long double nldouble;

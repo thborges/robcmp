@@ -2,7 +2,7 @@
 #include "Loop.h"
 #include "FunctionImpl.h"
 
-Loop::Loop(vector<Node*> &&stms) : Node(std::move(stms)) {
+Loop::Loop(vector<Node*> &&stms, location_t loc) : Node(std::move(stms), loc) {
 }
 
 Value *Loop::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {

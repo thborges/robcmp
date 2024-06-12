@@ -3,8 +3,8 @@
 #include "BackLLVM.h"
 #include "UserType.h"
 
-Pointer::Pointer(const char *name, DataType type, Node *address): 
-    Variable(name), address(address) {
+Pointer::Pointer(const char *name, DataType type, Node *address, location_t loc): 
+    Variable(name, loc), address(address) {
     dt = type;
     addChild(address);
 }

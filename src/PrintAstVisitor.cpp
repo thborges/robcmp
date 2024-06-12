@@ -31,19 +31,21 @@ void PrintAstVisitor::visit_children(Node& n) {
 	}
 }
 
-void PrintAstVisitor::visit(Node& n) {
-	if (before(n)) { return; }
+Node* PrintAstVisitor::visit(Node& n) {
+	if (before(n)) { return NULL; }
 	visit_children(n);
 	after(n);
+	return NULL;
 }
 
 PrintAstVisitor::PrintAstVisitor(std::ostream& _os) : os(_os) {
 }
 
-void PrintAstVisitor::visit(Program& p) {
-	if (before(p)) { return; }
+Node* PrintAstVisitor::visit(Program& p) {
+	if (before(p)) { return NULL; }
 	visit_children(p);
 	after(p);
+	return NULL;
 }
 
 bool PrintAstVisitor::before(Program& p) {
@@ -58,19 +60,22 @@ void PrintAstVisitor::after(Program& p) {
 	this->os << "}\n";
 }
 
-void PrintAstVisitor::visit(Int8& n) {
+Node* PrintAstVisitor::visit(Int8& n) {
 	this->os << "N" << std::hex << (uint64_t)&n << 
 		"[label=\"" << get_typename(n) << "(" << std::dec << (int)n.getNumber() << ")\"];\n";
+	return NULL;
 }
 
-void PrintAstVisitor::visit(Int16& n) {
+Node* PrintAstVisitor::visit(Int16& n) {
 	this->os << "N" << std::hex << (uint64_t)&n << 
 		"[label=\"" << get_typename(n) << "(" << std::dec << n.getNumber() << ")\"];\n";
+	return NULL;
 }
 
-void PrintAstVisitor::visit(Int32& n) {
+Node* PrintAstVisitor::visit(Int32& n) {
 	this->os << "N" << std::hex << (uint64_t)&n << 
 		"[label=\"" << get_typename(n) << "(" << std::dec << n.getNumber() << ")\"];\n";
+	return NULL;
 }
 
 const string PrintAstVisitor::getOperatorName(int op) {
@@ -81,39 +86,38 @@ const string PrintAstVisitor::getOperatorName(int op) {
 		case GE_OP: return ">=";
 		case LT_OP: return "<";
 		case GT_OP: return ">";
-		case '+' : 	return "+";
-		case '-' :  return "-";
-		case '*' :  return "*";
-		case '/' :  return "/";
-		case '%' :  return "%";
 		case TOK_AND : return "and";
 		case TOK_OR  : return "or";
 		default: return std::to_string(op);
 	}
 }
 
-void PrintAstVisitor::visit(CmpOp& n) {
+Node* PrintAstVisitor::visit(CmpOp& n) {
 	this->os << "N" << std::hex << (uint64_t)&n 
 			 << "[label=\"" << get_typename(n) << "(" << std::dec 
 			 << getOperatorName(n.getOperator()) << ")\"];\n";
 	visit_children(n);
+	return NULL;
 }
 
-void PrintAstVisitor::visit(BinaryOp& n) {
+Node* PrintAstVisitor::visit(BinaryOp& n) {
 	this->os << "N" << std::hex << (uint64_t)&n 
 			 << "[label=\"" << get_typename(n) << "(" << std::dec 
 			 << getOperatorName(n.getOperator()) << ")\"];\n";
 	visit_children(n);
+	return NULL;
 }
 
-void PrintAstVisitor::visit(Load& n) {
+Node* PrintAstVisitor::visit(Load& n) {
 	this->os << "N" << std::hex << (uint64_t)&n 
 			 << "[label=\"" << get_typename(n) << "(" << n.getName() << ")\"];\n";
 	visit_children(n);
+	return NULL;
 }
 
-void PrintAstVisitor::visit(Scalar& n) {
+Node* PrintAstVisitor::visit(Scalar& n) {
 	this->os << "N" << std::hex << (uint64_t)&n 
 			 << "[label=\"" << get_typename(n) << "(" << n.getName() << ")\"];\n";
 	visit_children(n);
+	return NULL;
 }

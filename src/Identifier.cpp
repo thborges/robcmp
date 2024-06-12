@@ -29,7 +29,7 @@ Node* Identifier::getSymbol(Node *scope, bool validate) {
 Identifier Identifier::getStem() {
     assert(complex && "identifier is not complex.");
     size_t last = ident.find_last_of('.');
-    return ident.substr(0, last);
+    return Identifier(ident.substr(0, last), this->getLoc());
 }
 
  string const Identifier::getLastName() const {

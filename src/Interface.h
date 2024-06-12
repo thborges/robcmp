@@ -8,11 +8,12 @@ private:
 	void createDataType();
 
 public:
-	Interface(const string& name) : NamedNode(name) {
+	Interface(const string& name, location_t loc) : NamedNode(name, loc) {
 		createDataType();
 	}
 
-    Interface(const string& name, vector<Node*> stmts): NamedNode(name, std::move(stmts)) {
+    Interface(const string& name, vector<Node*> stmts, location_t loc):
+		NamedNode(name, std::move(stmts), loc) {
 		createDataType();
 	}
 

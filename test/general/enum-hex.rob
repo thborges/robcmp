@@ -1,0 +1,17 @@
+/* altough simple, this test can catch
+   bugs in the enum datatype creation,
+   when the values of enum items are
+   determined */
+
+enum power { ON = 0xAF, SLEEP = 0 }
+
+int8 main() {
+    a = power.ON;
+    b = power.SLEEP;
+    if uint8(a) != 0xAF or uint8(b) != 0x0 {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+

@@ -41,14 +41,12 @@ register UCSRB UCSR0B at 0xc1;
 register UCSRC UCSR0C at 0xc2;
 
 /* USART0 baud rate register, 12 bits*/
-register int16 UBRR0 at 0xc4;
+register uint16 UBRR0 at 0xc4;
 
 /* USART0 byte to send/received */
-register int8 UDR0 at 0xc6;
+register uint8 UDR0 at 0xc6;
 
 type avr5_serial {
-    const test = 10;
-    volatile teste2 = int32(0);
 
     void start(avr5mcu mcu, int32 baud) {
         // use 2x
@@ -80,12 +78,12 @@ type avr5_serial {
         UCSR0B.TXEN0 = true;
     }
 
-    void write(int8 c) {
+    void write(uint8 c) {
         while UCSR0A.UDRE0 == false;
         UDR0 = c;
     }
 
-    int8 read() {
+    uint8 read() {
         while UCSR0A.RXC0 == false;
         return UDR0;    
     }

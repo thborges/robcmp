@@ -7,7 +7,7 @@
 
 class ZeroInit: public Node {
 public:
-	ZeroInit(DataType dt) {
+	ZeroInit(DataType dt, location_t loc): Node(loc) {
 		this->dt = dt;
 	}
 

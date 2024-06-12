@@ -9,17 +9,28 @@ void Enum::createDataType() {
         return;
     }
 
+    dt = buildTypes->getType(name);
+    if (dt != BuildTypes::undefinedType && buildTypes->isDefined(dt)) {
+        yyerrorcpp("Type " + name + " alread defined.", this);
+        yyerrorcpp(name + " was first defined here.", buildTypes->location(dt));
+        return;
+    }
+
     /* set enum items values
      *   enum A {B=1, C, D, E, F=10, G, H=127, I} => C=2, D=3 ... G=11 ... I=-128
      *   enum B {C=3, D=2, E, F} => E=4, F=5
      */
-    int8_t v = 0;
-    map<int8_t, Node*> values;
+    uint8_t v = 0;
+    map<uint8_t, Node*> values;
     for(Node *n : children()) {
         NamedConst *nc = (NamedConst*)n;
-        Int8 *i8 = dynamic_cast<Int8*>(nc->getValue());
-        if (i8) {
-            v = i8->getNumber();
+        Node *nv = nc->getValue();
+        if (nv) {
+            if (Int8 *i8 = dynamic_cast<Int8*>(nv))
+                v = i8->getNumber();
+            else if (UInt8 *ui8 = dynamic_cast<UInt8*>(nv))
+                v = ui8->getNumber();
+
             if (values.count(v) == 1) {
                 yyerrorcpp(string_format("Value %d alread taken for %s.", 
                     v, values[v]->getName().c_str()), nc);
@@ -29,18 +40,13 @@ void Enum::createDataType() {
         } else {
             while (values.count(v) == 1)
                 v++;
-            nc->setValue(new Int8(v));
+            nc->setValue(new UInt8(v, nc->getLoc()));
             values[v] = nc;
         }
     }
 
     dt = buildTypes->addDataType(this, buildTypes->llvmType(tint8), 
         buildTypes->bitWidth(tint8), true);
-    if (dt == BuildTypes::undefinedType) {
-        yyerrorcpp("Type " + name + " alread defined.", this);
-        yyerrorcpp(name + " was first defined here.", buildTypes->location(dt));
-        return;
-    }
 
     for(Node *n : children()) {
         n->setDataType(dt);
@@ -48,6 +54,12 @@ void Enum::createDataType() {
 }
 
 Value* Enum::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
-    createDataType();
+    getDataType();
     return NULL;
+}
+
+DataType Enum::getDataType() {
+    if (dt == BuildTypes::undefinedType)
+        createDataType();
+    return dt;
 }

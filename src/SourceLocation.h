@@ -19,13 +19,8 @@ protected:
 	location_t sloc;
 	const filesystem::path *file;
 public:
-    SourceLocation() {
+    SourceLocation(location_t l) {
         file = build_file();
-		sloc.first_column = build_filecolno();
-		sloc.first_line = build_filelineno();
-    }
-
-    SourceLocation(location_t l): SourceLocation() {
         sloc = l;
     }
 
@@ -45,8 +40,8 @@ public:
 		sloc = s->sloc;
 	}
 
-	virtual location_t *getLoct() {
-		return &sloc;
+	virtual location_t getLoc() {
+		return sloc;
 	}
 
 	virtual const string getFile() const {

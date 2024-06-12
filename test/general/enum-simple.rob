@@ -1,0 +1,14 @@
+
+enum Enum {A, B, C, D, E}
+
+int16 main() {
+	a = Enum.B;
+	b = Enum.C;
+
+	if a == b or b == Enum.E {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+

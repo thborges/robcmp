@@ -31,6 +31,7 @@
 
 %type <ident> TOK_IDENTIFIER TOK_XIDENTIFIER ident_or_xident
 %type <nint> TOK_INTEGER TOK_CHAR qualifier bind_scope
+%type <unint> TOK_UINTEGER
 %type <nfloat> TOK_FLOAT
 %type <ndouble> TOK_DOUBLE
 %type <nldouble> TOK_LDOUBLE
@@ -77,8 +78,13 @@ use : TOK_USE TOK_IDENTIFIER ';' {
 	$$ = NULL;
 }
 
+use : TOK_USE TOK_XIDENTIFIER ';' {
+	parseUseFile($2, @TOK_USE);
+	$$ = NULL;
+}
+
 enum : TOK_ENUM TOK_IDENTIFIER[id] '{' enum_items '}' {
-	$$ = new Enum($id, std::move(*$enum_items));
+	$$ = new Enum($id, std::move(*$enum_items), @id);
 }
 
 enum_items : enum_items[items] ',' enum_item {
@@ -92,23 +98,30 @@ enum_items : enum_item {
 }
 
 enum_item : TOK_IDENTIFIER[id] '=' TOK_INTEGER[intg] {
-	$$ = new NamedConst($id, new Int8($intg));
+	$$ = new NamedConst($id, new Int8($intg, @intg), @id);
+}
+
+enum_item : TOK_IDENTIFIER[id] '=' '-' TOK_INTEGER[intg] {
+	$$ = new NamedConst($id, new Int8($intg * -1, @intg), @id);
+}
+
+enum_item : TOK_IDENTIFIER[id] '=' TOK_UINTEGER[intg] {
+	$$ = new NamedConst($id, new UInt8($intg, @intg), @id);
 }
 
 enum_item : TOK_IDENTIFIER[id] {
-	$$ = new NamedConst($id);
+	$$ = new NamedConst($id, @id);
 }
 
 function : function_decl | function_impl
 
 function_decl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' ';' {
-				$$ = new FunctionDecl(buildTypes->getType($type, true), $id, $function_params);
-				$$->setLocation(@type);
+				$$ = new FunctionDecl(buildTypes->getType($type, true), $id, $function_params, @id);
 			}
 
 function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' '{' stmts '}'[ef] {
 	FunctionImpl *func = new FunctionImpl(buildTypes->getType($type, true), $id, $function_params,
-		std::move(*$stmts), @ef); 
+		std::move(*$stmts), @id, @ef); 
 	func->setLocation(@type);
 	$$ = func;
 }
@@ -143,7 +156,7 @@ function_params: %empty {
 }
 
 function_param : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] {
-	$$ = new Variable($id, buildTypes->getType($type, true));
+	$$ = new Variable($id, buildTypes->getType($type, true), @type);
 }
 
 function_param : TOK_IDENTIFIER[type] '[' ']' TOK_IDENTIFIER[id] {
@@ -155,19 +168,16 @@ function_param : TOK_IDENTIFIER[type] '[' ']' '[' ']' TOK_IDENTIFIER[id] {
 }
 
 register : TOK_REGISTER TOK_IDENTIFIER[type] TOK_IDENTIFIER[name] TOK_AT expr ';' {
-	$$ = new Pointer($name, buildTypes->getType($type, true), $5);
+	$$ = new Pointer($name, buildTypes->getType($type, true), $5, @name);
 	$$->setQualifier(qvolatile);
-	$$->setLocation(@name);
 }
 
-interface : TOK_INTF TOK_IDENTIFIER '{' interface_decls[intf] '}' {
-	$$ = new Interface($TOK_IDENTIFIER, std::move(*$intf));
-	$$->setLocation(@TOK_INTF);
+interface : TOK_INTF TOK_IDENTIFIER[id] '{' interface_decls[intf] '}' {
+	$$ = new Interface($id, std::move(*$intf), @id);
 }
 
-interface : TOK_INTF TOK_IDENTIFIER '{' '}' {
-	$$ = new Interface($TOK_IDENTIFIER);
-	$$->setLocation(@TOK_INTF);
+interface : TOK_INTF TOK_IDENTIFIER[id] '{' '}' {
+	$$ = new Interface($id, @id);
 }
 
 interface_decls : interface_decls function_decl {
@@ -184,20 +194,17 @@ interface_decls : function_decl {
 interface_impl : TOK_IDENTIFIER[id] '=' TOK_IDENTIFIER[intfname] '{' type_stmts '}' {
 	vector<string> intf;
 	intf.push_back($intfname);
-	UserType *ut = new UserType($id, std::move(*$type_stmts), std::move(intf));
-	ut->setLocation(@id);
+	UserType *ut = new UserType($id, std::move(*$type_stmts), std::move(intf), @id);
 	$$ = ut;
 }
 
-type : TOK_TYPE TOK_IDENTIFIER TOK_IMPL type_impls '{' type_stmts '}' {
-	UserType *ut = new UserType($TOK_IDENTIFIER, std::move(*$type_stmts), std::move(*$type_impls));
-	ut->setLocation(@TOK_TYPE);
+type : TOK_TYPE TOK_IDENTIFIER[id] TOK_IMPL type_impls '{' type_stmts '}' {
+	UserType *ut = new UserType($id, std::move(*$type_stmts), std::move(*$type_impls), @id);
 	$$ = ut;
 }
 
-type : TOK_TYPE TOK_IDENTIFIER '{' type_stmts '}' {
-	UserType *ut = new UserType($TOK_IDENTIFIER, std::move(*$type_stmts));
-	ut->setLocation(@TOK_TYPE);
+type : TOK_TYPE TOK_IDENTIFIER[id] '{' type_stmts '}' {
+	UserType *ut = new UserType($id, std::move(*$type_stmts), @id);
 	$$ = ut;
 }
 
@@ -229,8 +236,8 @@ type_stmt : simplevar_decl ';'
 		  | enum
 
 simplevar_decl : TOK_IDENTIFIER[id] '=' logicexpr	{ $$ = new Scalar($id, $logicexpr);	$$->setLocation(@id); }
-simplevar_decl : TOK_IDENTIFIER[id] '=' array		{ $$ = new Array($id, $array);		$$->setLocation(@id); }
-simplevar_decl : TOK_IDENTIFIER[id] '=' matrix		{ $$ = new Matrix($id, $matrix);	$$->setLocation(@id); }
+simplevar_decl : TOK_IDENTIFIER[id] '=' array		{ $$ = new Array($id, $array, @id); }
+simplevar_decl : TOK_IDENTIFIER[id] '=' matrix		{ $$ = new Matrix($id, $matrix, @id); }
 
 bind : TOK_BIND ident_or_xident[id] TOK_TO ident_or_xident[to] bind_scope[scope] ';' {
 	injections.insert({$to, make_pair(string($id), BindScope($scope))});
@@ -280,18 +287,18 @@ stmts : stmt {
 	$stmt->setLocation(@stmt);
 }
 
-stmt : ident_or_xident '+' '+' ';'					{ $$ = new Scalar($1, new BinaryOp(new Load($1), '+', new Int8(1))); }
-	 | ident_or_xident '-' '-' ';'					{ $$ = new Scalar($1, new BinaryOp(new Load($1), '-', new Int8(1))); }
-	 | ident_or_xident '+' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1), '+', $4)); }
-	 | ident_or_xident '-' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1), '-', $4)); }
-	 | ident_or_xident '*' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1), '*', $4)); }
-	 | ident_or_xident '/' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1), '/', $4)); }
-	 | ident_or_xident '|' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1), '|', $4)); }
-	 | ident_or_xident '&' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1), '&', $4)); }
-	 | ident_or_xident '^' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1), '^', $4)); }
-	 | ident_or_xident '[' expr ']' '=' expr ';'	{ $$ = new UpdateArray($1, $3, $6);}
-	 | ident_or_xident '[' expr ']' '[' expr ']' '=' expr ';'	{ $$ = new UpdateMatrix($1, $3, $6, $9); }
-	 | asminline ';'											{ $$ = new InlineAssembly($1); $$->setLocation(@1); }
+stmt : ident_or_xident '+' '+' ';'					{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '+', new Int8(1, @1))); }
+	 | ident_or_xident '-' '-' ';'					{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '-', new Int8(1, @1))); }
+	 | ident_or_xident '+' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '+', $4)); }
+	 | ident_or_xident '-' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '-', $4)); }
+	 | ident_or_xident '*' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '*', $4)); }
+	 | ident_or_xident '/' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '/', $4)); }
+	 | ident_or_xident '|' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '|', $4)); }
+	 | ident_or_xident '&' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '&', $4)); }
+	 | ident_or_xident '^' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '^', $4)); }
+	 | ident_or_xident '[' expr ']' '=' expr ';'	{ $$ = new UpdateArray($1, $3, $6, @1);}
+	 | ident_or_xident '[' expr ']' '[' expr ']' '=' expr ';'	{ $$ = new UpdateMatrix($1, $3, $6, $9, @1); }
+	 | asminline ';'											{ $$ = new InlineAssembly($1, @1); }
 	 | qualifier simplevar_decl ';'								{ $$ = $2; $$->setQualifier((DataQualifier)$1); }
 	 | simplevar_decl ';'
 	 | complexvar_set ';'
@@ -302,11 +309,11 @@ stmt : ident_or_xident '+' '+' ';'					{ $$ = new Scalar($1, new BinaryOp(new Lo
 	 | interface_impl
 
 complexvar_set : TOK_XIDENTIFIER[id] '=' logicexpr	{ $$ = new Scalar($id, $logicexpr);	$$->setLocation(@id); }
-complexvar_set : TOK_XIDENTIFIER[id] '=' array		{ $$ = new Array($id, $array);		$$->setLocation(@id); }
-complexvar_set : TOK_XIDENTIFIER[id] '=' matrix		{ $$ = new Matrix($id, $matrix);	$$->setLocation(@id); }
+complexvar_set : TOK_XIDENTIFIER[id] '=' array		{ $$ = new Array($id, $array, @id); }
+complexvar_set : TOK_XIDENTIFIER[id] '=' matrix		{ $$ = new Matrix($id, $matrix, @id); }
 
 returnblock : TOK_RETURN logicexpr		{ $$ = new Return($2); }
-returnblock : TOK_RETURN				{ $$ = new Return(); }
+returnblock : TOK_RETURN				{ $$ = new Return(@1); }
 
 /*
  * Conditional
@@ -314,13 +321,11 @@ returnblock : TOK_RETURN				{ $$ = new Return(); }
 
 condblock : TOK_IF logicexpr '{' stmts '}' {
 	$logicexpr->setLocation(@logicexpr);
-	$$ = new If($logicexpr, std::move(*$stmts));
-	$$->setLocation(@TOK_IF);
+	$$ = new If($logicexpr, std::move(*$stmts), @TOK_IF);
 }
 condblock : TOK_IF logicexpr '{' stmts '}' elseblock {
 	$logicexpr->setLocation(@logicexpr);
-	$$ = new If($logicexpr, std::move(*$stmts), std::move(*$elseblock));
-	$$->setLocation(@TOK_IF);
+	$$ = new If($logicexpr, std::move(*$stmts), std::move(*$elseblock), @TOK_IF);
 }
 
 elseblock : TOK_ELSE '{' stmts '}' { $$ = $stmts; }
@@ -336,19 +341,16 @@ elseblock : TOK_ELSE condblock {
 
 whileblock : TOK_WHILE logicexpr '{' stmts '}' {
 	$logicexpr->setLocation(@logicexpr);
-	$$ = new While($logicexpr, std::move(*$stmts));
-	$$->setLocation(@TOK_WHILE);
+	$$ = new While($logicexpr, std::move(*$stmts), @TOK_WHILE);
 }
 
 whileblock : TOK_WHILE logicexpr ';' {
 	$logicexpr->setLocation(@logicexpr);
-	$$ = new While($logicexpr);
-	$$->setLocation(@TOK_WHILE);
+	$$ = new While($logicexpr, @TOK_WHILE);
 }
 
 whileblock : TOK_LOOP '{' stmts '}' {
-	$$ = new Loop(std::move(*$stmts));
-	$$->setLocation(@TOK_LOOP);
+	$$ = new Loop(std::move(*$stmts), @TOK_LOOP);
 }
 
 /*
@@ -374,7 +376,7 @@ logicfactor : '(' logicexpr ')'		{ $$ = $2; }
 			| logicunary
 			;
 
-logicunary : '!' logicfactor { $$ = new BinaryOp(new Int1(1), '-', $2); }
+logicunary : '!' logicfactor { $$ = new BinaryOp(new Int1(1, @2), '-', $2); }
 
 /*
  * Arithmetic
@@ -400,23 +402,24 @@ term2 : term2 '&' factor    { $$ = new BinaryOp($1, '&', $3); }
 	  ;
 
 factor : '(' expr ')' 			{ $$ = $2; }
-	   | ident_or_xident		{ $$ = new Load($1); }
-	   | TOK_TRUE				{ $$ = new Int1(1); }
-	   | TOK_FALSE				{ $$ = new Int1(0); }
-	   | TOK_CHAR				{ $$ = new Char($1); }
-	   | TOK_INTEGER			{ $$ = getNodeForIntConst($1); }
-	   | TOK_FLOAT				{ $$ = new Float($1); }
-	   | TOK_DOUBLE				{ $$ = new Double($1); }
-	   | TOK_LDOUBLE			{ $$ = new Float128($1); }
-	   | ident_or_xident[id] '[' expr ']'				{ $$ = new LoadArray($1, $3);} 
-	   | ident_or_xident[id] '[' expr ']' '[' expr ']'	{ $$ = new LoadMatrix($1, $3, $6);}
+	   | ident_or_xident		{ $$ = new Load($1, @1); }
+	   | TOK_TRUE				{ $$ = new Int1(1, @1); }
+	   | TOK_FALSE				{ $$ = new Int1(0, @1); }
+	   | TOK_CHAR				{ $$ = new Char($1, @1); }
+	   | TOK_INTEGER			{ $$ = getNodeForIntConst($1, @1); }
+	   | TOK_UINTEGER			{ $$ = getNodeForUIntConst($1, @1); }
+	   | TOK_FLOAT				{ $$ = new Float($1, @1); }
+	   | TOK_DOUBLE				{ $$ = new Double($1, @1); }
+	   | TOK_LDOUBLE			{ $$ = new Float128($1, @1); }
+	   | ident_or_xident[id] '[' expr ']'				{ $$ = new LoadArray($1, $3, @id);} 
+	   | ident_or_xident[id] '[' expr ']' '[' expr ']'	{ $$ = new LoadMatrix($1, $3, $6, @id);}
 	   | call_or_cast
 	   | unary
 	   ;
 
 ident_or_xident: TOK_IDENTIFIER | TOK_XIDENTIFIER
 
-unary : '-' factor	{ $$ = new BinaryOp($2, '*', getNodeForIntConst(-1)); }
+unary : '-' factor	{ $$ = new BinaryOp($2, '*', getNodeForIntConst(-1, @factor)); }
 	  | '~' factor	{ $$ = new FlipOp($2); }
       ;
 
@@ -425,7 +428,7 @@ call_or_cast : ident_or_xident[id] '(' paramscall ')' {
 		$$ = new MemCopy($paramscall->getParamElement(0));
 	//else if buildTypes->get($id) && complex, call constructor
 	else {
-		$$ = new FunctionCall($id, $paramscall);
+		$$ = new FunctionCall($id, $paramscall, @id);
 	}
 	$$->setLocation(@id);
 }

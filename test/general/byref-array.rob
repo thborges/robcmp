@@ -1,12 +1,12 @@
 
 int32 sum_array(int16[] a);
 
-int8 main() {
+int32 main() {
     x = {int16(0), 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     // y is a reference to x
     y = x;
-    i = 0;
+    i = 0u;
     while i < y.size {
         if y[i] != x[i] {
             return 1;
@@ -16,7 +16,7 @@ int8 main() {
 
     // w is a reference to y (same as x)
     w = y;
-    i = 0;
+    i = 0u;
     while i < w.size {
         if w[i] != x[i] {
             return 1;
@@ -26,11 +26,11 @@ int8 main() {
 
     // z is a copy of y
     z = copy(y);
-    i = 0;
+    i = 0u;
     while i < z.size {
         z[i] = z[i] + 1;
         if z[i] != x[i] + 1 {
-            return i;
+            return int32(i);
         }
         i++;
     }
@@ -46,12 +46,12 @@ int8 main() {
 int32 pass_array_pointer(int16[] b) {
     c = b;
     d = copy(b);
-    result = c[9] + d[9] + b.size;
+    result = c[9] + d[9] + int32(b.size);
     return result;
 }
 
 int32 sum_array(int16[] a) {
-    i = 0;
+    i = 0u;
     result = int32(0);
     while i < a.size  {
         result += a[i];

@@ -1,13 +1,22 @@
 
 #include "UpdateArray.h"
-#include "Coercion.h"
 #include "FunctionImpl.h"
 #include "HeaderGlobals.h"
 
-UpdateArray::UpdateArray(const string &i, Node *pos, Node *expr): 
-	BaseArrayOper(i, pos, NULL), expr(expr) {
+UpdateArray::UpdateArray(const string &i, Node *pos, Node *expr, location_t loc): 
+	BaseArrayOper(i, pos, NULL, loc) {
+	this->expr = expr;
 	addChild(pos);
 	addChild(expr);
+}
+
+DataType UpdateArray::getElementDataType() {
+	if (element_dt == BuildTypes::undefinedType) {
+		Node *symbol = ident.getSymbol(getScope());
+		if (symbol && buildTypes->isArrayOrMatrix(symbol->getDataType()))
+			element_dt = buildTypes->getArrayElementType(symbol->getDataType());
+	}
+	return element_dt;
 }
 
 Value *UpdateArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
@@ -39,7 +48,6 @@ Value *UpdateArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *
 
 	Value *val = expr->generate(func, block, allocblock);
 	ArrayType *arrayTy = (ArrayType*)buildTypes->llvmType(symbol->getDataType());
-	val = Coercion::Convert(val, arrayTy->getArrayElementType(), block, this);
 
 	RobDbgInfo.emitLocation(this);
 	Builder->SetInsertPoint(block);

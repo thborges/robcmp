@@ -5,8 +5,7 @@
 #include "FunctionImpl.h"
 #include "FunctionDecl.h"
 #include "FunctionParams.h"
-#include "FunctionCall.h"
-#include "ParamsCall.h"
+#include "ConstructorCall.h"
 #include "Variable.h"
 #include "Visitor.h"
 #include "Enum.h"
@@ -15,8 +14,8 @@
 
 class ParentScalar: public Scalar {
 public:
-    ParentScalar(DataType parentDt) : Scalar("parent", new Load(":parent")) {
-        expr->setScope(this);
+    ParentScalar(DataType parentDt, location_t loc) : Scalar("parent", new Load(":parent", loc)) {
+        expr()->setScope(this);
         dt = parentDt;
         pointer = pm_pointer;
     }
@@ -48,7 +47,7 @@ bool UserType::createDataType() {
         if (UserType *ut = dynamic_cast<UserType*>(child)) {
             // internal user type:
             // add a var in the internal type to store a reference to his parent
-            ParentScalar *s = new ParentScalar(dt);
+            ParentScalar *s = new ParentScalar(dt, ut->getLoc());
             s->setScope(ut);
             ut->addChild(s);
             ut->addSymbol(s);
@@ -58,9 +57,9 @@ bool UserType::createDataType() {
             ut->createDataType();
 
             // create a new var in the parent to store the intf implementation
-            FunctionCall *fc = new FunctionCall(ut->getName(), new ParamsCall());
-            v = new Scalar(varname, fc);
-            fc->setScope(v);
+            ConstructorCall *cc = new ConstructorCall(ut->getName(), ut->getLoc());
+            v = new Scalar(varname, cc);
+            cc->setScope(v);
             v->setScope(this);
             addedVars.push_back(v);
             
@@ -74,11 +73,19 @@ bool UserType::createDataType() {
         }
 
         if (v) {
-            if (buildTypes->isInterface(v->getDataType()))
+            if (buildTypes->isInterface(v->getDataType())) {
                 v->setPointer(pm_pointer);
-            else if (v->getPointerMode() == pm_unknown)
+                v->setPointerToPointer(true);
+            } else if (v->getPointerMode() == pm_unknown)
                 v->setPointer(pm_nopointer);
             
+            DataType vdt = v->getDataType();
+            if (!buildTypes->isDefined(vdt)) {
+                Node *undeft = Identifier(buildTypes->name(vdt), getLoc()).getSymbol(this);
+                UserType *undefut = dynamic_cast<UserType*>(undeft);
+                if (undefut)
+                    undefut->createDataType();
+            }
             Type *llvmType = v->getLLVMType();
             assert(llvmType && "Can not construct a type without its LLVM type.");
             if (!llvmType)
@@ -109,7 +116,7 @@ bool UserType::createDataType() {
         yyerrorcpp(name + " was first defined here.", buildTypes->location(dt));
         return false;
     }
-    
+
     return true;
 }
 
@@ -152,10 +159,10 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
     FunctionParams *fp = new FunctionParams();
     FunctionBase *finit;
     if (declaration) {
-        finit = new FunctionDecl((DataType)tvoid, "init", fp);
+        finit = new FunctionDecl((DataType)tvoid, "init", fp, getLoc());
     } else {
         finit = new FunctionImpl((DataType)tvoid, "init", fp, 
-            std::move(fields), *this->getLoct(), true);
+            std::move(fields), getLoc(), getLoc(), true);
     }
     finit->addThisArgument(dt);
     if (parent)
@@ -192,8 +199,8 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
     return NULL;
 }
 
-void UserType::accept(Visitor& v) {
-	v.visit(*this);
+Node* UserType::accept(Visitor& v) {
+	return v.visit(*this);
 }
 
 unsigned UserType::getFieldStartBit(Node *field) {

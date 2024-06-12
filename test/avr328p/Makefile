@@ -1,6 +1,6 @@
 ALL=$(patsubst %.rob,out/%,$(wildcard *.rob))
 ALL_LL=$(patsubst %.rob,out/%.ll,$(wildcard *.rob))
-ALL_TT=$(patsubst %.rob,out/%.tt,$(wildcard *.rob))
+ALL_TT=$(patsubst %.rob,%.tt,$(wildcard *.rob))
 ALL_OO=$(patsubst %.rob,out/%.o,$(wildcard *.rob)) out/avr328p.o
 
 ROBCMP=../../build/robcmp
@@ -37,7 +37,7 @@ out/%.o : %.rob out/avr328p.o ${DEPENDS}
 out/%.ll : %.rob ${DEPENDS}
 	${ROBCMP} -a avr328p ${OPT} ${INCLUDES} $< > $@
 
-out/%.tt : %.rob ${DEPENDS}
+%.tt : %.rob ${DEPENDS}
 	@-./runtest.sh $< $(patsubst %.rob,out/%,$<) 
 
 out/itoa : out/itoa.o ${SERIAL_DEPENDS} ${LINK_DEPENDS}
@@ -48,5 +48,5 @@ out/% : out/%.o ${LINK_DEPENDS}
 test: ${ALL_TT}
 
 clean:
-	rm -f ${ALL} ${ALL_LL} ${ALL_OO} ${SERIAL_DEPENDS}
+	@rm -f ${ALL} ${ALL_LL} ${ALL_OO} ${SERIAL_DEPENDS}
 

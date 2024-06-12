@@ -9,7 +9,8 @@ private:
     bool complex;
 
 public:
-    Identifier(const string& ident): ident(ident) {
+    Identifier(const string& ident, location_t loc): SourceLocation(loc) {
+        this->ident = ident;
         complex = ident.find('.') != string::npos;
     }
 

@@ -160,14 +160,6 @@ bool parseUseFile(const string& use, location_t loc) {
 int MAINget_lineno(yyscan_t yyscanner);
 int MAINget_column(yyscan_t yyscanner);
 
-int build_filelineno() {
-    return MAINget_lineno(buildStackScanner[buildStackScanner.size()-1]);
-}
-
-int build_filecolno() {
-    return MAINget_column(buildStackScanner[buildStackScanner.size()-1]);
-}
-
 const filesystem::path* build_file() {
     return &buildStack[buildStackCurrent];
 }

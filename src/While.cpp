@@ -2,13 +2,13 @@
 #include "While.h"
 #include "FunctionImpl.h"
 
-While::While(Node *e) : expr(e) {
+While::While(Node *e, location_t loc) : Node(loc), expr(e) {
 	addChild(e);
 	stmts = NULL;
 }
 
-While::While(Node *e, vector<Node*> &&ss) : While(e) {
-	stmts = new Node(std::move(ss));
+While::While(Node *e, vector<Node*> &&ss, location_t loc) : While(e, loc) {
+	stmts = new Node(std::move(ss), loc);
 	addChild(stmts);
 }
 

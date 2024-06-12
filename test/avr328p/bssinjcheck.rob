@@ -1,0 +1,45 @@
+
+/* This test case allocates a type, with a matrix
+   inside it, in the .bss region.
+ */
+
+interface intf {
+    uint8 get(uint8 row, uint8 col);
+    uint8 rows();
+    uint8 cols();
+}
+
+type container implements intf {
+    buff = {{0u:128}:8};
+    uint8 get(uint8 row, uint8 col) {
+        return buff[row][col];
+    }
+    uint8 rows() { return buff.rows; }
+    uint8 cols() { return buff.cols; }
+}
+
+type globals {
+    c = intf();
+}
+
+bind container to globals.c singleton;
+
+int8 main() {
+    a = globals();
+    c = a.c;
+
+    row = 0u;
+    while row < c.rows() {
+        col = 0u;
+        while col < c.cols() {
+            v = c.get(row, col);
+            if v != 0 {
+                return 1;
+            }
+            col++;
+        }
+        row++;
+    }
+    return 0;
+}
+

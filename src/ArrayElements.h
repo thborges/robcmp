@@ -25,7 +25,7 @@ public:
 	DataType getArrayType();
 	static DataType getArrayConstType(const set<DataType>& types, SourceLocation *location);
 	
-	std::vector<ArrayElement*> const& getElements() {
+	std::vector<ArrayElement*>& getElements() {
 		return elements;
 	}
 };

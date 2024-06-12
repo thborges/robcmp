@@ -19,14 +19,15 @@ private:
 
 public:
 
-	UserType(const string name, vector<Node*> &&stmts): NamedNode(name, std::move(stmts)) { }
+	UserType(const string name, vector<Node*> &&stmts, location_t loc):
+        NamedNode(name, std::move(stmts), loc) { }
 
-    UserType(const string name, vector<Node*> &&stmts, vector<string> &&implements):
-        NamedNode(name, std::move(stmts)), implements(std::move(implements)) { }
+    UserType(const string name, vector<Node*> &&stmts, vector<string> &&implements, location_t loc):
+        NamedNode(name, std::move(stmts), loc), implements(std::move(implements)) { }
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
-    void accept(Visitor& v) override;
+    Node* accept(Visitor& v) override;
 
     unsigned getFieldStartBit(Node *field);
 

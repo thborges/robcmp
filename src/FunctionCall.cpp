@@ -1,10 +1,9 @@
 #include "FunctionCall.h"
 #include "BuildTypes.h"
-#include "Cast.h"
 #include "FunctionDecl.h"
 #include "FunctionImpl.h"
 #include "HeaderGlobals.h"
-#include "Coercion.h"
+#include "PropagateTypes.h"
 #include "Load.h"
 #include "Visitor.h"
 #include "BackLLVM.h"
@@ -17,7 +16,7 @@ extern Program *program;
 DataType FunctionCall::getDataType() {
     
     if (dt == BuildTypes::undefinedType) {
-        // is a cast or constructor?
+        // is a constructor? this can occur while running PropagateTypes.
         dt = buildTypes->getType(ident.getFullName());
         if (parameters->getNumParams() <= 1 && dt != BuildTypes::undefinedType) {
             return dt;
@@ -36,88 +35,6 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 
     RobDbgInfo.emitLocation(this);
     string name = ident.getFullName();
-
-    /* check if it is a constructor or cast call:
-        - cast if the function name is a type, e.g., int8(x), and the call has one argument
-        - constructor if the function name is a type and the call has no argument
-    */
-
-    DataType adt = buildTypes->getType(name);
-    if (adt != BuildTypes::undefinedType) {
-        dt = adt;
-        unsigned p = parameters->getNumParams();
-        // call with only one parameter is a cast
-        if (p == 1) {
-            Node *param = parameters->getParamElement(0);
-            Cast ca(dt, param);
-            ca.setScope(this);
-            if (!param->getScope())
-                param->setScope(&ca);
-            return ca.generate(func, block, allocblock);
-
-        } else if (p == 0) { // it's a constructor			
-            // alloc
-            Builder->SetInsertPoint(block);
-            Value *var = leftValue->getLLVMValue(func);
-            if (var == NULL) {
-                // is a new left var
-                Builder->SetInsertPoint(allocblock);
-                var = Builder->CreateAlloca(buildTypes->llvmType(dt), dataAddrSpace, 0, 
-                    leftValue->getName());
-                leftValue->setAlloca(var);
-                leftValue->setDataType(dt);
-                if (debug_info)
-                    RobDbgInfo.declareVar(leftValue, var, allocblock);
-            }
-            vector<Value*> args;
-            args.push_back(var);
-
-            // find the user type or interface
-            Node *type = findSymbol(name);
-            if (!type)
-                return NULL;
-            
-            // if calling a constructor of an interface, emit code to bind it
-            if (buildTypes->isInterface(type->getDataType())) {
-                dt = type->getDataType();
-
-                Node *scope = leftValue->getScope();
-                UserType *parent= dynamic_cast<UserType*>(scope);
-                const string toInjection = parent ?
-                    parent->getName() + "." + leftValue->getName() :
-                    leftValue->getName();
-
-                const string injectFuncName = ":get_injection_for_" + toInjection;
-                Node *funcNode = findSymbol(injectFuncName);
-                FunctionBase *funcDecl = dynamic_cast<FunctionBase*>(funcNode);
-                if (!funcDecl) {
-                    funcDecl = new FunctionDecl(dt, injectFuncName, new FunctionParams());
-                    funcDecl->setReturnIsPointer(true);
-                    funcDecl->setScope(program);
-                    funcDecl->generate(NULL, NULL, global_alloc);
-                    program->addSymbol(funcDecl);
-                }
-                return Builder->CreateCall(funcDecl->getLLVMFunction());
-
-            } else {
-                // call the init constructor
-                Node *fsymbol = type->findMember("init");
-                assert(fsymbol && "the init method for the type must exists");
-                
-                FunctionBase *initfunc = dynamic_cast<FunctionBase*>(fsymbol);
-                Builder->SetInsertPoint(block);
-
-                if (initfunc->needsParent()) {
-                    Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
-                    Value *ptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
-                    args.push_back(ptr);
-                }
-
-                CallInst *c = Builder->CreateCall(initfunc->getLLVMFunction(), ArrayRef<Value*>(args));
-                return NULL;
-            }
-        }
-    }
 
     if (!symbol)
         symbol = ident.getSymbol(getScope(), false);
@@ -167,10 +84,11 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
     }
 
     vector<Value*> args;
-    for (int i = 0, j = 0; i < parameters->getNumParams(); i++, j++) {
+    vector<DataType> dataTypes;
+    for (int i = 0; i < parameters->getNumParams(); i++) {
         Node *param = parameters->getParamElement(i);
         DataType call_dt = param->getDataType();
-        DataType def_dt = fsymbol->getParameters().getParamType(j);
+        DataType def_dt = fsymbol->getParameters().getParamType(i);
 
         Value *valor = param->generate(func, block, allocblock);
         if (!valor)
@@ -200,11 +118,10 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
             Value *indexList[2] = {zero, zero};
             Value *ptr = Builder->CreateGEP(param->getLLVMType(), valor, ArrayRef<Value*>(indexList), "gep");
             valor = ptr;
-        } else {
-            Type *pty = buildTypes->llvmType(def_dt);
-            valor = Coercion::Convert(valor, pty, block, this);
         }
-        args.push_back(valor);
+        
+        args.insert(args.begin() + i, valor);
+        dataTypes.insert(dataTypes.begin() + i, def_dt);
 
         // add a size parameter after each array, or .rows and .cols for matrixes
         if (buildTypes->isArrayOrMatrix(call_dt)) {
@@ -218,12 +135,12 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 
             for(const string& p: params) {
                 string pname = param->getName() + p;
-                Load ld(pname);
+                Load ld(Identifier(pname, param->getLoc()));
                 ld.setScope(func);
-                valor = ld.generate(func, block, allocblock);
-                valor = Coercion::Convert(valor, buildTypes->llvmType(tint32), block, this);
-                args.push_back(valor);
-                j++;
+                Node *coerced = PropagateTypes::coerceTo(&ld, tint32u);
+                Value *value = coerced->generate(func, block, allocblock);
+                args.push_back(value);
+                dataTypes.push_back(coerced->getDataType());
             }
         }
     }
@@ -233,17 +150,22 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         if (stemSymbol->isPointerToPointer())
             stem = Builder->CreateLoad(stem->getType()->getPointerTo(), stem, "defer");
         args.push_back(stem);
+        dataTypes.push_back(stemSymbol->getDataType());
     } else if (fsymbol->getThisArgDt() != BuildTypes::undefinedType) {
         // calling a function of the type itself, without stem
         Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
         Value *ptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
         args.push_back(ptr);
+        dataTypes.push_back(fsymbol->getThisArgDt());
     }
 
     ArrayRef<Value*> argsRef(args);
 
     Builder->SetInsertPoint(allocblock);
     Value *vfunc = symbol->getLLVMValue(func);
+    if (!vfunc) {
+        return NULL; //FIXME:??
+    }
     Function *cfunc = dyn_cast<Function>(vfunc);
 
     // symbol->getLLVMValue above can emit another location (preGenerate of the 
@@ -271,14 +193,27 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
                 codeAddrSpace, inject_name, mainmodule);
             intf_cfunc->setDSOLocal(true);
             intf_cfunc->setCallingConv(CallingConv::C);
+            intf_cfunc->addFnAttr(Attribute::AlwaysInline);
         }
         cfunc = intf_cfunc;
     }
 
     Builder->SetInsertPoint(block);
-    return Builder->CreateCall(cfunc, argsRef);
+    CallInst *call = Builder->CreateCall(cfunc, argsRef);
+    
+    // set signedness
+    if (cfunc->hasRetAttribute(Attribute::ZExt))
+        call->addRetAttr(Attribute::ZExt);  
+    int i = 0;
+    for(DataType adt : dataTypes) {
+        if (buildTypes->isUnsignedDataType(adt))
+			call->addParamAttr(i, Attribute::ZExt);
+        i++;
+    }
+
+    return call;
 }
 
-void FunctionCall::accept(Visitor& v) {
-    v.visit(*this);
+Node* FunctionCall::accept(Visitor& v) {
+    return v.visit(*this);
 }

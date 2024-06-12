@@ -1,15 +1,16 @@
 #include "Array.h"
 #include "ArrayElements.h"
-#include "Coercion.h"
 #include "BackLLVM.h"
 #include "Visitor.h"
 #include "FunctionImpl.h"
 #include "NamedConst.h"
 #include "BinaryOp.h"
+#include "PropagateTypes.h"
 
-Array::Array(const string& n, ArrayElements *aes) : Variable(n), elements(aes) {
-	NamedConst *nc = new NamedConst("size", getNodeForIntConst(aes->getArraySize()));
+Array::Array(const string& n, ArrayElements *aes, location_t loc) : Variable(n, loc), elements(aes) {
+	NamedConst *nc = new NamedConst("size", getNodeForUIntConst(aes->getArraySize(), loc), loc);
 	addChild(nc);
+	addSymbol("size", nc);
 }
 
 DataType Array::getDataType() {
@@ -29,7 +30,7 @@ void Array::createDataType() {
 	//Get Type of elements in Array of Elements, and define as I.
 	element_dt = elements->getArrayType();
 	dt = buildTypes->getArrayType(buildTypes->name(element_dt),
-		*this->getLoct(), 1, true);
+		this->getLoc(), 1, true);
 	Type* I = buildTypes->llvmType(element_dt);
 
 	//Declare array type.
@@ -51,7 +52,6 @@ Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 		Value *val = elValue->generate(func, block, allocblock);
 		if (!val)
 			return NULL;
-		val = Coercion::Convert(val, arrayType->getElementType(), block, elValue);
 		if (!dyn_cast<Constant>(val))
 			allConst = false;
 
@@ -121,8 +121,8 @@ Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 	return alloc;
 }
 
-void Array::accept(Visitor& v) {
-	v.visit(*this);
+Node* Array::accept(Visitor& v) {
+	return v.visit(*this);
 }
 
 Type* Array::getLLVMType() {
@@ -158,5 +158,13 @@ Node *Array::getElementIndex(Node *p1, Node *p2, const string& name, int p1size,
 		return p1;
 
 	// Generate index of element for matrix
-	return new BinaryOp(new BinaryOp(p1, '*', columnNumber), '+', p2);
+	Node *i16p1;
+	if (buildTypes->isSignedDataType(p1->getDataType()))
+		i16p1 = new SExtInt(p1, tint16);
+	else
+	 	i16p1 = new ZExtInt(p1, tint16u);
+	BinaryOp *op = new BinaryOp(new BinaryOp(i16p1, '*', columnNumber), '+', p2);
+	PropagateTypes pt;
+	pt.visit(*op);
+	return op;
 }

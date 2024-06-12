@@ -1,0 +1,58 @@
+
+/* this test case simulates a dot crossing
+   over a screen diagonally, from (0,0) to 
+   (64,64) and next, from (64,0) to (128,64)
+ */
+
+void set_pixel(int8[][] buffer, uint16 row, uint16 col) {
+    rowb = row/8;
+    if col < buffer.cols and rowb < buffer.rows {
+        v = buffer[rowb][col];
+        buffer[rowb][col] = v | (1 << int8(row & 7));
+    }
+}
+
+void clear_pixel(int8[][] buffer, uint16 row, uint16 col) {
+    rowb = row/8;
+    if col < buffer.cols and rowb < buffer.rows {
+        v = buffer[rowb][col];
+        buffer[rowb][col] = v & ~(1 << int8(row & 7));
+    }
+}
+
+int8 main() {
+
+    /* the screen with 128 columns and 64 rows
+       (8 bits in each of the 8 bytes = 64) */
+    buff = {{0:128}:8};
+
+    col = 0u;
+    row = 0u;
+
+    loop {
+
+        clear_pixel(buff, row, col);
+
+        aux = buff[row/8][col];
+        if aux != 0 {
+            return 1; // clear failed
+        }
+
+        col++;
+        row++;
+
+        if col == 128 and row == 64 {
+            return 0;
+        }
+        if row == 64 {
+            row = 0;
+        }
+
+        set_pixel(buff, row, col);
+        
+        aux = buff[row/8][col];
+        if aux == 0 {
+            return 2; // set failed
+        }
+    }
+}

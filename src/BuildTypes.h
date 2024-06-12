@@ -7,6 +7,9 @@
 
 typedef int DataType;
 
+/* Don't change the order of these types without updating the code below accordingly.
+   In another words, don't change it.
+ */
 enum BasicDataType {tvoid, tbool, tchar, tint2, tint3, tint4, tint5, tint6, tint7, 
   tint8, tint16, tint32, tint64, tint8u, tint16u, tint32u, tint64u, 
   tfloat, tdouble, tldouble,
@@ -26,6 +29,7 @@ struct DataTypeInfo {
     SourceLocation *sl;
     bool isDefined;
     bool isComplex;
+    bool isEnum;
     bool isInterface;
     bool isInternal;
     unsigned char arrayDimensions;
@@ -41,6 +45,7 @@ struct DataTypeInfo {
         this->diPointerType = NULL;
         this->isDefined = false;
         this->isComplex = false;
+        this->isEnum = false;
         this->isInternal = false;
         this->isInterface = false;
         this->arrayDimensions = 0;
@@ -49,7 +54,7 @@ struct DataTypeInfo {
     DataTypeInfo(const char* name, unsigned bitWidth, Type *llvmType, unsigned dwarfEnc):
         name(name), bitWidth(bitWidth), llvmType(llvmType), dwarfEnc(dwarfEnc), diType(NULL),
         diPointerType(NULL), sl(NULL), isDefined(true), isComplex(false), isInternal(false),
-        isInterface(false), arrayDimensions(0) {};
+        isInterface(false), isEnum(false), arrayDimensions(0) {};
 };
 
 class BuildTypes {
@@ -107,16 +112,24 @@ public:
         return tinfo[tid].sl;
     }
 
+    bool isPrimitiveType(DataType tid) const {
+        return tid >= tbool && tid < __bdt_last;
+    }
+
+    bool isNumericDataType(DataType tid) {
+        return (tid >= tbool && tid <= tldouble) || isEnum(tid);
+    }
+
     bool isIntegerDataType(DataType tid) const {
-        return tid >= tint8 && tid <= tint64u;
+        return tid >= tbool && tid <= tint64u;
     }
 
     bool isSignedDataType(DataType tid) const {
-        return tid >= tint8 && tid <= tint64;
+        return (tid >= tint8 && tid <= tint64) || (tid == tbool);
     }
 
     bool isUnsignedDataType(DataType tid) const {
-        return tid >= tint8u && tid <= tint64u;
+        return (tid >= tint8u && tid <= tint64u) || (tid == tchar);
     }
 
     bool isFloatDataType(DataType tid) const {
@@ -126,6 +139,11 @@ public:
     bool isComplex(DataType tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].isComplex;
+    }
+    
+    bool isEnum(DataType tid) {
+        assert(tid != -1 && "Undefined type");
+        return tinfo[tid].isEnum;
     }
 
     bool isInternal(DataType tid) {
@@ -171,6 +189,26 @@ public:
     unsigned char dimensions(DataType tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].arrayDimensions; 
+    }
+
+    DataType unsignedToSigned(DataType tid) {
+        assert(isUnsignedDataType(tid));
+        if (tid == tchar)
+            return tint8;
+        else
+            return tid - (tint64u - tint64);
+    }
+
+    DataType signedToUnsigned(DataType tid) {
+        assert(isSignedDataType(tid));
+        if (tid != tbool)
+            tid += tint64u - tint64;
+        return tid;
+    }
+
+    bool isDefined(DataType tid) {
+        assert(tid != -1 && "Undefined type");
+        return tinfo[tid].isDefined; 
     }
 };
 

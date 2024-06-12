@@ -25,5 +25,3 @@ bool parseFile(const string &source);
 bool parseUseFile(const string& use, location_t loc);
 
 const filesystem::path* build_file();
-int build_filecolno();
-int build_filelineno();

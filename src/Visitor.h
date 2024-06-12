@@ -4,7 +4,6 @@
 #include "Node.h"
 
 class BinaryOp;
-class Capsule;
 class CmpOp;
 class Delay;
 class Float;
@@ -28,36 +27,34 @@ class Return;
 class Scalar;
 class StringConst;
 class Array;
+class UpdateArray;
 class While;
 class Loop;
 class UserType;
 class Variable;
 class NamedConst;
+class MemCopy;
+class Enum;
 
 #define VISITOR_DECLAREP(T, P) \
-	virtual void visit(T& n) { visit((P&)n); } \
+	virtual Node *visit(T& n) { return visit((P&)n); } \
 	virtual void after(T&) {} \
-	virtual bool before(T&) { return false; }
+	virtual bool before(T&) { return false; } \
+	virtual Node *needs_replace(T&) { return NULL; }
 
 #define VISITOR_DECLARE(T) \
-	virtual void visit(T& n) { visit((Node&)n); } \
+	virtual Node *visit(T& n) { return visit((Node&)n); } \
 	virtual void after(T&) {} \
 	virtual bool before(T&) { return false; }
-
-#define VISITOR_VISIT(T) \
-	void T::accept(Visitor& v) {\
-		v.visit(*this);\
-	}
 
 class Visitor {
 public:
-	virtual void visit(Node&) { }
+	virtual Node *visit(Node&) { return NULL; }
 	virtual void after(Node&) {}
 	virtual bool before(Node&) { return false; }
 
 	VISITOR_DECLARE(NamedNode)
 	VISITOR_DECLARE(BinaryOp)
-	VISITOR_DECLARE(Capsule)
 	VISITOR_DECLARE(CmpOp)
 	VISITOR_DECLARE(Delay)
 	VISITOR_DECLARE(Float)
@@ -85,6 +82,9 @@ public:
 	VISITOR_DECLAREP(FunctionImpl, FunctionBase)
 	VISITOR_DECLAREP(Array, Variable)
 	VISITOR_DECLAREP(Matrix, Variable)
+	VISITOR_DECLARE(MemCopy)
+	VISITOR_DECLARE(Enum)
+	VISITOR_DECLARE(UpdateArray)
 
 };
 

@@ -14,9 +14,9 @@ protected:
 	enum PointerMode pointer = pm_unknown;
 
 public:
-    Variable(const string &name): NamedNode(name), ident(name) {}
+    Variable(const string &name, location_t loc): NamedNode(name, loc), ident(name, loc) {}
 	
-	Variable(const string &name, DataType dt): NamedNode(name), ident(name) {
+	Variable(const string &name, DataType dt, location_t loc): NamedNode(name, loc), ident(name, loc) {
 		this->dt = dt;
 	}
 

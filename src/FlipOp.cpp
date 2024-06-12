@@ -1,7 +1,7 @@
 
 #include "FlipOp.h"
 
-FlipOp::FlipOp(Node *value) : value(value) {
+FlipOp::FlipOp(Node *value) : Node(value->getLoc()), value(value) {
     this->addChild(value);
 };
 

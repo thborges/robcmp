@@ -29,8 +29,9 @@
 %type <fps> function_params
 %type <fp> function_param
 
-%type <ident> TOK_IDENTIFIER
+%type <ident> TOK_IDENTIFIER TOK_XIDENTIFIER
 %type <nint> TOK_INTEGER qualifier
+%type <unint> TOK_UINTEGER
 
 %printer { fprintf(yyo, "'%s'", $$); } <ident>
 %printer { fprintf(yyo, "'%s'", $$ ? $$->getName().c_str() : ""); } <node>
@@ -71,8 +72,13 @@ use : TOK_USE TOK_IDENTIFIER ';' {
 	$$ = NULL;
 }
 
+use : TOK_USE TOK_XIDENTIFIER ';' {
+	parseUseFile($2, @TOK_USE);
+	$$ = NULL;
+}
+
 enum : TOK_ENUM TOK_IDENTIFIER[id] '{' enum_items '}' {
-	$$ = new Enum($id, std::move(*$enum_items));
+	$$ = new Enum($id, std::move(*$enum_items), @id);
 }
 
 enum_items : enum_items[items] ',' enum_item {
@@ -86,24 +92,31 @@ enum_items : enum_item {
 }
 
 enum_item : TOK_IDENTIFIER[id] '=' TOK_INTEGER[intg] {
-	$$ = new NamedConst($id, new Int8($intg));
+	$$ = new NamedConst($id, new Int8($intg, @intg), @id);
+}
+
+enum_item : TOK_IDENTIFIER[id] '=' '-' TOK_INTEGER[intg] {
+	$$ = new NamedConst($id, new Int8($intg * -1, @intg), @id);
+}
+
+enum_item : TOK_IDENTIFIER[id] '=' TOK_UINTEGER[intg] {
+	$$ = new NamedConst($id, new UInt8($intg, @intg), @id);
 }
 
 enum_item : TOK_IDENTIFIER[id] {
-	$$ = new NamedConst($id);
+	$$ = new NamedConst($id, @id);
 }
 
 function : function_decl | function_impl
 
 function_decl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' ';' {
-    $$ = new FunctionDecl(buildTypes->getType($type, true), $id, $function_params);
-    $$->setLocation(@type);
+    $$ = new FunctionDecl(buildTypes->getType($type, true), $id, $function_params, @id);
 }
 
 function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' '{' stmts '}'[ef] {
 	vector<Node*> stmts;
 	FunctionImpl *func = new FunctionImpl(buildTypes->getType($type, true), $id, $function_params,
-		std::move(stmts), @ef);
+		std::move(stmts), @type, @ef);
 	func->setExternal(true);
 	func->setDeclaration(true);
     func->setLocation(@type);
@@ -130,7 +143,7 @@ function_params: %empty {
 }
 
 function_param : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] {
-	$$ = new Variable($id, buildTypes->getType($type, true));
+	$$ = new Variable($id, buildTypes->getType($type, true), @type);
 }
 
 function_param : TOK_IDENTIFIER[type] '[' ']' TOK_IDENTIFIER[id] {
@@ -142,18 +155,17 @@ function_param : TOK_IDENTIFIER[type] '[' ']' '[' ']' TOK_IDENTIFIER[id] {
 }
 
 register : TOK_REGISTER TOK_IDENTIFIER[type] TOK_IDENTIFIER[name] TOK_AT const_expr ';' {
-	$$ = new Pointer($name, buildTypes->getType($type, true), $5);
+	$$ = new Pointer($name, buildTypes->getType($type, true), $5, @name);
 	$$->setQualifier(qvolatile);
-	$$->setLocation(@name);
 }
 
-interface : TOK_INTF TOK_IDENTIFIER '{' interface_decls[intf] '}' {
-	$$ = new Interface($TOK_IDENTIFIER, std::move(*$intf));
+interface : TOK_INTF TOK_IDENTIFIER[id] '{' interface_decls[intf] '}' {
+	$$ = new Interface($id, std::move(*$intf), @id);
 	$$->setLocation(@TOK_INTF);
 }
 
-interface : TOK_INTF TOK_IDENTIFIER '{' '}' {
-	$$ = new Interface($TOK_IDENTIFIER);
+interface : TOK_INTF TOK_IDENTIFIER[id] '{' '}' {
+	$$ = new Interface($id, @id);
 	$$->setLocation(@TOK_INTF);
 }
 
@@ -171,21 +183,18 @@ interface_decls : function_decl {
 interface_impl : TOK_IDENTIFIER[id] '=' TOK_IDENTIFIER[intfname] '{' type_stmts '}' {
 	vector<string> intf;
 	intf.push_back($intfname);
-	UserType *ut = new UserType($id, std::move(*$type_stmts), std::move(intf));
-	ut->setLocation(@id);
+	UserType *ut = new UserType($id, std::move(*$type_stmts), std::move(intf), @id);
 	$$ = ut;
 }
 
-type : TOK_TYPE TOK_IDENTIFIER TOK_IMPL type_impls '{' type_stmts '}' {
-	UserType *ut = new UserType($TOK_IDENTIFIER, std::move(*$type_stmts), std::move(*$type_impls));
-	ut->setLocation(@TOK_TYPE);
+type : TOK_TYPE TOK_IDENTIFIER[id] TOK_IMPL type_impls '{' type_stmts '}' {
+	UserType *ut = new UserType($id, std::move(*$type_stmts), std::move(*$type_impls), @id);
 	ut->setDeclaration(true);
 	$$ = ut;
 }
 
-type : TOK_TYPE TOK_IDENTIFIER '{' type_stmts '}' {
-	UserType *ut = new UserType($TOK_IDENTIFIER, std::move(*$type_stmts));
-	ut->setLocation(@TOK_TYPE);
+type : TOK_TYPE TOK_IDENTIFIER[id] '{' type_stmts '}' {
+	UserType *ut = new UserType($id, std::move(*$type_stmts), @id);
 	ut->setDeclaration(true);
 	$$ = ut;
 }
@@ -218,8 +227,8 @@ type_stmt : simplevar_decl ';'
 		  | enum
 
 simplevar_decl : TOK_IDENTIFIER[id] '=' expr	{ $$ = new Scalar($id, $expr);   $$->setLocation(@id); }
-simplevar_decl : TOK_IDENTIFIER[id] '=' array	{ $$ = new Array($id, $array);   $$->setLocation(@id); }
-simplevar_decl : TOK_IDENTIFIER[id] '=' matrix	{ $$ = new Matrix($id, $matrix); $$->setLocation(@id); }
+simplevar_decl : TOK_IDENTIFIER[id] '=' array	{ $$ = new Array($id, $array, @id); }
+simplevar_decl : TOK_IDENTIFIER[id] '=' matrix	{ $$ = new Matrix($id, $matrix, @id); }
 
 array : '{' elements '}'	{ $$ = $elements; }
 matrix : '{' melements '}'	{ $$ = $melements; }
@@ -249,9 +258,10 @@ elements : elements ',' element			{ $1->append($3);
 element : expr ':' TOK_INTEGER		{ $$ = new ArrayElement($1, (unsigned)$3); }
         | expr						{ $$ = new ArrayElement($1, 1); }
 
-const_expr : TOK_INTEGER    { $$ = getNodeForIntConst($1); }
-           | TOK_TRUE		{ $$ = new Int1(1); }
-           | TOK_FALSE		{ $$ = new Int1(0); }
+const_expr : TOK_INTEGER    { $$ = getNodeForIntConst($1, @1); }
+		   | TOK_UINTEGER   { $$ = getNodeForUIntConst($1, @1); }
+           | TOK_TRUE		{ $$ = new Int1(1, @1); }
+           | TOK_FALSE		{ $$ = new Int1(0, @1); }
 		   //TODO: Add other constant nodes here!
 		   
 expr : const_expr
@@ -261,15 +271,15 @@ expr : const_expr
 
 cast : TOK_IDENTIFIER[id] '(' ignore_param ')' {
 	ParamsCall *pc = new ParamsCall();
-	pc->append(new Node());
-	$$ = new FunctionCall($id, pc);
+	pc->append(new Node(@id));
+	$$ = new FunctionCall($id, pc, @id);
 	$$->setLocation(@id);
 }
 
 constructor : TOK_IDENTIFIER[id] '(' ')' {
 	ParamsCall *pc = new ParamsCall();
-	pc->append(new Node());
-	$$ = new FunctionCall($id, pc);
+	pc->append(new Node(@id));
+	$$ = new FunctionCall($id, pc, @id);
 	$$->setLocation(@id);
 }
 

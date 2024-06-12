@@ -5,7 +5,7 @@
 
 class Loop: public Node {
 public:
-	Loop(vector<Node*> &&stmts);
+	Loop(vector<Node*> &&stmts, location_t loc);
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
 };

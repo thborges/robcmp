@@ -8,9 +8,9 @@ type somevar {
 	a = int16(0);
 	
 	pa = intf {
-		a = int8(0);
-		int16 get() { return a; }
-		void set(int16 s) { a = s; }
+		b = int16(0);
+		int16 get() { return b; }
+		void set(int16 s) { b = s; }
 	}
 
 	int16 internaltest() {

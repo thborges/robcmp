@@ -1,0 +1,16 @@
+
+uint16 func_b(uint16 x, int16 y);
+
+uint16 func_a(uint16 x) {
+    return x / 13u;
+}
+
+int16 main() {
+    b = 130U;
+    a = func_a(b);
+    if (a == 10u) {
+        return 0;
+    } else {
+        return 1;
+    }
+}

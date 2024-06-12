@@ -117,14 +117,19 @@ ID {A}({A}|{D})*
 						  return TOK_LDOUBLE; }
 
 "0x"[0-9a-fA-F]+		{ char *aux = strndup(yytext, yyleng);
-						  yylval->nint = strtoll(aux, NULL, 16);
+						  yylval->unint = strtoull(aux, NULL, 16);
 						  free(aux);
-						  return TOK_INTEGER; }
+						  return TOK_UINTEGER; }
 
 "0b"[0-1]+				{ char *aux = strndup(yytext+2, yyleng-2);
-						  yylval->nint = strtoll(aux, NULL, 2);
+						  yylval->unint = strtoull(aux, NULL, 2);
 						  free(aux);
-						  return TOK_INTEGER; }
+						  return TOK_UINTEGER; }
+
+[0-9]+[Uu]				{ char *aux = strndup(yytext, yyleng-1);
+						  yylval->unint = strtoull(aux, NULL, 10);
+						  free(aux);
+						  return TOK_UINTEGER; }
 
 [0-9]+					{ char *aux = strndup(yytext, yyleng);
 						  yylval->nint = strtoll(aux, NULL, 10);

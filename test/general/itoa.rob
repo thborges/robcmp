@@ -2,48 +2,47 @@
 const chars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
 void itoa(int16 value, int8 base, char[] result) {
-	if base < 2 or base > 16 {
-		result[0] = 0;
-		return;
-	}
+    if base < 2 or base > 16 {
+        result[0] = 0;
+        return;
+    }
 
-	negative = false;
-	if value < 0 {
-		negative = true;
-		value = - value;
-	}
-	
-	i = 0;
-	if value == 0 {
-		result[i] = '0';
-		i++;
-	} else {
-		while value != 0 {
-			temp = value;
-			value /= base;
-			result[i] = chars[temp - value * base];
-			//result[i] = chars[value % base];
-			//value /= base;
-			i++;
-		}
-	}
+    negative = value < 0;
+    //abs without branch
+    mask = value >> 15;
+    value = (value ^ mask) - mask;
+    
+    i = 0;
+    if value == 0 {
+        result[i] = '0';
+        i++;
+    } else {
+        while value != 0 {
+            temp = value;
+            value /= base;
+            result[i] = chars[temp - value * base];
+            //result[i] = chars[value % base];
+            //value /= base;
+            i++;
+        }
+        if negative {
+            result[i] = '-';
+            i++;
+        }
+    }
 
-	if negative == true {
-		result[i] = '-';
-		i++;
-	}
-	result[i] = 0;
-	
-	// reverse result
-	j = 0;
-	i--;
-	while j < i {
-		temp = result[j];
-		result[j] = result[i];
-		result[i] = temp;
-		j++;
-		i--;
-	}
+    result[i] = 0;
+    
+    // reverse result
+    j = 0;
+    i--;
+    while j < i {
+        temp = result[j];
+        result[j] = result[i];
+        result[i] = temp;
+        j++;
+        i--;
+    }
 }
 
 numbers = {-32123, -15678, -4364, -501, -25, 0, 25, 512, 4364, 15678, 32767};
@@ -76,35 +75,35 @@ base16 = {
   {'7', 'f', 'f', 'f',  0 , 0}
 };
 
-bool check(int8 id, char[][] expected, char[] result) {
-	ret = true;
-	i = 0;
-	while result[i] != 0 and ret {
-		if result[i] != expected[id][i] {
-			ret = false;
-		}
-		i++;
-	}
-	return ret;
+bool check(uint8 id, char[][] expected, char[] result) {
+    ret = true;
+    i = 0u;
+    while result[i] != 0 and ret {
+        if result[i] != expected[id][i] {
+            ret = false;
+        }
+        i++;
+    }
+    return ret;
 }
 
 int16 main() {
-	result = {'\0':18};
-	ret = true;
-	i = 0;
-	while i < numbers.size and ret {
-		itoa(numbers[i], 10, result);
-		ret = check(i, base10, result);
-		if ret {
-			itoa(numbers[i], 16, result);
-			ret = check(i, base16, result);
-		}
-		i++;
-	}
-	if ret {
-		return 0;
-	} else {
-		return 1;
-	}
+    result = {'\0':18};
+    ret = true;
+    i = 0u;
+    while i < numbers.size and ret {
+        itoa(numbers[i], 10, result);
+        ret = check(i, base10, result);
+        if ret {
+            itoa(numbers[i], 16, result);
+            ret = check(i, base16, result);
+        }
+        i++;
+    }
+    if ret {
+        return 0;
+    } else {
+        return 1;
+    }
 }
 

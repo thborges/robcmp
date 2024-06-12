@@ -1,16 +1,17 @@
 #include "Matrix.h"
-#include "Coercion.h"
 #include "Array.h"
 #include "Visitor.h"
 #include "BackLLVM.h"
 #include "FunctionImpl.h"
 #include "NamedConst.h"
 
-Matrix::Matrix(const char *n, MatrixElements *me) : Variable(n), melements(me) {
-	NamedConst *rows = new NamedConst("rows", getNodeForIntConst(me->getRowCount()));
-	NamedConst *cols = new NamedConst("cols", getNodeForIntConst(me->getColumnCount()));
+Matrix::Matrix(const char *n, MatrixElements *me, location_t loc) : Variable(n, loc), melements(me) {
+	NamedConst *rows = new NamedConst("rows", getNodeForUIntConst(me->getRowCount(), this->getLoc()), loc);
+	NamedConst *cols = new NamedConst("cols", getNodeForUIntConst(me->getColumnCount(), this->getLoc()), loc);
 	addChild(rows);
+	addSymbol("rows", rows);
 	addChild(cols);
+	addSymbol("cols", cols);
 }
 
 Value *Matrix::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
@@ -35,7 +36,6 @@ Value *Matrix::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 				Value *val = elValue->generate(func, block, allocblock);
 				if (!val)
 					return NULL;
-				val = Coercion::Convert(val, matrixType->getElementType(), block, elValue);
 				if (!dyn_cast<Constant>(val))
 					allConst = false;
 				for (int l=0; l < k->count; l++)
@@ -105,8 +105,8 @@ Value *Matrix::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 	return alloc;
 }
 
-void Matrix::accept(Visitor& v) {
-	v.visit(*this);
+Node* Matrix::accept(Visitor& v) {
+	return v.visit(*this);
 }
 
 
@@ -123,7 +123,7 @@ void Matrix::createDataType() {
 	//Get Type of elements in Vector of Elements, and define as I.
 	element_dt = melements->getMatrixType();
 	dt = buildTypes->getArrayType(buildTypes->name(element_dt),
-		*this->getLoct(), 2, true);
+		this->getLoc(), 2, true);
 	Type* I = buildTypes->llvmType(element_dt);
 	
 	// The matrix type and size

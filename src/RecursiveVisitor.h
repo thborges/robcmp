@@ -6,5 +6,5 @@
 
 class RecursiveVisitor: public Visitor {
 public:
-	void visit(Node& n) override;
+	Node* visit(Node& n) override;
 };

@@ -2,14 +2,17 @@
 #include "FunctionImpl.h"
 #include "HeaderGlobals.h"
 #include "SymbolizeTree.h"
+#include "PropagateTypes.h"
+#include "PrintAstVisitor.h"
 #include "BackLLVM.h"
 #include "ZeroInit.h"
 #include "Return.h"
 #include "Load.h"
 #include "BuildTypes.h"
+#include "ConstructorCall.h"
 #include <cstddef>
 
-Program::Program() {
+Program::Program() : Node({0,0,0,0}) {
 	mainmodule = new Module(this->getFile(), global_context);
 	Builder = make_unique<IRBuilder<>>(global_context);
 
@@ -118,11 +121,13 @@ Value *Program::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
 	return NULL;
 }
 
-void Program::generateInjectionSetup() {
+void Program::generateInjectionSetup(SourceLocation *sl) {
+
+	location_t loc = sl->getLoc();
 
 	// a function to init global vars for singleton injections
 	FunctionImpl *funcInitGlobals = new FunctionImpl((DataType)tvoid, ":injections_init", 
-		new FunctionParams(), vector<Node *>(), *this->getLoct(), false);
+		new FunctionParams(), vector<Node *>(), loc, loc, false);
 	funcInitGlobals->setScope(this);
 	addSymbol(funcInitGlobals);
 
@@ -132,13 +137,15 @@ void Program::generateInjectionSetup() {
 		  return instance;
 		}
 	*/
+	vector<FunctionImpl*> finjects;
 	for (auto &[key, itype] : injections) {
-		Identifier to(key);
-		Identifier bind(itype.first);
+		Identifier to(key, loc);
+		Identifier bind(itype.first, loc);
 		BindScope scope(itype.second);
 
 		// injection validation
-		Identifier bindSubtypes = regex_replace(bind.getFullName(), regex("\\."), ":"); //internal types use :
+		auto subTypeName = regex_replace(bind.getFullName(), regex("\\."), ":"); //internal types use :
+		Identifier bindSubtypes(subTypeName, loc);
 		Node *injectType = bindSubtypes.getSymbol(this);
 		if (!injectType) {
 			yyerrorcpp(string_format("Injection symbol %s not found.", 
@@ -174,9 +181,10 @@ void Program::generateInjectionSetup() {
 
 		const string functionName = ":get_injection_for_" + to.getFullName();
 		FunctionImpl *finject = new FunctionImpl(destinationTy, functionName, 
-			new FunctionParams(), vector<Node *>(), *this->getLoct(), false);
+			new FunctionParams(), vector<Node *>(), loc, loc, false);
 		finject->setReturnIsPointer(true);
 		finject->setScope(this);
+		finject->setInline(true);
 		
 		if (scope == bs_singleton) {
 			string globalVarName;
@@ -187,27 +195,27 @@ void Program::generateInjectionSetup() {
 				Node *var = findSymbol(globalVarName);
 				if (!var) {
 					// alloc the global var
-					ZeroInit *nc = new ZeroInit(injectType->getDataType());
+					ZeroInit *nc = new ZeroInit(injectType->getDataType(), loc);
 					Scalar *svar = new Scalar(globalVarName, nc);
 					svar->setScope(this);
 					addSymbol(svar);
 					svar->generate(NULL, NULL, global_alloc);
 					var = svar;
 
-					FunctionCall *fc = new FunctionCall(bind.getFullName(), new ParamsCall());
-					Scalar *sc = new Scalar(globalVarName, fc);
-					fc->setScope(funcInitGlobals);
+					ConstructorCall *cc = new ConstructorCall(bind.getFullName(), loc);
+					Scalar *sc = new Scalar(globalVarName, cc);
+					cc->setScope(funcInitGlobals);
 					sc->setScope(funcInitGlobals);
 					funcInitGlobals->addChild(sc);
 				}
 			}
 
-			Load *load = new Load(globalVarName);
+			Load *load = new Load(Identifier(globalVarName, loc));
 			Return *ret = new Return(load);
 			ret->setScope(finject);
 			load->setScope(finject);
 			finject->addChild(ret);
-			finject->generate(NULL, NULL, global_alloc);
+			finjects.push_back(finject);
 
 		} else { // bs_transient
 			assert(false && "TODO: implement bs_transient scope.");
@@ -216,17 +224,22 @@ void Program::generateInjectionSetup() {
 		// generate injection function aliases
 	    for(const auto & [key, symbol] : bindUserTy->getSymbols()) {
 			if (FunctionImpl *impl = dynamic_cast<FunctionImpl*>(symbol)) {
-				Identifier destTyIntfName = destinationTyName;
+				Identifier destTyIntfName(destinationTyName, loc);
 				Node *destIntf = destTyIntfName.getSymbol(this);
 				if (destIntf && destIntf->findMember(symbol->getName())) {
 					// is a interface member implementation, let add an alias to it
 					string to_name = regex_replace(to.getFullName(), regex("\\."), ":") + ":" + symbol->getName();
 					Function *implFunc = impl->getLLVMFunction();
 
-					Function *aliasFunc = Function::Create(implFunc->getFunctionType(), Function::ExternalLinkage,
-						codeAddrSpace, to_name, mainmodule);
-					aliasFunc->setDSOLocal(true);
-					aliasFunc->setCallingConv(CallingConv::C);
+					// if the function is declared in this module, FunctionCall already create it
+					Function *aliasFunc = mainmodule->getFunction(to_name);
+					if (!aliasFunc) {
+						aliasFunc = Function::Create(implFunc->getFunctionType(), Function::ExternalLinkage,
+							codeAddrSpace, to_name, mainmodule);
+						aliasFunc->setDSOLocal(true);
+						aliasFunc->setCallingConv(CallingConv::C);
+						aliasFunc->addFnAttr(Attribute::AlwaysInline);
+					}
 
 					auto fblock = BasicBlock::Create(global_context, "", aliasFunc);
 					Builder->SetInsertPoint(fblock);
@@ -249,18 +262,27 @@ void Program::generateInjectionSetup() {
 		}
 	}
 
+	for(auto *finject : finjects)
+		finject->generate(NULL, NULL, global_alloc);
+
 	funcInitGlobals->generate(NULL, NULL, global_alloc);
 }
 
+extern bool parseIsCompleted;
+
 void Program::generate() {
+    parseIsCompleted = true;
 
 	// instrumentation passes
 	SymbolizeTree st;
 	st.visit(*this);
 
+	PropagateTypes pt;
+	pt.visit(*this);
+
 	/*std::fstream fs;
 	fs.open("ast", std::fstream::out);
-	PrintAstVisitor(fs).visit(p);
+	PrintAstVisitor(fs).visit(*this);
 	fs.close();*/
 
 	Node *mainFunc = NULL;
@@ -276,29 +298,12 @@ void Program::generate() {
 		}
 
 		n->generate(NULL, NULL, global_alloc);
-
-		// if n is a UserType, there is a injection for it?
-		/*if (UserType *ut = dynamic_cast<UserType*>(n)) {
-			for (auto &[key, itype] : injections) {
-				if (itype.first == ut->getName()) {
-					const string variableName = ":injectionName__" + itype.first;
-					DataType var_dt = buildTypes->getType(itype.first);
-					Variable *injectionVariable = new Scalar(variableName, new NullConst(var_dt));
-					injectionVariable->setScope(program);
-					map_injections[variableName] = injectionVariable;
-
-					program->addSymbol(injectionVariable);
-					injectionVariable->generate(NULL, NULL, global_alloc);
-					break; //TODO: When implementing transient injection, change here.
-				}
-			}
-		}*/
 	}
 
 	if (injections.size() > 0) {
-		generateInjectionSetup();
+		generateInjectionSetup(mainFunc);
 
-		FunctionCall *fc = new FunctionCall(":injections_init", new ParamsCall());
+		FunctionCall *fc = new FunctionCall(":injections_init", new ParamsCall(), mainFunc->getLoc());
 		fc->setScope(mainFunc);
 		mainFunc->addChild(fc, true);
 	}

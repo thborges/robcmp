@@ -9,8 +9,8 @@ private:
 	Node *stmts;
 	
 public:
-	While(Node *e);
-	While(Node *e, vector<Node*> &&stmts);
+	While(Node *e, location_t loc);
+	While(Node *e, vector<Node*> &&stmts, location_t loc);
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
 };

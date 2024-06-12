@@ -8,7 +8,7 @@ private:
     Node *address;
 	
 public:
-	Pointer(const char *name, DataType type, Node *address);
+	Pointer(const char *name, DataType type, Node *address, location_t loc);
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 

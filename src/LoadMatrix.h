@@ -8,7 +8,7 @@
 
 class LoadMatrix: public LoadArray {
 public:
-	LoadMatrix(const string &i, Node *p1, Node *p2): LoadArray(i, p1) {
+	LoadMatrix(const string &i, Node *p1, Node *p2, location_t loc): LoadArray(i, p1, loc) {
 		this->position2 = p2;
 		addChild(p2);
 	}
@@ -25,7 +25,7 @@ public:
 		if (const Matrix *mx = dynamic_cast<const Matrix*>(symbol)) {
 			rows = mx->getRows();
 			cols = mx->getCols();
-			mcols = getNodeForIntConst(cols);
+			mcols = getNodeForIntConst(cols, matrix->getLoc());
 		} else if (Node *s = symbol->findSymbol("cols", false)) {
 			mcols = new Load(s);
 			mcols->setScope(symbol);

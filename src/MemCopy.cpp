@@ -28,7 +28,7 @@ Value* MemCopy::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
         DataType eldt = buildTypes->getArrayElementType(dt);
         TypeSize eltsize = dl.getTypeAllocSize(buildTypes->llvmType(eldt));
         ConstantInt *elbytes = ConstantInt::get(Type::getInt32Ty(global_context), eltsize);
-        Load ld("size");
+        Load ld("size", this->getLoc());
         ld.setScope(expr);
         nelem = ld.generate(func, allocblock, allocblock);
         Builder->SetInsertPoint(allocblock);
@@ -38,9 +38,9 @@ Value* MemCopy::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
         DataType eldt = buildTypes->getArrayElementType(dt);
         TypeSize eltsize = dl.getTypeAllocSize(buildTypes->llvmType(eldt));
         ConstantInt *elbytes = ConstantInt::get(Type::getInt32Ty(global_context), eltsize);
-        Load ldrows("rows");
+        Load ldrows("rows", this->getLoc());
         ldrows.setScope(expr);
-        Load ldcols("cols");
+        Load ldcols("cols", this->getLoc());
         ldcols.setScope(expr);
         Builder->SetInsertPoint(allocblock);
         Value *nrows = ldrows.generate(func, allocblock, allocblock);

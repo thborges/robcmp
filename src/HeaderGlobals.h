@@ -49,4 +49,3 @@ string string_format(const char *format, Args ... args) {
 }
 
 class Node;
-extern Node* getNodeForIntConst(int64_t i);

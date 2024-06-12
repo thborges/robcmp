@@ -18,8 +18,8 @@ private:
 	bool preGenerate();
 	
 public:
-	FunctionImpl(DataType dt, string name, FunctionParams *fp, vector<Node*> &&stmts, location_t ef,
-		bool constructor = false);
+	FunctionImpl(DataType dt, string name, FunctionParams *fp, vector<Node*> &&stmts, location_t loc, 
+		location_t ef, bool constructor = false);
 	
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
@@ -27,7 +27,7 @@ public:
 
 	bool validateImplementation(FunctionDecl *decl);
 
-	virtual void accept(Visitor& v) override;
+	virtual Node* accept(Visitor& v) override;
 
 	virtual Value *getLLVMValue(Node *) override;
 

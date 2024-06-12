@@ -1,0 +1,4 @@
+To debug a test, put a link to its .rob file here and open Visual Code.
+Ex.:
+$ ln -s ../../general/sort.rob
+$ code .

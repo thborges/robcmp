@@ -14,6 +14,7 @@ protected:
 	bool constructor = false;
 	bool external = false;
 	bool returnIsPointer = false;
+	bool attrInline = false;
 	DataType thisArgDt = BuildTypes::undefinedType;
 	Value *thisArg = NULL;
 	DataType parentArgDt = BuildTypes::undefinedType;
@@ -23,56 +24,23 @@ protected:
 	bool validateAndGetArgsTypes(std::vector<Type*> &args);
 
 public:
-	FunctionBase(DataType dt, string name, FunctionParams *fp) : NamedNode(name) {
+	FunctionBase(DataType dt, string name, FunctionParams *fp, location_t loc) :
+		NamedNode(name, loc) {
 		this->dt = dt;
 		this->parameters = fp;
 		addPseudoParameters();
 	}
 
 	FunctionBase(DataType dt, string name, FunctionParams *fp, vector<Node*> &&stmts,
-		bool constructor = false) :
-		NamedNode(name, std::move(stmts)) {
+		location_t loc, bool constructor = false) :
+		NamedNode(name, std::move(stmts), loc) {
 		this->dt = dt;
 		this->parameters = fp;
 		this->constructor = constructor;
 		addPseudoParameters();
 	}
 
-	void addPseudoParameters() {
-        // add a size parameter after each array, or .rows and .cols for matrixes
-		std::vector<Variable*> const& vparams = this->parameters->getParameters();
-		for (int i = 0; i < vparams.size(); ++i) {
-			Variable *p = vparams[i];
-
-			DataType pdt = p->getDataType();
-	        if (buildTypes->isArrayOrMatrix(pdt)) {
-				vector<string> pseudos;
-				if (buildTypes->isArray(pdt))
-					pseudos.push_back("size");
-				else if (buildTypes->isMatrix(pdt)) {
-					// let it inverted here, because of the insert below (i+1)
-					pseudos.push_back("cols");
-					pseudos.push_back("rows");
-				}
-
-            	for(const string& s: pseudos) {
-					//TODO: There is something better than fix this to Int32? Fix here and in FunctionCall::generate
-					string spname = p->getName() + "." + s;
-					Variable *sp = new Variable(spname, tint32); 
-					this->parameters->insert(i+1, sp);
-
-					// add a pseudo symbol to resolve to pname.s
-					p->addSymbol(s, sp);
-				}
-
-				// ParamMatrix need to know the number of cols to compute element indexes
-				if (buildTypes->isMatrix(pdt)) {
-					if (ParamMatrix *pm = dynamic_cast<ParamMatrix*>(p))
-						pm->addSymbol("cols", vparams[i+2]);
-				}
-			}
-		}
-	}
+	void addPseudoParameters();
 
 	FunctionParams& getParameters() {
 		return *parameters;
@@ -108,6 +76,10 @@ public:
 
 	void setExternal(bool e) {
 		external = e;
+	}
+
+	void setInline(bool i) {
+		attrInline = i;
 	}
 
 	bool isExternal() {
@@ -156,8 +128,8 @@ public:
 
 class FunctionDecl: public FunctionBase {
 public:
-	FunctionDecl(DataType dt, string name, FunctionParams *fp) : 
-		FunctionBase(dt, name, fp) {
+	FunctionDecl(DataType dt, string name, FunctionParams *fp, location_t loc) : 
+		FunctionBase(dt, name, fp, loc) {
 		declaration = true;
 	}
 

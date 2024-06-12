@@ -2,17 +2,20 @@
 
 #include "Node.h"
 #include "Identifier.h"
+#include "Visitor.h"
 
 class Load: public Node {
 private:
 	Identifier ident;
 	Variable *leftValue = NULL;
-	Node *isymbol = NULL;
+	Node *identSymbol = NULL;
 	
 public:
-	Load(const char* i): ident(i) {	}
-	Load(Identifier i): ident(i) { }
-	Load(Node *n): isymbol(n), ident(n->getName()) { }
+	Load(const char* i, location_t loc): Node(loc), ident(i, loc) {	}
+	Load(Identifier i): Node(i.getLoc()), ident(i.getFullName(), i.getLoc()) { }
+	Load(Node *n): Node(n->getLoc()), ident(n->getName(), n->getLoc()) {
+		identSymbol = n;
+	}
  
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
@@ -25,4 +28,12 @@ public:
 	virtual const string getName() const override {
 		return ident.getFullName();
 	}
+
+	virtual Node* accept(Visitor& v) override {
+		return v.visit(*this);
+	}
+
+	Node* getIdentSymbol();
+	
+	friend class SymbolizeTree;
 };

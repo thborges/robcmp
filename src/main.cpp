@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 			if (t > 1) fprintf(stderr, ",");
 			fprintf(stderr, "%s", supportedTargets[t].name);
 		}
-		fprintf(stderr, "} -I {include_dir} -g -O{1,2,3,s,z} -o output_file -s spec_file input_file\n");
+		fprintf(stderr, "} -I {include_dir} -g -O{0,1,2,3,s,z,d} -o output_file -s spec_file input_file\n");
 		return 1;
 	}
 

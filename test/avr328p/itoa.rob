@@ -78,9 +78,9 @@ base16 = {
   {'7', 'f', 'f', 'f',  0 , 0}
 };
 
-bool check(int8 id, char[][] expected, char[] result) {
+bool check(uint8 id, char[][] expected, char[] result) {
 	ret = true;
-	i = 0;
+	i = 0u;
 	while result[i] != 0 and ret {
 		if result[i] != expected[id][i] {
 			ret = false;
@@ -106,7 +106,7 @@ int16 main() {
 
     result = {'\0':18};
 	ret = true;
-	i = 0;
+	i = 0u;
 	while i < numbers.size and ret {
 		itoa(numbers[i], 10, result);
 		ret = check(i, base10, result);

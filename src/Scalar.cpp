@@ -1,16 +1,16 @@
 
 #include "Scalar.h"
-#include "Coercion.h"
 #include "FunctionImpl.h"
 #include "BackLLVM.h"
 #include "Pointer.h"
+#include "PropagateTypes.h"
 
 Scalar::Scalar(Identifier ident, Node *e) :
-	Variable(ident.getFullName()), expr(e) {
+	Variable(ident.getFullName(), ident.getLoc()) {
 	addChild(e);
 }
 
-Scalar::Scalar(const char* ident, Node *e): Variable(ident), expr(e) {
+Scalar::Scalar(const string& ident, Node *e): Variable(ident, e->getLoc()) {
 	addChild(e);
 }
 
@@ -48,12 +48,12 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 	// set the allocated left value to:
 	//  - a constructor initializing a user type field
 	//  - a load for a new variable
-	expr->setLeftValue(symbol);
+	expr()->setLeftValue(symbol);
 
-	Value *exprv = expr->generate(func, block, allocblock);
+	Value *exprv = expr()->generate(func, block, allocblock);
 	if (!exprv)
 		return NULL;
-	DataType exprv_dt = expr->getDataType();
+	DataType exprv_dt = expr()->getDataType();
 
 	Builder->SetInsertPoint(block);
 	if (!alloc)
@@ -76,7 +76,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 				ret = alloc = exprvc;
 			else {
 				Type *gty = buildTypes->llvmType(dt);
-				if (expr->isPointerToPointer())
+				if (expr()->isPointerToPointer())
 					gty = gty->getPointerTo();
 				GlobalVariable *gv = new GlobalVariable(*mainmodule, gty, false, 
 					GlobalValue::InternalLinkage, exprvc, name);
@@ -97,8 +97,6 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			alloc = temp;
 			Builder->SetInsertPoint(block);
 			ret = Builder->CreateStore(exprv, alloc, symbol->hasQualifier(qvolatile));
-
-			symbols = expr->getSymbols();
 
 			if (debug_info)
 				RobDbgInfo.declareVar(this, alloc, allocblock);
@@ -154,7 +152,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			Value *ones = Builder->CreateZExt(allone, req_eq_ty);
 
 			// Coerce the rvalue to the req size
-			exprv = Coercion::Convert(exprv, req_eq_ty, block, expr);
+			exprv = Builder->CreateZExt(exprv, req_eq_ty);
 			exprv = Builder->CreateAnd(exprv, ones, "truncrval");
 
 			unsigned fieldStartBit = reg->getFieldStartBit(symbol);
@@ -170,7 +168,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			nvalue = Builder->CreateOr(vaftermask, exprv, "setbits");
 
 		} else {
-			nvalue = Coercion::Convert(exprv, currty, block, symbol);
+			nvalue = exprv;
 		}
 
 		RobDbgInfo.emitLocation(this);
@@ -180,7 +178,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 
 DataType Scalar::getDataType() {
 	if (dt == BuildTypes::undefinedType)
-		return dt = expr->getDataType();
+		return dt = expr()->getDataType();
 	else
 		return dt;
 }

@@ -11,7 +11,7 @@ public:
 
 	Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
 	void generate();	
-	void generateInjectionSetup();
+	void generateInjectionSetup(SourceLocation *sl);
 };
 
 extern Program* program;

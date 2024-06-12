@@ -2,22 +2,29 @@
 #pragma once
 
 #include "Variable.h"
+#include "Visitor.h"
 
 class Scalar: public Variable {
-protected:
-	Node *expr;
-
 public:
-	Scalar(const char* ident, Node *e);
+	Scalar(const string& ident, Node *e);
 
 	Scalar(Identifier ident, Node *e);
+
+	Node *expr() {
+		return node_children[0];
+	}
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
 	virtual bool isConstExpr() override {
-		return hasQualifier(qconst) && expr->isConstExpr();
+		return hasQualifier(qconst) && expr()->isConstExpr();
 	}
 
 	virtual DataType getDataType() override;
 
+	virtual Node* accept(Visitor& v) override {
+		return v.visit(*this);
+	}
+
+	friend class SymbolizeTree;
 };

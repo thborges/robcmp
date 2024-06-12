@@ -14,7 +14,7 @@ private:
 	Variable *leftValue = NULL;
 
 public:
-	FunctionCall(const string& name, ParamsCall *pc): ident(name) {
+	FunctionCall(const string& name, ParamsCall *pc, location_t loc): Node(loc), ident(name, loc) {
 		parameters = pc;
 		node_children.reserve(pc->getNumParams());
 		node_children.insert(end(node_children), pc->getParameters().begin(),
@@ -29,9 +29,13 @@ public:
 		leftValue = symbol;
 	}
 
-	std::vector<Node *> const& getParameters() {
+	std::vector<Node *>& getParameters() {
 		return parameters->getParameters();
 	}
 
-	void accept(Visitor& v) override;
+	Node* accept(Visitor& v) override;
+
+	const string getName() const override {
+		return ident.getFullName();
+	}
 };

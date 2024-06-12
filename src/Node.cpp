@@ -8,15 +8,15 @@
 
 Node::~Node() {}
 
-Node::Node(vector<Node*> &&children) : node_children(children) {
+Node::Node(vector<Node*> &&children, location_t loc) : SourceLocation(loc), node_children(children) {
 }
 
 std::vector<Node *> const& Node::children() const {
 	return node_children; 
 }
 
-void Node::accept(Visitor& v) {
-	v.visit(*this);
+Node* Node::accept(Visitor& v) {
+	return v.visit(*this);
 }
 
 Node* Node::findMember(const string& name) {
@@ -102,13 +102,24 @@ Type* Node::getLLVMType() {
 		return taux;
 }
 
-Node* getNodeForIntConst(int64_t i) {
-	if (i >= SCHAR_MIN && i <= SCHAR_MAX)
-		return new Int8(i);
-	else if (i >= SHRT_MIN && i <= SHRT_MAX)
-		return new Int16(i);
-	else if (i >= INT_MIN && i <= INT_MAX)
-		return new Int32(i);
+Node* getNodeForUIntConst(uint64_t i, location_t loc) {
+	if (i <= UCHAR_MAX)
+		return new UInt8(i, loc);
+	else if (i <= USHRT_MAX)
+		return new UInt16(i, loc);
+	else if (i <= UINT_MAX)
+		return new UInt32(i, loc);
 	else
-		return new Int64(i);
+		return new UInt64(i, loc);
+}
+
+Node* getNodeForIntConst(int64_t i, location_t loc) {
+	if (i >= SCHAR_MIN && i <= SCHAR_MAX)
+		return new Int8(i, loc);
+	else if (i >= SHRT_MIN && i <= SHRT_MAX)
+		return new Int16(i, loc);
+	else if (i >= INT_MIN && i <= INT_MAX)
+		return new Int32(i, loc);
+	else
+		return new Int64(i, loc);
 }

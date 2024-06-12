@@ -5,35 +5,43 @@
 #include "Variable.h"
 #include "Pointer.h"
 
+Node* Load::getIdentSymbol() {
+	if (!identSymbol) {
+		identSymbol = ident.getSymbol(getScope(), false);
+	}
+	if (!identSymbol)
+        yyerrorcpp("Symbol " + ident.getFullName() + " not found.", this);
+	return identSymbol;
+}
+
 DataType Load::getDataType() {
 	if (dt == BuildTypes::undefinedType) {
-		Node *rsym = ident.getSymbol(getScope(), false);
-		if (rsym) {
-			dt = rsym->getDataType();
-		}
+		if (getIdentSymbol())
+			dt = identSymbol->getDataType();
 	}
 	return dt;
 }
 
 Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
-	if (!isymbol) {
-		isymbol = ident.getSymbol(getScope(), false);
-		if (!isymbol)
-			isymbol = ident.getSymbol(func, false);
+	if (!identSymbol) {
+		identSymbol = ident.getSymbol(getScope(), false);
+		if (!identSymbol) {
+			identSymbol = ident.getSymbol(func, false);
+			//assert(false && "when this is executed?");//FIXME
+		}
 	}
 	
-	if (isymbol && isymbol->isConstExpr())
-		return isymbol->getLLVMValue(func);
+	if (identSymbol && identSymbol->isConstExpr())
+		return identSymbol->getLLVMValue(func);
 	
-	Variable *symbol = dynamic_cast<Variable*>(isymbol);
+	Variable *symbol = dynamic_cast<Variable*>(identSymbol);
 	if (!symbol) {
         yyerrorcpp("Symbol " + ident.getFullName() + " not found.", this);
 		return NULL;
 	}
 
-	dt = isymbol->getDataType();
-	symbols = symbol->getSymbols();
+	dt = identSymbol->getDataType();
 
 	if (block == NULL && (allocblock == NULL || allocblock == global_alloc)) {
 		// trying to load a variable to initialize a global one.

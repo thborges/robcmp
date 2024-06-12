@@ -1,12 +1,12 @@
-#ifndef __FLOAT128_H__
-#define __FLOAT128_H__
+#pragma once
+
 #include "Node.h"
 
 class Float128: public Node {
 private:
-	float number;
+	long double number;
 public:
-	Float128(float n): number(n) {}
+	Float128(long double n, location_t loc): Node(loc), number(n) {}
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 	
 	virtual bool isConstExpr() override {
@@ -18,4 +18,3 @@ public:
 	}
 };
 
-#endif

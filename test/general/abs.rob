@@ -1,0 +1,33 @@
+
+int16 abs(int16 value) {
+    if value < 0 {
+        return - value;
+    }
+    return value;
+}
+
+int16 abs_bit(int16 value) {
+    mask = value >> 15;
+    return (value + mask) ^ mask;
+}
+
+int16 abs_bit2(int16 value) {
+    mask = value >> 15;
+    return (value ^ mask) - mask;
+}
+
+int8 main() {
+    nvalue = -635;
+    pvalue = 635;
+    if pvalue != abs(nvalue) {
+        return 1;
+    }
+    if pvalue != abs_bit(nvalue) {
+        return 1;
+    }
+    if pvalue != abs_bit2(nvalue) {
+        return 1;
+    }
+    return 0;
+}
+

@@ -22,7 +22,7 @@ out:
 	mkdir -p out
 
 clean:
-	rm -f ${ALL} ${ALL_LL} ${ALL_OO}
+	@rm -f ${ALL} ${ALL_LL} ${ALL_OO}
 
 .SECONDARY:
 out/%.o : %.rob ${ROBCMP} Makefile
@@ -42,7 +42,7 @@ out/%.ll : %.rob ${ROBCMP} Makefile
 ifeq ($(OS), Msys)
 	${LD} -e __main $< -o $@
 else ifeq ($(OS), Darwin)
-	${CC} $< -o $@
+	${CC} $< -o $@ &> /dev/null
 else
 	${CC} -no-pie $< -o $@
 endif

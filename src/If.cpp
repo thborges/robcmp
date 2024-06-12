@@ -3,15 +3,15 @@
 #include "FunctionImpl.h"
 #include "Visitor.h"
 
-If::If(Node *e, vector<Node*> &&tst): expr(e) {
+If::If(Node *e, vector<Node*> &&tst, location_t loc): Node(loc), expr(e) {
 	addChild(expr);
-	thenst = new Node(std::move(tst));
+	thenst = new Node(std::move(tst), loc);
 	addChild(thenst);
 	elsest = NULL;
 }
 
-If::If(Node *e, vector<Node*> &&tst, vector<Node*> &&est): If(e, std::move(tst)) {
-	elsest = new Node(std::move(est));
+If::If(Node *e, vector<Node*> &&tst, vector<Node*> &&est, location_t loc): If(e, std::move(tst), loc) {
+	elsest = new Node(std::move(est), loc);
 	addChild(elsest);
 }
 
@@ -55,6 +55,6 @@ Value *If::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbloc
 	return mergb;
 }
 
-void If::accept(Visitor& v) {
-	v.visit(*this);
+Node* If::accept(Visitor& v) {
+	return v.visit(*this);
 } 

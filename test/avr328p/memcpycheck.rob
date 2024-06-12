@@ -1,0 +1,42 @@
+
+/* This test case allocates a zeroed matrix in .data region.
+   It checks if the assembly memcpy __xxx___ is working.
+ */
+
+type fillmemory {
+    a = {{2u:8}:8};
+}
+
+int8 main() {
+    x = fillmemory();
+    matrix = {{1u:128}:8};
+    ma2 = {{0u:32}:8};
+    
+    row = 0u;
+    while row < matrix.rows {
+        col = 0u;
+        while col < matrix.cols {
+            if matrix[row][col] != 1u {
+                return 1;
+            }
+            col++;
+        }
+        row++;
+    }
+
+    row2 = 0u;
+    while row2 < ma2.rows {
+        col2 = 0u;
+        while col2 < ma2.cols {
+            v = ma2[row2][col2];
+            if v != 0 {
+                return 2;
+            }
+            col2++;
+        }
+        row2++;
+    }
+
+    return 0;
+}
+

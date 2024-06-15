@@ -1,14 +1,35 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
 
-use mcu;
-use ports;
-use databus;
+use intfs.mcu;
+use intfs.ports;
+use intfs.databus;
+use intfs.buffer8;
+use intfs.display;
 
-type ssd1306 {
+type ssd1306spi implements display {
     mmcu = mcu();
     datacmd = digitalport();
     reset = digitalport();
     select = digitalport();
     spi = databus();
+
+    framebuffer implements buffer8 {
+        buff = {{0u:128}:8};
+        
+        uint16 height() { return buff.rows; }
+        uint16 width() { return buff.cols; }
+        
+        uint8 get(uint16 row, uint16 col) {
+            return buff[row][col];
+        }
+        
+        void set(uint16 row, uint16 col, uint8 v) {
+            buff[row][col] = v;
+        }
+    }
 
     enum powerstate {
         SLEEP = 0xAE,
@@ -32,22 +53,21 @@ type ssd1306 {
         DISPLAY_MODE_NORMAL     = 0xA6,
         DISPLAY_MODE_INVERTED   = 0xA7,
         MEM_ADDRESSING 		    = 0x20,
+        SET_COLUMN_ADDRESS      = 0x21,
         CHARGE_PUMP_REGULATOR 	= 0x8D,
         CHARGE_PUMP_ON   	    = 0x14,
-        SET_PAGE_START_ADDR     = 0xB0,
+        SET_PAGE_ADDR           = 0x22,
         SET_COL_LO_NIBBLE       = 0x00,
         SET_COL_HI_NIBBLE       = 0x10,
         NOP                     = 0xE3
     }
 
-    enum displayorientation {NORMAL, NORMAL_MIRRORED, UPSIDE_DOWN, UPSIDE_DOWN_MIRRORED}
-
-    int8 pages() {
-        return 64 / 8;
+    uint16 rows() {
+        return framebuffer.height()*8;
     }
 
-    int16 columns() {
-        return 128;
+    uint16 columns() {
+        return framebuffer.width();
     }
 
     void init_display() {
@@ -58,6 +78,9 @@ type ssd1306 {
         reset_display();
         write_command(powerstate.SLEEP);
         
+        write_command(commands.SET_DISP_CLOCK);
+        write_command(0x80);
+
         write_command(commands.SET_MULTIPLEX_RATIO);
         write_command(0x3F);
 
@@ -66,31 +89,33 @@ type ssd1306 {
 
         write_command(commands.SET_DISP_START_LINE);
 
-        set_display_orientation(displayorientation.NORMAL);
+        write_command(commands.CHARGE_PUMP_REGULATOR);
+        write_command(commands.CHARGE_PUMP_ON);
+
+        // Horizontal memory addressing mode
+        write_command(commands.MEM_ADDRESSING);
+        write_command(0x00);
 
         write_command(commands.SET_WIRING_SCHEME);
         write_command(0x12);
 
         set_contrast(0x7F);
 
+        write_command(commands.SET_PRECHARGE_PERIOD);
+        write_command(0xF1);
+
+        write_command(commands.SET_VCOM_DESELECT_LEVEL);
+        write_command(0x40);
+
         write_command(commands.RESUME_TO_RAM_CONTENT);
-        
         write_command(commands.DISPLAY_MODE_NORMAL);
 
-        // Horizontal memory addressing mode
-        write_command(commands.MEM_ADDRESSING);
-        write_command(0x00);
-        
-        write_command(commands.SET_DISP_CLOCK);
-        write_command(0x80);
-        
-        write_command(commands.CHARGE_PUMP_REGULATOR);
-        write_command(commands.CHARGE_PUMP_ON);
+        set_orientation(displayorientation.NORMAL);
 
         write_command(powerstate.ON);
     }
 
-    void set_display_orientation(displayorientation o) {
+    void set_orientation(displayorientation o) {
         if (o == displayorientation.NORMAL or
             o == displayorientation.NORMAL_MIRRORED) {
             write_command(commands.SET_SEG_REMAP_0);
@@ -114,43 +139,73 @@ type ssd1306 {
         }
     }
 
-    void set_contrast(int8 c) {
+    void set_contrast(uint8 c) {
         write_command(commands.SET_CONTRAST);
         write_command(c);      
     }
 
     void reset_display() {
         reset.set(true);
-        mmcu.wait_us(3);
+        mmcu.wait_ms(2);
         reset.set(false);
-        mmcu.wait_us(3);
+        mmcu.wait_ms(10);
         reset.set(true);
     }
 
-    void write_command(unsigned8 c) {
+    void write_command(uint8 c) {
         datacmd.set(false);
         select.set(false);
         spi.write(c);
         select.set(true);
     }
 
-    void write_data(int8 d) {
+    void write_data(uint8 d) {
         datacmd.set(true);
         select.set(false);
         spi.write(d);
-        select.set(true);  
+        select.set(true);
     }
 
     void reset_cursor() {
-        write_command(commands.SET_PAGE_START_ADDR);
-        write_command(commands.SET_COL_HI_NIBBLE);
-        write_command(commands.SET_COL_LO_NIBBLE);
+        // set page update range
+        write_command(commands.SET_PAGE_ADDR);
+        write_command(0x0);
+        write_command(0x7);
+        // set column update range
+        write_command(commands.SET_COLUMN_ADDRESS);
+        write_command(0);
+        write_command(127);
     }
 
-    void flip_power() {
-        write_command(powerstate.SLEEP);
-        mmcu.wait_ms(1000);
-        write_command(powerstate.ON);
-        mmcu.wait_ms(1000);
+    /*void write_at(uint8 x, uint8 y) {
+        write_command(commands.SET_COLUMN_ADDRESS);
+        write_command(commands.SET_PAGE_START_ADDR);
+    }*/
+
+    void clear() {
+        reset_cursor();
+        i = 0u;
+		while i < framebuffer.height() {
+			j = 0u;
+			while j < framebuffer.width() {
+				write_data(0);
+				j++;
+			}
+			i++;
+		}
+    }
+
+    void update_frame() {
+        reset_cursor();
+        row = 0u;
+		while row < framebuffer.height() {
+			col = 0u;
+			while col < framebuffer.width() {
+                v = framebuffer.get(row, col);
+				write_data(v);
+				col++;
+			}
+			row++;
+		}
     }
 }

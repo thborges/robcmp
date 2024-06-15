@@ -28,12 +28,12 @@ clean:
 out/%.o : %.rob ${ROBCMP} Makefile
 	@touch temp.spec && truncate -s 0 temp.spec
 	@[ -f $(patsubst %.rob,%.spec,$<) ] && cp $(patsubst %.rob,%.spec,$<) temp.spec || true
-	${ROBCMP} ${OPT} -s temp.spec -o $@ $<
+	${ROBCMP} ${OPT} -I ../../lib -bdep -s temp.spec -o $@ $<
 
 out/%.ll : %.rob ${ROBCMP} Makefile
 	@touch temp.spec && truncate -s 0 temp.spec
 	@[ -f $(patsubst %.rob,%.spec,$<) ] && cp $(patsubst %.rob,%.spec,$<) temp.spec || true
-	${ROBCMP} ${OPT} -s temp.spec $< > $@
+	${ROBCMP} ${OPT} -I ../../lib -bdep -s temp.spec $< > $@
 
 %.tt : %.rob
 	@-./runtest.sh $< $(patsubst %.rob,out/%,$<) 
@@ -42,9 +42,9 @@ out/%.ll : %.rob ${ROBCMP} Makefile
 ifeq ($(OS), Msys)
 	${LD} -e __main $< -o $@
 else ifeq ($(OS), Darwin)
-	${CC} $< -o $@ &> /dev/null
+	${CC} -Wl,-dead_strip $< -o $@
 else
-	${CC} -no-pie $< -o $@
+	${CC} -Wl,--gc-sections -no-pie $< -o $@
 endif
 
 test: ${ALL_TT}

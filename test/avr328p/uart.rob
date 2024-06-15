@@ -1,11 +1,10 @@
 
-use serial;
+use arch.avr.avr5mcu;
 
 int16 main() {
-    mcu = avr5mcu();
-
-    serial = avr5_serial();
-    serial.start(mcu, 9600);
+    mmcu = avr5mcu();
+    serial = mmcu.uart0;
+    serial.setup(9600);
 
     serial.write('A');
     serial.write('B');

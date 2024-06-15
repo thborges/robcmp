@@ -13,6 +13,8 @@ DataType LoadArray::getDataType() {
 		Node *symbol = ident.getSymbol(getScope());
 		if (symbol && buildTypes->isArrayOrMatrix(symbol->getDataType()))
 			dt = buildTypes->getArrayElementType(symbol->getDataType());
+		else
+			setSemanticError();
 	}
 	return dt;
 }

@@ -1,52 +1,6 @@
 
-use serial;
-
-chars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-
-void itoa(int16 value, int8 base, char[] result) {
-	if base < 2 or base > 16 {
-		result[0] = 0;
-		return;
-	}
-
-	negative = false;
-	if value < 0 {
-		negative = true;
-		value = - value;
-	}
-	
-	i = 0;
-	if value == 0 {
-		result[i] = '0';
-		i++;
-	} else {
-		while value != 0 {
-			temp = value;
-			value /= base;
-			result[i] = chars[temp - value * base];
-			//result[i] = chars[value % base];
-			//value /= base;
-			i++;
-		}
-	}
-
-	if negative == true {
-		result[i] = '-';
-		i++;
-	}
-	result[i] = 0;
-	
-	// reverse result
-	j = 0;
-	i--;
-	while j < i {
-		temp = result[j];
-		result[j] = result[i];
-		result[i] = temp;
-		j++;
-		i--;
-	}
-}
+use arch.avr.avr5mcu;
+use convert.itoa;
 
 numbers = {-32123, -15678, -4364, -501, -25, 0, 25, 512, 4364, 15678, 32767};
 
@@ -90,7 +44,7 @@ bool check(uint8 id, char[][] expected, char[] result) {
 	return ret;
 }
 
-void print_result(avr5_serial s, char[] result) {
+void print_result(databus s, char[] result) {
 	i = 0;
 	while result[i] != 0 {
 		s.write(result[i]);
@@ -100,9 +54,9 @@ void print_result(avr5_serial s, char[] result) {
 }
 
 int16 main() {
-	mcu = avr5mcu();
-	serial = avr5_serial();
-	serial.start(mcu, 9600);
+	mmcu = avr5mcu();
+	serial = mmcu.uart0;
+	serial.setup(9600);
 
     result = {'\0':18};
 	ret = true;

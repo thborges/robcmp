@@ -33,7 +33,7 @@ public:
 		return v.visit(*this);
 	}
 
-	Node* getIdentSymbol();
+	Node* getIdentSymbol(bool showError = true);
 	
 	friend class SymbolizeTree;
 };

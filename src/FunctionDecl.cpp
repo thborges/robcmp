@@ -112,6 +112,14 @@ Value *FunctionDecl::generate(FunctionImpl*, BasicBlock *, BasicBlock *allocbloc
 
 		if (buildTypes->isUnsignedDataType(ptype))
 			Arg.addAttr(Attribute::ZExt);
+
+		const string& argname = fp->getName();
+		if (argname == ":this") {
+			thisArg = &Arg;
+		} else if (argname == ":parent") {
+			parentArg = &Arg;
+		}
+
 		Idx++;
 	}
 

@@ -30,6 +30,13 @@ Program::Program() : Node({0,0,0,0}) {
 	
 	buildTypes = make_unique<BuildTypes>(currentTarget().pointerType);
 	global_alloc = BasicBlock::Create(global_context, "global");
+
+	dispatch = new Dispatch();
+}
+
+Program::~Program() {
+	delete dispatch;
+	delete mainmodule;
 }
 
 void Program::declara_auxiliary_c_funcs() {
@@ -270,7 +277,7 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 
 extern bool parseIsCompleted;
 
-void Program::generate() {
+void Program::doSemanticAnalysis() {
     parseIsCompleted = true;
 
 	// instrumentation passes
@@ -284,10 +291,12 @@ void Program::generate() {
 	fs.open("ast", std::fstream::out);
 	PrintAstVisitor(fs).visit(*this);
 	fs.close();*/
+}
+
+void Program::generate() {
 
 	Node *mainFunc = NULL;
 
-	// generate the program!
 	for(auto n: children()) {
 		if (FunctionImpl *func = dynamic_cast<FunctionImpl*>(n)) {
 			if (func->getName() == "main" || func->getName() == "__main") {
@@ -310,6 +319,8 @@ void Program::generate() {
 
 	if (mainFunc)
 		mainFunc->generate(NULL, NULL, global_alloc);
+
+	dispatch->generateDispatchFunctions(program);
 
 	if (debug_info)
 		DBuilder->finalize();

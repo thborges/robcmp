@@ -1,0 +1,45 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+/*
+ * A simple 16 bit pseudo random number generator, based 
+ * on wyhash: https://github.com/wangyi-fudan/wyhash and
+ * Daniel Lemire, "A fast 16-bit random number generator?",
+ * 2019, at https://lemire.me/blog/2019/07/03/a-fast-16-bit
+ */
+
+use limits;
+
+random_seed16 = 0xE7A8;
+
+void srandom16(uint16 seed) {
+    random_seed16 = seed;
+}
+
+uint16 random16() {
+  random_seed16 += 0xfc15;
+  n = uint32(random_seed16) * 0x2ab;
+  return uint16((n >> 16) ^ n);
+}
+
+/*
+ * Based on the work: Fast Random Integer Generation in an Interval
+ * by Daniel Lemire, 2018. https://arxiv.org/abs/1805.10941.
+ */
+uint16 random16ub(uint16 upto) {
+    x = random16();
+    m = uint32(x) * upto;
+    l = uint16(m);
+    if (l < upto) {
+        t = (uint16_max - upto + 1) % upto;
+        while (l < t) {
+            x = random16();
+            m = uint32(x) * upto;
+            l = uint16(m);
+        }
+    }
+    return uint16(m >> 16);
+}
+

@@ -160,7 +160,8 @@ void print_llvm_ir(char opt_level) {
 	if (ol == OptimizationLevel::O0)
 		modulePassManager = passBuilder.buildO0DefaultPipeline(ol);
 	else
-		modulePassManager = passBuilder.buildPerModuleDefaultPipeline(ol);
+		//modulePassManager = passBuilder.buildPerModuleDefaultPipeline(ol);
+		modulePassManager = passBuilder.buildThinLTODefaultPipeline(ol, nullptr);
 
 	modulePassManager.run(*mainmodule, moduleAnalysisManager);
 

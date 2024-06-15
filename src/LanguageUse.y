@@ -16,7 +16,7 @@
 %type <nodes> stmts
 %type <node> global register interface type type_stmt use
 %type <node> function function_decl function_impl
-%type <node> enum enum_item const_expr expr interface_impl
+%type <node> enum enum_item const_expr expr unary interface_impl
 %type <node> simplevar_decl cast constructor
 %type <node> ignore_stmt ignore_param ignore
 %type <strings> type_impls
@@ -32,6 +32,10 @@
 %type <ident> TOK_IDENTIFIER TOK_XIDENTIFIER
 %type <nint> TOK_INTEGER qualifier
 %type <unint> TOK_UINTEGER
+%type <nfloat> TOK_FLOAT
+%type <ndouble> TOK_DOUBLE
+%type <nldouble> TOK_LDOUBLE
+%type <ch> TOK_CHAR
 
 %printer { fprintf(yyo, "'%s'", $$); } <ident>
 %printer { fprintf(yyo, "'%s'", $$ ? $$->getName().c_str() : ""); } <node>
@@ -65,7 +69,13 @@ global : use
 	   | function
 	   | enum
 	   | simplevar_decl ';' { $$ = NULL; } // don't export global vars
-	   | qualifier simplevar_decl ';' { $$ = NULL; }
+
+global : qualifier simplevar_decl ';' {
+	if ($qualifier == qconst)
+		$$ = $simplevar_decl;
+	else
+		$$ = NULL;
+}
 
 use : TOK_USE TOK_IDENTIFIER ';' {
 	parseUseFile($2, @TOK_USE);
@@ -179,8 +189,7 @@ interface_decls : function_decl {
 	$$->push_back($function_decl);
 }
 
-//FIXME: Interface only allows function_decls!
-interface_impl : TOK_IDENTIFIER[id] '=' TOK_IDENTIFIER[intfname] '{' type_stmts '}' {
+interface_impl : TOK_IDENTIFIER[id] TOK_IMPL TOK_IDENTIFIER[intfname] '{' type_stmts '}' {
 	vector<string> intf;
 	intf.push_back($intfname);
 	UserType *ut = new UserType($id, std::move(*$type_stmts), std::move(intf), @id);
@@ -260,10 +269,19 @@ element : expr ':' TOK_INTEGER		{ $$ = new ArrayElement($1, (unsigned)$3); }
 
 const_expr : TOK_INTEGER    { $$ = getNodeForIntConst($1, @1); }
 		   | TOK_UINTEGER   { $$ = getNodeForUIntConst($1, @1); }
+		   | TOK_CHAR       { $$ = new Char($1, @1); }
            | TOK_TRUE		{ $$ = new Int1(1, @1); }
            | TOK_FALSE		{ $$ = new Int1(0, @1); }
+		   | TOK_FLOAT		{ $$ = new Float($1, @1); }
+		   | TOK_DOUBLE		{ $$ = new Double($1, @1); }
+		   | TOK_LDOUBLE	{ $$ = new Float128($1, @1); }
+		   | unary			{ $$ = $1; }
 		   //TODO: Add other constant nodes here!
 		   
+unary : '-' const_expr	{ $$ = new BinaryOp($const_expr, '*', getNodeForIntConst(-1, @const_expr)); }
+	  | '~' const_expr	{ $$ = new FlipOp($const_expr); }
+      ;
+
 expr : const_expr
 	 | cast
 	 | constructor

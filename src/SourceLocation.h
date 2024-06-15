@@ -10,17 +10,18 @@ typedef struct {
 	int last_column;
 } location_t;
 
-extern const filesystem::path* build_file();
-extern int build_filecolno();
-extern int build_filelineno();
+extern int buildStackCurrent;
+extern vector<filesystem::path> buildStack;
 
 class SourceLocation {
 protected:
 	location_t sloc;
-	const filesystem::path *file;
+	int fileNo;
+	bool semanticError = false;
+	
 public:
     SourceLocation(location_t l) {
-        file = build_file();
+        fileNo = buildStackCurrent;
         sloc = l;
     }
 
@@ -45,6 +46,14 @@ public:
 	}
 
 	virtual const string getFile() const {
-		return file->string();
+		return buildStack[fileNo];
+	}
+
+	bool hasSemanticError() {
+		return semanticError;
+	}
+
+	void setSemanticError() {
+		semanticError = true;
 	}
 };

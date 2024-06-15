@@ -10,6 +10,7 @@ from SCons.Script import AlwaysBuild, Builder, Default, DefaultEnvironment, Glob
 env = DefaultEnvironment()
 platform = env.PioPlatform()
 ldscripts_folder = join(platform.get_package_dir("toolchain-robcmp"), "lib")
+stdlib_folder = join(platform.get_package_dir("toolchain-robcmp"), "stdlib")
 
 os.environ['LD_LIBRARY_PATH'] = ldscripts_folder
 
@@ -34,13 +35,17 @@ else:
     env.Exit(1)
 
 build_type = env.subst("$BUILD_TYPE")
-robcmp_args = ["robcmp", "-a", board, "-o", "$TARGET"]
+robcmp_args = ["robcmp", "-bdep", "-a", board, "-o", "$TARGET"]
 if build_type == "debug":
     robcmp_args.append("-g")
     robcmp_args.append("-O0")
 elif build_type == "release":
-    robcmp_args.append("-Oz")
-    ldflags.append("--gc-sections")
+    robcmp_args.append("-O3")
+ldflags.append("--gc-sections")
+ldflags.append("--lto=thin")
+
+robcmp_args.append("-I")
+robcmp_args.append(stdlib_folder)
 robcmp_args.append("$SOURCE")
 
 if board.startswith("avr"):
@@ -58,6 +63,7 @@ env.Append(
         ),
         Linker=Builder(
             action = ' '.join(["ld.lld", "$SOURCES", ' '.join(ldflags), "-o", "$TARGET"]),
+            #action = ' '.join(["avr-ld", "$SOURCES", ' '.join(ldflags), "-o", "$TARGET"]),
             suffix=".elf"
         ),
         Rob=Builder(
@@ -68,8 +74,8 @@ env.Append(
     )
 )
 
-sources += Glob(env.subst(join("$PROJECT_DIR/src/", "*.rob")))
-#source_fnames = [join("$PROJECT_DIR/src/", f.name) for f in sources]
+sources += Glob(env.subst(join("$PROJECT_DIR/src/", "main.rob")))
+#sources += Glob(env.subst(join("$PROJECT_DIR/src/**/", "*.rob")))
 #print("SOURCES: ", source_fnames)
 
 target_objs = []
@@ -99,7 +105,7 @@ if upload_protocol == "serial":
         avrdude_cfg = join(platform.get_package_dir("tool-avrdude"), "avrdude.conf")
         env.Replace(
             UPLOADER=avrdude_bin,
-            UPLOADERFLAGS=["-C", avrdude_cfg, "-v", "-V", "-c", "arduino", "-p", "m328p", "-U"],
+            UPLOADERFLAGS=["-C", avrdude_cfg, "-v", "-V", "-c", "arduino", "-p", "m328p", "-b", "57600", "-U"],
             UPLOADCMD='$UPLOADER $UPLOADERFLAGS flash:w:${SOURCE}:i -P $UPLOAD_PORT'
         )
 

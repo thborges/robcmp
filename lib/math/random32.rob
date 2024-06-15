@@ -1,0 +1,57 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+/* This is a pseudo random number generator based on the article
+ * "Random number generators: good ones are hard to find", by
+ * Park and Miller, Communications of the ACM, vol. 31, no. 10,
+ * October 1988, p. 1195.
+ */
+ 
+use limits;
+
+const random_seed32_start = 0x262028EB;
+const random_max32 = 0x7FFFFFFF;
+
+random_seed32 = uint32(random_seed32_start);
+
+void srandom32(uint32 seed) {
+    random_seed32 = seed;
+}
+
+uint32 random32() {
+    x = random_seed32;
+    /* Can't be zero */
+    if (x == 0) {
+        x = random_seed32_start;
+    }
+    hi = x / 127773;
+    lo = x % 127773;
+    x = 16807 * lo - 2836 * hi;
+    if (x < 0) {
+        x += random_max32;
+    }
+    random_seed = x;
+    return (random_seed % (random_max32 + 1u));
+}
+
+/*
+ * Based on the work: Fast Random Integer Generation in an Interval
+ * by Daniel Lemire, 2018. https://arxiv.org/abs/1805.10941.
+ */
+uint32 random32ub(uint32 upto) {
+    x = random32();
+    m = uint64(x) * upto;
+    l = uint32(m);
+    if (l < upto) {
+        t = (uint32_max - upto + 1) % upto;
+        while (l < t) {
+            x = random32();
+            m = uint64(x) * upto;
+            l = uint32(m);
+        }
+    }
+    return uint32(m >> 32);
+}
+

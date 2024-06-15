@@ -38,6 +38,7 @@
 %union {
 	char *ident;
 	char *str;
+	char ch;
 	int64_t nint;
 	uint64_t unint;
 	float nfloat;

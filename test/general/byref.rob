@@ -15,7 +15,7 @@ type main_t {
 		ss = copy(v);
 	}
 
-	ii = intf {
+	ii implements intf {
 		void print(int8 v) {
 			return;
 		}

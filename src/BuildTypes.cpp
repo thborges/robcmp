@@ -10,23 +10,23 @@ BuildTypes::BuildTypes(DataType targetPointerType) {
     tinfo[tvoid]    = {"void",          0, Type::getVoidTy(global_context),    dwarf::DW_ATE_address};
     tinfo[tbool]    = {"bool",          1, Type::getInt1Ty(global_context),    dwarf::DW_ATE_boolean};
     tinfo[tchar]    = {"char",          8, Type::getInt8Ty(global_context),    dwarf::DW_ATE_unsigned_char};
-    tinfo[tint2]    = {"int2",          2, Type::getIntNTy(global_context, 2), dwarf::DW_ATE_signed};
-    tinfo[tint3]    = {"int3",          3, Type::getIntNTy(global_context, 3), dwarf::DW_ATE_signed};
-    tinfo[tint4]    = {"int4",          4, Type::getIntNTy(global_context, 4), dwarf::DW_ATE_signed};
-    tinfo[tint5]    = {"int5",          5, Type::getIntNTy(global_context, 5), dwarf::DW_ATE_signed};
-    tinfo[tint6]    = {"int6",          6, Type::getIntNTy(global_context, 6), dwarf::DW_ATE_signed};
-    tinfo[tint7]    = {"int7",          7, Type::getIntNTy(global_context, 7), dwarf::DW_ATE_signed};
     tinfo[tint8]    = {"int8",          8, Type::getInt8Ty(global_context),    dwarf::DW_ATE_signed};
     tinfo[tint16]   = {"int16",        16, Type::getInt16Ty(global_context),   dwarf::DW_ATE_signed};
     tinfo[tint32]   = {"int32",        32, Type::getInt32Ty(global_context),   dwarf::DW_ATE_signed};
     tinfo[tint64]   = {"int64",        64, Type::getInt64Ty(global_context),   dwarf::DW_ATE_signed};
+    tinfo[tint2u]   = {"uint2",         2, Type::getIntNTy(global_context, 2), dwarf::DW_ATE_unsigned};
+    tinfo[tint3u]   = {"uint3",         3, Type::getIntNTy(global_context, 3), dwarf::DW_ATE_unsigned};
+    tinfo[tint4u]   = {"uint4",         4, Type::getIntNTy(global_context, 4), dwarf::DW_ATE_unsigned};
+    tinfo[tint5u]   = {"uint5",         5, Type::getIntNTy(global_context, 5), dwarf::DW_ATE_unsigned};
+    tinfo[tint6u]   = {"uint6",         6, Type::getIntNTy(global_context, 6), dwarf::DW_ATE_unsigned};
+    tinfo[tint7u]   = {"uint7",         7, Type::getIntNTy(global_context, 7), dwarf::DW_ATE_unsigned};
     tinfo[tint8u]   = {"uint8",         8, Type::getInt8Ty(global_context),    dwarf::DW_ATE_unsigned};
     tinfo[tint16u]  = {"uint16",       16, Type::getInt16Ty(global_context),   dwarf::DW_ATE_unsigned};
     tinfo[tint32u]  = {"uint32",       32, Type::getInt32Ty(global_context),   dwarf::DW_ATE_unsigned};
     tinfo[tint64u]  = {"uint64",       64, Type::getInt64Ty(global_context),   dwarf::DW_ATE_unsigned};
     tinfo[tfloat]   = {"float",        32, Type::getFloatTy(global_context),   dwarf::DW_ATE_float};
     tinfo[tdouble]  = {"double",       64, Type::getDoubleTy(global_context),  dwarf::DW_ATE_float};
-    tinfo[tldouble] = {"long double", 128, Type::getFP128Ty(global_context),   dwarf::DW_ATE_float};
+    tinfo[tldouble] = {"ldouble",     128, Type::getFP128Ty(global_context),   dwarf::DW_ATE_float};
 
     unsigned pts = tinfo[targetPointerType].bitWidth;
 
@@ -97,7 +97,7 @@ DataType BuildTypes::getType(const string& name, bool createUndefined) {
             dti.isComplex = true;
             return addDataType(dti);
         }
-    } else /*if (tinfo[ut->second].isDefined || createUndefined)*/ {
+    } else {
         return ut->second;
     }
     return undefinedType;

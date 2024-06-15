@@ -13,6 +13,7 @@ public:
 	}
 
 	int8_t getNumber() const { return number; }
+	void setNumber(int8_t n) { number = n; }
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 	
@@ -31,6 +32,7 @@ public:
 	}
 
 	uint8_t getNumber() const { return number; }
+	void setNumber(uint8_t n) { number = n; }
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 	

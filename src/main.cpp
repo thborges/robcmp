@@ -1,4 +1,3 @@
-#include <iostream>
 #include <cstdlib>
 #include <cstring>
 
@@ -6,9 +5,12 @@
 #include "Scanner.h"
 #include "Program.h"
 
+Program *program;
+
 void print_llvm_ir(char opt_level);
 bool debug_info;
-extern char *build_outputfilename;
+bool build_dependencies;
+char *build_outputfilename;
 
 char *spec_filename;
 FILE *specin = NULL;
@@ -40,6 +42,7 @@ int main(int argc, char *argv[]) {
 	const char *targetarch = "";
 	build_outputfilename = NULL;
 	debug_info = false;
+	build_dependencies = false;
 
 	if (argc <= 1) {
 		fprintf(stderr, "Syntax: %s -a {", argv[0]);
@@ -47,7 +50,7 @@ int main(int argc, char *argv[]) {
 			if (t > 1) fprintf(stderr, ",");
 			fprintf(stderr, "%s", supportedTargets[t].name);
 		}
-		fprintf(stderr, "} -I {include_dir} -g -O{0,1,2,3,s,z,d} -o output_file -s spec_file input_file\n");
+		fprintf(stderr, "} -I {include_dir} -bdep -g -O{0,1,2,3,s,z,d} -o output.o -s in.spec input.rob\n");
 		return 1;
 	}
 
@@ -65,6 +68,9 @@ int main(int argc, char *argv[]) {
 		}
 		else if (strncmp(argv[i], "-g", 2) == 0) { // debug
 			debug_info = true;
+		}
+		else if (strncmp(argv[i], "-bdep", 5) == 0) {
+			build_dependencies = true;
 		}
 		else if (strncmp(argv[i], "-o", 2) == 0) { // output
 			if (i+1 < argc)
@@ -103,13 +109,17 @@ int main(int argc, char *argv[]) {
 	if (!parseFile(buildFileName))
 		exit(1);
 
+	program->doSemanticAnalysis();
+	
 	if (errorsfound > 0) {
 		fprintf(stderr, "%d error(s) found.\n", errorsfound);
-		return errorsfound;
+	} else {
+		program->generate(); 
 	}
 
-	print_llvm_ir(optimization);
+	if (errorsfound <= 0)
+		print_llvm_ir(optimization);
 
-	return 0;
+	return errorsfound;
 }
 

@@ -7,7 +7,7 @@ interface intf {
 type somevar {
 	a = int16(0);
 	
-	pa = intf {
+	pa implements intf {
 		b = int16(0);
 		int16 get() { return b; }
 		void set(int16 s) { b = s; }

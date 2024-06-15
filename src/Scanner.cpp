@@ -5,15 +5,17 @@
 #include "FlexDependencies.h"
 #include "Language_gen_y.hpp"
 
-Program *program;
+extern Program *program;
 
 int errorsfound = 0;
 
-char *build_outputfilename;
 vector<filesystem::path> includeDirs;
 vector<filesystem::path> buildStack;
+stack<filesystem::path> useStack;
 vector<yyscan_t> buildStackScanner;
 int buildStackCurrent;
+bool parseIsCompleted = false;
+extern bool build_dependencies;
 
 int USElex(YYSTYPE *yylval_param, location_t *yylloc_param, yyscan_t yyscanner) {
 	return MAINlex(yylval_param, yylloc_param, yyscanner);
@@ -41,6 +43,9 @@ void MAINerror(location_t *loc, yyscan_t scanner, const char *s) {
 }
 
 void yyerrorcpp(const string& s, SourceLocation *n, bool semantic) {
+    if (n->hasSemanticError())
+        return;
+    
     string e;
     if (semantic)
 	    e = COLOR_RED "semantic error: " COLOR_RESET + s;
@@ -51,6 +56,7 @@ void yyerrorcpp(const string& s, SourceLocation *n, bool semantic) {
     fprintf(stderr, "%s:%d:%d: %s\n", 
 		n->getFile().c_str(), n->getLineNo(), n->getColNo(), e.c_str());
 	errorsfound++;
+    n->setSemanticError();
 }
 
 void yywarncpp(const string& s, SourceLocation *n) {
@@ -93,22 +99,33 @@ bool parseFile(const string& source) {
 
 FILE *findFile(string file_name, filesystem::path& file_path) {
     FILE *f = NULL;
+    
+    // include the dir of the current file
+    if (useStack.size() > 0)
+        includeDirs.push_back(useStack.top().parent_path());
+
     for(auto dirit = rbegin(includeDirs); dirit != rend(includeDirs); ++dirit) {
         filesystem::path test_path(*dirit);
         test_path /= file_name;
-        FILE *f = fopen(test_path.string().c_str(), "r");
+        f = fopen(test_path.string().c_str(), "r");
         if (f) {
             file_path = test_path;
-            return f;
+            break;
         }
     }
+
+    if (useStack.size() > 0)
+        includeDirs.pop_back();
+    
     return f;
 }
 
 bool parseUseFile(const string& use, location_t loc) {
 
     // search for and open {use}.rob file
-    string file_name = use + ".rob";
+    const string sep{filesystem::path::preferred_separator};
+    string use_file = regex_replace(use, regex("\\."), sep);
+    string file_name = use_file + ".rob";
     filesystem::path file_path;
     FILE *f = findFile(file_name, file_path);
 
@@ -135,8 +152,9 @@ bool parseUseFile(const string& use, location_t loc) {
         return true;
     }
 
-    static int buildStackBackup = buildStackCurrent;
+    int buildStackBackup = buildStackCurrent;
     buildStack.push_back(file_path);
+    useStack.push(file_path);
     buildStackCurrent = buildStack.size()-1;
 
     yyscan_t scanner;
@@ -146,20 +164,21 @@ bool parseUseFile(const string& use, location_t loc) {
 	MAINset_in(f, scanner);
     //extern int USEdebug;
     //USEdebug = 1;
-	USEparse(scanner);
+    if (build_dependencies)
+        MAINparse(scanner);
+    else
+	    USEparse(scanner);
+
 	MAINlex_destroy(scanner);
     fclose(f);
 
     buildStackCurrent = buildStackBackup;
     buildStackScanner.pop_back();
     //buildStack.pop_back();
+    useStack.pop();
 
     return true;
 }
 
 int MAINget_lineno(yyscan_t yyscanner);
 int MAINget_column(yyscan_t yyscanner);
-
-const filesystem::path* build_file() {
-    return &buildStack[buildStackCurrent];
-}

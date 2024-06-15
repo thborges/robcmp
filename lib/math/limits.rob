@@ -1,0 +1,27 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+const char_max = 255u;
+
+const uint8_max  = 255u;
+const uint16_max = 65535u;
+const uint32_max = 4294967295u;
+const uint64_max = 18446744073709551615u;
+
+const int8_min  = -128;
+const int8_max  =  127;
+const int16_min = -32768;
+const int16_max =  32767;
+const int32_min = -2147483648;
+const int32_max =  2147483647;
+const int64_min = -9223372036854775808;
+const int64_max =  9223372036854775807;
+
+const float_min = 1.175494351E-38;
+const float_max = 3.402823466E+38;
+const double_min = 2.2250738585072014E-308;
+const double_max = 1.7976931348623158E+308;
+const ldouble_min = 3.36210314311209350626267781732175260E-4932;
+const ldouble_max = 6.47517511943802511092443895822764655E-4966;

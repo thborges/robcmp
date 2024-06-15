@@ -10,6 +10,7 @@
 #include "Scalar.h"
 #include "Load.h"
 #include "FunctionCall.h"
+#include "ConstructorCall.h"
 #include "MemCopy.h"
 #include "Enum.h"
 
@@ -18,43 +19,21 @@ public:
 	SymbolizeTree() {}
 
     virtual Node* visit(Node& n) override {
-        for(auto& c : n.children()) {
+        for(auto* c : n.children()) {
             c->setScope(&n);
             if (c->hasName()) {
                 //fprintf(stderr, "%s\n", c->getName().c_str());
 		        n.addSymbol(dynamic_cast<NamedNode*>(c));
             }
         }
-        for(auto& c : n.children()) {
+        for(auto* c : n.children()) {
             c->accept(*this);
         }
         return NULL;
     }
 
-    virtual Node* visit(Scalar& n) override {
-        visit((Node&)n);
-        if (n.children().size() > 0)
-            n.symbols = n.children()[0]->getSymbols();
-        return NULL;
-    }
-
-    virtual Node* visit(Load& n) override {
-        visit((Node&)n);
-        Node *identSymbol = n.getIdentSymbol();
-        if (identSymbol)
-            n.symbols = identSymbol->getSymbols();
-        return NULL;
-    }
-
-    virtual Node* visit(MemCopy& n) override {
-        visit((Node&)n);
-        if (n.children().size() > 0)
-            n.symbols = n.children()[0]->getSymbols();
-        return NULL;
-    }
-
     virtual Node* visit(Array& n) override {
-        for(auto& c : n.children()) {
+        for(auto* c : n.children()) {
             if (c->hasName()) {
 		        n.addSymbol(dynamic_cast<NamedNode*>(c));
             }
@@ -67,7 +46,7 @@ public:
     }
 
     virtual Node* visit(Matrix& n) override {
-        for(auto& c : n.children()) {
+        for(auto* c : n.children()) {
             if (c->hasName()) {
 		        n.addSymbol(dynamic_cast<NamedNode*>(c));
             }

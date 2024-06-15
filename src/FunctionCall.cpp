@@ -89,26 +89,37 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         Node *param = parameters->getParamElement(i);
         DataType call_dt = param->getDataType();
         DataType def_dt = fsymbol->getParameters().getParamType(i);
+        string argName = fsymbol->getParameters().getParamName(i);
 
         Value *valor = param->generate(func, block, allocblock);
-        if (!valor)
+        if (!valor) {
+            yyerrorcpp(string_format("The value for argument %s is undefined.", argName.c_str()), param);
             return NULL;
+        }
 
         if (buildTypes->isInterface(call_dt)) {
             valor = Builder->CreateLoad(valor->getType()->getPointerTo(), valor, "defer");
         } else if (buildTypes->isComplex(call_dt)) {
             //we don't support cohercion between user types yet
             if (call_dt != def_dt) {
-                yyerrorcpp(string_format("Argument %s expects '%s' but '%s' was provided.",
-                    fsymbol->getParameters().getParamName(i).c_str(),
-                    buildTypes->name(def_dt), 
-                    buildTypes->name(call_dt)), this);
-                yywarncpp("The function declaration is here.", fsymbol);
+                Node *utnode = findSymbol(buildTypes->name(call_dt));
+                UserType *ut = dynamic_cast<UserType*>(utnode);
+
+                if (ut && ut->implementsInterface(buildTypes->name(def_dt))) {
+                    program->getDispatcher()->addDataTypeImplementation(def_dt, call_dt);
+
+                } else if (!ut || !ut->implementsInterface(buildTypes->name(def_dt))) {
+                    yyerrorcpp(string_format("Argument %s expects '%s' but '%s' was provided.",
+                        argName.c_str(),
+                        buildTypes->name(def_dt), 
+                        buildTypes->name(call_dt)), this);
+                    yywarncpp("The function declaration is here.", fsymbol);
+                }
             }
         } else if (buildTypes->isArrayOrMatrix(call_dt)) {
             if (call_dt != def_dt) {
                 yyerrorcpp(string_format("Argument %s expects '%s' but '%s' was provided.",
-                    fsymbol->getParameters().getParamName(i).c_str(),
+                    argName.c_str(),
                     buildTypes->name(def_dt), 
                     buildTypes->name(call_dt)), this);
             }
@@ -178,14 +189,19 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
     if (stemSymbol && buildTypes->isInterface(stemSymbol->getDataType())) {
         string inject_name;
         
-        if (UserType *ut = dynamic_cast<UserType*>(stemSymbol->getScope()))
-            inject_name = stemSymbol->getScope()->getName() + ":";
+        if (UserType *ut = dynamic_cast<UserType*>(stemSymbol->getScope())) {
+            inject_name = stemSymbol->getScope()->getName();
+            inject_name.append(":" + stemSymbol->getName() + ":");
+        }
         else if (buildTypes->isUserType(stemSymbol->getScope()->getDataType())) {
             inject_name = buildTypes->name(stemSymbol->getScope()->getDataType());
+            inject_name.append(":" + stemSymbol->getName() + ":");
+        }
+        else if (buildTypes->isInterface(stemSymbol->getDataType())) {
+            inject_name = buildTypes->name(stemSymbol->getDataType());
             inject_name.append(":");
         }
 
-        inject_name.append(stemSymbol->getName() + ":");
         inject_name.append(ident.getLastName());
         Function *intf_cfunc = mainmodule->getFunction(inject_name);
         if (!intf_cfunc) {

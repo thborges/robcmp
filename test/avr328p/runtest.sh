@@ -8,7 +8,11 @@ NC="\033[0m"
 echo -n "               $1 "
 make -s $2
 if [ "$?" -eq 0 ]; then
-	timeout 10s ${CMD} &> /dev/null
+    if [ "$V" = "1" ]; then
+        ${CMD}
+    else
+	    timeout 10s ${CMD} &> /dev/null
+    fi
 	#./$2 &> /dev/null
 	if [ "$?" -eq 0 ]; then
 		echo -e \\r${GREEN}[PASS]\\t\\t${NC}

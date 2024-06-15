@@ -23,4 +23,14 @@ public:
 			dt = buildTypes->getType(name);
 		return dt;
 	}
+
+	virtual map<string, NamedNode*> const& getSymbols() override {
+		getDataType();
+		if (dt != BuildTypes::undefinedType) {
+			auto symbol = findSymbol(name);
+			if (symbol)
+				return symbol->getSymbols();
+		}
+		return symbols;
+	}
 };

@@ -6,7 +6,7 @@ interface bus {
 
 type mcu {
 
-	spi = bus {
+	spi implements bus {
 		speed = int32(0);
 		lastb = 0;
 

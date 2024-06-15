@@ -5,11 +5,11 @@
 #include "Variable.h"
 #include "Pointer.h"
 
-Node* Load::getIdentSymbol() {
+Node* Load::getIdentSymbol(bool showError) {
 	if (!identSymbol) {
 		identSymbol = ident.getSymbol(getScope(), false);
 	}
-	if (!identSymbol)
+	if (!identSymbol && showError)
         yyerrorcpp("Symbol " + ident.getFullName() + " not found.", this);
 	return identSymbol;
 }

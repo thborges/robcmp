@@ -1,0 +1,17 @@
+
+use math.random16;
+
+int16 main() {
+    result = 0;
+    i = 0u;
+    while i < 200 {
+        aux = random16ub(100);
+        if aux > 100 {
+            result = 1;
+        }
+            
+        i++;
+    }
+    return result;
+}
+

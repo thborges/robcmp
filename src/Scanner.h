@@ -23,5 +23,3 @@ void yywarncpp(const string& s, SourceLocation *n);
 
 bool parseFile(const string &source);
 bool parseUseFile(const string& use, location_t loc);
-
-const filesystem::path* build_file();

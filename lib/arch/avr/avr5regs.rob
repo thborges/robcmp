@@ -1,0 +1,171 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+/*
+ * Global Registers
+ */
+
+type SREG_t {
+	C = false;  // Carry Flag
+	Z = false;  // Zero Flag
+	N = false;  // Negative Flag
+	V = false;  // Two’s Complement Overflow Flag
+	S = false;  // Sign Bit
+	H = false;  // Half Carry Flag
+	T = false;  // Bit Copy Storage
+	I = false;  // Global Interrupt Enable
+}
+
+register SREG_t SREG at 0x5f;
+
+
+/*
+ * IO PORTS
+ */
+
+type PORTB_t {
+	b0 = false;
+	b1 = false;
+	b2 = false;
+	b3 = false;
+	b4 = false;
+	b5 = false;
+	ignore = uint2(0);
+}
+
+register PORTB_t portb at 0x25;
+register PORTB_t ddrb at 0x24;
+
+
+/*
+ * UART
+ */
+
+ type UCSRA_t {
+    MPCM0 = false;
+    U2X0 = false;
+    UPE0 = false;
+    DOR0 = false;
+    FE0 = false;
+    UDRE0 = false;
+    TXC0 = false;
+    RXC0 = false;
+}
+
+type UCSRB_t {
+    TXB80 = false;
+    RXB80 = false;
+    UCSZ02 = false;
+    TXEN0 = false;
+    RXEN0 = false;
+    UDRIE0 = false;
+    TXCIE0 = false;
+    RXCIE0 = false;
+}
+
+type UCSRC_t {
+    UCPOL0 = false;
+    UCSZ0 = uint2(0);
+    USBS0 = false;
+    UPM0 = uint2(0);
+    UMSEL0 = uint2(0);
+}
+
+// USART0 control status register A
+register UCSRA_t UCSR0A at 0xc0;
+
+// USART0 control status register B
+register UCSRB_t UCSR0B at 0xc1;
+
+// USART0 control status register C
+register UCSRC_t UCSR0C at 0xc2;
+
+// USART0 baud rate register, 12 bits
+register uint16 UBRR0 at 0xc4;
+
+// USART0 byte to send/received
+register uint8 UDR0 at 0xc6;
+
+
+/*
+ * SPI
+ */
+
+type SPCR_t {
+	SPR0 = false; // SPI clock rate 0
+	SPR1 = false; // SPI clock rate 1
+	CPHA = false; // Clock phase
+	CPOL = false; // Clock polarity
+	MSTR = false; // Master
+	DORD = false; // Data order
+	SPE = false;  // SPI enable
+	SPIE = false; // SPI interruption enable
+}
+
+// SPI Control Register
+register SPCR_t SPCR at 0x4c;
+
+type SPSR_t {
+	SPI2x = false; // Double SPI speed
+	_reserved = uint5(0);
+	WCOL = false;  // Write COLision flag
+	SPIF = false;  // SPI interrupt flag
+}
+
+// SPI Status Register
+register SPSR_t SPSR at 0x4d;
+
+// SPI Data Register
+register uint8 SPDR at 0x4e;
+
+
+/*
+ * I2C (TWI) PC5 = SCL, PC4 = SDA
+ */
+
+// TWI Bit Rate Register
+register uint8 TWBR at 0xB8;
+
+type TWCR_t {
+	TWINT = false;     // TWI interrupt
+	TWEA = false;      // Enable ACK
+	TWSTA = false;     // Start Condition
+	TWSTO = false;     // Stop Condition
+	TWWC = false;      // Write Colision
+	TWEN = false;      // TWI Enable
+	_reserved = false;
+	TWIE = false;      // TWI interrupt enable
+}
+
+// TWI Control Register
+register TWCR_t TWCR at 0xBC;
+
+type TWSR_t {
+	TWS = uint5(0);
+	_reserved = false;
+	TWPS = uint2(0);
+}
+
+// TWI Status Register
+register TWSR_t TWSR at 0xB9;
+
+// TWI Data Register
+register uint8 TWDR at 0xBB;
+
+type TWAR_t {
+	TWA = uint7(0);
+	TWGCE = false;
+}
+
+// TWI Slave Address Register
+register TWAR_t TWAR at 0xBA;
+
+type TWAMR_t {
+	TWAM = uint7(0);
+	_reserved = false;
+}
+
+//TWI Slave Address Mask Register
+register TWAMR_t TWAMR at 0xBD;

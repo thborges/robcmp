@@ -1,0 +1,15 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+interface databus {
+    void setup(int32 speed);
+    void enable();
+    void disable();
+    void write(uint8 b);
+    uint8 read();
+    bool has_data();
+    void start_transaction();
+    void end_transaction();
+}

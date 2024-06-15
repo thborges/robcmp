@@ -14,6 +14,11 @@ public:
 		return node_children[0];
 	}
 
+	void setExpr(Node *expr) {
+		node_children[0] = expr;
+		dt = expr->getDataType();
+	} 
+
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
 	virtual bool isConstExpr() override {

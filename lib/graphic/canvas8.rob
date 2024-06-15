@@ -1,0 +1,34 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+use intfs.buffer8;
+
+type canvas8 {
+    buffer = buffer8();
+
+    uint16 width() {
+        return buffer.width();
+    }
+
+    uint16 height() {
+        return buffer.height()*8;
+    }
+
+    void set_pixel(uint16 row, uint16 col) {
+        rowb = row/8;
+        if col < buffer.width() and rowb < buffer.height() {
+            v = buffer.get(rowb, col);
+            buffer.set(rowb, col, v | (1 << uint8(row & 7)));
+        }
+    }
+
+    void clear_pixel(uint16 row, uint16 col) {
+        rowb = row/8;
+        if col < buffer.width() and rowb < buffer.height() {
+            v = buffer.get(rowb, col);
+            buffer.set(rowb, col, v & ~(1 << uint8(row & 7)));
+        }
+    }
+}

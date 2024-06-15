@@ -1,55 +1,78 @@
 /*
  * Robcmp examples: SSD1306 SPI
  */
-use avr5mcu;
-use ssd1306;
+use arch.avr.avr5mcu;
+use display.ssd1306spi;
+use graphic.canvas8;
+use math.random16;
+use intfs.mcu;
+use intfs.display;
+use intfs.databus;
 
 bind avr5mcu to global_instances.mmcu singleton;
 bind avr5mcu.spi to global_instances.spi singleton;
-bind avr5mcu to ssd1306.mmcu singleton;
-bind avr5mcu.b0 to ssd1306.reset singleton;
-bind avr5mcu.b1 to ssd1306.datacmd singleton;
-bind avr5mcu.b2 to ssd1306.select singleton;
-bind avr5mcu.spi to ssd1306.spi singleton;
+bind avr5mcu to ssd1306spi.mmcu singleton;
+bind avr5mcu.b0 to ssd1306spi.reset singleton;
+bind avr5mcu.b1 to ssd1306spi.datacmd singleton;
+bind avr5mcu.b2 to ssd1306spi.select singleton;
+bind avr5mcu.spi to ssd1306spi.spi singleton;
+bind ssd1306spi to global_instances.oled singleton;
+bind ssd1306spi.framebuffer to canvas8.buffer singleton;
 
-// for now, the binding only work inside types.
-// this is a type for holding an instance of mcu
+// for now, the binding only works inside a type
 type global_instances {
 	mmcu = mcu();
 	spi = databus();
+	oled = display();
 }
 
 int16 main() {
 
 	gi = global_instances();
 	mmcu = gi.mmcu;
-
-	// setup and enable SPI
 	spi = gi.spi;
+	oled = gi.oled;
+	canvas = canvas8();
+		
 	spi.setup(0);
 	spi.enable();
+	oled.init_display();
+	oled.set_orientation(displayorientation.UPSIDE_DOWN);
 
-	display = ssd1306();
-	display.init_display();
-	
-	data = 2;
+	/*ball = {0b00000000,
+			0b00011000,
+			0b00111100,
+			0b01111110,
+			0b11111111,
+			0b01111110,
+			0b00111100,
+			0b00011000};*/
+
+	col = 0u;
+	row = 0u;
+
 	loop {
-		mmcu.wait_ms(1000);
-		display.reset_cursor();
+		canvas.clear_pixel(row, col);
+		canvas.clear_pixel(row+1, col);
+		canvas.clear_pixel(row+1, col+1);
+		canvas.clear_pixel(row, col+1);
 
-		i = 0;
-		while i < display.pages() {
-			j = int16(0);
-			while j < display.columns() {
-				display.write_data(data);
-				j++;
-			}
-			i++;
-		}
+		col++;
+		row++;
 
-		data *= 2;
-		if data == 0 {
-			data = 1;
-		}
+        if col == canvas.width()-1 {
+            col = random16ub(canvas.width()-1);
+			row = random16ub(canvas.height()-1);
+        } 
+		if row == canvas.height()-1 {
+            row = random16ub(canvas.height()-1);
+        }
+
+		canvas.set_pixel(row, col);
+		canvas.set_pixel(row+1, col);
+		canvas.set_pixel(row+1, col+1);
+		canvas.set_pixel(row, col+1);
+
+		oled.update_frame();
 	}
 }

@@ -10,8 +10,10 @@ typedef int DataType;
 /* Don't change the order of these types without updating the code below accordingly.
    In another words, don't change it.
  */
-enum BasicDataType {tvoid, tbool, tchar, tint2, tint3, tint4, tint5, tint6, tint7, 
-  tint8, tint16, tint32, tint64, tint8u, tint16u, tint32u, tint64u, 
+enum BasicDataType {tvoid, tbool, tchar,
+  tint8, tint16, tint32, tint64, 
+  tint2u, tint3u, tint4u, tint5u, tint6u, tint7u,
+  tint8u, tint16u, tint32u, tint64u,
   tfloat, tdouble, tldouble,
   /* new types here! */
   __bdt_last};
@@ -90,6 +92,10 @@ public:
         return tinfo[tid].name.c_str();
     }
 
+    void updateName(DataType tid, const string& name) {
+        tinfo[tid].name = name;
+    }
+
     const unsigned bitWidth(DataType tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].bitWidth;
@@ -129,7 +135,7 @@ public:
     }
 
     bool isUnsignedDataType(DataType tid) const {
-        return (tid >= tint8u && tid <= tint64u) || (tid == tchar);
+        return (tid >= tint2u && tid <= tint64u) || (tid == tchar);
     }
 
     bool isFloatDataType(DataType tid) const {
@@ -194,6 +200,8 @@ public:
     DataType unsignedToSigned(DataType tid) {
         assert(isUnsignedDataType(tid));
         if (tid == tchar)
+            return tint8;
+        else if (tid >= tint2u && tid <= tint7u)
             return tint8;
         else
             return tid - (tint64u - tint64);

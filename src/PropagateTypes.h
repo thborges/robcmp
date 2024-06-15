@@ -13,6 +13,8 @@
 #include "FunctionImpl.h"
 #include "FunctionCall.h"
 #include "Enum.h"
+#include "Load.h"
+#include "MemCopy.h"
 
 class CoercionBase: public Node {
 protected:
@@ -174,7 +176,7 @@ public:
             if (name != "")
                 yyerrorcpp(string_format("The type of %s is undefined.", name.c_str()), n);
             else
-                yyerrorcpp("The type of the expression is undefined.", n);;
+                yyerrorcpp("The type of the expression is undefined.", n);
             return true;
         }
         return false;
@@ -190,6 +192,11 @@ public:
 
     virtual Node* visit(CmpOp& n) override;
     virtual Node* visit(BinaryOp& n) override;
+
+    virtual Node* visit(Variable& n) override;
+    virtual Node* visit(Scalar& n) override;
+    virtual Node* visit(Load& n) override;
+    virtual Node* visit(MemCopy& n) override;
 
     virtual Node* visit(Array& n) override;
     virtual Node* visit(Matrix& n) override;

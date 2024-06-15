@@ -1,0 +1,16 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+enum displayorientation {NORMAL, NORMAL_MIRRORED, UPSIDE_DOWN, UPSIDE_DOWN_MIRRORED}
+
+interface display {
+    uint16 rows();
+    uint16 columns();
+    void init_display();
+    void set_orientation(displayorientation o);
+    void set_contrast(uint8 c);
+    void update_frame();
+    void clear();
+}

@@ -30,7 +30,8 @@
 %type <pc> paramscall
 
 %type <ident> TOK_IDENTIFIER TOK_XIDENTIFIER ident_or_xident
-%type <nint> TOK_INTEGER TOK_CHAR qualifier bind_scope
+%type <ch> TOK_CHAR
+%type <nint> TOK_INTEGER qualifier bind_scope
 %type <unint> TOK_UINTEGER
 %type <nfloat> TOK_FLOAT
 %type <ndouble> TOK_DOUBLE
@@ -39,13 +40,10 @@
 
 %%
 
-programa : globals { 
+programa : globals {
 	for(auto stmt : *($globals)) {
 		program->addChild(stmt);
 	}
-
-	if (errorsfound == 0)
-		program->generate(); 
 };
 
 globals : globals global {
@@ -190,8 +188,7 @@ interface_decls : function_decl {
 	$$->push_back($function_decl);
 }
 
-//FIXME: Interface only allows function_decls!
-interface_impl : TOK_IDENTIFIER[id] '=' TOK_IDENTIFIER[intfname] '{' type_stmts '}' {
+interface_impl : TOK_IDENTIFIER[id] TOK_IMPL TOK_IDENTIFIER[intfname] '{' type_stmts '}' {
 	vector<string> intf;
 	intf.push_back($intfname);
 	UserType *ut = new UserType($id, std::move(*$type_stmts), std::move(intf), @id);
@@ -419,14 +416,13 @@ factor : '(' expr ')' 			{ $$ = $2; }
 
 ident_or_xident: TOK_IDENTIFIER | TOK_XIDENTIFIER
 
-unary : '-' factor	{ $$ = new BinaryOp($2, '*', getNodeForIntConst(-1, @factor)); }
-	  | '~' factor	{ $$ = new FlipOp($2); }
+unary : '-' factor	{ $$ = new BinaryOp($factor, '*', getNodeForIntConst(-1, @factor)); }
+	  | '~' factor	{ $$ = new FlipOp($factor); }
       ;
 
 call_or_cast : ident_or_xident[id] '(' paramscall ')' {
 	if (strncmp("copy", $id, 4) == 0 && $paramscall->getNumParams() == 1)
 		$$ = new MemCopy($paramscall->getParamElement(0));
-	//else if buildTypes->get($id) && complex, call constructor
 	else {
 		$$ = new FunctionCall($id, $paramscall, @id);
 	}

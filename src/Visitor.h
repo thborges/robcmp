@@ -8,6 +8,7 @@ class CmpOp;
 class Delay;
 class Float;
 class FunctionCall;
+class ConstructorCall;
 class FunctionDecl;
 class FunctionImpl;
 class FunctionBase;
@@ -59,6 +60,7 @@ public:
 	VISITOR_DECLARE(Delay)
 	VISITOR_DECLARE(Float)
 	VISITOR_DECLARE(FunctionCall)
+	VISITOR_DECLARE(ConstructorCall)
 	VISITOR_DECLARE(If)
 	VISITOR_DECLARE(InPort)
 	VISITOR_DECLARE(Int16)

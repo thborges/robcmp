@@ -1,0 +1,214 @@
+
+use intfs.mcu;
+use intfs.ports;
+use intfs.databus;
+
+use avr5regs;
+
+void __delay_us();
+
+type avr5mcu implements mcu {
+	
+	uint32 clock() {
+		return 16E6;
+	}
+
+	void set_interruptions(bool enabled) {
+		SREG.I = enabled;
+	}
+
+	/* implement this idea later!
+	template digport<port_config, mode, port> {
+		void mode(m port_mode) { port_config = mode; }
+		void set(bool v) { port = v; }
+		bool get() { return port; }
+	}
+	b0 = digport<ddrb.b0, io_digital, portb.b0>
+	*/
+
+	b0 implements digitalport {
+		void mode(port_mode m) { ddrb.b0 = m; }
+		void set(bool v) { portb.b0 = v; }
+		bool get() { return portb.b0; }
+	}
+
+	b1 implements digitalport {
+		void mode(port_mode m) { ddrb.b1 = m; }
+		void set(bool v) { portb.b1 = v; }
+		bool get() { return portb.b1; }
+	}
+
+	b2 implements digitalport {
+		void mode(port_mode m) { ddrb.b2 = m; }
+		void set(bool v) { portb.b2 = v; }
+		bool get() { return portb.b2; }
+	}
+
+	b3 implements digitalport {
+		void mode(port_mode m) { ddrb.b3 = m; }
+		void set(bool v) { portb.b3 = v; }
+		bool get() { return portb.b3; }
+	}
+
+	b4 implements digitalport {
+		void mode(port_mode m) { ddrb.b4 = m; }
+		void set(bool v) { portb.b4 = v; }
+		bool get() { return portb.b4; }
+	}
+
+	b5 implements digitalport {
+		void mode(port_mode m) { ddrb.b5 = m; }
+		void set(bool v) { portb.b5 = v; }
+		bool get() { return portb.b5; }
+	}
+
+	void enable_led() {
+		b5.mode(port_mode.output);
+	}
+
+	void set_led(bool s) {
+		b5.set(s);
+	}
+
+	void wait_us(int16 us) {
+		while us > 0 {
+			__delay_us();
+			us--;
+		}
+	}
+
+	void wait_ms(int16 ms) {
+		while ms > 0 {
+			wait_us(1000);
+			ms--;
+		}
+	}
+
+	spi implements databus {
+		/* setup hardware SPI at:
+		   b3 = MOSI
+		   b4 = MISO
+		   b5 = SCK */
+		void setup(int32 speed) {
+			b3.mode(port_mode.output);
+			b4.mode(port_mode.input);
+			b5.mode(port_mode.output);
+			SPCR.MSTR = true; // master
+			
+			// ignoring speed for now. Set to fsck/4 = 4Mhz
+			SPSR.SPI2x = false;
+			SPCR.SPR0 = false;
+			SPCR.SPR1 = false;
+
+			SPCR.CPOL = false;
+			SPCR.CPHA = false;
+		}
+
+		void enable() {
+			SPCR.SPE = true;
+			//SPCR.SPIE = true;
+		}
+
+		void disable() {
+			SPCR.SPE = false;
+			//SPCR.SPIE = false;
+		}
+
+		void write(uint8 b) {
+			SPDR = b;
+			while !SPSR.SPIF;
+		}
+
+		uint8 read() {
+			//FIXME
+			while !SPSR.SPIF;
+			return SPDR;
+		}
+
+		bool has_data() {
+			//FIXME
+			return SPSR.SPIF;
+		}
+
+		void start_transaction() { return; }
+		void end_transaction() { return; }
+	}
+
+	uart0 implements databus {
+		void setup(int32 baud) {
+			// use 2x
+			UCSR0A.U2X0 = false;
+			
+			multipl = 16u;
+			if UCSR0A.U2X0 == true {
+				multipl = 8u;
+			}
+
+			div = uint32(baud) * multipl;
+			velocity = (clock() / div) - 1;
+
+			// set baudrate
+			UBRR0 = uint16(velocity);
+
+			// 8 bit
+			UCSR0B.UCSZ02 = false;
+			UCSR0C.UCSZ0 = 0x3;
+
+			// no parity
+			UCSR0C.UPM0 = 0x0;
+
+			// 1 stop bit
+			UCSR0C.USBS0 = false;
+		}
+
+		void enable() {
+			// enable tx and rx
+			UCSR0B.RXEN0 = true;
+			UCSR0B.TXEN0 = true;
+		}
+
+		void disable() {
+			// disable tx and rx
+			UCSR0B.RXEN0 = false;
+			UCSR0B.TXEN0 = false;
+		}
+
+		void write(uint8 b) {
+			while UCSR0A.UDRE0 == false;
+			UDR0 = b;	
+		}
+
+		uint8 read() {
+			while UCSR0A.RXC0 == false;
+			return UDR0;    
+		}
+
+		bool has_data() {
+			return UCSR0A.RXC0;
+		}
+
+		void start_transaction() { return; }
+		void end_transaction() { return; }
+	}
+
+	/*i2c implements databus {
+		void setup(int32 speed) {
+
+		}
+		
+		void enable() {
+
+		}
+		
+		void disable() {
+
+		}
+		
+		void start_transaction() {}
+		void end_transaction() {}
+		void write(uint8 b) {}
+		uint8 read() {}
+
+		bool has_data() {}
+	}*/
+}

@@ -1,0 +1,41 @@
+
+interface animal {
+   int8 sound();
+}
+
+type cat implements animal {
+    int8 sound() {
+        return 0;
+    }
+}
+
+type dog implements animal {
+    int8 sound() {
+        return 1;
+    }
+}
+
+type bird implements animal {
+    int8 sound() {
+        return 2;
+    }
+}
+
+int8 produce_sound(animal a) {
+    return a.sound();
+}
+
+int8 main() {
+    c = cat();
+    d = dog();
+    b = bird();
+    cs = produce_sound(c);
+    ds = produce_sound(d);
+    bs = produce_sound(b);
+    if cs != 0 or ds != 1 or bs != 2 {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+

@@ -1,9 +1,0 @@
-
-interface databus {
-    void setup(int32 speed);
-    void enable();
-    void disable();
-    void write(unsigned8 b);
-    int8 read();
-    bool has_data();
-}

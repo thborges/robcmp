@@ -49,9 +49,9 @@ Node* PropagateTypes::coerceTo(Node *n, const DataType destTy, bool warns) {
                     if (name == "")
                         name = "Value";
                     if (destUnsigned)
-                        yywarncpp(string_format("%s has been returned as unsigned.", name.c_str()), n);
+                        yywarncpp(string_format("%s has been used as unsigned.", name.c_str()), n);
                     else
-                        yywarncpp(string_format("%s has been returned as signed.", name.c_str()), n);
+                        yywarncpp(string_format("%s has been used as signed.", name.c_str()), n);
                 }
             }
         }
@@ -70,8 +70,8 @@ Node* PropagateTypes::coerceTo(Node *n, const DataType destTy, bool warns) {
                 string name = n->getName();
                 if (name == "")
                     name = "Value";
-                yywarncpp(string_format("%s has been truncated to %s.", name.c_str(), 
-                    buildTypes->name(destTy)), n);
+                yywarncpp(string_format("%s (%s) has been truncated to fit %s.", name.c_str(), 
+                    buildTypes->name(valueTy), buildTypes->name(destTy)), n);
             }
             return new TruncInt(n, destTy);
         }
@@ -119,8 +119,10 @@ Value *ForcedCast::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *a
 DataType PropagateTypes::coerceArithOrCmp(Node &n, Node *lNode, Node *rNode) {
     DataType returnTy = BuildTypes::undefinedType;
 
-    if (isUndefined(lNode) || isUndefined(rNode))
+    if (isUndefined(lNode) || isUndefined(rNode)) {
+        n.setSemanticError();
         return returnTy;
+    }
 
     DataType lTy = lNode->getDataType();
     DataType rTy = rNode->getDataType();
@@ -386,5 +388,70 @@ Node* PropagateTypes::visit(UserType& n) {
 Node* PropagateTypes::visit(Enum& n) {
     n.getDataType();
     //propagateChildren(n);
+    return NULL;
+}
+
+Node* PropagateTypes::visit(Variable& n) {
+    
+    propagateChildren(n);
+    
+    Node *firstDecl = n.getScope()->findSymbol(n.getName());
+    DataType sameNameDt = buildTypes->getType(n.getName());
+    if (sameNameDt != BuildTypes::undefinedType) {
+        yyerrorcpp(string_format("The name %s is already used to define a type.", n.getName().c_str()), &n);
+        if (firstDecl)
+            yywarncpp(string_format("The type %s was defined here.", n.getName().c_str()), firstDecl);
+
+    } else if (firstDecl && firstDecl != &n) {
+        DataType ndt = n.getDataType();
+        DataType fdt = firstDecl->getDataType();
+        if (ndt != BuildTypes::undefinedType &&
+            fdt != BuildTypes::undefinedType &&
+            ndt != fdt) {
+            // the var was first defined as fdt.
+            // we coherce the right hand side to match it
+            Node *result = NULL;
+            if (Scalar *sc = dynamic_cast<Scalar*>(&n)) {
+                result = coerceTo(sc->expr(), fdt);
+                sc->setExpr(result);
+            }
+            if (!result)
+                yywarncpp(string_format("The symbol %s was first defined here.", n.getName().c_str()), firstDecl);
+        }
+    }
+    return NULL;
+}
+
+Node* PropagateTypes::visit(Scalar& n) {
+    
+    Node *result = visit((Variable&)n);
+    
+    // although this should be done on SymbolizeTree,
+    // some type propagarion in the tree change symbols
+    // for scalars (e.g. FunctionCall -> ConstructorCall)
+    auto& exprSymbols = n.expr()->getSymbols();
+    if (exprSymbols.size() > 0)
+        n.symbols = exprSymbols;
+    return NULL;
+}
+
+Node* PropagateTypes::visit(Load& n) {
+    // although this should be done on SymbolizeTree,
+    // some type propagarion in the tree change symbols
+    // for scalars (e.g. FunctionCall -> ConstructorCall)
+    visit((Node&)n);
+    Node *identSymbol = n.getIdentSymbol(false);
+    if (identSymbol)
+        n.symbols = identSymbol->getSymbols();
+    return NULL;
+}
+
+Node* PropagateTypes::visit(MemCopy& n) {
+    // although this should be done on SymbolizeTree,
+    // some type propagarion in the tree change symbols
+    // for scalars (e.g. FunctionCall -> ConstructorCall)
+    visit((Node&)n);
+    if (n.children().size() > 0)
+        n.symbols = n.children()[0]->getSymbols();
     return NULL;
 }

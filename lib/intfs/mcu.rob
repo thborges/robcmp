@@ -1,8 +1,13 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
 
 interface mcu {
     void wait_us(int16 us);
     void wait_ms(int16 ms);
     void enable_led();
-	void set_led(bool s);
+    void set_led(bool s);
     void set_interruptions(bool enabled);
+    uint32 clock();
 }

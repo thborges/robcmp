@@ -11,10 +11,11 @@
 #include "Enum.h"
 #include "Load.h"
 #include "BackLLVM.h"
+#include "Int8.h"
 
 class ParentScalar: public Scalar {
 public:
-    ParentScalar(DataType parentDt, location_t loc) : Scalar("parent", new Load(":parent", loc)) {
+    ParentScalar(DataType parentDt, location_t loc) : Scalar("parent", new Load("parent", loc)) {
         expr()->setScope(this);
         dt = parentDt;
         pointer = pm_pointer;
@@ -29,18 +30,32 @@ public:
 
 bool UserType::createDataType() {
     
-    if (dt != BuildTypes::undefinedType)
+    if (dt != BuildTypes::undefinedType) {
+        // internal types can be created during symbolization,
+        // while the parent is not set.
+        if (buildTypes->name(dt) != getName())
+            buildTypes->updateName(dt, getName());
         return true;
-    else {
-        // create an undefined type to use in recursive subtypes
-        dt = buildTypes->getType(getName(), true);
-    }
-
+    } 
+    
+    // create an undefined type to use in recursive subtypes
+    dt = buildTypes->getType(getName(), true);
     std::vector<Type*> elements;
 
     int idx = 0;
     unsigned startBit = 0;
     vector<Variable*> addedVars;
+
+    // if needed, add typeid as the first field
+    UInt8 *typeId = NULL;
+    if (implements.size() > 0) {
+        typeId = new UInt8(0, getLoc()); // zero is changed below
+        Scalar *sc = new Scalar("typeid", typeId);
+        sc->setScope(this);
+        addChild(sc);
+        addSymbol(sc);
+    }
+
     for(auto child : this->children()) {
         Variable *v = NULL;
 
@@ -59,13 +74,14 @@ bool UserType::createDataType() {
             // create a new var in the parent to store the intf implementation
             ConstructorCall *cc = new ConstructorCall(ut->getName(), ut->getLoc());
             v = new Scalar(varname, cc);
+            v->dt = ut->getDataType();
             cc->setScope(v);
             v->setScope(this);
             addedVars.push_back(v);
             
             // fix the symbol table due to the renaming
             getScope()->addSymbol(ut);
-            symbols[ut->getName()] = ut;
+            symbols[ut->getName()] = ut; // init
             symbols[v->getName()] = v;
 
         } else {
@@ -73,13 +89,15 @@ bool UserType::createDataType() {
         }
 
         if (v) {
-            if (buildTypes->isInterface(v->getDataType())) {
+            DataType vdt = v->getDataType();
+            if (vdt == BuildTypes::undefinedType) {
+                return false;
+            } else if (buildTypes->isInterface(vdt)) {
                 v->setPointer(pm_pointer);
                 v->setPointerToPointer(true);
             } else if (v->getPointerMode() == pm_unknown)
                 v->setPointer(pm_nopointer);
             
-            DataType vdt = v->getDataType();
             if (!buildTypes->isDefined(vdt)) {
                 Node *undeft = Identifier(buildTypes->name(vdt), getLoc()).getSymbol(this);
                 UserType *undefut = dynamic_cast<UserType*>(undeft);
@@ -116,6 +134,9 @@ bool UserType::createDataType() {
         yyerrorcpp(name + " was first defined here.", buildTypes->location(dt));
         return false;
     }
+
+    if (typeId)
+        typeId->setNumber(dt);
 
     return true;
 }
@@ -215,6 +236,7 @@ const string UserType::getName() const {
 }
 
 void UserType::addSymbol(NamedNode *nm) {
-    // overrided here as UserType has its own scope
+    // addSymbol is overrided here because UserType has its
+    // own scope and shouldn't call findSymbol recursivelly
     symbols[nm->getName()] = nm;
 }

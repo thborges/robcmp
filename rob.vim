@@ -12,9 +12,9 @@ syn keyword typeKeywords void char int8 int16 int32 int64 uint8 uint16 uint32 ui
 syn keyword operatorKeywords and or quando esta servo
 syn keyword booleanKeyword true false
 
-syn match integerConstants "\<\d\+[Uu]\?\>" 
+syn match integerConstants "\<\d\+\([Ee][=+]\?[0-9]\+\)\?[Uu]\?\>" 
 syn match hexConstants "\<0x[0-9a-fA-F]\+\>" 
-syn match floatConstants "\<\d\+\.\d\+L\?D\?\>"
+syn match floatConstants "\<\d\+\.\d\+\([Ee][-+]\?[0-9]\+\)\?L\?D\?\>"
 syn match charConstants "'\\\?.'"
 syn match inPortKey "\<in\d\+\>"
 syn match outPortKey "\<out\d\+\>"

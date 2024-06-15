@@ -18,6 +18,7 @@ void update_loc(location_t *yylloc, int lineno, int leng, char *text);
 A [a-zA-Z_]
 D [0-9]
 ID {A}({A}|{D})*
+EXP ([Ee][-+]?[0-9]+)?
 
 %%
 
@@ -101,17 +102,17 @@ ID {A}({A}|{D})*
 						  return TOK_XIDENTIFIER;
 						}
 
-[0-9]+\.[0-9]+			{ char *aux = strndup(yytext, yyleng);
+[0-9]+\.[0-9]+{EXP}		{ char *aux = strndup(yytext, yyleng);
 						  yylval->nfloat = strtof(aux, NULL);
 						  free(aux);
 						  return TOK_FLOAT; }
 
-[0-9]+\.[0-9]+D			{ char *aux = strndup(yytext, yyleng);
+[0-9]+\.[0-9]+{EXP}D	{ char *aux = strndup(yytext, yyleng);
 						  yylval->ndouble = strtod(aux, NULL);
 						  free(aux);
 						  return TOK_DOUBLE; }
 
-[0-9]+\.[0-9]+LD		{ char *aux = strndup(yytext, yyleng);
+[0-9]+\.[0-9]+{EXP}LD	{ char *aux = strndup(yytext, yyleng);
 						  yylval->nldouble = strtold(aux, NULL);
 						  free(aux);
 						  return TOK_LDOUBLE; }
@@ -126,12 +127,12 @@ ID {A}({A}|{D})*
 						  free(aux);
 						  return TOK_UINTEGER; }
 
-[0-9]+[Uu]				{ char *aux = strndup(yytext, yyleng-1);
+[0-9]+{EXP}[Uu]			{ char *aux = strndup(yytext, yyleng-1);
 						  yylval->unint = strtoull(aux, NULL, 10);
 						  free(aux);
 						  return TOK_UINTEGER; }
 
-[0-9]+					{ char *aux = strndup(yytext, yyleng);
+[0-9]+{EXP}				{ char *aux = strndup(yytext, yyleng);
 						  yylval->nint = strtoll(aux, NULL, 10);
 						  free(aux);
 						  return TOK_INTEGER; }

@@ -48,7 +48,7 @@
 		"types": {
 			"patterns": [{
 				"name": "storage.type.rob",
-				"match": "\\b(void|char|int8|int16|int32|int64|long|unsigned|float|double|bool|enum)\\b"
+				"match": "\\b(void|char|int8|int16|int32|int64|uint8|uint16|uint32|uint64|float|double|ldouble|bool|enum)\\b"
 			},
 			{
 				"match": "(\\w+)\\s+(\\w+)[\\(\\),]",
@@ -61,7 +61,16 @@
 		"numeric-consts": {
 			"patterns": [{
 				"name": "constant.numeric.rob",
-				"match": "\\b(\\d+\\.\\d+L?D?|\\d+[Uu]?|0x[0-9a-fA-F]+|0b[0-1]+)\\b"
+				"match": "\\b\\d+\\.\\d+([Ee][+-]?[0-9]+)?L?D?\\b"
+			},{
+				"name": "constant.numeric.rob",
+				"match": "\\b\\d+([Ee][+-]?[0-9]+)?[Uu]?\\b"
+			},{
+				"name": "constant.numeric.rob",
+				"match": "\\b0x[0-9a-fA-F]+\\b"
+			},{
+				"name": "constant.numeric.rob",
+				"match": "\\b0b[0-1]+\\b"
 			},{
 				"name": "constant.numeric.rob",
 				"match": "'\\\\?.'"

@@ -4,7 +4,13 @@
    before main, is working properly.
  */
 
+random_seed16 = 0xE7A8;
 matrix = {{0u:128}:8};
+
+uint16 check_random(uint8 row) {
+    random_seed16 += row;
+    return random_seed16;
+}
 
 int8 main() {
     row = 0u;
@@ -17,6 +23,9 @@ int8 main() {
             col++;
         }
         row++;
+    }
+    if check_random(row) != 0xE7A8 + 8 {
+        return 2;
     }
     return 0;
 }

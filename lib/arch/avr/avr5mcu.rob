@@ -9,7 +9,7 @@ void __delay_us();
 
 type avr5mcu implements mcu {
 	
-	uint32 clock() {
+	uint32 clock() inline {
 		return 16E6;
 	}
 
@@ -27,39 +27,39 @@ type avr5mcu implements mcu {
 	*/
 
 	b0 implements digitalport {
-		void mode(port_mode m) { ddrb.b0 = m; }
-		void set(bool v) { portb.b0 = v; }
-		bool get() { return portb.b0; }
+		void mode(port_mode m) inline { ddrb.b0 = m; }
+		void set(bool v) inline { portb.b0 = v; }
+		bool get() inline { return portb.b0; }
 	}
 
 	b1 implements digitalport {
-		void mode(port_mode m) { ddrb.b1 = m; }
-		void set(bool v) { portb.b1 = v; }
-		bool get() { return portb.b1; }
+		void mode(port_mode m) inline { ddrb.b1 = m; }
+		void set(bool v) inline { portb.b1 = v; }
+		bool get() inline { return portb.b1; }
 	}
 
 	b2 implements digitalport {
-		void mode(port_mode m) { ddrb.b2 = m; }
-		void set(bool v) { portb.b2 = v; }
-		bool get() { return portb.b2; }
+		void mode(port_mode m) inline { ddrb.b2 = m; }
+		void set(bool v) inline { portb.b2 = v; }
+		bool get() inline { return portb.b2; }
 	}
 
 	b3 implements digitalport {
-		void mode(port_mode m) { ddrb.b3 = m; }
-		void set(bool v) { portb.b3 = v; }
-		bool get() { return portb.b3; }
+		void mode(port_mode m) inline { ddrb.b3 = m; }
+		void set(bool v) inline { portb.b3 = v; }
+		bool get() inline { return portb.b3; }
 	}
 
 	b4 implements digitalport {
-		void mode(port_mode m) { ddrb.b4 = m; }
-		void set(bool v) { portb.b4 = v; }
-		bool get() { return portb.b4; }
+		void mode(port_mode m) inline { ddrb.b4 = m; }
+		void set(bool v) inline { portb.b4 = v; }
+		bool get() inline { return portb.b4; }
 	}
 
 	b5 implements digitalport {
-		void mode(port_mode m) { ddrb.b5 = m; }
-		void set(bool v) { portb.b5 = v; }
-		bool get() { return portb.b5; }
+		void mode(port_mode m) inline { ddrb.b5 = m; }
+		void set(bool v) inline { portb.b5 = v; }
+		bool get() inline { return portb.b5; }
 	}
 
 	void enable_led() {
@@ -70,14 +70,14 @@ type avr5mcu implements mcu {
 		b5.set(s);
 	}
 
-	void wait_us(int16 us) {
+	void wait_us(uint16 us) {
 		while us > 0 {
 			__delay_us();
 			us--;
 		}
 	}
 
-	void wait_ms(int16 ms) {
+	void wait_ms(uint16 ms) {
 		while ms > 0 {
 			wait_us(1000);
 			ms--;
@@ -89,13 +89,13 @@ type avr5mcu implements mcu {
 		   b3 = MOSI
 		   b4 = MISO
 		   b5 = SCK */
-		void setup(int32 speed) {
+		void setup(uint32 speed) {
 			b3.mode(port_mode.output);
 			b4.mode(port_mode.input);
 			b5.mode(port_mode.output);
 			SPCR.MSTR = true; // master
 			
-			// ignoring speed for now. Set to fsck/4 = 4Mhz
+			//TODO: ignoring speed for now. Set to fsck/4 = 4Mhz
 			SPSR.SPI2x = false;
 			SPCR.SPR0 = false;
 			SPCR.SPR1 = false;
@@ -106,12 +106,10 @@ type avr5mcu implements mcu {
 
 		void enable() {
 			SPCR.SPE = true;
-			//SPCR.SPIE = true;
 		}
 
 		void disable() {
 			SPCR.SPE = false;
-			//SPCR.SPIE = false;
 		}
 
 		void write(uint8 b) {
@@ -119,23 +117,36 @@ type avr5mcu implements mcu {
 			while !SPSR.SPIF;
 		}
 
+		void write_array(int8[] data) {
+			i = 0u;
+			while i < data.size {
+				SPDR = uint8(data[i]);
+				while !SPSR.SPIF;
+				i++;
+			}
+		}
+
 		uint8 read() {
-			//FIXME
+			//TODO: Verify correctness
 			while !SPSR.SPIF;
 			return SPDR;
 		}
 
 		bool has_data() {
-			//FIXME
+			//TODO: Verify correctness
 			return SPSR.SPIF;
 		}
 
-		void start_transaction() { return; }
+		bool start_transaction(uint16 address) { return true; }
 		void end_transaction() { return; }
+
+		databus_protocol get_protocol() {
+			return databus_protocol.SPI;
+		}
 	}
 
 	uart0 implements databus {
-		void setup(int32 baud) {
+		void setup(uint32 baud) {
 			// use 2x
 			UCSR0A.U2X0 = false;
 			
@@ -175,7 +186,16 @@ type avr5mcu implements mcu {
 
 		void write(uint8 b) {
 			while UCSR0A.UDRE0 == false;
-			UDR0 = b;	
+			UDR0 = b;
+		}
+
+		void write_array(int8[] data) {
+			i = 0u;
+			while i < data.size {
+				while UCSR0A.UDRE0 == false;
+				UDR0 = uint8(data[i]);
+				i++;
+			}
 		}
 
 		uint8 read() {
@@ -187,28 +207,78 @@ type avr5mcu implements mcu {
 			return UCSR0A.RXC0;
 		}
 
-		void start_transaction() { return; }
+		bool start_transaction(uint16 address) { return true; }
 		void end_transaction() { return; }
+		
+		databus_protocol get_protocol() {
+			return databus_protocol.UART;
+		}
 	}
 
-	/*i2c implements databus {
-		void setup(int32 speed) {
+	i2c implements databus {
 
+		enum STATUS {START_OK = 0x1, MT_SLA_ACK_OK = 0x3}
+
+		void setup(uint32 speed) {
+			TWSR.TWS = 0;
+			TWSR.TWPS = 0;
+			TWBR = uint8(((clock() / speed) - 16) / 2);
 		}
 		
-		void enable() {
+		void enable() { return; }
+		
+		void disable() { return; }
+		
+		bool start_transaction(uint16 addr) {
+			// write START condition
+			TWCR = ETWCR.TWSTA | ETWCR.TWEN | ETWCR.TWINT;
+			while TWCR & ETWCR.TWINT == 0;
 
+			if TWSR.TWS != STATUS.START_OK {
+				return false;
+			}
+
+			// write SLA addr
+			TWDR = uint8(addr);
+			TWCR = ETWCR.TWEN | ETWCR.TWINT;
+			while TWCR & ETWCR.TWINT == 0;
+
+			if TWSR.TWS != STATUS.MT_SLA_ACK_OK {
+				return false;
+			}
+
+			return true;
+		}
+
+		void end_transaction() {
+			// send STOP condition
+			TWCR = ETWCR.TWSTO | ETWCR.TWEN | ETWCR.TWINT;
+		}
+
+		void write(uint8 b) {
+			TWDR = b;
+			TWCR = ETWCR.TWINT | ETWCR.TWEN;
+			while TWCR & ETWCR.TWINT == 0;
+		}
+
+		void write_array(int8[] data) {
+			i = 0u;
+			while (i < data.size) {
+				TWDR = uint8(data[i]);
+				TWCR = ETWCR.TWEN | ETWCR.TWINT;
+				while TWCR & ETWCR.TWINT == 0;
+				// check if TWSR.TWS != 0x5 // 0x28 >> 3
+				// data transmited and ack received
+				i++;
+			}
 		}
 		
-		void disable() {
+		uint8 read() { return 0; }
 
+		bool has_data() { return false; }
+
+		databus_protocol get_protocol() {
+			return databus_protocol.I2C;
 		}
-		
-		void start_transaction() {}
-		void end_transaction() {}
-		void write(uint8 b) {}
-		uint8 read() {}
-
-		bool has_data() {}
-	}*/
+	}
 }

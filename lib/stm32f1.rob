@@ -1,0 +1,171 @@
+/*
+ * Robcmp interruptions vector for stm32f1
+ */
+
+use arch.stm32.stm32f1regs;
+use math.limits;
+
+int8 main();
+
+/*void __set_system_clock_to_72Mhz() {
+	// Necessary wait states for Flash for high speeds
+	FLASH->ACR = 0x12;
+	// Enable HSE
+	RCC->CR |= (1 << 16);
+	// Wait untill HSE settles down
+	while (!(RCC->CR & (1 << 17)));
+	// Set PREDIV2 division factor to 5
+	RCC->CFGR2 |= (0b0100 << 4);
+	// Set PLL2 multiplication factor to 8
+	RCC->CFGR2 |= (0b0110 << 8);
+	// Enable PLL2
+	RCC->CR |= (1 << 26);
+	// Wait untill PLL2 settles down
+	while (!(RCC->CR & (1 << 27)));
+	// Set PLL2 as PREDIV1 clock source
+	RCC->CFGR2 |= (1 << 16);
+	// Set PREDIV1 division factor to 5
+	RCC->CFGR2 |= (0b0100 << 0);
+	// Select Prediv1 as PLL source
+	RCC->CFGR |= (1 << 16);
+	// Set PLL1 multiplication factor to 9
+	RCC->CFGR |= (0b0111 << 18);
+	// Set APB1 to 36MHz
+	RCC->CFGR |= 1 << 10;
+	// Enable PLL
+	RCC->CR |= (1 << 24);
+	// Wait untill PLL settles down
+	while (!(RCC->CR & (1 << 25)));
+	// Finally, choose PLL as the system clock
+	RCC->CFGR |= (0b10 << 0);
+}
+*/
+
+//const HSE_Value = 25E6; // External oscillator in Hz
+//const HSI_Value = 8E6;  // Internal oscillator in Hz
+
+void __set_system_clock_to_25Mhz() {
+	// Enable HSE and waits it to settle down
+	RCC_CR.hse_on = true;
+	while !RCC_CR.hse_rdy;
+	// Set HSE as the system clock
+	RCC_CFGR.sw = uint2(0x01);
+}
+
+void __system_clock_config() {
+    //__set_system_clock_to_25Mhz();
+    SYSTICK_LOAD = 0xFFFFFF; //24 bits 
+	SYSTICK_CTRL.enable = true;
+	SYSTICK_CTRL.clksource = true; // processor clock
+}
+
+void __error_handler() {
+    loop {
+        asm "wfi";
+    }
+}
+
+void memset() noinline {
+// reference signature: 
+// void *memset(void *dst, int val, size_t count)
+//                   r0 ↑    r1 ↑          r2 ↑
+asm
+   "cmp		r2, #0
+	it		eq
+	bxeq	lr					/* return if r2/count==0 */
+	mov		r12, r0
+	tst		r0, #3				/* is 4-bytes aligned? */
+	beq		__memset_aligned
+
+	__memset_unaligned:
+		strb	r1, [r12], #1
+		subs	r2, r2, #1
+		it		eq
+		bxeq	lr				/* return if r2/count==0 */
+		tst		r12, #13		/* is 4-bytes aligned now? */
+		bne		__memset_unaligned
+
+	__memset_aligned:
+		bfi		r1, r1, #8, #8
+		bfi		r1, r1, #16, #16
+		mov		r3, r1
+		cmp		r2, #16
+		blo		__memset_less16
+		push	{r4, lr}
+		mov		r4, r1
+		mov		lr, r1
+		cmp		r2, #32
+		blo		__memset_less32
+
+	__memset_write32:
+		stmia	r12!, {r1, r3, r4, lr}	/* write 32 bytes */
+		stmia	r12!, {r1, r3, r4, lr}
+		subs	r2, r2, #32
+		it		eq
+		popeq	{r4, pc}
+		cmp		r2, #32
+		bhs		__memset_write32
+
+	__memset_less32:
+		cmp		r2, #16
+		it		hs
+		stmiahs	r12!, {r1, r3, r4, lr}
+		it		eq
+		popeq	{r4, pc}
+		pop		{r4, lr}
+
+	__memset_less16:
+		lsls	r2, r2, #29
+		it		cs
+		stmiacs	r12!, {r1, r3}
+		it		eq
+		bxeq	lr
+		it		mi
+		strmi	r1, [r12], #4
+		lsls	r2, r2, #1
+		it		mi
+		strhmi	r1, [r12], #2
+		it		ne
+		strbne	r1, [r12]
+   ";
+}
+
+void __do_copy_data() noinline {
+asm
+   "movs r1, #0						
+	b __do_copy_data_start				
+	__do_copy_data_loop:
+	    ldr r3, =__data_init
+	    ldr r3, [r3, r1]
+	    str r3, [r0, r1]
+	    adds r1, r1, #4
+	__do_copy_data_start:
+	 	ldr r0, =__data_start
+		ldr r3, =__data_end
+	    adds r2, r0, r1
+	    cmp r2, r3
+	    bcc __do_copy_data_loop
+	    ldr r2, =__bss_start
+		ldr r3, =__bss_end
+	    movs r1, #0
+		b __do_clear_bss_start
+	__do_clear_bss_loop:
+	    str r1, [r2], #4
+	__do_clear_bss_start:
+	 	cmp r2, r3
+	 	bcc __do_clear_bss_loop";
+}
+
+void __isr_reset() {
+    
+	__do_copy_data();
+    __system_clock_config();
+	
+    main();
+ 
+	__error_handler();
+}
+ 
+void __isr_nmi() {
+    asm "nop";
+}

@@ -55,7 +55,7 @@ TargetInfo supportedTargets[__last_target] = {
 	{rb_xtensa, "esp32",   "xtensa",  "", "", tint32},
 };
 
-void print_llvm_ir(char opt_level) {
+int print_llvm_ir(char opt_level) {
 	
 	const TargetInfo& ai = currentTarget();
 	if (ai.backend == rb_native) {
@@ -79,7 +79,7 @@ void print_llvm_ir(char opt_level) {
 		LLVMInitializeARMAsmPrinter();
 	} else {
 		cerr << "No backend set for target " << ai.triple << ".\n";
-		return;
+		return 1;
 	}
 
 	std::string defaultt = sys::getDefaultTargetTriple();
@@ -102,9 +102,26 @@ void print_llvm_ir(char opt_level) {
 	}	
 
 	TargetOptions opt;
+	opt.FunctionSections = true;
+	opt.DataSections = true;
+
+	auto reloc = Reloc::PIC_;
+	if (ai.backend == rb_arm)
+		reloc = Reloc::Static;
+
+	CodeGenOptLevel cgoptl = CodeGenOptLevel::None;
+	switch (opt_level) {
+		case '1': cgoptl = CodeGenOptLevel::Less; break;
+		case '2': cgoptl = CodeGenOptLevel::Default; break;
+		case '3':
+		case 's':
+		case 'z':
+			cgoptl = CodeGenOptLevel::Aggressive;
+			break;
+	}
+
 	auto targetMachine = Target->createTargetMachine(ai.triple, 
-		ai.cpu, ai.features, opt, Reloc::PIC_,
-		CodeModel::Small, CodeGenOptLevel::Aggressive);
+		ai.cpu, ai.features, opt, reloc, CodeModel::Small, cgoptl);
 
 	mainmodule->setDataLayout(targetMachine->createDataLayout());
 	mainmodule->setTargetTriple(ai.triple);
@@ -136,23 +153,33 @@ void print_llvm_ir(char opt_level) {
 		default : ol = OptimizationLevel::Oz; break;
 	}
 
+	bool llvmir_errors = false;
+	for(auto &f : mainmodule->getFunctionList()) {
+		if (verifyFunction(f, &llvm::errs())) {
+			cerr << endl << "Error(s) detected while verifying function " << f.getName().str() << endl;
+			llvmir_errors = true;
+		}
+	}
+
+	bool broken_debug = false;
+	if (verifyModule(*mainmodule, &llvm::errs(), &broken_debug)) {
+		cerr << endl << "Error(s) detected while verifying the global module." << endl;
+		llvmir_errors = true;
+	}
+
+	if (broken_debug)
+		cerr << "Errors in debug information were detected while verifying the global module." << endl;
+
 	// This is used to see the llvm IR prior to any analysis.
 	// Sometimes when adding new features, we want to see the IR even
 	// it being invalid.
 	if (debugopt) {
 		mainmodule->print(outs(), nullptr);
-
-		for(auto &f : mainmodule->getFunctionList()) {
-			if (verifyFunction(f, &llvm::errs())) {
-				cerr << "Error(s) detected while verifying function " << f.getName().str() << endl;
-			}
-		}
-
-		if (verifyModule(*mainmodule), &llvm::errs())
-			cerr << "Error(s) detected while verifying the global module." << endl;
-
-		return;
+		return 0;
 	}
+
+	if (llvmir_errors)
+		return 1;
 
 	UpgradeDebugInfo(*mainmodule);
 
@@ -181,6 +208,8 @@ void print_llvm_ir(char opt_level) {
 		// print IR to stdout
 		mainmodule->print(outs(), nullptr);
 	}
+
+	return 0;
 }
 
 const TargetInfo& currentTarget() {

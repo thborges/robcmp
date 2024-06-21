@@ -35,6 +35,8 @@
 %token TOK_QUANDO TOK_ESTA
 %token EQ_OP NE_OP GE_OP LE_OP GT_OP LT_OP TOK_LSHIFT TOK_RSHIFT
 
+%token TOK_INLINE TOK_NOINLINE TOK_WEAK TOK_SECTION
+
 %union {
 	char *ident;
 	char *str;
@@ -48,6 +50,8 @@
 	ArrayElements *aes;
 	MatrixElements *mes;
 	FunctionParams *fps;
+	FunctionAttributes *fattrs;
+	FunctionAttribute *fattr;
 	ParamsCall *pc;
 	vector<Node*> *nodes;
 	vector<string> *strings;

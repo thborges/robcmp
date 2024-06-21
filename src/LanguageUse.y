@@ -37,6 +37,9 @@
 %type <nldouble> TOK_LDOUBLE
 %type <ch> TOK_CHAR
 
+%type <fattrs> function_attributes
+%type <fattr> function_attribute
+
 %printer { fprintf(yyo, "'%s'", $$); } <ident>
 %printer { fprintf(yyo, "'%s'", $$ ? $$->getName().c_str() : ""); } <node>
 
@@ -119,19 +122,41 @@ enum_item : TOK_IDENTIFIER[id] {
 
 function : function_decl | function_impl
 
-function_decl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' ';' {
-    $$ = new FunctionDecl(buildTypes->getType($type, true), $id, $function_params, @id);
+function_decl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' function_attributes[fa] ';' {
+	FunctionDecl *func = new FunctionDecl(buildTypes->getType($type, true), $id, $function_params, @id);
+	func->setAttributes($fa);
+	$$ = func;
 }
 
-function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' '{' stmts '}'[ef] {
+function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' function_attributes[fa] '{' stmts '}'[ef] {
 	vector<Node*> stmts;
 	FunctionImpl *func = new FunctionImpl(buildTypes->getType($type, true), $id, $function_params,
 		std::move(stmts), @type, @ef);
 	func->setExternal(true);
 	func->setDeclaration(true);
-    func->setLocation(@type);
+    func->setAttributes($fa);
 	$$ = func;
 }
+
+function_attributes: function_attributes[fas] ',' function_attribute[fa] {
+	$fas->addAttribute($fa);
+	$$ = $fas;
+}
+
+function_attributes : function_attribute[fa] {
+	$$ = new FunctionAttributes();
+	$$->addAttribute($fa);
+}
+
+function_attributes : %empty {
+	$$ = new FunctionAttributes();
+}
+
+function_attribute
+	: TOK_WEAK							{ $$ = new FunctionAttribute(fa_weak, ""); }
+	| TOK_INLINE						{ $$ = new FunctionAttribute(fa_inline, ""); }
+	| TOK_NOINLINE						{ $$ = new FunctionAttribute(fa_noinline, ""); }
+	| TOK_SECTION TOK_IDENTIFIER[id]	{ $$ = new FunctionAttribute(fa_section, $id); }
 
 qualifier : TOK_CONST		{ $$ = qconst; }
 		  | TOK_VOLATILE	{ $$ = qvolatile; }
@@ -171,12 +196,10 @@ register : TOK_REGISTER TOK_IDENTIFIER[type] TOK_IDENTIFIER[name] TOK_AT const_e
 
 interface : TOK_INTF TOK_IDENTIFIER[id] '{' interface_decls[intf] '}' {
 	$$ = new Interface($id, std::move(*$intf), @id);
-	$$->setLocation(@TOK_INTF);
 }
 
 interface : TOK_INTF TOK_IDENTIFIER[id] '{' '}' {
 	$$ = new Interface($id, @id);
-	$$->setLocation(@TOK_INTF);
 }
 
 interface_decls : interface_decls function_decl {

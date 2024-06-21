@@ -1,4 +1,5 @@
 %{
+#include "HeaderGlobals.h"
 #include <FlexDependencies.h>
 #include "Language_gen_y.hpp"
 
@@ -42,6 +43,11 @@ EXP ([Ee][-+]?[0-9]+)?
 "interface"				{ return TOK_INTF; }
 "implements"			{ return TOK_IMPL; }
 "use"					{ return TOK_USE; }
+
+"inline"				{ return TOK_INLINE; }
+"noinline"				{ return TOK_NOINLINE; }
+"weak"					{ return TOK_WEAK; }
+"section"				{ return TOK_SECTION; }
 
 "bind"					{ return TOK_BIND; }
 "to"					{ return TOK_TO; }
@@ -128,12 +134,12 @@ EXP ([Ee][-+]?[0-9]+)?
 						  return TOK_UINTEGER; }
 
 [0-9]+{EXP}[Uu]			{ char *aux = strndup(yytext, yyleng-1);
-						  yylval->unint = strtoull(aux, NULL, 10);
+						  yylval->unint = (uint64_t)strtod(aux, NULL);
 						  free(aux);
 						  return TOK_UINTEGER; }
 
 [0-9]+{EXP}				{ char *aux = strndup(yytext, yyleng);
-						  yylval->nint = strtoll(aux, NULL, 10);
+						  yylval->nint = (int64_t)strtod(aux, NULL);
 						  free(aux);
 						  return TOK_INTEGER; }
 
@@ -148,7 +154,7 @@ EXP ([Ee][-+]?[0-9]+)?
 						  return TOK_CHAR; }
 
  /* deixar por último. Caractere não reconhecido pelo alfabeto. */
-.						{ yyerror(yylloc, NULL, COLOR_RED "lexical error:" COLOR_RED " caractere nao pertence ao alfabeto da linguagem:"); }
+.						{ yyerror(yylloc, NULL, string_format(COLOR_RED "lexical error:" COLOR_RED " unknown char '%c'.", yytext[0]).c_str()); }
 
 %%
 

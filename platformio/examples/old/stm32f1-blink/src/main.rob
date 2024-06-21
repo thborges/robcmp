@@ -1,0 +1,21 @@
+
+/*
+ * Sample Blink Led on port 13 for STM32F1
+ */
+
+use arch.stm32.stm32f1;
+use intfs.ports;
+
+int8 main() {
+	mmcu = stm32f1();
+	
+	c13 = mmcu.c13;
+	c13.mode(port_mode.output);
+
+	loop {
+		c13.set(true);
+		mmcu.wait_ms(500);
+		c13.set(false);
+		mmcu.wait_ms(500);
+	}
+}

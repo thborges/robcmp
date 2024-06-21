@@ -1,0 +1,72 @@
+/*
+ * Robcmp examples: Blink
+ * Blinks the board default led
+ */
+
+use intfs.ports;
+use intfs.mcu;
+use intfs.display;
+use intfs.databus;
+
+use math.random16;
+
+use graphic.canvas8;
+
+type globals {
+	mmcu = mcu();
+	led = digitalport();
+	oled = display();
+	dbus = databus();
+}
+
+int16 main() { 
+	gg = globals();
+	mmcu = gg.mmcu;
+	led = gg.led;
+
+	// blink led 10 times
+	led.mode(port_mode.output);
+	count = int16(10);
+	while count > 0 {
+		led.set(true);
+		mmcu.wait_ms(50);
+		led.set(false);
+		mmcu.wait_ms(50);
+		count--;
+	}
+	
+	// setup data bus
+	dbus = gg.dbus;
+	dbus.setup(0);
+	dbus.enable();
+
+	// init display
+	oled = gg.oled;
+	oled.set_address(0x78);
+	oled.init_display();
+	oled.clear();
+	
+	// This canvas will write in the display buffer.
+	// That is done through injection (see specs folder)
+	canvas = canvas8();
+
+	col = 0u;
+	row = 0u;
+	count = 1000;
+	loop {
+		// set a random pixel
+		col = uint8(random16()%(canvas.width()-1));
+		row = uint8(random16()%(canvas.height()-1));
+		canvas.set_pixel(row, col);
+
+		// update display
+		oled.update_frame();
+		
+		// clear the screen sometimes
+		count--;
+		if count == 0 {
+			canvas.clear();
+			count = 1000;
+		}
+	}
+}

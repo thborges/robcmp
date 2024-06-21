@@ -1,0 +1,26 @@
+/*
+ * Robcmp examples: Blink
+ * Blinks the board default led
+ */
+
+use intfs.ports;
+
+type globals {
+	mmcu = mcu();
+	led = digitalport();
+}
+
+int16 main() {
+	gg = globals();
+	mmcu = gg.mmcu;
+	led = gg.led;
+
+	led.mode(port_mode.output);
+
+	loop {
+		led.set(true);
+		mmcu.wait_ms(500);
+		led.set(false);
+		mmcu.wait_ms(500);
+	}
+}

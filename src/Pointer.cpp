@@ -25,6 +25,12 @@ Value *Pointer::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
         return NULL;
     }
 
+    if (!buildTypes->isDefined(dt)) {
+        yyerrorcpp(string_format("The type %s is undefined.",
+            buildTypes->name(dt)), this);
+        return NULL;
+    }
+
     Type *targetPointerType = buildTypes->llvmType(dt)->getPointerTo();
     
     if (allocblock == global_alloc) {

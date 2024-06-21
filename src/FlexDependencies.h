@@ -19,8 +19,9 @@ class MatrixElement;
 class Variable;
 class Field;
 
-#include "SourceLocation.h"
 #include "Colors.h"
+#include "SourceLocation.h"
+#include "FunctionAttributes.h"
 
 typedef void* yyscan_t;
 

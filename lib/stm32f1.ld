@@ -8,15 +8,42 @@ __reset_stack_pointer = ORIGIN(RAM) + LENGTH(RAM);
 
 SECTIONS
 {
-	.text 0x0 : {
-		. = 0;
-		/* Set the initial address to 0 */
-		LONG(__reset_stack_pointer);
-		LONG(main | 1);
-		/* The whole interrupt table is 332 bytes long. Advance to that position. */
-		. = 332;
-		/* And here comes the rest of the code */
-		*(.text*)
-	} > FLASH /* Put this in the flash memory region */
-}
+	.isr_vector : {
+		LONG(__reset_stack_pointer);		
+		LONG(__isr_reset | 1);
+		LONG(__isr_nmi | 1);
+		/* The interrupt table is 332 bytes long. Advance to that position. */
+		. = ORIGIN(FLASH) + 332;
+	} > FLASH
 
+	.text : {
+		. = ALIGN(4);
+		*(.text)
+		*(.text.*)
+		*(.rodata)
+		*(.rodata.*)
+		. = ALIGN(4);
+	} > FLASH
+
+	__data_init = LOADADDR(.data);
+
+    .data : {
+		__data_start = .;
+		*(.data)
+		*(.data.*)
+		. = ALIGN(4);
+		__data_end = .;
+	} > RAM AT> FLASH
+	
+	.bss : 
+	{
+		__bss_start = .;
+		*(.bss)
+		*(.bss.*)
+		*(COMMON)
+		. = ALIGN(4);
+		__bss_end = .;
+	} > RAM
+
+	.ARM.attributes 0 : { *(.ARM.attributes) }
+}

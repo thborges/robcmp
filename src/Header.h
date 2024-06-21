@@ -5,9 +5,6 @@
 #error Please include this file only on .y or visitor files
 #endif
 
-//#define ENABLE_ARDUINO
-//#define ENABLE_PRINT
-
 #include "HeaderGlobals.h"
 #include "SourceLocation.h"
 #include "Scanner.h"

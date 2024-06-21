@@ -1,0 +1,244 @@
+
+use intfs.mcu;
+use intfs.ports;
+use intfs.databus;
+
+use stm32f1regs;
+
+type stm32f1 implements mcu {
+	
+	uint32 clock() inline {
+		// TODO: provide 25Mhz and 72Mhz selection
+		return 8E6;
+	}
+
+	void set_interruptions(bool enabled) {
+        return;
+	}
+
+	c13 implements digitalport {
+		void mode(port_mode m)  {
+            APB2EN.iopc = true;
+            if (m == port_mode.input) {
+                GPIOC_CRH.mode13 = PIN_MODE.INPUT;
+                GPIOC_CRH.cnf13 = INPUT_MODE.PULLUPDOWN;
+            } else {
+                GPIOC_CRH.mode13 = PIN_MODE.OUTPUT50MHz;
+                GPIOC_CRH.cnf13 = OUTPUT_MODE.PUSHPULL;
+            }
+        }
+		void set(bool v) inline { GPIOC_ODR.odr13 = v; }
+		bool get()       inline { return GPIOC_IDR.idr13; }
+	}
+
+	b6 implements digitalport {
+		void mode_input(PIN_MODE mode, INPUT_MODE cnf) {
+			GPIOB_CRL.mode6 = mode;
+			GPIOB_CRL.cnf6 = cnf;
+		}
+		void mode_output(PIN_MODE mode, OUTPUT_MODE cnf) {
+			GPIOB_CRL.mode6 = mode;
+			GPIOB_CRL.cnf6 = cnf;
+		}
+		void mode(port_mode m)  {
+            APB2EN.iopb = true;
+            if (m == port_mode.input) {
+				mode_input(PIN_MODE.INPUT, INPUT_MODE.PULLUPDOWN);
+            } else {
+				mode_output(PIN_MODE.OUTPUT50MHz, OUTPUT_MODE.PUSHPULL);
+            }
+        }
+		void set(bool v) inline { GPIOB_ODR.odr6 = v; }
+		bool get()       inline { return GPIOB_IDR.idr6; }
+	}
+
+	b7 implements digitalport {
+		void mode_input(PIN_MODE mode, INPUT_MODE cnf) {
+			GPIOB_CRL.mode7 = mode;
+			GPIOB_CRL.cnf7 = cnf;
+		}
+		void mode_output(PIN_MODE mode, OUTPUT_MODE cnf) {
+			GPIOB_CRL.mode7 = mode;
+			GPIOB_CRL.cnf7 = cnf;
+		}
+		void mode(port_mode m)  {
+            APB2EN.iopb = true;
+            if (m == port_mode.input) {
+				mode_input(PIN_MODE.INPUT, INPUT_MODE.PULLUPDOWN);
+            } else {
+				mode_output(PIN_MODE.OUTPUT50MHz, OUTPUT_MODE.PUSHPULL);
+            }
+        }
+		void set(bool v) inline { GPIOB_ODR.odr7 = v; }
+		bool get()       inline { return GPIOB_IDR.idr7; }
+	}
+
+    void wait_us(uint16 us) {
+		ticks = clock()/1E6 * us;
+    	start_tick = SYSTICK_VAL;
+    	while start_tick - SYSTICK_VAL < ticks;
+	}
+
+	void wait_ms(uint16 ms) {
+		while ms > 0 {
+			wait_us(1000);
+			ms--;
+		}
+	}
+
+	spi implements databus {
+		/* setup hardware SPI at:
+		   xx = MOSI
+		   xx = MISO
+		   xx = SCK */
+		void setup(uint32 speed) {
+			return;
+		}
+
+		void enable() {
+			return;
+		}
+
+		void disable() {
+			return;
+		}
+
+		void write(uint8 b) {
+			return;
+		}
+
+		void write_array(int8[] data) {
+			return;
+		}
+
+		uint8 read() {
+			return 0;
+		}
+
+		bool has_data() {
+			return false;
+		}
+
+		bool start_transaction(uint16 address) { return true; }
+		void end_transaction() { return; }
+
+		databus_protocol get_protocol() {
+			return databus_protocol.SPI;
+		}
+	}
+
+	uart0 implements databus {
+		void setup(uint32 baud) {
+			return;
+		}
+
+		void enable() {
+			return;
+		}
+
+		void disable() {
+			return;
+		}
+
+		void write(uint8 b) {
+			return;
+		}
+
+		void write_array(int8[] data) {
+			return;
+		}
+
+		uint8 read() {
+			return 0;
+		}
+
+		bool has_data() {
+			return false;
+		}
+
+		bool start_transaction(uint16 address) { return true; }
+		void end_transaction() { return; }
+		
+		databus_protocol get_protocol() {
+			return databus_protocol.UART;
+		}
+	}
+
+	i2c1 implements databus {
+		/*
+		 * Supports I2C on pins PB6 and PB7
+		 */
+
+		void setup(uint32 speed) {
+			APB1EN.i2c1 = true; // enable I2C clock
+			AHBENR.sdio = true; // enable SDIO clock
+			APB2EN.afio = true; // enable alternate function I/O clock
+			APB2EN.iopb = true; // port b clock
+
+			// set ports B6 and B7 as alternate function I2C
+			b6.mode_output(PIN_MODE.OUTPUT50MHz, OUTPUT_MODE.AOPENDRAIN);
+			b7.mode_output(PIN_MODE.OUTPUT50MHz, OUTPUT_MODE.AOPENDRAIN);
+
+			// disable peripheral to configure
+			I2C1_CR1.pe = false;
+
+			// asuming 8Mhz clock
+			// FIX: should compute based on mcu/peripheral clock
+			I2C1_CCR.fs = true;
+			I2C1_CCR.duty = true;
+			I2C1_CR2.freq = 0x8;
+			I2C1_CCR.ccr = 0x1;
+			I2C1_TRISE = 0x1e;
+		}
+		
+		void enable() {
+			I2C1_CR1.pe = true;
+		}
+
+		void disable() {
+			APB1EN.i2c1 = false;
+			I2C1_CR1.pe = false;
+		}
+		
+		bool start_transaction(uint16 addr) {
+			// send start condition
+			I2C1_CR1.start = true;
+			while !I2C1_SR1.sb and !I2C1_SR2.msl and !I2C1_SR2.busy; // wait for start
+
+			// send address
+			I2C1_DR = addr;
+			while !I2C1_SR1.addr; // wait addr send
+
+			// clear ADDR condition
+			temp = I2C1_SR2.msl;
+
+			return true;
+		}
+
+		void end_transaction() {
+            I2C1_CR1.stop = true;
+		}
+
+		void write(uint8 b) inline {
+			I2C1_DR = b;
+			while !I2C1_SR1.btf;
+		}
+
+		void write_array(int8[] data) {
+			i = 0u;
+			while (i < data.size) {
+				I2C1_DR = uint8(data[i]);
+				while !I2C1_SR1.btf;
+				i++;
+			}
+		}
+		
+		uint8 read() { return 0; }
+
+		bool has_data() { return false; }
+
+		databus_protocol get_protocol() {
+			return databus_protocol.I2C;
+		}
+	}
+}

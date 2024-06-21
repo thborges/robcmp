@@ -1,0 +1,31 @@
+== Information ==
+
+Name:                          .pio/build/stm32-debug/firmware.elf
+Address base:                  0x7ff0000                     
+Virtual size:                  0x18011000                    
+PIE:                           False                         
+NX:                            True                          
+== Sections ==
+
+|Name                           | Type        | Virtual address  | File offset | Size      | Entropy | Segment(s)|
+|                               | NULL        | 0x0              | 0x0         | 0x0       | 0.00    |           
+|.isr_vector                    | PROGBITS    | 0x8000000        | 0x10000     | 0x14c     | 0.25    | LOAD      
+|.text                          | PROGBITS    | 0x800014c        | 0x1014c     | 0x26c     | 5.94    | LOAD      
+|.ARM.exidx                     | ARM_EXIDX   | 0x80003b8        | 0x103b8     | 0x10      | 2.98    | LOAD - ARM_UNWIND
+|.data                          | PROGBITS    | 0x20000000       | 0x103c8     | 0x0       | 0.00    | LOAD      
+|.bss                           | NOBITS      | 0x20000000       | 0x20000     | 0x24      | 0.00    | LOAD      
+|.got                           | PROGBITS    | 0x20000024       | 0x20024     | 0x4       | 0.81    | LOAD - GNU_RELRO
+|.ARM.attributes                | ARM_ATTRIBUTES| 0x0              | 0x20028     | 0x3f      | 4.82    |           
+|.debug_abbrev                  | PROGBITS    | 0x0              | 0x20067     | 0x1bb     | 4.55    |           
+|.debug_info                    | PROGBITS    | 0x0              | 0x20222     | 0x1e5c    | 4.39    |           
+|.debug_ranges                  | PROGBITS    | 0x0              | 0x2207e     | 0x2c0     | 1.81    |           
+|.debug_str                     | PROGBITS    | 0x0              | 0x2233e     | 0xf39     | 4.94    |           
+|.debug_pubnames                | PROGBITS    | 0x0              | 0x23277     | 0x92d     | 5.17    |           
+|.debug_pubtypes                | PROGBITS    | 0x0              | 0x23ba4     | 0x2ca     | 5.02    |           
+|.debug_frame                   | PROGBITS    | 0x0              | 0x23e70     | 0x79c     | 2.27    |           
+|.debug_line                    | PROGBITS    | 0x0              | 0x2460c     | 0xc6f     | 4.87    |           
+|.comment                       | PROGBITS    | 0x0              | 0x2527b     | 0x1c      | 4.08    |           
+|.symtab                        | SYMTAB      | 0x0              | 0x25298     | 0x360     | 2.76    |           
+|.shstrtab                      | STRTAB      | 0x0              | 0x255f8     | 0xcd      | 4.28    |           
+|.strtab                        | STRTAB      | 0x0              | 0x256c5     | 0x280     | 4.64    |           
+

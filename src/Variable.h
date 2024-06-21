@@ -42,4 +42,9 @@ public:
 		this->alloc = alloc;
 	}
 
+	virtual Node *getExpr() {
+		return NULL;
+	}
+
+	virtual void setExpr(Node *e) {}
 };

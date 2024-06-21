@@ -122,30 +122,22 @@ register uint8 SPDR at 0x4e;
 
 
 /*
- * I2C (TWI) PC5 = SCL, PC4 = SDA
+ * I2C (TWI)
+ * In atmega328p, PC5 = SCL, and PC4 = SDA.
  */
 
 // TWI Bit Rate Register
 register uint8 TWBR at 0xB8;
 
-type TWCR_t {
-	TWINT = false;     // TWI interrupt
-	TWEA = false;      // Enable ACK
-	TWSTA = false;     // Start Condition
-	TWSTO = false;     // Stop Condition
-	TWWC = false;      // Write Colision
-	TWEN = false;      // TWI Enable
-	_reserved = false;
-	TWIE = false;      // TWI interrupt enable
-}
-
 // TWI Control Register
-register TWCR_t TWCR at 0xBC;
+// all fields of TWCR must be set at once, so we are not using a register type for it
+enum ETWCR {TWIE = 1, TWEN = 4, TWWC = 8, TWSTO = 16, TWSTA = 32, TWEA = 64, TWINT = 128}
+register uint8 TWCR at 0xBC;
 
 type TWSR_t {
-	TWS = uint5(0);
-	_reserved = false;
 	TWPS = uint2(0);
+	_reserved = false;
+	TWS = uint5(0);
 }
 
 // TWI Status Register
@@ -155,16 +147,16 @@ register TWSR_t TWSR at 0xB9;
 register uint8 TWDR at 0xBB;
 
 type TWAR_t {
-	TWA = uint7(0);
 	TWGCE = false;
+	TWA = uint7(0);
 }
 
 // TWI Slave Address Register
 register TWAR_t TWAR at 0xBA;
 
 type TWAMR_t {
-	TWAM = uint7(0);
 	_reserved = false;
+	TWAM = uint7(0);
 }
 
 //TWI Slave Address Mask Register

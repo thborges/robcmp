@@ -13,7 +13,7 @@ typedef int DataType;
 enum BasicDataType {tvoid, tbool, tchar,
   tint8, tint16, tint32, tint64, 
   tint2u, tint3u, tint4u, tint5u, tint6u, tint7u,
-  tint8u, tint16u, tint32u, tint64u,
+  tint8u, tint12u, tint16u, tint32u, tint64u,
   tfloat, tdouble, tldouble,
   /* new types here! */
   __bdt_last};
@@ -199,19 +199,42 @@ public:
 
     DataType unsignedToSigned(DataType tid) {
         assert(isUnsignedDataType(tid));
-        if (tid == tchar)
-            return tint8;
-        else if (tid >= tint2u && tid <= tint7u)
-            return tint8;
-        else
-            return tid - (tint64u - tint64);
+        switch (tid) {
+            case tchar:
+                return tint8;
+            case tint2u:
+            case tint3u:
+            case tint4u:
+            case tint5u:
+            case tint6u:
+            case tint7u:
+            case tint8u:
+                return tint8;
+            case tint16u:
+                return tint16;
+            case tint32u:
+                return tint32;
+            case tint64u:
+            default:
+                return tint64;
+        }
     }
 
     DataType signedToUnsigned(DataType tid) {
         assert(isSignedDataType(tid));
-        if (tid != tbool)
-            tid += tint64u - tint64;
-        return tid;
+        if (tid == tbool)
+            return tid;
+        switch (tid) {
+            case tint8:
+                return tint8u;
+            case tint16:
+                return tint16u;
+            case tint32:
+                return tint32u;
+            case tint64:
+            default:
+                return tint64u;
+        }
     }
 
     bool isDefined(DataType tid) {

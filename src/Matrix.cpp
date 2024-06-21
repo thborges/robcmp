@@ -63,8 +63,6 @@ Value *Matrix::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 		GlobalVariable *gv = new GlobalVariable(*mainmodule, matrixType, 
 			false, GlobalValue::InternalLinkage, 
 			ConstantArray::get(matrixType, constantRefs), name);
-		gv->setDSOLocal(true);
-		gv->setAlignment(Align(2));
 		alloc = gv;
 
 		if (debug_info) {

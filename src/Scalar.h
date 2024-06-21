@@ -10,11 +10,11 @@ public:
 
 	Scalar(Identifier ident, Node *e);
 
-	Node *expr() {
+	virtual Node *getExpr() override {
 		return node_children[0];
 	}
 
-	void setExpr(Node *expr) {
+	virtual void setExpr(Node *expr) override {
 		node_children[0] = expr;
 		dt = expr->getDataType();
 	} 
@@ -22,7 +22,7 @@ public:
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
 	virtual bool isConstExpr() override {
-		return hasQualifier(qconst) && expr()->isConstExpr();
+		return hasQualifier(qconst) && getExpr()->isConstExpr();
 	}
 
 	virtual DataType getDataType() override;

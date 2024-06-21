@@ -42,4 +42,3 @@ uint16 random16ub(uint16 upto) {
     }
     return uint16(m >> 16);
 }
-

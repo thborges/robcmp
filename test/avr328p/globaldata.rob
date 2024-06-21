@@ -1,0 +1,12 @@
+
+random_seed16 = 0xE7A8;
+
+int8 main() {
+
+    if random_seed16 == 0xE7A8 {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+

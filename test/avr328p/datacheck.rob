@@ -1,0 +1,20 @@
+
+/* This test case allocates a variable in data region.
+   It tests if the assembly func __do_data_copy, called
+   before main, is working properly.
+ */
+
+random_seed16 = 0xE7A8;
+
+uint16 check_random() {
+    random_seed16 += 1;
+    return random_seed16;
+}
+
+int8 main() {
+    if check_random() != 0xE7A9 {
+        return 2;
+    }
+    return 0;
+}
+

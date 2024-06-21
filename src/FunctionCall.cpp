@@ -207,7 +207,6 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         if (!intf_cfunc) {
             intf_cfunc = Function::Create(cfunc->getFunctionType(), Function::ExternalLinkage, 
                 codeAddrSpace, inject_name, mainmodule);
-            intf_cfunc->setDSOLocal(true);
             intf_cfunc->setCallingConv(CallingConv::C);
             intf_cfunc->addFnAttr(Attribute::AlwaysInline);
         }

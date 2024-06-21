@@ -21,6 +21,7 @@ BuildTypes::BuildTypes(DataType targetPointerType) {
     tinfo[tint6u]   = {"uint6",         6, Type::getIntNTy(global_context, 6), dwarf::DW_ATE_unsigned};
     tinfo[tint7u]   = {"uint7",         7, Type::getIntNTy(global_context, 7), dwarf::DW_ATE_unsigned};
     tinfo[tint8u]   = {"uint8",         8, Type::getInt8Ty(global_context),    dwarf::DW_ATE_unsigned};
+    tinfo[tint12u]  = {"uint12",       12, Type::getIntNTy(global_context, 12),dwarf::DW_ATE_unsigned};
     tinfo[tint16u]  = {"uint16",       16, Type::getInt16Ty(global_context),   dwarf::DW_ATE_unsigned};
     tinfo[tint32u]  = {"uint32",       32, Type::getInt32Ty(global_context),   dwarf::DW_ATE_unsigned};
     tinfo[tint64u]  = {"uint64",       64, Type::getInt64Ty(global_context),   dwarf::DW_ATE_unsigned};
@@ -141,8 +142,8 @@ DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBi
                 members.push_back(n);
         }
 
-        assert((members.size() == llvmType->getNumContainedTypes()) &&
-            "Number of fields differ between LLVM Type and Node.");
+        //assert((members.size() == llvmType->getNumContainedTypes()) &&
+        //    "Number of fields differ between LLVM Type and Node.");
         
         int i = 0;
         elems.reserve(members.size());

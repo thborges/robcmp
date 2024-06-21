@@ -41,8 +41,8 @@ TOOLS=$(LLVM_OBJCOPY) \
 	$(LLVM_SIZE) \
 	$(AVR_GDB) \
 	$(AVR_OBJDUMP) \
-	../../build/robcmp \
-	../../build/robcmp-simavr-debug
+	$(abspath ../../build/robcmp) \
+	$(abspath ../../build/robcmp-simavr-debug)
 
 ifeq ($(OS),Windows_NT)
     uname_S := Windows
@@ -61,7 +61,7 @@ ifeq ($(uname_S), Linux)
 	LIBS=$(shell ./libllvmpath.sh ${LLVM_LD})
 endif
 
-LIBS += ../../lib/*.ld ../../lib/*.o ../../lib/*.rob
+#LIBS += ../../lib/*.ld ../../lib/*.o ../../lib/*.rob
 
 version=$(shell cat version)
 
@@ -77,11 +77,11 @@ package.json: package-orig.json
 	$(SED) s/sed_system_here/$(suffix)/ $< > $@
 
 ../toolchain-robcmp-${suffix}-${version}.tar.gz: package.json
-	for f in $(TOOLS); do cp $$f bin; done;
-	for f in $(LIBS); do cp $$f lib; done;
+	ln -sf $(TOOLS) bin
+	ln -sf $(LIBS) lib
 	if [ -f bin/ld.lld-18 ]; then cd bin && ln -s ld.lld-18 ld.lld; fi
 	if [ -f bin/llvm-objcopy-18 ]; then cd bin && ln -s llvm-objcopy-18 llvm-objcopy; fi
-	tar cfz $@ $^ bin lib
+	tar chfz $@ $^ bin lib
 
 clean:
 	rm -rf bin lib *.tar.gz package.json

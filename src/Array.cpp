@@ -80,8 +80,6 @@ Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 		GlobalVariable *gv = new GlobalVariable(*mainmodule, arrayType, 
 			false, GlobalValue::InternalLinkage, 
 			ConstantArray::get(arrayType, constantRefs), name);
-		gv->setDSOLocal(true);
-		gv->setAlignment(Align(2));
 		alloc = gv;
 
 		if (debug_info) {

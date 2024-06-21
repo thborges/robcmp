@@ -1,0 +1,33 @@
+
+use arch.avr.avr5mcu;
+use convert.itoa;
+
+random_seed16 = 0xE7A8;
+
+uint16 check_random() {
+    random_seed16 += 1;
+    return random_seed16;
+}
+
+void print_result(databus s, char[] result) {
+	i = 0;
+	while result[i] != 0 {
+		s.write(result[i]);
+		i++;
+	}
+	s.write('\n');
+}
+
+int16 main() {
+    mmcu = avr5mcu();
+    serial = mmcu.uart0;
+    serial.setup(9600);
+
+    a = check_random();
+    result = {'\0':18};
+    itoa(a, 10, result);
+    print_result(serial, result);
+
+    return 0;
+}
+

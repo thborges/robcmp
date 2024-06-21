@@ -13,4 +13,5 @@ interface display {
     void set_contrast(uint8 c);
     void update_frame();
     void clear();
+    void set_address(uint8 a);
 }

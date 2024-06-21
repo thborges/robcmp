@@ -1,0 +1,113 @@
+/*
+ * Robcmp examples: SSD1306
+ */
+
+//TODO: Move to .spec
+//use arch.avr.avr5mcu;
+use arch.stm32.stm32f1;
+use display.ssd1306;
+
+use graphic.canvas8;
+use math.random16;
+use math.random32;
+use intfs.mcu;
+use intfs.display;
+use intfs.databus;
+
+// for now, the binding only works inside a type
+type global_instances {
+	mmcu = mcu();
+	dbus = databus();
+	oled = display();
+	led = digitalport();
+}
+
+int16 main() {
+	gi = global_instances();
+	mmcu = gi.mmcu;
+	dbus = gi.dbus;
+	canvas = canvas8();
+	
+	// blink start
+	led = gi.led;
+	led.mode(port_mode.output);
+	led.set(true);
+	mmcu.wait_ms(500);
+	led.set(false);
+	mmcu.wait_ms(500);
+	led.set(true);
+	mmcu.wait_ms(500);
+	
+	if (dbus.get_protocol() == databus_protocol.I2C) {
+		dbus.setup(400E3); //400khz
+	} else { // SPI
+		dbus.setup(4E6);
+	}
+	dbus.enable();
+
+	oled = gi.oled;
+	oled.set_address(0x78);
+	oled.init_display();
+
+	symbol = {0b00000000,
+			  0b11111110,
+			  0b11000011,
+			  0b11000011,
+			  0b11111110,
+			  0b11000110,
+			  0b11000011,
+			  0b11000011};
+
+	col = 0u;
+	row = 0u;
+
+	count = 1000;
+	while count > 0 {
+		col = random16()%(canvas.width()-1);
+		row = random16()%(canvas.height()-1);
+		canvas.set_pixel(row, col);
+		oled.update_frame();
+		count--;
+	}
+
+	loop {
+		// clear last draw
+		byte = 0u;
+		while byte < symbol.size {
+			symbolcol = 0u;
+			while symbolcol < 8 {
+				canvas.clear_pixel(row + byte, col + symbolcol);
+				symbolcol++;
+			}
+			byte++; 
+		}
+
+		col++;
+		row++;
+
+        if col == canvas.width()-1 or
+		   row == canvas.height()-1 {
+            //col = uint8(random16ub(canvas.width()-1));
+			//row = uint8(random16ub(canvas.height()-1));
+			col = random16()%(canvas.width()-1);
+			row = random16()%(canvas.height()-1);
+		}
+
+		// clear last draw ball
+		byte = 0u;
+		while byte < symbol.size {
+			symbolcol = 0u;
+			while symbolcol < 8 {
+				if symbol[byte] & (1<<symbolcol) > 0 {
+					canvas.set_pixel(row + byte, col + (7-symbolcol));
+				}
+				symbolcol++;
+			}
+			byte++;
+		} 
+
+		oled.update_frame();
+	}
+
+	return 0;
+}

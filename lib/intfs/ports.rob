@@ -3,7 +3,7 @@
  * Apache License v2.0.
  */
 
-enum port_mode { input, output }
+enum port_mode { input = 0, output = 1}
 
 interface digitalport {
     void mode(port_mode m);
@@ -13,6 +13,18 @@ interface digitalport {
 
 interface analogport {
     void mode(port_mode m);
-    void set(int16 v);
-    int16 get();
+    void set(uint16 v);
+    uint16 get();
+}
+
+type null_digitalport implements digitalport {
+    void mode(port_mode m) inline { return; }
+    void set(bool v) inline { return; }
+    bool get() inline { return false; }
+}
+
+type null_analogport implements analogport {
+    void mode(port_mode m) inline { return; }
+    void set(uint16 v) inline { return; }
+    uint16 get() inline { return 0; }
 }

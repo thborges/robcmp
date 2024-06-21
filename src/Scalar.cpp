@@ -3,7 +3,6 @@
 #include "FunctionImpl.h"
 #include "BackLLVM.h"
 #include "Pointer.h"
-#include "PropagateTypes.h"
 
 Scalar::Scalar(Identifier ident, Node *e) :
 	Variable(ident.getFullName(), ident.getLoc()) {
@@ -48,12 +47,13 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 	// set the allocated left value to:
 	//  - a constructor initializing a user type field
 	//  - a load for a new variable
-	expr()->setLeftValue(symbol);
+	Node *expr = getExpr();
+	expr->setLeftValue(symbol);
 
-	Value *exprv = expr()->generate(func, block, allocblock);
+	Value *exprv = expr->generate(func, block, allocblock);
 	if (!exprv)
 		return NULL;
-	DataType exprv_dt = expr()->getDataType();
+	DataType exprv_dt = expr->getDataType();
 
 	Builder->SetInsertPoint(block);
 	if (!alloc)
@@ -76,16 +76,18 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 				ret = alloc = exprvc;
 			else {
 				Type *gty = buildTypes->llvmType(dt);
-				if (expr()->isPointerToPointer())
+				if (expr->isPointerToPointer())
 					gty = gty->getPointerTo();
 				GlobalVariable *gv = new GlobalVariable(*mainmodule, gty, false, 
-					GlobalValue::InternalLinkage, exprvc, name);
-				gv->setDSOLocal(true);
+					GlobalValue::ExternalLinkage, exprvc, name);
 				ret = alloc = gv;
 
 				if (debug_info) {
+					llvm::DIType *dty = buildTypes->diType(dt);
+					if (expr->isPointerToPointer())
+						dty = buildTypes->diPointerType(dt);
 					auto *d = DBuilder->createGlobalVariableExpression(sp, name, "",
-						funit, getLineNo(), buildTypes->diType(dt), false);
+						funit, getLineNo(), dty, false);
 					gv->addDebugInfo(d);
 				}
 			}
@@ -93,7 +95,6 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			RobDbgInfo.emitLocation(this);
 			Builder->SetInsertPoint(allocblock);
 			AllocaInst *temp = Builder->CreateAlloca(exprv->getType(), dataAddrSpace, 0, name);
-			temp->setAlignment(Align(1));
 			alloc = temp;
 			Builder->SetInsertPoint(block);
 			ret = Builder->CreateStore(exprv, alloc, symbol->hasQualifier(qvolatile));
@@ -177,8 +178,13 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 }
 
 DataType Scalar::getDataType() {
-	if (dt == BuildTypes::undefinedType)
-		return dt = expr()->getDataType();
-	else
-		return dt;
+	if (dt == BuildTypes::undefinedType) {
+		if (ident.isComplex()) {
+			Node *symbol = ident.getSymbol(getScope(), false);
+			if (symbol)
+				dt = symbol->getDataType();
+		} else
+			dt = getExpr()->getDataType();
+	}
+	return dt;
 }

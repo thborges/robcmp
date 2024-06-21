@@ -1,6 +1,8 @@
 
 #include "UserType.h"
+#include "FunctionAttributes.h"
 #include "HeaderGlobals.h"
+#include "Identifier.h"
 #include "Interface.h"
 #include "FunctionImpl.h"
 #include "FunctionDecl.h"
@@ -15,8 +17,12 @@
 
 class ParentScalar: public Scalar {
 public:
-    ParentScalar(DataType parentDt, location_t loc) : Scalar("parent", new Load("parent", loc)) {
-        expr()->setScope(this);
+    ParentScalar(DataType parentDt, location_t loc) : 
+        Scalar(Identifier("parent", loc), NULL) {
+        Load *load = new Load(":parent", loc);
+        load->setDataType(parentDt);
+        load->setScope(this);
+        setExpr(load);
         dt = parentDt;
         pointer = pm_pointer;
     }
@@ -44,7 +50,6 @@ bool UserType::createDataType() {
 
     int idx = 0;
     unsigned startBit = 0;
-    vector<Variable*> addedVars;
 
     // if needed, add typeid as the first field
     UInt8 *typeId = NULL;
@@ -52,7 +57,7 @@ bool UserType::createDataType() {
         typeId = new UInt8(0, getLoc()); // zero is changed below
         Scalar *sc = new Scalar("typeid", typeId);
         sc->setScope(this);
-        addChild(sc);
+        addChild(sc, true);
         addSymbol(sc);
     }
 
@@ -77,7 +82,7 @@ bool UserType::createDataType() {
             v->dt = ut->getDataType();
             cc->setScope(v);
             v->setScope(this);
-            addedVars.push_back(v);
+            addChild(v);
             
             // fix the symbol table due to the renaming
             getScope()->addSymbol(ut);
@@ -118,11 +123,6 @@ bool UserType::createDataType() {
         }
     }
     bitWidth = startBit;
-
-    for(auto a: addedVars) {
-        addChild(a);
-        addSymbol(a);
-    }
 
     StructType *uttype = StructType::create(global_context, ArrayRef<Type*>(elements), getName());
     dt = buildTypes->addDataType(this, uttype, bitWidth);
@@ -166,6 +166,21 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
         }
     }
 
+    /* set function parameters before generate
+     *  A function can call others that are still not generated
+     *  and request their type info. So, here we set all needed
+     *  info to pre-generate their type.
+     */
+    for(auto & [key, stmt] : getSymbols()) {
+        if (FunctionImpl *f = dynamic_cast<FunctionImpl*>(stmt)) {
+            f->setPrefixName(getName());
+            f->addThisArgument(dt);
+            for(auto &field : fields)
+                f->addSymbol(dynamic_cast<NamedNode*>(field));
+            f->setExternal(declaration);
+        }
+    }
+
     // generate user types and enums
     for(auto & [key, stmt] : getSymbols()) {
         if (UserType *ut = dynamic_cast<UserType*>(stmt)) {
@@ -186,27 +201,15 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
             std::move(fields), getLoc(), getLoc(), true);
     }
     finit->addThisArgument(dt);
-    if (parent)
+    if (parent) {
         finit->addParentArgument(parent->getDataType());
+        // nested user types can be inlined in the parent init
+        finit->getAttributes()->addAttribute(fa_inline);
+    }
     finit->setPrefixName(getName());
     finit->setExternal(declaration);
     finit->setConstructor(true);
     finit->generate(func, block, allocblock);
-
-    /* set function parameters before generate
-     *  A function can call others that are still not generated
-     *  and request their type info. So, here we set all needed
-     *  info to pre-generate their type.
-     */
-    for(auto & [key, stmt] : getSymbols()) {
-        if (FunctionImpl *f = dynamic_cast<FunctionImpl*>(stmt)) {
-            f->setPrefixName(getName());
-            f->addThisArgument(dt);
-            for(auto &field : fields)
-                f->addSymbol(dynamic_cast<NamedNode*>(field));
-            f->setExternal(declaration);
-        }
-    }
 
     // generate functions
     for(auto & [key, stmt] : getSymbols()) {
@@ -238,5 +241,12 @@ const string UserType::getName() const {
 void UserType::addSymbol(NamedNode *nm) {
     // addSymbol is overrided here because UserType has its
     // own scope and shouldn't call findSymbol recursivelly
-    symbols[nm->getName()] = nm;
+    const string& label = nm->getName();
+    auto it = symbols.find(label);
+    if (it != symbols.end()) {
+        yyerrorcpp(string_format("Symbol %s already declared for this type.", label.c_str()), nm);
+        yywarncpp("The first declaration is here.", it->second);
+    }
+    else
+        symbols[nm->getName()] = nm;
 }

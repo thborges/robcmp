@@ -22,4 +22,4 @@ void yyerrorcpp(const string& s, SourceLocation *n, bool semantic);
 void yywarncpp(const string& s, SourceLocation *n);
 
 bool parseFile(const string &source);
-bool parseUseFile(const string& use, location_t loc);
+bool parseUseFile(const string& use, location_t loc, bool isPath = false);

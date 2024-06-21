@@ -23,8 +23,10 @@ struct DebugInfo {
 	vector<DIFile *> files;
 	vector<DIScope *> scopes;
 	void emitLocation(SourceLocation *s);
-	void push_scope(DIFile *f, DIScope *);
+	void push_scope(DIScope*);
+	void push_file(DIFile*);
 	void pop_scope();
+	void pop_file();
 	DIFile *currFile();
 	DIScope *currScope();
 	void declareVar(Node *n, Value *alloc, BasicBlock *allocblock);

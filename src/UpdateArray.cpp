@@ -30,6 +30,7 @@ Value *UpdateArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *
 		return NULL;
 	}
 
+	Builder->SetInsertPoint(block);
 	Value *sym = symbol->getLLVMValue(func);
 
 	// sym type can be GlobalVariable or AllocInst

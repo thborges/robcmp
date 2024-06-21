@@ -1,1 +1,0 @@
-bind avr5mcu to aux.mmcu;

@@ -1,0 +1,440 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+/*
+ * Global Registers
+ */
+
+type SYSTICK_CTRL_t {
+	enable = false;
+	tickint = false;
+	clksource = false;
+	_res1 = uint5(0);
+	_res2 = uint8(0);
+	countflag = uint16(0);
+}
+
+const SCS_BASE = 0xE000E000;
+
+//register SYSTICK_t SYSTICK at 0xE000E010;
+register SYSTICK_CTRL_t SYSTICK_CTRL at 0xE000E010;
+register uint32 SYSTICK_LOAD  at 0xE000E014;
+register uint32 SYSTICK_VAL   at 0xE000E018;
+register uint32 SYSTICK_CALIB at 0xE000E01C;
+
+
+type AHBENR_t {
+	dma1 = false;		// DMA1 clock enable
+	dma2 = false;		// DMA2 clock enable
+	sram = false;		// SRAM interface clock enable
+	_res1 = false;
+	flitf = false;		// FLITF clock enable
+	_res2 = false;
+	crc = false;		// CRC clock enable
+	_res3 = false;
+	fsmc = false;		// FSMC clock enable
+	_res4 = false;
+	sdio = false;		// SDIO clock enable
+	_res5 = uint5(0);
+	_res6 = uint16(0);
+}
+
+type APB2EN_t {
+	afio = false;	// Alternate function I/O clock enable
+	_res1 = false;	
+	iopa = false;	// I/O port A clock enable
+	iopb = false;	// I/O port B clock enable
+	iopc = false;	// I/O port C clock enable
+	iopd = false;	// I/O port D clock enable
+	iope = false;	// I/O port E clock enable
+	iopf = false;	// I/O port F clock enable
+	iopg = false;	// I/O port G clock enable
+	adc1 = false;	// ADC1 interface clock enable
+	adc2 = false;	// ADC2 interface clock enable
+	tim1 = false;	// TIM1 Timer clock enable
+	spi1 = false;   // SPI1 clock enable
+	tim8 = false;   // TIM8 Timer clock enable
+	usart1 = false; // USART1 clock enable
+	adc3 = false;	// ADC3 interface clock enable
+	_res2 = uint16(0);
+}
+
+type APB1EN_t {
+	tim2 = false;		// Timer 2 clock enable
+	tim3 = false;		// Timer 3 clock enable
+	tim4 = false;		// Timer 4 clock enable
+	tim5 = false;		// Timer 5 clock enable
+	tim6 = false;		// Timer 6 clock enable
+	tim7 = false;		// Timer 7 clock enable
+	_res1 = uint5(0);
+	wwdg = false;		// Window watchdog clock enable
+	_res2 = uint2(0);
+	spi2 = false;		// SPI2 clock enable
+	spi3 = false;		// SPI3 clock enable
+	_res3 = false;
+	usart2 = false;		// USART 2 clock enable
+	usart3 = false;		// USART 3 clock enable
+	usart4 = false;		// USART 4 clock enable
+	usart5 = false;		// USART 5 clock enable
+	i2c1 = false;		// I2C 1 clock enable
+	i2c2 = false;		// I2C 2 clock enable
+	usb = false;		// USB clock enable
+	_res4 = false;		
+	can = false;		// CAN clock enable
+	_res5 = false;
+	bkp = false;		// Backup interface clock enable
+	pwr = false;		// Power interface clock enable
+	dac = false;		// DAC interface clock enable
+	_res6 = uint2(0);
+}
+
+// AHB peripheral clock enable register 
+register AHBENR_t AHBENR at 0x40021014;
+// APB1 peripheral clock enable register
+register APB1EN_t APB1EN at 0x4002101C;
+// APB2 peripheral clock enable register
+register APB2EN_t APB2EN at 0x40021018;
+
+
+// APB1 peripheral reset register
+type APB1RSTR_t {
+	tim2rst = false;
+	tim3rst = false;
+	tim4rst = false;
+	tim5rst = false;
+	tim6rst = false;
+	tim7rst = false;
+	_res1 = uint5(0);
+	wwdgrst = false;
+	_res2 = uint2(0);
+	spi2rst = false;
+	spi3rst = false;
+	_res3 = false;
+	usart2rst = false;
+	usart3rst = false;
+	uart4rst = false;
+	uart5rst = false;
+	i2c1rst = false;
+	i2c2rst = false;
+	usbrst = false;
+	_res4 = false;
+	canrst = false;
+	_res5 = false;
+	bkprst = false;
+	pwrrst = false;
+	dacrst = false;
+	_res6 = uint2(0);
+}
+register APB1RSTR_t APB1RSTR at 0x40021010;
+
+/*type GPIO_t {
+	uint32_t CRL;      // GPIO port configuration register low,      Address offset: 0x00
+	uint32_t CRH;      // GPIO port configuration register high,     Address offset: 0x04
+	uint32_t IDR;      // GPIO port input data register,             Address offset: 0x08
+	uint32_t ODR;      // GPIO port output data register,            Address offset: 0x0C
+	uint32_t BSRR;     // GPIO port bit set/reset register,          Address offset: 0x10
+	uint32_t BRR;      // GPIO port bit reset register,              Address offset: 0x14
+	uint32_t LCKR;     // GPIO port configuration lock register,     Address offset: 0x18
+}*/
+
+type RCC_t {
+	cr       = uint32(0); // RCC clock control register,                Address offset: 0x00
+	cfgr     = uint32(0); // RCC clock configuration register,          Address offset: 0x04
+	cir      = uint32(0); // RCC clock interrupt register,              Address offset: 0x08
+	apb2rstr = uint32(0); // RCC APB2 peripheral reset register,        Address offset: 0x0C
+	apb1rstr = uint32(0); // RCC APB1 peripheral reset register,        Address offset: 0x10
+	ahbenr   = uint32(0); // RCC AHB peripheral clock enable register,  Address offset: 0x14
+	apb2enr  = uint32(0); // RCC APB2 peripheral clock enable register, Address offset: 0x18
+	apb1enr  = uint32(0); // RCC APB1 peripheral clock enable register, Address offset: 0x1C
+	bdcr     = uint32(0); // RCC backup domain control register,        Address offset: 0x20
+	csr      = uint32(0); // RCC control/status register,               Address offset: 0x24
+	ahbrstr  = uint32(0); // RCC AHB peripheral clock reset register,   Address offset: 0x28
+	cfgr2    = uint32(0); // RCC clock configuration register2,         Address offset: 0x2C
+}
+
+type RCC_CR_t {
+	hsi_on = false;
+	hsi_rdy = false;
+	_res1 = false;
+	hsi_trim = uint5(0);
+	hsi_call = uint8(0);
+	hse_on = false;
+	hse_rdy = false;
+	hse_byp = false;
+	css_on = false;
+	_res2 = uint4(0);
+	pll_on = false;
+	pll_rdy = false;
+	_res3 = uint6(0);
+}
+
+type RCC_CFGR_t {
+	sw = uint2(0);		// System clock switch
+	sws = uint2(0);
+	hpre = uint4(0);
+	ppre1 = uint3(0);
+	ppre2 = uint3(0);
+	adc_pre = uint2(0);
+	pll_src = false;
+	pll_xtpre = false;
+	pll_mul = uint4(0);
+	usb_pre = false;
+	_res1 = false;
+	mco = uint3(0);
+	_res2 = uint5(0);
+}
+
+//
+register RCC_t RCC at 0x40021000;
+// Clock control register
+register RCC_CR_t RCC_CR at 0x40021000;
+// Clock configuration register
+register RCC_CFGR_t RCC_CFGR at 0x40021004;
+
+
+type FLASH_t {
+  acr      = uint32(0);
+  keyr     = uint32(0);
+  optkeyr  = uint32(0);
+  sr       = uint32(0);
+  cr       = uint32(0);
+  ar       = uint32(0);
+  _res     = uint32(0);
+  obr      = uint32(0);
+  wrpr     = uint32(0);
+}
+
+register FLASH_t FLASH at 0x40022000;
+
+/*
+ * PORT registers
+ */
+
+// PORT x Control Register Low (x=A..G)
+type GPIOx_CRL_t {
+	mode0 = uint2(0);
+	cnf0  = uint2(0);
+	mode1 = uint2(0);
+	cnf1  = uint2(0);
+	mode2 = uint2(0);
+	cnf2  = uint2(0);
+	mode3 = uint2(0);
+	cnf3  = uint2(0);
+	mode4 = uint2(0);
+	cnf4  = uint2(0);
+	mode5 = uint2(0);
+	cnf5  = uint2(0);
+	mode6 = uint2(0);
+	cnf6  = uint2(0);
+	mode7 = uint2(0);
+	cnf7  = uint2(0);
+}
+
+// PORT x Control Register High (x=A..G)
+type GPIOx_CRH_t {
+	mode8  = uint2(0);
+	cnf8   = uint2(0);
+	mode9  = uint2(0);
+	cnf9   = uint2(0);
+	mode10 = uint2(0);
+	cnf10  = uint2(0);
+	mode11 = uint2(0);
+	cnf11  = uint2(0);
+	mode12 = uint2(0);
+	cnf12  = uint2(0);
+	mode13 = uint2(0);
+	cnf13  = uint2(0);
+	mode14 = uint2(0);
+	cnf14  = uint2(0);
+	mode15 = uint2(0);
+	cnf15  = uint2(0);
+}
+
+// Port x output data register (x=A..G)
+type GPIOx_ODR_t {
+	odr0 = false;
+	odr1 = false;
+	odr2 = false;
+	odr3 = false;
+	odr4 = false;
+	odr5 = false;
+	odr6 = false;
+	odr7 = false;
+	odr8 = false;
+	odr9 = false;
+	odr10 = false;
+	odr11 = false;
+	odr12 = false;
+	odr13 = false;
+	odr14 = false;
+	odr15 = false;
+	_res = uint16(0);
+}
+
+// Port x input data register (x=A..G)
+type GPIOx_IDR_t {
+	idr0 = false;
+	idr1 = false;
+	idr2 = false;
+	idr3 = false;
+	idr4 = false;
+	idr5 = false;
+	idr6 = false;
+	idr7 = false;
+	idr8 = false;
+	idr9 = false;
+	idr10 = false;
+	idr11 = false;
+	idr12 = false;
+	idr13 = false;
+	idr14 = false;
+	idr15 = false;
+	_res = uint16(0);
+}
+
+
+// GPIO PORT A base address
+const GPIO_PORTA_BASE = 0x40010800;
+// PORT A Control Register Low
+register GPIOx_CRL_t GPIOA_CRL at 0x40010800;
+// PORT A Control Register High
+register GPIOx_CRH_t GPIOA_CRH at 0x40010804;
+// PORT A Input Data Register
+register GPIOx_IDR_t GPIOA_IDR at 0x40010808;
+// PORT A Output Data Register
+register GPIOx_ODR_t GPIOA_ODR at 0x4001080C;
+
+
+// GPIO PORT B base address
+const GPIO_PORTB_BASE = 0x40010C00;
+// PORT B Control Register Low
+register GPIOx_CRL_t GPIOB_CRL at 0x40010C00;
+// PORT B Control Register High
+register GPIOx_CRH_t GPIOB_CRH at 0x40010C04;
+// PORT B Input Data Register
+register GPIOx_IDR_t GPIOB_IDR at 0x40010C08;
+// PORT B Output Data Register
+register GPIOx_ODR_t GPIOB_ODR at 0x40010C0C;
+
+
+// GPIO PORT C base address
+const GPIO_PORTC_BASE = 0x40011000;
+// PORT C Control Register Low
+register GPIOx_CRL_t GPIOC_CRL at 0x40011000;
+// PORT C Control Register High
+register GPIOx_CRH_t GPIOC_CRH at 0x40011004;
+// PORT C Input Data Register
+register GPIOx_IDR_t GPIOC_IDR at 0x40011008;
+// PORT C Output Data Register
+register GPIOx_ODR_t GPIOC_ODR at 0x4001100C;
+
+
+enum PIN_MODE {INPUT = 0x0, OUTPUT10MHz = 0x1, OUTPUT2MHz = 0x2, OUTPUT50MHz = 0x3 }
+enum INPUT_MODE {ANALOG = 0x0, FLOATING = 0x1, PULLUPDOWN = 0x2 }
+enum OUTPUT_MODE {PUSHPULL = 0x0, OPENDRAIN = 0x1, APUSH_PULL = 0x2, AOPENDRAIN = 0x3 }
+
+
+/*
+ * I2C Registers
+ */
+
+type I2C_CR1_t {
+	pe = false;		   // peripheral enable
+	smbus = false;	   // true = SMBus mode = true, false = I2C
+	_res1 = false;
+	smbtype = false;   // false = SMBus device, SMBus Host
+	enarp = false;     // ARP enable
+	enpec = false;     // PEC enable
+	engc = false;      // General call enable
+	nostretch = false; // Clock stretching disable (0=enabled)
+	start = false;     // Start generation
+	stop = false;      // Stop generation
+	ack = false;       // Acknowledge enable
+	pos = false;       // Acknowledge/PEC Position (for data reception)
+	pec = false;       // Packet error checking
+	alert = false;     // SMBus alert
+	_res2 = false;
+	swrst = false;     // Software reset
+}
+
+type I2C_CR2_t {
+	freq = uint6(0);	// Peripheral clock frequency (in Mhz, from 2 to 36)
+	_res1 = uint2(0);
+	iterren = false;	// Error interrupt enable
+	itevten = false;	// Event interrupt enable
+	itbufen = false;	// Buffer interrupt enable
+	dmaen = false;		// DMA requests enable
+	last = false;		// DMA last transfer
+	_res2 = uint3(0);
+}
+
+type I2C_SR1_t {
+	sb = false;			// Start bit (Master mode)
+	addr = false;		// Address sent (mastermode) / matched (slave mode)
+	btf = false;		// Byte transfer finished
+	add10 = false;		// 10-bit header sent (Master mode)
+	stopf = false;		// Stop detection (slavemode)
+	_res1 = false;
+	rxne = false;		// Data register not empty (receivers)
+	txe = false;		// Data register empty (transmitters)
+	berr = false;		// Bus error
+	arlo = false;		// Arbitration lost (master mode)
+	af = false;			// Acknowledge failure
+	ovr = false;		// Overrun/Underrun
+	pecerr = false;		// PEC Error in reception
+	_res2 = false;
+	timeout = false;	// Timeout or Tlow error
+	smbalert = false;	// SMBus alert
+}
+
+type I2C_SR2_t {
+	msl = false;			// Master/slave
+	busy = false;			// Bus busy
+	tra = false;			// Transmitter/receiver false=data bytes received, true=data bytes transmited
+	_res = false;
+	gencall = false;		// General call address (Slave mode)
+	smbdefault = false;		// SMBus device default address (Slave mode)
+	smbhost = false;		// SMBus host header (Slave mode)
+	dualf = false;			// Dual flag (Slave mode)
+	pec = uint8(0);			// Packet error checking register
+}
+
+type I2C_CCR_t {
+	ccr = uint12(0);	// Clock control register in Fast/Standard mode (Master mode)
+	_res = uint2(0);
+	duty = false;		// Fast mode duty cycle 
+	fs = false;			// I2C master mode selection false=Standard, true=Fast
+}
+
+
+// I2C 1 Control 1 Register
+register I2C_CR1_t I2C1_CR1 at 0x40005400;
+// I2C 1 Control 2 Register
+register I2C_CR2_t I2C1_CR2 at 0x40005404;
+// I2C 1 Data Register (8 bits)
+register uint16 I2C1_DR     at 0x40005410;
+// I2C 1 Status 1 Register
+register I2C_SR1_t I2C1_SR1 at 0x40005414;
+// I2C 1 Status 2 Register
+register I2C_SR2_t I2C1_SR2 at 0x40005418;
+// I2C 1 Clock control register
+register I2C_CCR_t I2C1_CCR at 0x4000541C;
+// I2C 1 T RISE register
+register uint16 I2C1_TRISE at 0x40005420;
+
+// I2C 2 Control 1 Register
+register I2C_CR1_t I2C2_CR1 at 0x40005800;
+// I2C 2 Control 2 Register
+register I2C_CR2_t I2C2_CR2 at 0x40005804;
+// I2C 2 Data Register (8 bits)
+register uint16 I2C2_DR     at 0x40005810;
+// I2C 2 Status 1 Register
+register I2C_SR1_t I2C2_SR1 at 0x40005814;
+// I2C 2 Status 2 Register
+register I2C_SR2_t I2C2_SR2 at 0x40005818;
+// I2C 2 Clock control register
+register I2C_CCR_t I2C2_CCR at 0x4000581C;
+// I2C 2 T RISE register
+register uint16 I2C2_TRISE at 0x40005820;

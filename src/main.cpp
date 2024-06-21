@@ -5,9 +5,9 @@
 #include "Scanner.h"
 #include "Program.h"
 
-Program *program;
+Program *program = NULL;
 
-void print_llvm_ir(char opt_level);
+int print_llvm_ir(char opt_level);
 bool debug_info;
 bool build_dependencies;
 char *build_outputfilename;
@@ -94,31 +94,27 @@ int main(int argc, char *argv[]) {
 		i++;
 	}
 
-	if (specin) {
-		yyscan_t scanner;
-		speclex_init(&scanner);
-		specset_in(specin, scanner);
-		specparse(scanner);
-		speclex_destroy(scanner);
-		fclose(specin);
-	}
-
 	// set current target and basic build types
 	setTarget(targetarch);
 
-	if (!parseFile(buildFileName))
+	if (!buildFileName || !parseFile(buildFileName))
 		exit(1);
+
+	if (specin) {
+		if (!parseUseFile(spec_filename, {0,0,0,0}, true))
+			exit(1);
+	}
 
 	program->doSemanticAnalysis();
 	
-	if (errorsfound > 0) {
-		fprintf(stderr, "%d error(s) found.\n", errorsfound);
-	} else {
+	if (errorsfound <= 0)
 		program->generate(); 
-	}
 
 	if (errorsfound <= 0)
-		print_llvm_ir(optimization);
+		errorsfound = print_llvm_ir(optimization);
+
+	if (errorsfound > 0)
+		fprintf(stderr, "%d error(s) found.\n", errorsfound);
 
 	return errorsfound;
 }

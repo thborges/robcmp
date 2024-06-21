@@ -60,7 +60,10 @@ DataType ArrayElements::getArrayType() {
 	// find distinct types
 	set<DataType> types;
 	for(auto& i : elements) {
-		types.emplace(i->value->getDataType());
+		DataType edt = i->value->getDataType();
+		if (buildTypes->isEnum(edt))
+			edt = tint8;
+		types.emplace(edt);
 	}
 	return getArrayConstType(types, &location);
 }

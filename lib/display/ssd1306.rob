@@ -1,0 +1,247 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+use intfs.mcu;
+use intfs.ports;
+use intfs.databus;
+use intfs.buffer8;
+use intfs.display;
+
+type ssd1306 implements display {
+    mmcu = mcu();
+
+    // ports used by the SPI display
+    datacmd = digitalport();
+    reset = digitalport();
+    select = digitalport();
+
+    // SPI or I2C bus
+    dbus = databus();
+
+    // display address for I2C
+    address = 0u;
+
+    framebuffer implements buffer8 {
+        buff = {{0u:128}:8};
+        
+        uint16 height() inline { return buff.rows; }
+        uint16 width() inline { return buff.cols; }
+        
+        void clear() {
+            row = 0u;
+            while row < buff.rows {
+                col = 0u;
+                while col < buff.cols { 
+                    buff[row][col] = 0;
+                    col++;
+                }
+                row++;
+            }
+        }
+
+        uint8 get(uint16 row, uint16 col) inline {
+            return buff[row][col];
+        }
+        
+        void set(uint16 row, uint16 col, uint8 v) inline {
+            buff[row][col] = v;
+        }
+    }
+
+    enum powerstate {
+        SLEEP = 0xAE,
+        ON = 0xAF
+    }
+
+    enum i2c_control {
+        CMD_STREAM = 0x0,
+        DATA_STREAM = 0x40
+    }
+
+    enum commands {
+        SET_DISP_START_LINE	    = 0x40,
+        SET_SEG_REMAP_0  	    = 0xA0,
+        SET_SEG_REMAP_127	    = 0xA1,
+        SET_MULTIPLEX_RATIO     = 0xA8,
+        SET_COM_SCAN_NORMAL	    = 0xC0,
+        SET_COM_SCAN_INVERTED	= 0xC8,
+        SET_VERTICAL_OFFSET     = 0xD3,
+        SET_WIRING_SCHEME       = 0xDA,
+        SET_DISP_CLOCK          = 0xD5,
+        SET_PRECHARGE_PERIOD    = 0xD9,
+        SET_VCOM_DESELECT_LEVEL = 0xDB,
+        SET_CONTRAST		    = 0x81,
+        RESUME_TO_RAM_CONTENT	= 0xA4,
+        DISPLAY_MODE_NORMAL     = 0xA6,
+        DISPLAY_MODE_INVERTED   = 0xA7,
+        MEM_ADDRESSING 		    = 0x20,
+        SET_COLUMN_ADDRESS      = 0x21,
+        CHARGE_PUMP_REGULATOR 	= 0x8D,
+        CHARGE_PUMP_ON   	    = 0x14,
+        SET_PAGE_ADDR           = 0x22,
+        SET_COL_LO_NIBBLE       = 0x00,
+        SET_COL_HI_NIBBLE       = 0x10,
+        DEACTIVATE_SCROLL       = 0x2E,
+        NOP                     = 0xE3
+    }
+
+    uint16 rows() {
+        return framebuffer.height()*8;
+    }
+
+    uint16 columns() {
+        return framebuffer.width();
+    }
+
+    void set_address(uint8 a) {
+        address = a;
+    }
+
+    void init_display() {
+        datacmd.mode(port_mode.output);
+        reset.mode(port_mode.output);
+        select.mode(port_mode.output);
+
+        reset_display();
+
+        init_commands = {
+            powerstate.SLEEP,
+            commands.SET_DISP_CLOCK, 0x80,
+            commands.SET_MULTIPLEX_RATIO, 0x3F,
+            commands.SET_VERTICAL_OFFSET, 0x00,
+            commands.SET_DISP_START_LINE,
+            commands.CHARGE_PUMP_REGULATOR,
+            commands.CHARGE_PUMP_ON,
+            commands.MEM_ADDRESSING, 0x00, // Horizontal memory addressing mode
+            commands.SET_SEG_REMAP_0,
+            commands.SET_COM_SCAN_INVERTED,
+            commands.SET_WIRING_SCHEME, 0x12,
+            commands.SET_CONTRAST, 0x8F,
+            commands.SET_PRECHARGE_PERIOD, 0xF1,
+            commands.SET_VCOM_DESELECT_LEVEL, 0x40,
+            commands.RESUME_TO_RAM_CONTENT,
+            commands.DISPLAY_MODE_NORMAL,
+            commands.DEACTIVATE_SCROLL,
+            powerstate.ON
+        };
+
+        write_commands(init_commands);
+    }
+
+    void set_orientation(displayorientation o) {
+        cmds = {0:2};
+        
+        if (o == displayorientation.NORMAL or
+            o == displayorientation.NORMAL_MIRRORED) {
+            cmds[0] = commands.SET_SEG_REMAP_0;
+        } else {
+            cmds[0] = commands.SET_SEG_REMAP_127;
+        }
+
+        if (o == displayorientation.NORMAL_MIRRORED or
+            o == displayorientation.UPSIDE_DOWN) {
+            cmds[1] = commands.SET_COM_SCAN_INVERTED;
+        } else {
+            cmds[1] = commands.SET_COM_SCAN_NORMAL;
+        }
+
+        write_commands(cmds);
+    }
+
+    void set_display_mode(bool inverted) {
+        cmds = {0};
+        if inverted {
+            cmds[0] = commands.DISPLAY_MODE_INVERTED;
+        } else {
+            cmds[0] = commands.DISPLAY_MODE_NORMAL;
+        }
+        write_commands(cmds);
+    }
+
+    void set_contrast(uint8 c) {
+        cmds = {commands.SET_CONTRAST, int8(c)};
+        write_commands(cmds);
+    }
+
+    void reset_display() {
+        reset.set(true);
+        mmcu.wait_ms(10);
+        reset.set(false);
+        mmcu.wait_ms(10);
+        reset.set(true);
+    }
+
+    void write_commands(int8[] cmds) {
+        datacmd.set(false);
+        select.set(false);
+
+        dbus.start_transaction(address);
+        if (dbus.get_protocol() == databus_protocol.I2C) {
+            dbus.write(i2c_control.CMD_STREAM);
+        }
+
+        dbus.write_array(cmds);
+
+        dbus.end_transaction();
+        select.set(true);
+    }
+
+    void reset_cursor() {
+        cmds = {
+            // set page update range
+            commands.SET_PAGE_ADDR, 0x0, 0x7,
+            // set column update range
+            commands.SET_COLUMN_ADDRESS, 0x0, 127
+        };
+        write_commands(cmds);
+    }
+
+    void clear() {
+        reset_cursor();
+        
+        datacmd.set(true);
+        select.set(false);
+        zero_data = {0:128};
+
+        dbus.start_transaction(address);
+        if (dbus.get_protocol() == databus_protocol.I2C) {
+            dbus.write(i2c_control.DATA_STREAM);
+        }
+
+        i = 0u;
+		while i < framebuffer.height() {
+			dbus.write_array(zero_data);
+			i++;
+		}
+
+        dbus.end_transaction();
+        select.set(true);
+    }
+
+    void update_frame() {
+        reset_cursor();
+
+        datacmd.set(true);
+        select.set(false);
+        dbus.start_transaction(address);
+        if (dbus.get_protocol() == databus_protocol.I2C) {
+            dbus.write(i2c_control.DATA_STREAM);
+        }
+
+        row = 0u;
+		while row < framebuffer.height() {
+			col = 0u;
+			while col < framebuffer.width() { 
+                v = framebuffer.get(row, col);
+				dbus.write(v);
+				col++;
+			}
+			row++;
+		}
+        
+        dbus.end_transaction();
+        select.set(true);
+    }
+}

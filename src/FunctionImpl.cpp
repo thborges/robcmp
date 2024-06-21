@@ -6,6 +6,7 @@ FunctionImpl::FunctionImpl(DataType dt, string name, FunctionParams *fp, vector<
 	location_t loc, location_t ef, bool constructor) :
 	FunctionBase(dt, name, fp, std::move(stmts), loc, constructor), endfunction(ef) {
 	this->declaration = false;
+	funit = RobDbgInfo.currFile();
 
 	for(auto p: fp->getParameters()) {
 		symbols[p->getName()] = p;
@@ -38,7 +39,7 @@ bool FunctionImpl::preGenerate() {
 			return false;
 		
 		FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
-		func = Function::Create(ftype, Function::ExternalLinkage, codeAddrSpace, getFinalName(), mainmodule);
+		func = Function::Create(ftype, linkage, codeAddrSpace, getFinalName(), mainmodule);
 	}
 
 #ifdef __MINGW64__
@@ -46,38 +47,18 @@ bool FunctionImpl::preGenerate() {
 		func->setName("__main");
 #endif
 
-	func->setDSOLocal(true);
-	llvm::AttrBuilder attrs(global_context);
-	//attrs.addAttribute(Attribute::MinSize);
-	attrs.addAttribute("target-cpu", currentTarget().cpu);
-	attrs.addAttribute("frame-pointer", "all");
-	attrs.addAttribute("stack-protector-buffer-size", "8");
-	
-	if (attrInline) {
-		// inline constructors and functions with only one node.
-		// TODO: Check the resulting binary size.
-		//if (!debug_info)
-		attrs.addAttribute(Attribute::AlwaysInline);
-	} else if (node_children.size() == 1)
-		attrs.addAttribute(Attribute::InlineHint);
-	
-	if (name == "__vectors") { // FIXME: remove after adding functions attributes to language
-		func->setSection(".vectors");
-	}
-	
-	func->setAttributes(llvm::AttributeList().addFnAttributes(global_context, attrs));
+	addFunctionAttributes(func);
 	func->setCallingConv(CallingConv::C);
 
 	if (buildTypes->isUnsignedDataType(dt))
 		func->addRetAttr(Attribute::ZExt);
 
 	if (debug_info && !declaration) {
-		funit = DBuilder->createFile(RobDbgInfo.cunit->getFilename(), RobDbgInfo.cunit->getDirectory());
-		DIScope *fcontext = funit;
-		sp = DBuilder->createFunction(fcontext, getFinalName(), StringRef(), funit, this->getLineNo(),
-			getFunctionDIType(), this->getLineNo(), DINode::FlagZero, DISubprogram::SPFlagDefinition);
+		sp = DBuilder->createFunction(funit, getFinalName(), StringRef(), funit,
+			this->getLineNo(), getFunctionDIType(), this->getLineNo(), DINode::FlagZero, 
+			DISubprogram::SPFlagDefinition);
 		func->setSubprogram(sp);
-		RobDbgInfo.push_scope(funit, sp);
+		RobDbgInfo.push_scope(sp);
 	}
 
 	if (isExternal())
@@ -148,7 +129,7 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 		return NULL;
 
 	if (debug_info) {
-		RobDbgInfo.push_scope(funit, sp);
+		RobDbgInfo.push_scope(sp);
 		RobDbgInfo.emitLocation(this);
 	}
 	

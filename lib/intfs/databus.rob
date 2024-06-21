@@ -3,13 +3,17 @@
  * Apache License v2.0.
  */
 
+enum databus_protocol {SPI, I2C, UART, CAN}
+
 interface databus {
-    void setup(int32 speed);
+    void setup(uint32 speed);
     void enable();
     void disable();
     void write(uint8 b);
+    void write_array(int8[] data);
     uint8 read();
     bool has_data();
-    void start_transaction();
+    bool start_transaction(uint16 addr);
     void end_transaction();
+    databus_protocol get_protocol();
 }

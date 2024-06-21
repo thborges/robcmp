@@ -32,8 +32,8 @@ uint32 random32() {
     if (x < 0) {
         x += random_max32;
     }
-    random_seed = x;
-    return (random_seed % (random_max32 + 1u));
+    random_seed32 = x;
+    return (random_seed32 % (random_max32 + 1u));
 }
 
 /*

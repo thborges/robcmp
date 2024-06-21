@@ -15,10 +15,10 @@ class RobcmpPlatform(PlatformBase):
         if upload_protocol == "serial":
             if board == "avr328p":
                 required_tool = "tool-avrdude"
-            elif board == "stm32f1":
+            elif board.startswith("stm32f1"):
                 required_tool = "tool-stm32duino"
         elif upload_protocol == "stlink":
-            if board == "stm32f1":
+            if board.startswith("stm32f1"):
                 required_tool = "tool-openocd"
 
         if required_tool:
@@ -61,6 +61,34 @@ class RobcmpPlatform(PlatformBase):
                 "-hw", "hd44780",
                 "-g"
             ]
+
+        # J-Link, ST-Link
+        upload_protocols = board.manifest.get("upload", {}).get("protocols", [])
+        for link in ("jlink", "stlink"):
+            if link not in upload_protocols or link in debug["tools"]:
+                continue
+
+            server_args = ["-s", "$PACKAGE_DIR/scripts"]
+            assert debug.get("openocd_target"), (
+                "Missed target configuration for %s" % board.id)
+            server_args.extend([
+                "-f", "interface/%s.cfg" % link,
+                "-c", "transport select %s" % (
+                    "hla_swd" if link == "stlink" else "swd"),
+                "-f", "target/%s.cfg" % debug.get("openocd_target")
+            ])
+            server_args.extend(debug.get("openocd_extra_args", []))
+
+            debug["tools"][link] = {
+                "server": {
+                    "package": "tool-openocd",
+                    "executable": "bin/openocd",
+                    "arguments": server_args
+                }
+            }
+            
+            debug["tools"][link]["onboard"] = link in debug.get("onboard_tools", [])
+            debug["tools"][link]["default"] = link in debug.get("default_tools", [])
 
         board.manifest["debug"] = debug
         return board

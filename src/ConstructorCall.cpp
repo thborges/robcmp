@@ -43,7 +43,7 @@ Value* ConstructorCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlo
             funcDecl->setScope(program);
             funcDecl->setLocation(this);
             funcDecl->generate(NULL, NULL, global_alloc);
-            funcDecl->setInline(true);
+            funcDecl->setAttributes(new FunctionAttributes(fa_inline));
             program->addSymbol(funcDecl);
         }
         RobDbgInfo.emitLocation(this);

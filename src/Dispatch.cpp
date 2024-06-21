@@ -37,7 +37,6 @@ void Dispatch::generateDispatchFunctions(Node *scope) {
                 if (!dispatchFunc) {
                     dispatchFunc = Function::Create(functionDecl->getLLVMFunction()->getFunctionType(), 
                         Function::ExternalLinkage, codeAddrSpace, dispatchFuncName, mainmodule);
-                    dispatchFunc->setDSOLocal(true);
                     dispatchFunc->setCallingConv(CallingConv::C);
                     if (impls.size() == 1)
                         dispatchFunc->addFnAttr(Attribute::AlwaysInline);

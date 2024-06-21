@@ -135,12 +135,16 @@ DataType PropagateTypes::coerceArithOrCmp(Node &n, Node *lNode, Node *rNode) {
         return returnTy;
     }
 
+    if (buildTypes->isEnum(lTy))
+        lTy = tint8;
+    if (buildTypes->isEnum(rTy))
+        rTy = tint8;
+
     uint lBWidth = buildTypes->bitWidth(lTy);
     uint rBWidth = buildTypes->bitWidth(rTy);
 
     // both sides integer
     if (buildTypes->isIntegerDataType(lTy) && buildTypes->isIntegerDataType(rTy)) {
-        
         bool lUnsigned = buildTypes->isUnsignedDataType(lTy);
         bool rUnsigned = buildTypes->isUnsignedDataType(rTy);
 
@@ -210,16 +214,17 @@ DataType PropagateTypes::coerceArithOrCmp(Node &n, Node *lNode, Node *rNode) {
         return newTy;
     }
 
+    // Coerce between char and int8/uint8
     if ((lTy == tchar && rTy == tint8u) || (lTy == tint8u && rTy == tchar))
         return lTy;
-    else if (lTy == rTy) {
+    
+    if (lTy == rTy) {
         return lTy;
-    } else {
-        yyerrorcpp(string_format("FIXME: the pair %s and %s needs a coercion.", 
-            buildTypes->name(lTy), buildTypes->name(rTy)), &n);
-        assert(returnTy != BuildTypes::undefinedType);
     }
 
+    yyerrorcpp(string_format("FIXME: the pair %s and %s needs a coercion.", 
+        buildTypes->name(lTy), buildTypes->name(rTy)), &n);
+    assert(returnTy != BuildTypes::undefinedType);
     return returnTy;
 }
 
@@ -245,6 +250,8 @@ Node* PropagateTypes::visit(FunctionImpl& n) {
 Node* PropagateTypes::visit(Return& n) {
     if (!n.value()){
         n.dt = tvoid;
+        if (currentFunctionDt != tvoid)
+            yyerrorcpp(string_format("Return must be %s.", buildTypes->name(currentFunctionDt)), &n);
         return NULL;
     } else {
         propagateChildren(n);
@@ -394,9 +401,13 @@ Node* PropagateTypes::visit(Enum& n) {
 Node* PropagateTypes::visit(Variable& n) {
     
     propagateChildren(n);
+
+    bool checkCoercion = false;
+    DataType destDt = BuildTypes::undefinedType;
     
     Node *firstDecl = n.getScope()->findSymbol(n.getName());
     DataType sameNameDt = buildTypes->getType(n.getName());
+    
     if (sameNameDt != BuildTypes::undefinedType) {
         yyerrorcpp(string_format("The name %s is already used to define a type.", n.getName().c_str()), &n);
         if (firstDecl)
@@ -404,21 +415,32 @@ Node* PropagateTypes::visit(Variable& n) {
 
     } else if (firstDecl && firstDecl != &n) {
         DataType ndt = n.getDataType();
-        DataType fdt = firstDecl->getDataType();
+        destDt = firstDecl->getDataType();
         if (ndt != BuildTypes::undefinedType &&
-            fdt != BuildTypes::undefinedType &&
-            ndt != fdt) {
-            // the var was first defined as fdt.
+            destDt != BuildTypes::undefinedType &&
+            ndt != destDt) {
+            // the var was first defined as destDt.
             // we coherce the right hand side to match it
-            Node *result = NULL;
-            if (Scalar *sc = dynamic_cast<Scalar*>(&n)) {
-                result = coerceTo(sc->expr(), fdt);
-                sc->setExpr(result);
-            }
-            if (!result)
-                yywarncpp(string_format("The symbol %s was first defined here.", n.getName().c_str()), firstDecl);
+            checkCoercion = true;
         }
     }
+    
+    Node *expr = n.getExpr();
+    if (expr && (n.getDataType() != expr->getDataType())) {
+        // the variable type is distinct from the right hand side
+        // this can occur when using types, e.g. usertype.x = newvalue;
+        destDt = n.getDataType();
+        checkCoercion = true;
+    }
+
+    if (checkCoercion) {
+        Node *result = NULL;
+        result = coerceTo(expr, destDt);
+        n.setExpr(result);
+        if (!result)
+            yywarncpp(string_format("The symbol %s was first defined here.", n.getName().c_str()), firstDecl);
+    }
+
     return NULL;
 }
 
@@ -429,13 +451,18 @@ Node* PropagateTypes::visit(Scalar& n) {
     // although this should be done on SymbolizeTree,
     // some type propagarion in the tree change symbols
     // for scalars (e.g. FunctionCall -> ConstructorCall)
-    auto& exprSymbols = n.expr()->getSymbols();
+    auto& exprSymbols = n.getExpr()->getSymbols();
     if (exprSymbols.size() > 0)
         n.symbols = exprSymbols;
     return NULL;
 }
 
 Node* PropagateTypes::visit(Load& n) {
+    // skip the :parent field. For nested user types,
+    // the parameter doesn't exists at this point
+    if (n.getName() == ":parent")
+        return NULL;
+
     // although this should be done on SymbolizeTree,
     // some type propagarion in the tree change symbols
     // for scalars (e.g. FunctionCall -> ConstructorCall)

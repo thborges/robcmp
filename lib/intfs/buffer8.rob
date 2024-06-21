@@ -6,6 +6,7 @@
 interface buffer8 {
     uint16 height();
     uint16 width();
+    void clear();
     uint8 get(uint16 row, uint16 col);
     void set(uint16 row, uint16 col, uint8 v);
 }

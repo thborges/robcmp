@@ -17,13 +17,19 @@ void DebugInfo::emitLocation(SourceLocation *s) {
 		scope->getContext(), s->getLineNo(), s->getColNo(), scope));
 }
 
-void DebugInfo::push_scope(DIFile *f, DIScope *s) {
+void DebugInfo::push_scope(DIScope *s) {
 	scopes.push_back(s);
+}
+
+void DebugInfo::push_file(DIFile *f) {
 	files.push_back(f);
 }
 
 void DebugInfo::pop_scope() {
 	scopes.pop_back();
+}
+
+void DebugInfo::pop_file() {
 	files.pop_back();
 }
 
@@ -42,14 +48,14 @@ DIScope* DebugInfo::currScope() {
 DIExpression *DebugInfo::getFixedOffsetExpression() {
 	// TODO: For some unknown reason (to me), we need to offset 
 	// the var declaration by one to see its actual value
-	if (currentTarget().backend == rb_avr) {
+	/*if (currentTarget().backend == rb_avr) {
 		SmallVector<uint64_t, 8> Ops;
 		DIExpression *ex = DBuilder->createExpression();
 		ex->appendOffset(Ops, 1);
 		return DIExpression::prependOpcodes(ex, Ops, false);
-	} else {
+	} else {*/
 		return DBuilder->createExpression();
-	}
+	//}
 }
 
 void DebugInfo::declareVar(Node *n, Value *alloc, BasicBlock *allocblock) {

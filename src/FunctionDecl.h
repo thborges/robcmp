@@ -3,25 +3,26 @@
 #include "BuildTypes.h"
 #include "Node.h"
 #include "FunctionParams.h"
-#include "Variable.h"
-#include "Matrix.h"
+#include "FunctionAttributes.h"
 
 class FunctionBase: public NamedNode {
 protected:
 	FunctionParams *parameters;
+	FunctionAttributes *attributes = new FunctionAttributes();
 	Function *func = NULL;
 	bool declaration = true;
 	bool constructor = false;
 	bool external = false;
 	bool returnIsPointer = false;
-	bool attrInline = false;
 	DataType thisArgDt = BuildTypes::undefinedType;
 	Value *thisArg = NULL;
 	DataType parentArgDt = BuildTypes::undefinedType;
 	Value *parentArg = NULL;
 	string prefixName;
+	GlobalValue::LinkageTypes linkage = Function::ExternalLinkage;
 
 	bool validateAndGetArgsTypes(std::vector<Type*> &args);
+	void addFunctionAttributes(Function *f);
 
 public:
 	FunctionBase(DataType dt, string name, FunctionParams *fp, location_t loc) :
@@ -38,6 +39,11 @@ public:
 		this->parameters = fp;
 		this->constructor = constructor;
 		addPseudoParameters();
+	}
+
+	~FunctionBase() {
+		delete parameters;
+		delete attributes;
 	}
 
 	void addPseudoParameters();
@@ -76,10 +82,6 @@ public:
 
 	void setExternal(bool e) {
 		external = e;
-	}
-
-	void setInline(bool i) {
-		attrInline = i;
 	}
 
 	bool isExternal() {
@@ -123,6 +125,19 @@ public:
 			return name;
 		else
 			return prefixName + ":" + name;
+	}
+
+	void setAttributes(FunctionAttributes *attributes) {
+		delete this->attributes;
+		this->attributes = attributes;
+	}
+
+	FunctionAttributes *getAttributes() {
+		return attributes;
+	}
+
+	void setLinkage(GlobalValue::LinkageTypes l) {
+		linkage = l;
 	}
 };
 

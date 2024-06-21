@@ -37,8 +37,12 @@
 %type <ndouble> TOK_DOUBLE
 %type <nldouble> TOK_LDOUBLE
 %type <str> TOK_STRING asminline
+%type <fattrs> function_attributes
+%type <fattr> function_attribute
 
 %%
+
+programa : %empty
 
 programa : globals {
 	for(auto stmt : *($globals)) {
@@ -113,16 +117,38 @@ enum_item : TOK_IDENTIFIER[id] {
 
 function : function_decl | function_impl
 
-function_decl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' ';' {
-				$$ = new FunctionDecl(buildTypes->getType($type, true), $id, $function_params, @id);
-			}
-
-function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' '{' stmts '}'[ef] {
-	FunctionImpl *func = new FunctionImpl(buildTypes->getType($type, true), $id, $function_params,
-		std::move(*$stmts), @id, @ef); 
-	func->setLocation(@type);
+function_decl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' function_attributes[fa] ';' {
+	FunctionDecl *func = new FunctionDecl(buildTypes->getType($type, true), $id, $function_params, @id);
+	func->setAttributes($fa);
 	$$ = func;
 }
+
+function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' function_attributes[fa] '{' stmts '}'[ef] {
+	FunctionImpl *func = new FunctionImpl(buildTypes->getType($type, true), $id, $function_params,
+		std::move(*$stmts), @id, @ef); 
+	func->setAttributes($fa);
+	$$ = func;
+}
+
+function_attributes: function_attributes[fas] ',' function_attribute[fa] {
+	$fas->addAttribute($fa);
+	$$ = $fas;
+}
+
+function_attributes : function_attribute[fa] {
+	$$ = new FunctionAttributes();
+	$$->addAttribute($fa);
+}
+
+function_attributes : %empty {
+	$$ = new FunctionAttributes();
+}
+
+function_attribute
+	: TOK_WEAK							{ $$ = new FunctionAttribute(fa_weak, ""); }
+	| TOK_INLINE						{ $$ = new FunctionAttribute(fa_inline, ""); }
+	| TOK_NOINLINE						{ $$ = new FunctionAttribute(fa_noinline, ""); }
+	| TOK_SECTION TOK_IDENTIFIER[id]	{ $$ = new FunctionAttribute(fa_section, $id); }
 
 event : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'[ef] {	
 				/*char funcname[100];

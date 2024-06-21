@@ -8,12 +8,16 @@ use intfs.buffer8;
 type canvas8 {
     buffer = buffer8();
 
-    uint16 width() {
+    uint16 width() inline {
         return buffer.width();
     }
 
-    uint16 height() {
+    uint16 height() inline {
         return buffer.height()*8;
+    }
+
+    void clear() inline {
+        buffer.clear();
     }
 
     void set_pixel(uint16 row, uint16 col) {

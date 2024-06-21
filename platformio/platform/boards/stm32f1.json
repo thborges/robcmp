@@ -1,5 +1,6 @@
 {
   "build": {
+    "core": "stm32",
     "cpu": "cortex-m3",
     "f_cpu": "72000000L",
     "hwids": [
@@ -12,7 +13,7 @@
         "0x0004"
       ]
     ],
-    "mcu": "stm32f103c8t6",
+    "mcu": "stm32f103cbt6",
     "product_line": "STM32F103xB",
     "variant": "PILL_F103XX"
   },
@@ -28,8 +29,7 @@
     "openocd_target": "stm32f1x",
     "svd_path": "STM32F103xx.svd"
   },
-  "frameworks": [
-  ],
+  "frameworks": [],
   "name": "BluePill F103C8 (128k)",
   "upload": {
     "maximum_ram_size": 20480,
@@ -37,10 +37,8 @@
     "protocol": "stlink",
     "protocols": [
       "jlink",
-      "cmsis-dap",
       "stlink",
-      "blackmagic",
-      "dfu"
+      "serial"
     ]
   },
   "url": "http://www.st.com/content/st_com/en/products/microcontrollers/stm32-32-bit-arm-cortex-mcus/stm32f1-series/stm32f103/stm32f103c8.html",

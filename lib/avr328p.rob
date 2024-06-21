@@ -16,7 +16,7 @@
 	 asm "nop";
  }
  
- void __vectors() {
+ void __vectors() section __isr {
 	 /* FIXME: provide proper interrupt functions instead of __vectors 
 	  * after implementing "weak" attribute for functions
 	  */

@@ -1,10 +1,11 @@
 
-all: avr5.o
+GEN=avr5.o
 
-avr5.o: avr5.s
+all: ${GEN}
+
+avr5.o: avr5.S
 	@#here we are interested in the fastest possible code, intead of size
-	avr-gcc -mmcu=avr5 -O3 -c avr5.S
-
+	avr-gcc -mmcu=avr5 -O3 -c $<
 
 clean:
-	rm -f avr5.o
+	rm -f ${GEN}

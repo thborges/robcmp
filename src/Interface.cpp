@@ -27,22 +27,12 @@ void Interface::createDataType() {
 
 Value *Interface::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
-    // generate init function/constructor
-    /*FunctionParams *fp = new FunctionParams();
-    FunctionDecl *finit = new FunctionDecl((DataType)tvoid, "init", fp);
-    finit->addThisArgument(dt);
-    finit->setUserTypeName(getName());
-    finit->setExternal(true);
-    addChild(finit);
-    addSymbol(finit);*/
-
     // set function parameters
     for(Node *n : node_children) {
         FunctionDecl *fd = dynamic_cast<FunctionDecl*>(n);
         if (fd) {
             fd->setPrefixName(getName());
             fd->addThisArgument(dt);
-            fd->setExternal(true);
             fd->generate(func, block, allocblock);
         }
     }
@@ -58,7 +48,7 @@ bool Interface::validateImplementation(UserType *ut) {
         if (!symb) {
             yyerrorcpp(string_format("Type %s doesn't implement %s.", ut->getName().c_str(),
                 key.c_str()), ut);
-            yyerrorcpp(string_format("%s is defined here.", key.c_str()), func_decl);
+            yywarncpp(string_format("%s is defined here.", key.c_str()), func_decl);
             result = false;
         } else if (!fimpl) {
             yyerrorcpp(key + " must be a function.", symb);

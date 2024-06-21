@@ -87,7 +87,8 @@ bool parseFile(const string& source) {
     buildStackScanner.push_back(scanner);
 	MAINset_in(f, scanner);
 
-	program = new Program();
+    if (program == NULL)
+	    program = new Program();
     
 	MAINparse(scanner);
 
@@ -99,6 +100,14 @@ bool parseFile(const string& source) {
 
 FILE *findFile(string file_name, filesystem::path& file_path) {
     FILE *f = NULL;
+
+    // test current dir
+    filesystem::path test_path = file_name;
+    f = fopen(test_path.string().c_str(), "r");
+    if (f) {
+        file_path = test_path;
+        return f;
+    }
     
     // include the dir of the current file
     if (useStack.size() > 0)
@@ -120,18 +129,27 @@ FILE *findFile(string file_name, filesystem::path& file_path) {
     return f;
 }
 
-bool parseUseFile(const string& use, location_t loc) {
+bool parseUseFile(const string& use, location_t loc, bool isPath) {
 
     // search for and open {use}.rob file
-    const string sep{filesystem::path::preferred_separator};
-    string use_file = regex_replace(use, regex("\\."), sep);
-    string file_name = use_file + ".rob";
+    string file_name;
+    if (isPath)
+        file_name = use;
+    else {
+        const string sep{filesystem::path::preferred_separator};
+        string use_file = regex_replace(use, regex("\\."), sep);
+        file_name = use_file + ".rob";
+    }
     filesystem::path file_path;
     FILE *f = findFile(file_name, file_path);
 
     if (f == NULL) {
-        SourceLocation s(loc);
-        yyerrorcpp(string_format(file_not_found, file_name.c_str()), &s);
+        if (loc.first_line == 0) // spec file
+            cerr << string_format(file_not_found, file_name.c_str());
+        else {
+            SourceLocation s(loc);
+            yyerrorcpp(string_format(file_not_found, file_name.c_str()), &s);
+        }
         return false;
     }
 
@@ -164,9 +182,18 @@ bool parseUseFile(const string& use, location_t loc) {
 	MAINset_in(f, scanner);
     //extern int USEdebug;
     //USEdebug = 1;
-    if (build_dependencies)
+    if (build_dependencies) {
+        if (debug_info) {
+            string bPath = buildStack[buildStackCurrent];
+            DIFile *file = DBuilder->createFile(bPath, std::filesystem::current_path().string());
+            RobDbgInfo.push_file(file);
+        }
+
         MAINparse(scanner);
-    else
+        
+        if (debug_info)
+            RobDbgInfo.pop_file();
+    } else
 	    USEparse(scanner);
 
 	MAINlex_destroy(scanner);

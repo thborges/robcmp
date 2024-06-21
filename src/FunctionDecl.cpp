@@ -1,6 +1,7 @@
 
 #include "FunctionDecl.h"
 #include "BackLLVM.h"
+#include "Matrix.h"
 
 void FunctionBase::addThisArgument(DataType dt) {
 	thisArgDt = dt;
@@ -77,6 +78,34 @@ void FunctionBase::addPseudoParameters() {
 	}
 }
 
+void FunctionBase::addFunctionAttributes(Function *func) {
+	
+	//func->addFnAttr(Attribute::MinSize);
+	func->addFnAttr("target-cpu", currentTarget().cpu);
+	func->addFnAttr("frame-pointer", "all");
+	func->addFnAttr("stack-protector-buffer-size", "8");
+	
+	if (!attributes)
+		return;
+		
+	for(auto *attr : attributes->getAttributes()) {
+		switch (attr->first) {
+			case fa_weak:
+				func->setLinkage(GlobalValue::WeakAnyLinkage);
+				break;
+			case fa_inline:
+				func->addFnAttr(Attribute::AlwaysInline);
+				break;
+			case fa_noinline:
+				func->addFnAttr(Attribute::NoInline);
+				break;
+			case fa_section:
+				func->setSection(attr->second);
+				break;
+		}
+	}
+}
+
 Value *FunctionDecl::generate(FunctionImpl*, BasicBlock *, BasicBlock *allocblock) {
 	
 	Node *symbol = findSymbol(name);
@@ -95,13 +124,10 @@ Value *FunctionDecl::generate(FunctionImpl*, BasicBlock *, BasicBlock *allocbloc
 		xtype = xtype->getPointerTo();
 	
 	FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
-	Function *nfunc = Function::Create(ftype, Function::ExternalLinkage, codeAddrSpace, getFinalName(), mainmodule);
-	nfunc->setDSOLocal(true);
+	Function *nfunc = Function::Create(ftype, linkage, codeAddrSpace, getFinalName(), mainmodule);
 	nfunc->setCallingConv(CallingConv::C);
+	addFunctionAttributes(nfunc);
 
-	if (attrInline)
-		nfunc->addFnAttr(Attribute::AlwaysInline);
-	
 	if (buildTypes->isUnsignedDataType(dt))
 		nfunc->addRetAttr(Attribute::ZExt);
 	

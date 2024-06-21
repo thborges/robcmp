@@ -7,6 +7,16 @@ import sys
 from os.path import join
 from SCons.Script import AlwaysBuild, Builder, Default, DefaultEnvironment, Glob
 
+from platformio.util import get_serial_ports
+
+
+def BeforeUpload(target, source, env):  # pylint: disable=W0613,W0621
+    env.AutodetectUploadPort()
+    upload_options = {}
+    if "BOARD" in env:
+        upload_options = env.BoardConfig().get("upload", {})
+
+
 env = DefaultEnvironment()
 platform = env.PioPlatform()
 ldscripts_folder = join(platform.get_package_dir("toolchain-robcmp"), "lib")
@@ -20,29 +30,43 @@ env.Replace(
 )
 
 sources = []
+auxsources = []
 
 board = env.subst("$BOARD")
 mcu = env.subst("$BOARD_MCU")
-ldflags = ["-nostdlib", "-entry=main", "-L", ldscripts_folder, "-Bstatic"]
-if mcu == "stm32f1":
+try:
+    hardware_spec = env.GetProjectOption("board_hardware_spec")
+except:
+    hardware_spec = None
+    pass
+
+ldflags = ["-nostdlib", "-entry=main", "-L", stdlib_folder, "-Bstatic"]
+if mcu.startswith("stm32f1"):
     ldflags.append("-Tstm32f1.ld")
+    auxsources += Glob(join(stdlib_folder, "stm32f1.rob"))
 elif mcu == "atmega328p":
     ldflags.append("-Tavr328p.ld")
-    ldflags.append(join(ldscripts_folder, "avr5.o"))
-    sources += Glob(join(ldscripts_folder, "avr328p.rob"))
+    ldflags.append(join(stdlib_folder, "avr5.o"))
+    auxsources += Glob(join(stdlib_folder, "avr328p.rob"))
 else:
     sys.stderr.write("The requested mcu is not supported.\n")
     env.Exit(1)
 
+ldflags.append("--gc-sections")
+ldflags.append("--lto=thin")
+
 build_type = env.subst("$BUILD_TYPE")
-robcmp_args = ["robcmp", "-bdep", "-a", board, "-o", "$TARGET"]
+robcmp_args = ["robcmp", "-a", board, "-o", "$TARGET"]
+
 if build_type == "debug":
     robcmp_args.append("-g")
     robcmp_args.append("-O0")
 elif build_type == "release":
-    robcmp_args.append("-O3")
-ldflags.append("--gc-sections")
-ldflags.append("--lto=thin")
+    robcmp_args.append("-Oz")
+
+hardware_spec_args = []
+if hardware_spec:
+    hardware_spec_args = ["-s", hardware_spec]
 
 robcmp_args.append("-I")
 robcmp_args.append(stdlib_folder)
@@ -70,6 +94,11 @@ env.Append(
             action = ' '.join(robcmp_args),
             suffix = '.o',
             src_suffix = '.rob',
+        ),
+        RobDep=Builder(
+            action = ' '.join(robcmp_args + hardware_spec_args + ["-bdep"]),
+            suffix = '.o',
+            src_suffix = '.rob',
         )
     )
 )
@@ -80,6 +109,8 @@ sources += Glob(env.subst(join("$PROJECT_DIR/src/", "main.rob")))
 
 target_objs = []
 for f in sources:
+    target_objs += env.RobDep(join("$BUILD_DIR", f.name + ".o"), f)
+for f in auxsources:
     target_objs += env.Rob(join("$BUILD_DIR", f.name + ".o"), f)
 
 target_elf = env.Linker(join("$BUILD_DIR", "firmware"), target_objs)
@@ -92,11 +123,11 @@ upload_actions = []
 if upload_protocol == "serial":
     upload_actions.append(env.VerboseAction(env.AutodetectUploadPort, "Looking for upload port..."))
 
-    if mcu == "stm32f1":
+    if mcu.startswith("stm32"):
         stm32flash_bin = join(platform.get_package_dir("tool-stm32duino"), "stm32flash")
         env.Replace(
             UPLOADER=join(stm32flash_bin, "stm32flash"),
-            UPLOADERFLAGS=["-g", "0x08000000", "-b", "115200", "-w"],
+            UPLOADERFLAGS=["-b", "115200", "-w"],
             UPLOADCMD='$UPLOADER $UPLOADERFLAGS "$SOURCE" $UPLOAD_PORT'
         )
 
@@ -114,13 +145,13 @@ if upload_protocol == "serial":
         env.Exit(1)
 
 elif upload_protocol == "stlink":
-    if mcu == "stm32f1":
+    if mcu.startswith("stm32f1"):
         openocd_folder = platform.get_package_dir("tool-openocd")
         env.Replace(
             UPLOADER=join(openocd_folder, "bin", "openocd"),
             UPLOADERFLAGS=["-f", join(openocd_folder, "scripts/interface/stlink.cfg"),
                            "-f", join(openocd_folder, "scripts/target/stm32f1x.cfg"),
-                           "-c", "program $SOURCE reset 0x08000000 exit"],
+                           "-c", "program $SOURCE reset exit"],
             UPLOADCMD="$UPLOADER $UPLOADERFLAGS"
         )
 
@@ -134,7 +165,11 @@ else:
 
 upload_actions.append(env.VerboseAction("$UPLOADCMD", "Uploading $SOURCE"))
 
-upload = env.Alias(["upload"], target_bin, upload_actions)
+upload = None
+if mcu.startswith("stm32f1"):
+    upload = env.Alias(["upload"], target_elf, upload_actions)
+else:
+    upload = env.Alias(["upload"], target_bin, upload_actions)
 AlwaysBuild(upload)
 
 # SIZE

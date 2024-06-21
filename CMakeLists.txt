@@ -27,7 +27,6 @@ file(GLOB robcmp_SRC CONFIGURE_DEPENDS
 )
 
 flex_target(lexer "${CMAKE_CURRENT_SOURCE_DIR}/src/Language.l" "${CMAKE_BINARY_DIR}/Language_l.cpp")
-flex_target(lexer_spec "${CMAKE_CURRENT_SOURCE_DIR}/src/Spec.l" "${CMAKE_BINARY_DIR}/Spec_l.cpp")
 
 bison_target(scanner_main 
     "${CMAKE_BINARY_DIR}/Language_gen.y"
@@ -37,10 +36,6 @@ bison_target(scanner_main
 bison_target(scanner_use
     "${CMAKE_BINARY_DIR}/LanguageUse_gen.y"
     "${CMAKE_BINARY_DIR}/LanguageUse_gen.cpp"
-    COMPILE_FLAGS "-Wall -Wno-deprecated")
-bison_target(scanner_spec
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/Spec.y"
-    "${CMAKE_BINARY_DIR}/Spec_y.cpp"
     COMPILE_FLAGS "-Wall -Wno-deprecated")
 
 # Language_gen.y
@@ -59,13 +54,12 @@ add_custom_target(parsers
         DEPENDS ${CMAKE_BINARY_DIR}/Language_gen.y ${CMAKE_BINARY_DIR}/LanguageUse_gen.y)
 
 add_executable(robcmp
-	${FLEX_lexer_OUTPUTS} ${FLEX_lexer_spec_OUTPUTS}
-	${BISON_scanner_main_OUTPUTS} ${BISON_scanner_use_OUTPUTS} ${BISON_scanner_spec_OUTPUTS}
+	${FLEX_lexer_OUTPUTS}
+	${BISON_scanner_main_OUTPUTS} ${BISON_scanner_use_OUTPUTS}
 	${robcmp_SRC})
 
 add_flex_bison_dependency(lexer scanner_main)
 add_flex_bison_dependency(lexer scanner_use)
-add_flex_bison_dependency(lexer_spec scanner_spec)
 add_dependencies(robcmp parsers)
 
 llvm_map_components_to_libnames(llvm_libs support core irreader passes

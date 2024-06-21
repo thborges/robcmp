@@ -18,7 +18,8 @@ Value *Variable::getLLVMValue(Node *stem) {
 				// in the global or same scope, defer :this and gep the field
 				alloc = Builder->CreateStructGEP(thisTy, thisptr, gepidx, "gepthis");
 			} else {
-				// in distinct scopes, access :parent (gep 0) in :this and gep the field
+				// FIXME: in distinct scopes, access :parent (gep 0 or 1) in :this and gep the field
+				// currently, the CreateStructGEP deference 0; but zero sometimes is the typeid var
 				Type *parentTy = buildTypes->llvmType(this->getScope()->getDataType());
 				Value *parentAlloc = Builder->CreateStructGEP(parentTy, thisptr, 0, "gepthis");
 				Value *parentptr = Builder->CreateLoad(parentTy->getPointerTo(), parentAlloc, "derefparent");

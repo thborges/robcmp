@@ -49,6 +49,7 @@ Value* MemCopy::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
         size = Builder->CreateBinOp(Instruction::Mul, elbytes, nelem, "matrixsize");
     } else {
         TypeSize ts = dl.getTypeAllocSize(buildTypes->llvmType(dt));
+        nelem = ConstantInt::get(Type::getInt8Ty(global_context), 1);
         size = ConstantInt::get(Type::getInt32Ty(global_context), ts);
     }
 
@@ -79,7 +80,7 @@ Value* MemCopy::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
             RobDbgInfo.declareVar(this, dest, allocblock);
     }
 
-    if (!dest || !expr || !leftvty->isPointerTy() || 
+    if (!dest || !expr || //!leftvty->isPointerTy() || 
         !exprvty->isPointerTy()) {
         yyerrorcpp("Can not copy these operands.", this);
         return NULL;

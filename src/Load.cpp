@@ -118,7 +118,7 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 }
 
 bool Load::isConstExpr() {
-	Variable *symbol = dynamic_cast<Variable*>(ident.getSymbol(getScope()));
+	Node *symbol = ident.getSymbol(getScope());
 	return symbol && symbol->isConstExpr();
 }
 

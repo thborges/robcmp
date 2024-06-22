@@ -1,6 +1,7 @@
 
 #include "Pointer.h"
 #include "BackLLVM.h"
+#include "HeaderGlobals.h"
 #include "UserType.h"
 
 Pointer::Pointer(const char *name, DataType type, Node *address, location_t loc): 
@@ -32,18 +33,24 @@ Value *Pointer::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
     }
 
     Type *targetPointerType = buildTypes->llvmType(dt)->getPointerTo();
+
+    // In favor of faster and smaller code size, we return the pointer
+    // as a ConstantExpr. This limits pointer arithmetic.
+    Constant *addr_num = dyn_cast<Constant>(addr);
+    assert(addr_num && "FIXME: global pointer defined without constant address.");
+    Constant *calloc = ConstantExpr::getIntToPtr(addr_num, targetPointerType);
+    alloc = calloc;
     
-    if (allocblock == global_alloc) {
-        Constant *addr_num = dyn_cast<Constant>(addr);
-        assert(addr_num && "FIXME: global pointer defined without constant address.");
-        alloc = ConstantExpr::getIntToPtr(addr_num, targetPointerType);
-        return alloc;
-    } else {
-        RobDbgInfo.emitLocation(this);
-        Builder->SetInsertPoint(block);
-        alloc = Builder->CreateIntToPtr(addr, targetPointerType, name);
-        return alloc;
+    extern bool build_dependencies;
+    if (debug_info && build_dependencies) {
+        // we add a global variable associated with the pointer
+        // to easy debugging
+        GlobalVariable *gv = new GlobalVariable(*mainmodule, targetPointerType, false, 
+            GlobalValue::ExternalLinkage, calloc, name);
+        RobDbgInfo.declareGlobalVar(this, gv, allocblock);
     }
+    
+    return alloc;
 }
 
 unsigned Pointer::getFieldStartBit(Node *field) {

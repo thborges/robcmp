@@ -21,7 +21,7 @@ Node* Identifier::getSymbol(Node *scope, bool validate) {
     }
     
     if (!result && validate) {
-        yyerrorcpp("Symbol " + ci + " not found.", this);
+        yyerrorcpp("Symbol " + ident + " not found.", this);
     }
     return result;
 }

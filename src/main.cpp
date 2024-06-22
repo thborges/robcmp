@@ -8,6 +8,7 @@
 Program *program = NULL;
 
 int print_llvm_ir(char opt_level);
+void setup_target_machine(char opt_level);
 bool debug_info;
 bool build_dependencies;
 char *build_outputfilename;
@@ -104,6 +105,8 @@ int main(int argc, char *argv[]) {
 		if (!parseUseFile(spec_filename, {0,0,0,0}, true))
 			exit(1);
 	}
+
+	setup_target_machine(optimization);
 
 	program->doSemanticAnalysis();
 	

@@ -64,6 +64,7 @@ private:
     map<DataType, DataTypeInfo> tinfo;
     map<string, DataType> namedTypes;
     DataType nextt = __bdt_last;
+    DataType targetPointerType;
 
     DataType addDataType(const DataTypeInfo& udt) {
         DataType result = nextt++;
@@ -71,6 +72,9 @@ private:
         namedTypes[udt.name] = result;
         return result;
     }
+
+    void generateDebugInfoForEnum(DataTypeInfo &info, Node *userType);
+    void generateDebugInfoForUserType(DataTypeInfo &info, Node *userType);
 
 public:
     static const DataType undefinedType = -1;
@@ -241,6 +245,12 @@ public:
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].isDefined; 
     }
+
+    unsigned getTargetPointerBitWidth() {
+        return tinfo[targetPointerType].bitWidth;
+    }
+
+    void generateDebugInfoForTypes();
 };
 
 // TODO: Replace all places with buildType::name

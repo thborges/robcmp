@@ -1,12 +1,21 @@
 
 #include "BuildTypes.h"
 #include "HeaderGlobals.h"
+#include "Identifier.h"
+#include "NamedConst.h"
 #include "Node.h"
+#include "Program.h"
 #include "Scanner.h"
 #include "Variable.h"
+#include "Array.h"
+#include "Matrix.h"
+#include "UserType.h"
 #include "BackLLVM.h"
+#include "Int8.h"
 
-BuildTypes::BuildTypes(DataType targetPointerType) {
+BuildTypes::BuildTypes(DataType targetPointerType) : 
+    targetPointerType(targetPointerType) {
+
     tinfo[tvoid]    = {"void",          0, Type::getVoidTy(global_context),    dwarf::DW_ATE_address};
     tinfo[tbool]    = {"bool",          1, Type::getInt1Ty(global_context),    dwarf::DW_ATE_boolean};
     tinfo[tchar]    = {"char",          8, Type::getInt8Ty(global_context),    dwarf::DW_ATE_unsigned_char};
@@ -106,12 +115,13 @@ DataType BuildTypes::getType(const string& name, bool createUndefined) {
 
 DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBitWidth,
     bool isEnum) {
-    const string& name = userType->getName();
+    string name = userType->getName();
+    if (UserType *ut = dynamic_cast<UserType*>(userType))
+        name = ut->getTypeName();
     auto udt = namedTypes.find(name);
     DataType id;
 
-    const DataLayout &dl = mainmodule->getDataLayout();
-
+    const DataLayout& dl = mainmodule->getDataLayout();
     uint64_t bitWidth = typeBitWidth;
     if (typeBitWidth == 0 && llvmType->isSized())
         typeBitWidth = dl.getTypeAllocSizeInBits(llvmType);
@@ -132,44 +142,6 @@ DataType BuildTypes::addDataType(Node* userType, Type* llvmType, unsigned typeBi
     info.bitWidth = bitWidth;
     info.isInternal = false;
     info.isInterface = false;
-    
-    if (debug_info) {
-        unsigned offset = 0;
-        vector<llvm::Metadata *> elems;
-        vector<Node*> members;
-        for(auto& [key, m] : userType->getSymbols()) {
-            if (Node *n = dynamic_cast<Variable*>(m))
-                members.push_back(n);
-        }
-
-        //assert((members.size() == llvmType->getNumContainedTypes()) &&
-        //    "Number of fields differ between LLVM Type and Node.");
-        
-        int i = 0;
-        elems.reserve(members.size());
-        for(Node *m : members) {
-            DataType mdt = m->getDataType();
-            if (mdt == -1 || tinfo[mdt].bitWidth == 0) {
-                continue;
-            }
-            Type *memberTy = llvmType->getContainedType(i);
-            uint64_t memberBitWidth = dl.getTypeSizeInBits(memberTy);
-            uint32_t memberAlign = dl.getABITypeAlign(memberTy).value();
-            DIType *di = DBuilder->createMemberType(RobDbgInfo.currScope(), m->getName(), 
-                RobDbgInfo.currFile(), m->getLineNo(), 
-                memberBitWidth, memberAlign, offset, DINode::DIFlags::FlagZero,
-                diType(m->getDataType()));
-            elems.push_back(di);
-            offset += memberBitWidth;
-            i++;
-        }
-        auto dielems = DBuilder->getOrCreateArray(elems);
-        info.diType = DBuilder->createClassType(RobDbgInfo.currScope(), name,
-            RobDbgInfo.currFile(), userType->getLineNo(), bitWidth, 1, 0,
-            DINode::DIFlags::FlagZero, nullptr, dielems);
-        unsigned ptbw = tinfo[currentTarget().pointerType].bitWidth;
-        info.diPointerType = DBuilder->createPointerType(info.diType, ptbw);
-    }
     return id;
 }
 
@@ -178,4 +150,123 @@ Type *BuildTypes::llvmType(DataType tid) {
         return NULL;
     else
         return tinfo[tid].llvmType;
+}
+
+void BuildTypes::generateDebugInfoForEnum(DataTypeInfo &info, Node *userType) {
+    
+    unsigned offset = 0;
+    vector<llvm::Metadata *> elems;
+
+    for(auto *m : userType->children()) {
+        if (NamedConst *n = dynamic_cast<NamedConst*>(m)) {
+            Node *value = n->getValue();
+            uint8_t v = 0;
+            if (Int8 *i8 = dynamic_cast<Int8*>(value))
+                v = i8->getNumber();
+            else if (UInt8 *ui8 = dynamic_cast<UInt8*>(value))
+                v = ui8->getNumber();
+            else
+                assert(0 && "Unknown enum value node.");
+
+            auto etor = DBuilder->createEnumerator(n->getName(), v);
+            elems.push_back(etor);
+        } else
+            assert(0 && "Unknown enum node.");
+    }
+
+    auto dielems = DBuilder->getOrCreateArray(elems);
+    info.diType = DBuilder->createEnumerationType(RobDbgInfo.currScope(), info.name,
+        RobDbgInfo.currFile(), userType->getLineNo(), info.bitWidth, 1,
+        dielems, tinfo[tint8].diType);
+}
+
+void BuildTypes::generateDebugInfoForUserType(DataTypeInfo &info, Node *userType) {
+    
+    const DataLayout& dl = mainmodule->getDataLayout();
+    unsigned offset = 0;
+    vector<llvm::Metadata *> elems;
+    vector<Node*> members;
+    for(auto *m : userType->children()) {
+        if (Node *n = dynamic_cast<Variable*>(m))
+            members.push_back(n);
+    }
+
+    //assert((members.size() == llvmType->getNumContainedTypes()) &&
+    //    "Number of fields differ between LLVM Type and Node.");
+    
+    elems.reserve(members.size());
+    for(Node *m : members) {
+        DataType mdt = m->getDataType();
+        if (isInterface(mdt)) {
+            // search the injections
+            string fieldName = info.name;
+            fieldName.append("." + m->getName());
+            string injType = injections[fieldName].first;
+            Node *symbol = Identifier(injType, userType->getLoc()).getSymbol(program, false);
+            mdt = symbol->getDataType();
+        }
+        if (mdt == -1 || tinfo[mdt].bitWidth == 0) {
+            continue;
+        }
+        
+        Type *memberTy = tinfo[mdt].llvmType;
+        DIType *memberDiType = diType(mdt);
+        if (Variable *v = dynamic_cast<Variable*>(m)) {
+            if (v->getPointerMode() == pm_pointer) {
+                memberTy = memberTy->getPointerTo();
+                memberDiType = diPointerType(mdt);
+                if (!memberDiType) {
+                    // parent field 
+                    memberDiType = diPointerType(targetPointerType);
+                }
+            }
+        }
+        
+        uint64_t memberBitWidth = dl.getTypeAllocSizeInBits(memberTy);
+        if (memberTy->isArrayTy()) {
+            memberBitWidth = dl.getTypeAllocSizeInBits(memberTy->getArrayElementType());
+            if (Matrix *matrix = dynamic_cast<Matrix*>(m))
+                memberBitWidth *= matrix->getRows() * matrix->getCols();
+            else if (Array *array = dynamic_cast<Array*>(m))
+                memberBitWidth *= array->getSize();
+        }
+        uint32_t memberAlignInBits = dl.getABITypeAlign(memberTy).value() * 8;
+        
+        // align offset according to memberAlign
+        // TODO: improved this when implementing packed structs/types
+        if (offset % memberAlignInBits != 0)
+            offset += memberAlignInBits - (offset % memberAlignInBits);
+
+        DIType *di = DBuilder->createMemberType(RobDbgInfo.currScope(), m->getName(), 
+            RobDbgInfo.currFile(), m->getLineNo(), memberBitWidth, memberAlignInBits,
+            offset, DINode::DIFlags::FlagZero, memberDiType);
+        assert(di);
+        elems.push_back(di);
+        offset += memberBitWidth;
+    }
+
+    auto dielems = DBuilder->getOrCreateArray(elems);
+    info.diType = DBuilder->createClassType(RobDbgInfo.currScope(), info.name,
+        RobDbgInfo.currFile(), userType->getLineNo(), info.bitWidth, 1, 0,
+        DINode::DIFlags::FlagZero, nullptr, dielems);
+    unsigned ptbw = tinfo[targetPointerType].bitWidth;
+    info.diPointerType = DBuilder->createPointerType(info.diType, ptbw);
+}
+
+void BuildTypes::generateDebugInfoForTypes() {
+    if (!debug_info)
+        return;
+
+    for (DataType dt = nextt-1; dt >= __bdt_last; dt--) {
+        auto& info = tinfo[dt];
+
+        Node *userType = program->findSymbol(info.name);
+        if (!userType)
+            continue;
+
+        if (info.isEnum)
+            generateDebugInfoForEnum(info, userType);
+        else
+            generateDebugInfoForUserType(info, userType);
+    }
 }

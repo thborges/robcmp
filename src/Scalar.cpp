@@ -2,6 +2,7 @@
 #include "Scalar.h"
 #include "FunctionImpl.h"
 #include "BackLLVM.h"
+#include "HeaderGlobals.h"
 #include "Pointer.h"
 
 Scalar::Scalar(Identifier ident, Node *e) :
@@ -78,18 +79,12 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 				Type *gty = buildTypes->llvmType(dt);
 				if (expr->isPointerToPointer())
 					gty = gty->getPointerTo();
-				GlobalVariable *gv = new GlobalVariable(*mainmodule, gty, false, 
+				GlobalVariable *gv = new GlobalVariable(*mainmodule, gty, hasQualifier(qconst), 
 					GlobalValue::ExternalLinkage, exprvc, name);
 				ret = alloc = gv;
 
-				if (debug_info) {
-					llvm::DIType *dty = buildTypes->diType(dt);
-					if (expr->isPointerToPointer())
-						dty = buildTypes->diPointerType(dt);
-					auto *d = DBuilder->createGlobalVariableExpression(sp, name, "",
-						funit, getLineNo(), dty, false);
-					gv->addDebugInfo(d);
-				}
+				if (debug_info)
+					RobDbgInfo.declareGlobalVar(expr, gv, allocblock);
 			}
 		} else {
 			RobDbgInfo.emitLocation(this);

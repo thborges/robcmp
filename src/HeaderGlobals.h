@@ -30,6 +30,7 @@ struct DebugInfo {
 	DIFile *currFile();
 	DIScope *currScope();
 	void declareVar(Node *n, Value *alloc, BasicBlock *allocblock);
+	void declareGlobalVar(Node *n, GlobalVariable *gv, BasicBlock *allocblock);
 	DIExpression *getFixedOffsetExpression();
 };
 extern struct DebugInfo RobDbgInfo;

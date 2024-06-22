@@ -1,9 +1,7 @@
 
 #pragma once
 
-#include "HeaderExternals.h"
 #include "Node.h"
-#include "Scalar.h"
 
 class Visitor;
 
@@ -16,14 +14,19 @@ private:
     unsigned bitWidth = 0;
 
     bool createDataType();
+    void setNestedParent();
 
 public:
 
 	UserType(const string name, vector<Node*> &&stmts, location_t loc):
-        NamedNode(name, std::move(stmts), loc) { }
+        NamedNode(name, std::move(stmts), loc) {
+        setNestedParent();
+    }
 
     UserType(const string name, vector<Node*> &&stmts, vector<string> &&implements, location_t loc):
-        NamedNode(name, std::move(stmts), loc), implements(std::move(implements)) { }
+        NamedNode(name, std::move(stmts), loc), implements(std::move(implements)) {
+        setNestedParent();
+    }
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
@@ -43,7 +46,7 @@ public:
         parent = ut;
     }
 
-    virtual const string getName() const override;
+    virtual const string getTypeName() const;
 
     virtual void addSymbol(NamedNode *nm) override;
 
@@ -56,7 +59,12 @@ public:
     }
 
     DataType getDataType() override {
-        createDataType();
+        if (parent) {
+            // forces the definition of the parent first, as it adds the 
+            // parent field on subtypes and also create them
+            parent->getDataType();
+        } else
+            createDataType();
         return dt;
     }
 };

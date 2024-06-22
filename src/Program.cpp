@@ -202,6 +202,8 @@ void Program::doSemanticAnalysis() {
 	PropagateTypes pt;
 	pt.visit(*this);
 
+	buildTypes->generateDebugInfoForTypes();
+
 	/*std::fstream fs;
 	fs.open("ast", std::fstream::out);
 	PrintAstVisitor(fs).visit(*this);

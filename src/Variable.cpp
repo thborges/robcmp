@@ -12,16 +12,20 @@ Value *Variable::getLLVMValue(Node *stem) {
 		FunctionImpl *func = dynamic_cast<FunctionImpl*>(stem);
 		if (func && func->getThisArg()) {
 			// generating a function of a type: get the gep on :this or :parent parameters
-			Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
+			DataType thisDt = func->getThisArgDt();
+			Type *thisTy = buildTypes->llvmType(thisDt);
 			Value *thisptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
 			if (!stem->getScope() || this->getScope() == stem->getScope()) {
-				// in the global or same scope, defer :this and gep the field
+				// the var is being accessed in global scope (!stem->getScope()) or
+				// in a method of the type itself. Thus, we :this and gep the field
 				alloc = Builder->CreateStructGEP(thisTy, thisptr, gepidx, "gepthis");
 			} else {
-				// FIXME: in distinct scopes, access :parent (gep 0 or 1) in :this and gep the field
-				// currently, the CreateStructGEP deference 0; but zero sometimes is the typeid var
-				Type *parentTy = buildTypes->llvmType(this->getScope()->getDataType());
-				Value *parentAlloc = Builder->CreateStructGEP(parentTy, thisptr, 0, "gepthis");
+				// this var is in the parent scope. :this is an nested type.
+				// Thus, we access :parent in :this and gep the field
+				DataType parentDt = this->getScope()->getDataType();
+				Type *parentTy = buildTypes->llvmType(parentDt);
+				int idxParentInThis = static_cast<Variable*>(symbols["parent"])->getGEPIndex();
+				Value *parentAlloc = Builder->CreateStructGEP(parentTy, thisptr, idxParentInThis, "gepthis");
 				Value *parentptr = Builder->CreateLoad(parentTy->getPointerTo(), parentAlloc, "derefparent");
 				alloc = Builder->CreateStructGEP(parentTy, parentptr, gepidx, "gepparent");
 			}

@@ -37,6 +37,7 @@ std::unique_ptr<IRBuilder<>> Builder;
 std::unique_ptr<DIBuilder> DBuilder;
 struct DebugInfo RobDbgInfo;
 std::unique_ptr<BuildTypes> buildTypes;
+TargetMachine *targetMachine;
 
 unsigned int codeAddrSpace = 1;
 unsigned int dataAddrSpace = 0;
@@ -55,8 +56,8 @@ TargetInfo supportedTargets[__last_target] = {
 	{rb_xtensa, "esp32",   "xtensa",  "", "", tint32},
 };
 
-int print_llvm_ir(char opt_level) {
-	
+void setup_target_machine(char opt_level) {
+
 	const TargetInfo& ai = currentTarget();
 	if (ai.backend == rb_native) {
 		// Native target init
@@ -79,7 +80,7 @@ int print_llvm_ir(char opt_level) {
 		LLVMInitializeARMAsmPrinter();
 	} else {
 		cerr << "No backend set for target " << ai.triple << ".\n";
-		return 1;
+		return;
 	}
 
 	std::string defaultt = sys::getDefaultTargetTriple();
@@ -120,12 +121,16 @@ int print_llvm_ir(char opt_level) {
 			break;
 	}
 
-	auto targetMachine = Target->createTargetMachine(ai.triple, 
+	targetMachine = Target->createTargetMachine(ai.triple, 
 		ai.cpu, ai.features, opt, reloc, CodeModel::Small, cgoptl);
+	const DataLayout dl = targetMachine->createDataLayout();
 
-	mainmodule->setDataLayout(targetMachine->createDataLayout());
+	mainmodule->setDataLayout(dl);
 	mainmodule->setTargetTriple(ai.triple);
 	mainmodule->setFramePointer(FramePointerKind::All);
+}
+
+int print_llvm_ir(char opt_level) {
 
 	PassBuilder passBuilder(targetMachine);
 	auto loopAnalysisManager = LoopAnalysisManager{};

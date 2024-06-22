@@ -14,6 +14,8 @@
 #include "Load.h"
 #include "BackLLVM.h"
 #include "Int8.h"
+#include "Scalar.h"
+#include "Program.h"
 
 class ParentScalar: public Scalar {
 public:
@@ -34,18 +36,21 @@ public:
     }
 };
 
+void UserType::setNestedParent() {
+    for(auto child : this->children()) {
+        if (UserType *ut = dynamic_cast<UserType*>(child)) {
+            ut->setParent(this);
+        }
+    }
+}
+
 bool UserType::createDataType() {
     
-    if (dt != BuildTypes::undefinedType) {
-        // internal types can be created during symbolization,
-        // while the parent is not set.
-        if (buildTypes->name(dt) != getName())
-            buildTypes->updateName(dt, getName());
+    if (dt != BuildTypes::undefinedType)
         return true;
-    } 
     
     // create an undefined type to use in recursive subtypes
-    dt = buildTypes->getType(getName(), true);
+    dt = buildTypes->getType(getTypeName(), true);
     std::vector<Type*> elements;
 
     int idx = 0;
@@ -71,23 +76,21 @@ bool UserType::createDataType() {
             s->setScope(ut);
             ut->addChild(s);
             ut->addSymbol(s);
-
-            string varname = ut->getName();
-            ut->setParent(this); // name changes after setting parent
             ut->createDataType();
 
             // create a new var in the parent to store the intf implementation
-            ConstructorCall *cc = new ConstructorCall(ut->getName(), ut->getLoc());
-            v = new Scalar(varname, cc);
+            ConstructorCall *cc = new ConstructorCall(ut->getTypeName(), ut->getLoc());
+            v = new Scalar(ut->getName(), cc);
             v->dt = ut->getDataType();
             cc->setScope(v);
             v->setScope(this);
             addChild(v);
             
-            // fix the symbol table due to the renaming
-            getScope()->addSymbol(ut);
-            symbols[ut->getName()] = ut; // init
+            // replace the v->getName() symbol with its var and
             symbols[v->getName()] = v;
+
+            // add the nested type to the program root
+            program->addSymbol(ut->getTypeName(), ut);
 
         } else {
             v = dynamic_cast<Variable*>(child);
@@ -103,12 +106,6 @@ bool UserType::createDataType() {
             } else if (v->getPointerMode() == pm_unknown)
                 v->setPointer(pm_nopointer);
             
-            if (!buildTypes->isDefined(vdt)) {
-                Node *undeft = Identifier(buildTypes->name(vdt), getLoc()).getSymbol(this);
-                UserType *undefut = dynamic_cast<UserType*>(undeft);
-                if (undefut)
-                    undefut->createDataType();
-            }
             Type *llvmType = v->getLLVMType();
             assert(llvmType && "Can not construct a type without its LLVM type.");
             if (!llvmType)
@@ -119,7 +116,10 @@ bool UserType::createDataType() {
 
             //FIXME: Fix for data alignment on non-packed structure/type
             startBits[v->getName()] = startBit;
-            startBit += buildTypes->bitWidth(v->getDataType());
+            if (llvmType->isPointerTy())
+                startBit += buildTypes->getTargetPointerBitWidth();
+            else
+                startBit += buildTypes->bitWidth(v->getDataType());
         }
     }
     bitWidth = startBit;
@@ -130,8 +130,8 @@ bool UserType::createDataType() {
         buildTypes->setInternal(dt, true);
 
     if (dt == BuildTypes::undefinedType) {
-        yyerrorcpp("Type " + name + " alread defined.", this);
-        yyerrorcpp(name + " was first defined here.", buildTypes->location(dt));
+        yyerrorcpp("Type " + getTypeName() + " alread defined.", this);
+        yywarncpp(getTypeName() + " was first defined here.", buildTypes->location(dt));
         return false;
     }
 
@@ -182,7 +182,7 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
     }
 
     // generate user types and enums
-    for(auto & [key, stmt] : getSymbols()) {
+    for(auto* stmt : node_children) {
         if (UserType *ut = dynamic_cast<UserType*>(stmt)) {
             ut->setDeclaration(declaration);
             ut->generate(func, block, allocblock);
@@ -231,11 +231,11 @@ unsigned UserType::getFieldStartBit(Node *field) {
     return startBits[field->getName()];
 }
 
-const string UserType::getName() const {
+const string UserType::getTypeName() const {
     if (parent)
-        return parent->getName() + ":" + NamedNode::getName();
+        return parent->getName() + ":" + getName();
     else
-        return NamedNode::getName();
+        return getName();
 }
 
 void UserType::addSymbol(NamedNode *nm) {

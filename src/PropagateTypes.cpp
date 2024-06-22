@@ -1,6 +1,7 @@
 
 #include "PropagateTypes.h"
 #include "ConstructorCall.h"
+#include "Scalar.h"
 
 void PropagateTypes::propagateChildren(Node& n, std::function<void(Node&)> lambda) {
     for (auto it = n.node_children.begin(); it != n.node_children.end(); ++it) {

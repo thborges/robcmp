@@ -75,3 +75,18 @@ void DebugInfo::declareVar(Node *n, Value *alloc, BasicBlock *allocblock) {
 	DBuilder->insertDeclare(alloc, d, getFixedOffsetExpression(),
 		DILocation::get(sp->getContext(), n->getLineNo(), n->getColNo(), sp), allocblock);
 }
+
+void DebugInfo::declareGlobalVar(Node *n, GlobalVariable *gv, BasicBlock *allocblock) {
+	DataType dt = n->getDataType();
+	llvm::DIType *dty = buildTypes->diType(dt);
+	if (n->isPointerToPointer())
+		dty = buildTypes->diPointerType(dt);
+	if (n->hasQualifier(qvolatile)) {
+		dty = DBuilder->createQualifiedType(dwarf::DW_TAG_volatile_type, dty);
+	}
+	auto sp = RobDbgInfo.currScope();
+	auto funit = RobDbgInfo.currFile();
+	auto *d = DBuilder->createGlobalVariableExpression(sp, n->getName(), "",
+		funit, n->getLineNo(), dty, false);
+	gv->addDebugInfo(d);
+}

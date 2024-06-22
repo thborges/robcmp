@@ -140,13 +140,23 @@ type stm32f1 implements mcu {
 			// disable peripheral to configure
 			I2C1_CR1.pe = false;
 
-			// asuming 8Mhz clock
-			// FIX: should compute based on mcu/peripheral clock
+			/* How to compute the values below (assuming 8Mhz Clock, PRESCALER=1)
+			   fs == true and duty == true (400Khz)
+			     CCR = ((1/400000)/PRESCALER) / (25/8000000)
+                 CCR = 2500ns/3125ns = 0.8 = ~0 -> won't work at 8Mhz
+
+			   fs == true and duty == false (400Khz)
+			     CCR = ((1/400000)/PRESCALER) / (3/8000000)
+                 CCR = 2500ns/375ns = ~6.6667 = ~ 6
+
+			   TRISE calculated by PCLK (in MHz) * 0.3ms + 1
+			 */
+
 			I2C1_CCR.fs = true;
-			I2C1_CCR.duty = true;
-			I2C1_CR2.freq = 0x8;
-			I2C1_CCR.ccr = 0x1;
-			I2C1_TRISE = 0x1e;
+			//I2C1_CCR.duty = true;
+			I2C1_CR2.freq = uint6(clock()/1E6); // no APB1 prescaler
+			I2C1_CCR.ccr = uint12(((1.0/400000)/2) / (3.0/clock()));
+			I2C1_TRISE = uint16(clock()/1E6*0.3+1);
 		}
 		
 		void enable() {
@@ -168,7 +178,7 @@ type stm32f1 implements mcu {
 			while !I2C1_SR1.addr; // wait addr send
 
 			// clear ADDR condition
-			temp = I2C1_SR2.msl;
+			volatile temp = I2C1_SR2.msl;
 
 			return true;
 		}

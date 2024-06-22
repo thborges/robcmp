@@ -2,7 +2,7 @@
 
 int16 main() {
 	i = 0;
-	while (i < 6) {
+	while i < 6 {
 		i++;
 	}
 	return i != 6;

@@ -91,36 +91,15 @@ type stm32f1 implements mcu {
 		   xx = MOSI
 		   xx = MISO
 		   xx = SCK */
-		void setup(uint32 speed) {
-			return;
-		}
-
-		void enable() {
-			return;
-		}
-
-		void disable() {
-			return;
-		}
-
-		void write(uint8 b) {
-			return;
-		}
-
-		void write_array(int8[] data) {
-			return;
-		}
-
-		uint8 read() {
-			return 0;
-		}
-
-		bool has_data() {
-			return false;
-		}
-
+		void setup(uint32 speed) {}
+		void enable() {}
+		void disable() {}
+		void write(uint8 b) {}
+		void write_array(int8[] data) {}
+		uint8 read() { return 0; }
+		bool has_data() { return false; }
 		bool start_transaction(uint16 address) { return true; }
-		void end_transaction() { return; }
+		void end_transaction() { }
 
 		databus_protocol get_protocol() {
 			return databus_protocol.SPI;
@@ -128,36 +107,15 @@ type stm32f1 implements mcu {
 	}
 
 	uart0 implements databus {
-		void setup(uint32 baud) {
-			return;
-		}
-
-		void enable() {
-			return;
-		}
-
-		void disable() {
-			return;
-		}
-
-		void write(uint8 b) {
-			return;
-		}
-
-		void write_array(int8[] data) {
-			return;
-		}
-
-		uint8 read() {
-			return 0;
-		}
-
-		bool has_data() {
-			return false;
-		}
-
+		void setup(uint32 baud) {}
+		void enable() {}
+		void disable() {}
+		void write(uint8 b) {}
+		void write_array(int8[] data) {}
+		uint8 read() { return 0; }
+		bool has_data() { return false; }
 		bool start_transaction(uint16 address) { return true; }
-		void end_transaction() { return; }
+		void end_transaction() {}
 		
 		databus_protocol get_protocol() {
 			return databus_protocol.UART;

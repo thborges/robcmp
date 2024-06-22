@@ -21,8 +21,8 @@ int8 main() {
 	};
 
 	i = 0u;
-	while (i < check.size) {
-		if (result[i] != check[i]) {
+	while i < check.size {
+		if result[i] != check[i] {
 			return 1;
 		}
 		i++;

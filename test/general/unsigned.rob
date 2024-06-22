@@ -8,7 +8,7 @@ uint16 func_a(uint16 x) {
 int16 main() {
     b = 130U;
     a = func_a(b);
-    if (a == 10u) {
+    if a == 10u {
         return 0;
     } else {
         return 1;

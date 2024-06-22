@@ -10,7 +10,7 @@
 }
 
 %type <nodes> globals type_stmts enum_items interface_decls
-%type <nodes> stmts elseblock
+%type <nodes> stmts stmts_rec elseblock
 %type <node> global register interface type type_stmt use
 %type <node> function function_decl function_impl returnblock
 %type <node> enum enum_item interface_impl
@@ -300,11 +300,13 @@ element : expr ':' TOK_INTEGER		{ $$ = new ArrayElement($1, (unsigned)$3); }
 	
 asminline : TOK_ASM TOK_STRING { $$ = $2; }
 
-stmts : stmts stmt {
+stmts : %empty { $$ = new vector<Node*>(); }
+	  | stmts_rec
+
+stmts_rec : stmts_rec stmt {
 	$1->push_back($stmt);
 }
-
-stmts : stmt {
+stmts_rec : stmt {
 	$$ = new vector<Node*>();
 	$$->push_back($stmt);
 	$stmt->setLocation(@stmt);

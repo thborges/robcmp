@@ -1,6 +1,5 @@
 
 void func_attribs() inline, weak {
-    return;
 }
 
 int8 main() {

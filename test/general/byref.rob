@@ -16,9 +16,7 @@ type main_t {
 	}
 
 	ii implements intf {
-		void print(int8 v) {
-			return;
-		}
+		void print(int8 v) {}
 	}
 }
 

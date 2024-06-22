@@ -5,9 +5,7 @@ interface a {
 
 type b {
 	x implements a {
-		void print() {
-			return;
-		}
+		void print() { }
 	}
 }
 

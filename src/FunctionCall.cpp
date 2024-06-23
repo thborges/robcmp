@@ -18,7 +18,7 @@ DataType FunctionCall::getDataType() {
     if (dt == BuildTypes::undefinedType) {
         // is a constructor? this can occur while running PropagateTypes.
         dt = buildTypes->getType(ident.getFullName());
-        if (parameters->getNumParams() <= 1 && dt != BuildTypes::undefinedType) {
+        if (node_children.size() <= 1 && dt != BuildTypes::undefinedType) {
             return dt;
         }
 
@@ -56,10 +56,10 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         }
     }
 
-    if (fsymbol->getNumCodedParams() != parameters->getNumParams()) {
+    if (fsymbol->getNumCodedParams() != node_children.size()) {
         yyerrorcpp(string_format("Function %s has %d argument(s) but was called with %d.",
             name.c_str(), fsymbol->getNumCodedParams(), 
-            parameters->getNumParams()), this);
+            node_children.size()), this);
         yywarncpp("The function declaration is here.", symbol);
         return NULL;
     }
@@ -85,11 +85,11 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 
     vector<Value*> args;
     vector<DataType> dataTypes;
-    for (int i = 0; i < parameters->getNumParams(); i++) {
-        Node *param = parameters->getParamElement(i);
+    int paramId = 0;
+    for (Node *param : node_children) {
         DataType call_dt = param->getDataType();
-        DataType def_dt = fsymbol->getParameters().getParamType(i);
-        string argName = fsymbol->getParameters().getParamName(i);
+        DataType def_dt = fsymbol->getParameters().getParamType(paramId);
+        string argName = fsymbol->getParameters().getParamName(paramId);
 
         Value *valor = param->generate(func, block, allocblock);
         if (!valor) {
@@ -131,8 +131,8 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
             valor = ptr;
         }
         
-        args.insert(args.begin() + i, valor);
-        dataTypes.insert(dataTypes.begin() + i, def_dt);
+        args.insert(args.begin() + paramId, valor);
+        dataTypes.insert(dataTypes.begin() + paramId, def_dt);
 
         // add a size parameter after each array, or .rows and .cols for matrixes
         if (buildTypes->isArrayOrMatrix(call_dt)) {
@@ -154,6 +154,8 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
                 dataTypes.push_back(coerced->getDataType());
             }
         }
+
+        paramId++;
     }
 
     // this parameter

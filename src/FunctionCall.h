@@ -9,16 +9,15 @@
 class FunctionCall: public Node {
 private:
 	Identifier ident;
-	ParamsCall *parameters;
 	Node *symbol = NULL;
 	Variable *leftValue = NULL;
 
 public:
 	FunctionCall(const string& name, ParamsCall *pc, location_t loc): Node(loc), ident(name, loc) {
-		parameters = pc;
 		node_children.reserve(pc->getNumParams());
 		node_children.insert(end(node_children), pc->getParameters().begin(),
 			pc->getParameters().end());
+		delete pc;
 	}
 	
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
@@ -30,7 +29,7 @@ public:
 	}
 
 	std::vector<Node *>& getParameters() {
-		return parameters->getParameters();
+		return node_children;
 	}
 
 	Node* accept(Visitor& v) override;

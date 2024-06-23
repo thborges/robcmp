@@ -173,7 +173,7 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
      */
     for(auto & [key, stmt] : getSymbols()) {
         if (FunctionImpl *f = dynamic_cast<FunctionImpl*>(stmt)) {
-            f->setPrefixName(getName());
+            f->setPrefixName(getTypeName());
             f->addThisArgument(dt);
             for(auto &field : fields)
                 f->addSymbol(dynamic_cast<NamedNode*>(field));
@@ -206,7 +206,7 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
         // nested user types can be inlined in the parent init
         finit->getAttributes()->addAttribute(fa_inline);
     }
-    finit->setPrefixName(getName());
+    finit->setPrefixName(getTypeName());
     finit->setExternal(declaration);
     finit->setConstructor(true);
     finit->generate(func, block, allocblock);

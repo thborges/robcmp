@@ -13,7 +13,7 @@
 }
 
 %type <nodes> globals type_stmts enum_items interface_decls
-%type <nodes> stmts
+%type <nodes> stmts stmts_rec
 %type <node> global register interface type type_stmt use
 %type <node> function function_decl function_impl
 %type <node> enum enum_item const_expr expr unary interface_impl
@@ -128,7 +128,7 @@ function_decl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' 
 	$$ = func;
 }
 
-function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' function_attributes[fa] '{' stmts '}'[ef] {
+function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' function_attributes[fa] '{' stmts_rec '}'[ef] {
 	vector<Node*> stmts;
 	FunctionImpl *func = new FunctionImpl(buildTypes->getType($type, true), $id, $function_params,
 		std::move(stmts), @type, @ef);
@@ -333,6 +333,9 @@ ignore_param : ignore_p	{ $$ = NULL; }
 ignore_p : TOK_INTEGER		{ YYERROR; }
 		 | TOK_IDENTIFIER	{ YYERROR; }
 		 
+stmts_rec : %empty	{ $$ = NULL; }
+		  | stmts	{ $$ = NULL; }
+
 stmts : stmts ignore_stmt	{ $$ = NULL; }
 	  | ignore_stmt			{ $$ = NULL; }
 

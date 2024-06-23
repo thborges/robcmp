@@ -4,6 +4,7 @@
 #include "Interface.h"
 #include "FunctionImpl.h"
 #include "BackLLVM.h"
+#include "Scanner.h"
 
 void Dispatch::addDataTypeImplementation(DataType base, DataType impl) {
     set<DataType>& impls = dispatchHash[base];
@@ -67,6 +68,12 @@ void Dispatch::generateDispatchFunctions(Node *scope) {
                     string destTypeName = buildTypes->name(implDt);
                     string destFuncName = destTypeName + ":" + method;
                     Function *destFunc = mainmodule->getFunction(destFuncName);
+
+                    if (!destFunc) {
+                        yyerrorcpp(string_format("Function %s not found while generating dispatch.", 
+                            destFuncName.c_str()), scope);
+                        continue;
+                    }
 
 					Value *call = Builder->CreateCall(destFunc, args);
 					if (call->getType()->isVoidTy())

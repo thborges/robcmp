@@ -5,17 +5,6 @@
 #include "FunctionDecl.h"
 
 void Interface::createDataType() {
-    // TRY: prevent opaque type
-    // the interface type is replaced at link stage
-    /*Scalar *no_opaque = new Scalar("no_opaque", new Int1(0));
-    no_opaque->setGEPIndex(0);
-    addChild(no_opaque);
-    addSymbol(no_opaque);
-    
-    std::vector<Type*> elements;
-    elements.push_back(Type::getInt1Ty(global_context));
-
-    StructType *intftype = StructType::create(global_context, ArrayRef<Type*>(elements), getName());*/
     StructType *intftype = StructType::create(global_context, getName());
     dt = buildTypes->addDataType(this, intftype);
     buildTypes->setInterface(dt, true);

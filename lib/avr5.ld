@@ -8,9 +8,11 @@ OUTPUT_ARCH(avr:5)
 SECTIONS
 {
   .text : {
-	KEEP(*(__isr))
-	. = ALIGN(2);
-	__text_start = .;
+    _start = .;
+    *(__isr)
+	  KEEP(*(__isr))
+	  . = ALIGN(2);
+	  __text_start = .;
     *(.progmem*)
     . = ALIGN(2);
     *(.text)
@@ -23,25 +25,17 @@ SECTIONS
   .data : {
      __data_start = .;
     *(.data)
-    *(.data*)
-    . = ALIGN(16);
-    *(.rodata)  /* We need to include .rodata here if gcc is used */
-    *(.rodata*) /* with -fdata-sections.  */
-    . = ALIGN(2);
+    *(.data.*)
+    KEEP(*(.rodata))
+    KEEP(*(.rodata.*))
     __data_end = .;
   }  > data AT> text
 
   .bss ADDR(.data) + SIZEOF(.data) : AT (ADDR (.bss)) {
     __bss_start = .;
     *(.bss)
-    . = ALIGN(2);
-    KEEP(*(.bss))
-    *(.bss*)
-    . = ALIGN(2);
-    KEEP(*(.bss*))
+    *(.bss.*)
     *(COMMON)
-    . = ALIGN(2);
-    KEEP(*(COMMON))
     __bss_end = .;
   }  > data
 

@@ -38,18 +38,7 @@ Value *Pointer::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
     // as a ConstantExpr. This limits pointer arithmetic.
     Constant *addr_num = dyn_cast<Constant>(addr);
     assert(addr_num && "FIXME: global pointer defined without constant address.");
-    Constant *calloc = ConstantExpr::getIntToPtr(addr_num, targetPointerType);
-    alloc = calloc;
-    
-    extern bool build_dependencies;
-    if (debug_info && build_dependencies) {
-        // we add a global variable associated with the pointer
-        // to easy debugging
-        GlobalVariable *gv = new GlobalVariable(*mainmodule, targetPointerType, false, 
-            GlobalValue::ExternalLinkage, calloc, name);
-        RobDbgInfo.declareGlobalVar(this, gv, allocblock);
-    }
-    
+    alloc = ConstantExpr::getIntToPtr(addr_num, targetPointerType);
     return alloc;
 }
 

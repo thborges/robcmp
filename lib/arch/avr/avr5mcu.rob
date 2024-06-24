@@ -151,7 +151,7 @@ type avr5mcu implements mcu {
 			UCSR0A.U2X0 = false;
 			
 			multipl = 16u;
-			if UCSR0A.U2X0 == true {
+			if UCSR0A.U2X0 {
 				multipl = 8u;
 			}
 
@@ -184,33 +184,32 @@ type avr5mcu implements mcu {
 			UCSR0B.TXEN0 = false;
 		}
 
-		void write(uint8 b) {
-			while UCSR0A.UDRE0 == false;
+		void write(uint8 b) inline {
+			while !UCSR0A.UDRE0;
 			UDR0 = b;
 		}
 
 		void write_array(int8[] data) {
 			i = 0u;
 			while i < data.size {
-				while UCSR0A.UDRE0 == false;
-				UDR0 = uint8(data[i]);
+				write(uint8(data[i]));
 				i++;
 			}
 		}
 
-		uint8 read() {
-			while UCSR0A.RXC0 == false;
+		uint8 read() inline {
+			while !UCSR0A.RXC0;
 			return UDR0;    
 		}
 
-		bool has_data() {
+		bool has_data() inline {
 			return UCSR0A.RXC0;
 		}
 
-		bool start_transaction(uint16 address) { return true; }
-		void end_transaction() { return; }
+		bool start_transaction(uint16 address) inline { return true; }
+		void end_transaction() { }
 		
-		databus_protocol get_protocol() {
+		databus_protocol get_protocol() inline {
 			return databus_protocol.UART;
 		}
 	}

@@ -41,6 +41,7 @@
 #include "UpdateArray.h"
 #include "UpdateMatrix.h"
 #include "Array.h"
+#include "StringConst.h"
 #include "While.h"
 #include "Loop.h"
 #include "Pointer.h"

@@ -13,11 +13,11 @@ if [ "$?" -eq 0 ]; then
     else
 	    timeout 10s ${CMD} &> /dev/null
     fi
-	#./$2 &> /dev/null
-	if [ "$?" -eq 0 ]; then
+    STATUS=$?
+	if [ "${STATUS}" -eq 0 ]; then
 		echo -e \\r${GREEN}[PASS]\\t\\t${NC}
 	else
-		echo -e \\r${RED}[FAILED]\\t${NC}
+		echo -e \\r${RED}[FAILED] ${STATUS}\\t${NC}
 	fi
 else
 	echo -e \\r${RED}[BUILD FAILED]\\t${NC}

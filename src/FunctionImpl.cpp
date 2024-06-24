@@ -155,7 +155,10 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 		}
 	}
 
-	BranchInst::Create(fblock, falloc);
+	if (falloc->empty())
+		falloc->removeFromParent();
+	else
+		BranchInst::Create(fblock, falloc);
 
 	if (debug_info)
 		RobDbgInfo.pop_scope();

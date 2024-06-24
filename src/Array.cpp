@@ -10,7 +10,11 @@
 Array::Array(const string& n, ArrayElements *aes, location_t loc) : Variable(n, loc), elements(aes) {
 	NamedConst *nc = new NamedConst("size", getNodeForUIntConst(aes->getArraySize(), loc), loc);
 	addChild(nc);
-	addSymbol("size", nc);
+	addSymbol(nc);
+}
+
+Array::Array(const string& n, location_t loc) : Variable(n, loc) {
+	elements = new ArrayElements(getLoc());
 }
 
 DataType Array::getDataType() {

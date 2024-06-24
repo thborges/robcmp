@@ -405,6 +405,13 @@ Node* PropagateTypes::visit(Variable& n) {
 
     bool checkCoercion = false;
     DataType destDt = BuildTypes::undefinedType;
+
+    // Verify if a complex identifier exists
+    Identifier& id = n.getIdent();
+    if (id.isComplex()) {
+        if (!id.getSymbol(&n, true))
+            return NULL;
+    }
     
     Node *firstDecl = n.getScope()->findSymbol(n.getName());
     DataType sameNameDt = buildTypes->getType(n.getName());

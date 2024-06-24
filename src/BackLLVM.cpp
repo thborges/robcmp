@@ -105,6 +105,7 @@ void setup_target_machine(char opt_level) {
 	TargetOptions opt;
 	opt.FunctionSections = true;
 	opt.DataSections = true;
+	opt.ExceptionModel = ExceptionHandling::None;
 
 	auto reloc = Reloc::PIC_;
 	if (ai.backend == rb_arm)

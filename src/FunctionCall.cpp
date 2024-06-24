@@ -117,7 +117,7 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
                 }
             }
         } else if (buildTypes->isArrayOrMatrix(call_dt)) {
-            if (call_dt != def_dt) {
+            if (!buildTypes->isArrayCompatible(call_dt, def_dt)) {
                 yyerrorcpp(string_format("Argument %s expects '%s' but '%s' was provided.",
                     argName.c_str(),
                     buildTypes->name(def_dt), 
@@ -145,11 +145,19 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
             }
 
             for(const string& p: params) {
-                string pname = param->getName() + p;
-                Load ld(Identifier(pname, param->getLoc()));
-                ld.setScope(func);
-                Node *coerced = PropagateTypes::coerceTo(&ld, tint32u);
-                Value *value = coerced->generate(func, block, allocblock);
+                Node *coerced;
+                Value *value;
+                if (param->isConstExpr()) {
+                    Node *size = param->findMember("size");
+                    coerced = PropagateTypes::coerceTo(size, tint32u);
+                    value = coerced->generate(func, block, allocblock);
+                } else {
+                    string pname = param->getName() + p;
+                    Load ld(Identifier(pname, param->getLoc()));
+                    ld.setScope(func);
+                    coerced = PropagateTypes::coerceTo(&ld, tint32u);
+                    value = coerced->generate(func, block, allocblock);
+                }
                 args.push_back(value);
                 dataTypes.push_back(coerced->getDataType());
             }

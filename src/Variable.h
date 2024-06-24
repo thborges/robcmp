@@ -47,4 +47,8 @@ public:
 	}
 
 	virtual void setExpr(Node *e) {}
+
+	Identifier& getIdent() {
+		return ident;
+	}
 };

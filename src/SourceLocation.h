@@ -49,7 +49,7 @@ public:
 		return buildStack[fileNo];
 	}
 
-	bool hasSemanticError() {
+	bool hasSemanticError() const {
 		return semanticError;
 	}
 

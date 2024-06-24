@@ -1,7 +1,7 @@
 
 #pragma once
 
-enum FunctionAttributeType {fa_weak, fa_inline, fa_noinline, fa_section};
+enum FunctionAttributeType {fa_weak, fa_inline, fa_noinline, fa_section, fa_naked};
 
 typedef pair<FunctionAttributeType, string> FunctionAttribute;
 

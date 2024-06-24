@@ -201,9 +201,12 @@ void BuildTypes::generateDebugInfoForUserType(DataTypeInfo &info, Node *userType
             // search the injections
             string fieldName = info.name;
             fieldName.append("." + m->getName());
-            string injType = injections[fieldName].first;
-            Node *symbol = Identifier(injType, userType->getLoc()).getSymbol(program, false);
-            mdt = symbol->getDataType();
+            if (injections.find(fieldName) != injections.end()) {
+                string injType = injections[fieldName].first;
+                Node *symbol = Identifier(injType, userType->getLoc()).getSymbol(program, false);
+                if (symbol)
+                    mdt = symbol->getDataType();
+            }
         }
         if (mdt == -1 || tinfo[mdt].bitWidth == 0) {
             continue;
@@ -269,4 +272,20 @@ void BuildTypes::generateDebugInfoForTypes() {
         else
             generateDebugInfoForUserType(info, userType);
     }
+}
+
+bool BuildTypes::isArrayCompatible(DataType srcDt, DataType destDt) {
+    if (isArray(srcDt) ^ isArray(destDt))
+        return false;
+    if (tinfo[srcDt].arrayDimensions != tinfo[destDt].arrayDimensions)
+        return false;
+    DataType elSrc = getArrayElementType(srcDt);
+    DataType elDest = getArrayElementType(destDt);
+    if (elSrc != elDest) {
+        if ((elSrc == tint8 || elSrc == tint8u || elSrc == tchar) && 
+            (elDest == tint8 || elDest == tint8u || elDest == tchar)) {
+            return true;
+        }
+    }
+    return true;
 }

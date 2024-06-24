@@ -1,6 +1,7 @@
 
 #include "FunctionDecl.h"
 #include "BackLLVM.h"
+#include "FunctionAttributes.h"
 #include "Matrix.h"
 
 void FunctionBase::addThisArgument(DataType dt) {
@@ -101,6 +102,11 @@ void FunctionBase::addFunctionAttributes(Function *func) {
 				break;
 			case fa_section:
 				func->setSection(attr->second);
+				break;
+			case fa_naked:
+				func->addFnAttr(Attribute::Naked);
+				func->addFnAttr(Attribute::NoInline);
+				func->addFnAttr(Attribute::OptimizeNone);
 				break;
 		}
 	}

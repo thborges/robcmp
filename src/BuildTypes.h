@@ -251,6 +251,8 @@ public:
     }
 
     void generateDebugInfoForTypes();
+
+    bool isArrayCompatible(DataType srcDt, DataType destDt);
 };
 
 // TODO: Replace all places with buildType::name

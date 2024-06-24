@@ -20,7 +20,7 @@ public:
         return ident;
     }
 
-    bool isComplex() {
+    bool isComplex() const {
         return complex;
     }
 

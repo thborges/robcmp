@@ -2,21 +2,52 @@
  * Robcmp interruptions vector for atmega328p
  */
 
- void main();
- void __vectors();
+int8 main();
+
+void __do_copy_data() naked {
+asm "
+	ldi r17, hi8(__data_end)
+    ldi r26, lo8(__data_start)
+    ldi r27, hi8(__data_start)
+    ldi r30, lo8(__data_load_start)
+    ldi r31, hi8(__data_load_start)
+    rjmp __do_copy_data_start
+	__do_copy_data_loop:
+    	lpm r0, Z+
+	    st  X+, r0
+	__do_copy_data_start:
+    	cpi r26, lo8(__data_end)
+    	cpc r27, r17
+    	brne __do_copy_data_loop
+	ret";
+}
+
+void __do_clear_bss() naked {
+asm "
+	ldi r17, hi8(__bss_end)
+    ldi r26, lo8(__bss_start)
+    ldi r27, hi8(__bss_start)
+    rjmp __do_clear_bss_start
+	__do_clear_bss_loop:
+    	st  X+, r1
+	__do_clear_bss_start:
+    	cpi r26, lo8(__bss_end)
+    	cpc r27, r17
+    	brne __do_clear_bss_loop
+	ret";
+}
  
- // implemented in avr5.S
- void __do_copy_data();
- void __do_clear_bss();
+void __delay_us() naked {
+asm "
+	ldi r18, 5
+	__delay_ms_loop:
+		dec r18
+		brne __delay_ms_loop
+	nop
+	ret";
+}
  
- void __delay_us() {
-	 asm "ldi r18, 5";
-	 asm "__delay_ms_loop: dec r18";
-	 asm "brne __delay_ms_loop";
-	 asm "nop";
- }
- 
- void __vectors() section __isr {
+void __vectors() naked, section __isr {
 	 /* FIXME: provide proper interrupt functions instead of __vectors 
 	  * after implementing "weak" attribute for functions
 	  */

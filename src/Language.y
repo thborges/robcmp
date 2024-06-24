@@ -148,6 +148,7 @@ function_attribute
 	: TOK_WEAK							{ $$ = new FunctionAttribute(fa_weak, ""); }
 	| TOK_INLINE						{ $$ = new FunctionAttribute(fa_inline, ""); }
 	| TOK_NOINLINE						{ $$ = new FunctionAttribute(fa_noinline, ""); }
+	| TOK_NAKED							{ $$ = new FunctionAttribute(fa_naked, ""); }
 	| TOK_SECTION TOK_IDENTIFIER[id]	{ $$ = new FunctionAttribute(fa_section, $id); }
 
 event : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'[ef] {	
@@ -436,6 +437,7 @@ factor : '(' expr ')' 			{ $$ = $2; }
 	   | TOK_FLOAT				{ $$ = new Float($1, @1); }
 	   | TOK_DOUBLE				{ $$ = new Double($1, @1); }
 	   | TOK_LDOUBLE			{ $$ = new Float128($1, @1); }
+	   | TOK_STRING				{ $$ = new StringConst("conststr", $1, @1); }
 	   | ident_or_xident[id] '[' expr ']'				{ $$ = new LoadArray($1, $3, @id);} 
 	   | ident_or_xident[id] '[' expr ']' '[' expr ']'	{ $$ = new LoadMatrix($1, $3, $6, @id);}
 	   | call_or_cast

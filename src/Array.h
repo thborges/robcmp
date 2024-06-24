@@ -32,13 +32,14 @@ private:
 
 public:
 	Array(const string& n, ArrayElements *aes, location_t loc);
+	Array(const string& n, location_t loc);
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
 	static Node *getElementIndex(Node *p1, Node *p2, const string& name, 
 		int p1size = -1, int p2size = -1, Node *columnNumber = NULL);
 
-	std::vector<ArrayElement*> getElements() {
+	virtual std::vector<ArrayElement*>& getElements() {
 		return elements->getElements();
 	}
 
@@ -46,13 +47,13 @@ public:
 
 	virtual Type *getLLVMType() override;
 
-	DataType getDataType() override;
+	virtual DataType getDataType() override;
 
-	DataType getElementDataType() {
+	virtual DataType getElementDataType() {
 		return element_dt;
 	}
 
-	int getSize() const {
+	virtual int getSize() const {
 		return size;
 	}
 };

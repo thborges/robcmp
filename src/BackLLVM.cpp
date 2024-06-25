@@ -44,7 +44,7 @@ unsigned int dataAddrSpace = 0;
 
 
 // Injections
-map<string, pair<string, BindScope>> injections;
+map<string, Injection*> injections;
 
 enum SupportedTargets currentTargetId;
 extern char *build_outputfilename;

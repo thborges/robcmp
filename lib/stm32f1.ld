@@ -9,6 +9,7 @@ __reset_stack_pointer = ORIGIN(RAM) + LENGTH(RAM);
 SECTIONS
 {
 	.isr_vector : {
+		_start = .;
 		LONG(__reset_stack_pointer);		
 		LONG(__isr_reset | 1);
 		LONG(__isr_nmi | 1);

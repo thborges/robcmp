@@ -264,7 +264,7 @@ simplevar_decl : TOK_IDENTIFIER[id] '=' array		{ $$ = new Array($id, $array, @id
 simplevar_decl : TOK_IDENTIFIER[id] '=' matrix		{ $$ = new Matrix($id, $matrix, @id); }
 
 bind : TOK_BIND ident_or_xident[id] TOK_TO ident_or_xident[to] bind_scope[scope] ';' {
-	injections.insert({$to, make_pair(string($id), BindScope($scope))});
+	injections.insert({$to, new Injection($id, $to, BindScope($scope), @id)});
 	$$ = NULL;
 }
 

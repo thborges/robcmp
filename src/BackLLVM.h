@@ -2,6 +2,7 @@
 #pragma once
 
 #include "BuildTypes.h"
+#include "Injections.h"
 
 extern std::unique_ptr<IRBuilder<>> Builder;
 
@@ -28,5 +29,4 @@ const TargetInfo& currentTarget();
 
 class Variable;
 
-enum BindScope {bs_singleton, bs_transient};
-extern map<string, pair<string, BindScope>> injections;
+extern map<string, Injection*> injections;

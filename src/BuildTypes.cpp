@@ -202,7 +202,7 @@ void BuildTypes::generateDebugInfoForUserType(DataTypeInfo &info, Node *userType
             string fieldName = info.name;
             fieldName.append("." + m->getName());
             if (injections.find(fieldName) != injections.end()) {
-                string injType = injections[fieldName].first;
+                string injType = injections[fieldName]->bind;
                 Node *symbol = Identifier(injType, userType->getLoc()).getSymbol(program, false);
                 if (symbol)
                     mdt = symbol->getDataType();

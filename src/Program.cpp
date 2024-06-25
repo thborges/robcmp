@@ -63,16 +63,15 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 	vector<FunctionImpl*> finjects;
 	for (auto &[key, itype] : injections) {
 		Identifier to(key, loc);
-		Identifier bind(itype.first, loc);
-		BindScope scope(itype.second);
+		Identifier bind(itype->bind, loc);
 
 		// injection validation
 		auto subTypeName = regex_replace(bind.getFullName(), regex("\\."), ":"); //internal types use :
 		Identifier bindSubtypes(subTypeName, loc);
-		Node *injectType = bindSubtypes.getSymbol(this);
+		Node *injectType = bindSubtypes.getSymbol(this, false);
 		if (!injectType) {
 			yyerrorcpp(string_format("Injection symbol %s not found.", 
-				bind.getFullName().c_str()), this);
+				bind.getFullName().c_str()), &itype->loc);
 			continue;
 		}
 
@@ -81,20 +80,20 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 		UserType *bindUserTy = dynamic_cast<UserType*>(injectType);
 		if (!bindUserTy) {
 			yyerrorcpp(string_format("Bind symbol %s is not of a bindable type.",
-				bind.getFullName().c_str()), this);
+				bind.getFullName().c_str()), &itype->loc);
 			continue;
 		} else {
-			Node *nodeTo = to.getSymbol(this);
+			Node *nodeTo = to.getSymbol(this, false);
 			if (!nodeTo) {
 				yyerrorcpp(string_format("Injection destination %s not found.",
-					bind.getFullName().c_str()), this);
+					to.getFullName().c_str()), &itype->loc);
 				continue;			
 			} else {
 				destinationTy = nodeTo->getDataType();
 				destinationTyName = buildTypes->name(destinationTy);
 				if (!bindUserTy->implementsInterface(destinationTyName)) {
 					yyerrorcpp(string_format("Bind symbol %s does not implements %s.",
-						bind.getFullName().c_str(), destinationTyName.c_str()), this);				
+						bind.getFullName().c_str(), destinationTyName.c_str()), bindUserTy);				
 					continue;
 				}
 			}
@@ -109,7 +108,7 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 		finject->setScope(this);
 		finject->setAttributes(new FunctionAttributes(fa_inline));
 		
-		if (scope == bs_singleton) {
+		if (itype->scope == bs_singleton) {
 			string globalVarName;
 			if (bind.isComplex()) {
 				globalVarName = ":var_injection_for_" + bind.getFullName();
@@ -168,9 +167,6 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 					
 					vector<Value*> args;
 					for(auto& arg : aliasFunc->args()) {
-						//Value *alloc = Builder->CreateAlloca(arg.getType());
-						//Value *store = Builder->CreateStore(&arg, alloc);
-						//Value *load = Builder->CreateLoad(arg.getType(), alloc);
 						args.push_back(&arg);
 					}
 					

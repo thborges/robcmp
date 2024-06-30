@@ -16,12 +16,13 @@
 #include "Int8.h"
 #include "Scalar.h"
 #include "Program.h"
+#include "PropagateTypes.h"
 
 class ParentScalar: public Scalar {
 public:
     ParentScalar(DataType parentDt, location_t loc) : 
         Scalar(Identifier("parent", loc), NULL) {
-        Load *load = new Load(":parent", loc);
+        Load *load = new Load("_parent", loc);
         load->setDataType(parentDt);
         load->setScope(this);
         setExpr(load);
@@ -96,11 +97,10 @@ bool UserType::createDataType() {
             v = dynamic_cast<Variable*>(child);
         }
 
-        if (v) {
-            DataType vdt = v->getDataType();
-            if (vdt == BuildTypes::undefinedType) {
+        if (v && !v->isConstExpr()) {
+            if (PropagateTypes::isUndefined(v)) {
                 return false;
-            } else if (buildTypes->isInterface(vdt)) {
+            } else if (buildTypes->isInterface(v->getDataType())) {
                 v->setPointer(pm_pointer);
                 v->setPointerToPointer(true);
             } else if (v->getPointerMode() == pm_unknown)
@@ -162,7 +162,8 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
     vector<Node*> fields;
     for(auto & [key, stmt] : getSymbols()) {
         if (Variable *c = dynamic_cast<Variable*>(stmt)) {
-            fields.push_back(c);
+            if (!c->isConstExpr())
+                fields.push_back(c);
         }
     }
 

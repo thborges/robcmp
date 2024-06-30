@@ -323,7 +323,16 @@ stmt : ident_or_xident '+' '+' ';'					{ $$ = new Scalar($1, new BinaryOp(new Lo
 	 | ident_or_xident '&' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '&', $4)); }
 	 | ident_or_xident '^' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '^', $4)); }
 	 | ident_or_xident '[' expr ']' '=' expr ';'	{ $$ = new UpdateArray($1, $3, $6, @1);}
+	 
 	 | ident_or_xident '[' expr ']' '[' expr ']' '=' expr ';'	{ $$ = new UpdateMatrix($1, $3, $6, $9, @1); }
+	 | ident_or_xident[id] '[' expr[e1] ']' '[' expr[e2] ']' '&' '=' expr[e3] ';'	{
+			Node *bop = new BinaryOp(new LoadMatrix($id, $e1, $e2, @id), '&', $e3);
+			$$ = new UpdateMatrix($id, $e1, $e2, bop, @1);
+	   }
+	 | ident_or_xident[id] '[' expr[e1] ']' '[' expr[e2] ']' '|' '=' expr[e3] ';'	{
+			Node *bop = new BinaryOp(new LoadMatrix($id, $e1, $e2, @id), '|', $e3);
+			$$ = new UpdateMatrix($id, $e1, $e2, bop, @1);
+	   }
 	 | asminline ';'											{ $$ = new InlineAssembly($1, @1); }
 	 | qualifier simplevar_decl ';'								{ $$ = $2; $$->setQualifier((DataQualifier)$1); }
 	 | simplevar_decl ';'
@@ -459,12 +468,12 @@ call_or_cast : ident_or_xident[id] '(' paramscall ')' {
 	$$->setLocation(@id);
 }
 
-paramscall : paramscall ',' expr {
+paramscall : paramscall ',' logicexpr {
 	$1->append($3);
 	$$ = $1;
 }
 
-paramscall : expr {
+paramscall : logicexpr {
 	ParamsCall *pc = new ParamsCall();
 	pc->append($1);
 	$$ = pc;

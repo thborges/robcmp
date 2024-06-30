@@ -99,9 +99,11 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 		alloc = symbol->getLLVMValue(func);
 	}
 
-	if (!alloc)
+	if (!alloc) {
+		assert(alloc && "There's no alloc to load from.");
 		return NULL; // Caused by an error on previous statement that defines the symbol
-	
+	}
+
 	DataType sdt = symbol->getDataType();
 	if (buildTypes->isComplex(sdt) || buildTypes->isArrayOrMatrix(sdt)) {
 		if (symbol->isPointerToPointer()) {

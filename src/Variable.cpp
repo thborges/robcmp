@@ -11,17 +11,17 @@ Value *Variable::getLLVMValue(Node *stem) {
 		
 		FunctionImpl *func = dynamic_cast<FunctionImpl*>(stem);
 		if (func && func->getThisArg()) {
-			// generating a function of a type: get the gep on :this or :parent parameters
+			// generating a function of a type: get the gep on _this or :parent parameters
 			DataType thisDt = func->getThisArgDt();
 			Type *thisTy = buildTypes->llvmType(thisDt);
 			Value *thisptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
 			if (!stem->getScope() || this->getScope() == stem->getScope()) {
 				// the var is being accessed in global scope (!stem->getScope()) or
-				// in a method of the type itself. Thus, we :this and gep the field
+				// in a method of the type itself. Thus, we _this and gep the field
 				alloc = Builder->CreateStructGEP(thisTy, thisptr, gepidx, "gepthis");
 			} else {
-				// this var is in the parent scope. :this is an nested type.
-				// Thus, we access :parent in :this and gep the field
+				// this var is in the parent scope. _this is an nested type.
+				// Thus, we access parent in _this and gep the field
 				DataType parentDt = this->getScope()->getDataType();
 				Type *parentTy = buildTypes->llvmType(parentDt);
 				int idxParentInThis = static_cast<Variable*>(symbols["parent"])->getGEPIndex();
@@ -39,5 +39,9 @@ Value *Variable::getLLVMValue(Node *stem) {
 			alloc = Builder->CreateStructGEP(udt, ptr, gepidx, "gepu"); // FIXME
 		}
 	}
+
+	if (!alloc && isConstExpr())
+		return generate(NULL, NULL, NULL);
+
 	return alloc;
 }

@@ -26,6 +26,10 @@ public:
 	const string getIdent() {
 		return ident.getFullName();
 	}
+
+	const int getDimensions() {
+		return children().size();
+	}
 };
 
 class LoadArray: public BaseArrayOper {

@@ -11,9 +11,16 @@ LoadArray::LoadArray(const string &i, Node *pos, location_t loc): BaseArrayOper(
 DataType LoadArray::getDataType() {
 	if (dt == BuildTypes::undefinedType) {
 		Node *symbol = ident.getSymbol(getScope());
-		if (symbol && buildTypes->isArrayOrMatrix(symbol->getDataType()))
-			dt = buildTypes->getArrayElementType(symbol->getDataType());
-		else
+		if (symbol) {
+			if (getDimensions() == 1 && !buildTypes->isArray(symbol->getDataType())) {
+				yyerrorcpp("Symbol " + ident.getFullName() + " is not an array.", this);
+				setSemanticError();
+			} else if (getDimensions() == 2 && !buildTypes->isMatrix(symbol->getDataType())) {
+				yyerrorcpp("Symbol " + ident.getFullName() + " is not a matrix.", this);
+				setSemanticError();
+			} else
+				dt = buildTypes->getArrayElementType(symbol->getDataType());
+		} else			
 			setSemanticError();
 	}
 	return dt;
@@ -25,10 +32,8 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 	if (!symbol)
 		return NULL;
 
-	if (!buildTypes->isArrayOrMatrix(symbol->getDataType())) {
-		yyerrorcpp("Variable " + ident.getFullName() + " is not an array or matrix.", this);
+	if (!buildTypes->isArrayOrMatrix(symbol->getDataType()))
 		return NULL;
-	}
 
 	RobDbgInfo.emitLocation(this);
 	Builder->SetInsertPoint(block);

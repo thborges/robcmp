@@ -87,9 +87,9 @@ bool FunctionImpl::preGenerate() {
 		}
 		Value *variable = Builder->CreateAlloca(talloc, dataAddrSpace, 0, argname);
 		
-		if (argname == ":this") {
+		if (argname == "_this") {
 			thisArg = variable;
-		} else if (argname == ":parent") {
+		} else if (argname == "_parent") {
 			parentArg = variable;
 		}
 		

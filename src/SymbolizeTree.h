@@ -6,12 +6,9 @@
 #include "UserType.h"
 #include "Matrix.h"
 #include "Array.h"
+#include "UpdateArray.h"
 #include "FunctionImpl.h"
 #include "Scalar.h"
-#include "Load.h"
-#include "FunctionCall.h"
-#include "ConstructorCall.h"
-#include "MemCopy.h"
 #include "Enum.h"
 
 class SymbolizeTree: public Visitor {
@@ -22,7 +19,6 @@ public:
         for(auto* c : n.children()) {
             c->setScope(&n);
             if (c->hasName()) {
-                //fprintf(stderr, "%s\n", c->getName().c_str());
 		        n.addSymbol(dynamic_cast<NamedNode*>(c));
             }
         }
@@ -60,10 +56,17 @@ public:
         return NULL;
     }
 
-    virtual Node* visit(FunctionCall& n) override {
-	    for(Node *p: n.getParameters()) {
-            p->setScope(&n);
-            p->accept(*this);
+    virtual Node* visit(UpdateArray& n) override {
+        for(auto* c : n.children()) {
+            c->accept(*this);
+        }
+        // for operation assignment (eg. +=, -=, etc.), the indexes
+        // are used twice, in the load and in the attribution.
+        // so we check if they already has a scope before setting
+        for(auto* c : n.children()) {
+            if (!c->getScope()) {
+                c->setScope(&n);
+            }
         }
         return NULL;
     }

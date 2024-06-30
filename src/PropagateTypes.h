@@ -64,6 +64,7 @@ public:
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
         Value *v = node->generate(func, block, allocblock);
+        assert(v && "Node must generate a value to ZExt.");
         RobDbgInfo.emitLocation(this);
         Builder->SetInsertPoint(block);
         return Builder->CreateZExt(v, buildTypes->llvmType(dt), "zext");

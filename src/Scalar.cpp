@@ -56,6 +56,9 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 		return NULL;
 	DataType exprv_dt = expr->getDataType();
 
+	if (hasQualifier(qconst))
+		return exprv;
+
 	Builder->SetInsertPoint(block);
 	if (!alloc)
 		alloc = symbol->getLLVMValue(func);

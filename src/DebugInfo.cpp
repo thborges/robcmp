@@ -48,14 +48,14 @@ DIScope* DebugInfo::currScope() {
 DIExpression *DebugInfo::getFixedOffsetExpression() {
 	// TODO: For some unknown reason (to me), we need to offset 
 	// the var declaration by one to see its actual value
-	/*if (currentTarget().backend == rb_avr) {
+	if (currentTarget().backend == rb_avr) {
 		SmallVector<uint64_t, 8> Ops;
 		DIExpression *ex = DBuilder->createExpression();
 		ex->appendOffset(Ops, 1);
 		return DIExpression::prependOpcodes(ex, Ops, false);
-	} else {*/
+	} else {
 		return DBuilder->createExpression();
-	//}
+	}
 }
 
 void DebugInfo::declareVar(Node *n, Value *alloc, BasicBlock *allocblock) {
@@ -86,7 +86,7 @@ void DebugInfo::declareGlobalVar(Node *n, GlobalVariable *gv, BasicBlock *allocb
 	}
 	auto sp = RobDbgInfo.currScope();
 	auto funit = RobDbgInfo.currFile();
-	auto *d = DBuilder->createGlobalVariableExpression(sp, n->getName(), "",
+	auto *d = DBuilder->createGlobalVariableExpression(sp, gv->getName(), "",
 		funit, n->getLineNo(), dty, false);
 	gv->addDebugInfo(d);
 }

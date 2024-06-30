@@ -6,7 +6,7 @@
 
 void FunctionBase::addThisArgument(DataType dt) {
 	thisArgDt = dt;
-	Variable *fp = new Variable(":this", dt, this->getLoc());
+	Variable *fp = new Variable("_this", dt, this->getLoc());
 	fp->setScope(this);
 	parameters->append(fp);
 	symbols[fp->getName()] = fp;
@@ -38,7 +38,7 @@ bool FunctionBase::validateAndGetArgsTypes(std::vector<Type*> &argsty) {
 
 void FunctionBase::addParentArgument(DataType dt) {
 	parentArgDt = dt;
-	Variable *fp = new Variable(":parent", dt, this->getLoc());
+	Variable *fp = new Variable("_parent", dt, this->getLoc());
 	fp->setScope(this);
 	parameters->append(fp);
 	symbols[fp->getName()] = fp;
@@ -146,9 +146,9 @@ Value *FunctionDecl::generate(FunctionImpl*, BasicBlock *, BasicBlock *allocbloc
 			Arg.addAttr(Attribute::ZExt);
 
 		const string& argname = fp->getName();
-		if (argname == ":this") {
+		if (argname == "_this") {
 			thisArg = &Arg;
-		} else if (argname == ":parent") {
+		} else if (argname == "_parent") {
 			parentArg = &Arg;
 		}
 

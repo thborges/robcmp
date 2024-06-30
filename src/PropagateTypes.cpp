@@ -164,11 +164,14 @@ DataType PropagateTypes::coerceArithOrCmp(Node &n, Node *lNode, Node *rNode) {
                 }
                     
             } else {
-                yywarncpp("The unsigned operand was converted to signed.", &n);
-                if (lUnsigned)
+                if (lUnsigned) {
+                    yywarncpp("The left operand was converted to signed.", lNode);
                     lTy = buildTypes->unsignedToSigned(lTy);
-                else
+                }
+                else {
+                    yywarncpp("The right operand was converted to signed.", rNode);
                     rTy = buildTypes->unsignedToSigned(rTy);
+                }
             }
         }
 
@@ -388,6 +391,15 @@ Node* PropagateTypes::visit(UpdateArray& n) {
 }
 
 Node* PropagateTypes::visit(UserType& n) {
+    // Visit variables first, to propagate their types
+    for (auto it = n.node_children.begin(); it != n.node_children.end(); ++it) {
+        if (Variable *v = dynamic_cast<Variable*>(*it)) {
+            Node *replace = (*it)->accept(*this);
+            if (replace) {
+                *it = replace;
+            }
+        }
+    }
     n.dt = n.getDataType();
     propagateChildren(n);
     return NULL;
@@ -457,7 +469,7 @@ Node* PropagateTypes::visit(Scalar& n) {
     Node *result = visit((Variable&)n);
     
     // although this should be done on SymbolizeTree,
-    // some type propagarion in the tree change symbols
+    // some type propagation in the tree changes symbols
     // for scalars (e.g. FunctionCall -> ConstructorCall)
     auto& exprSymbols = n.getExpr()->getSymbols();
     if (exprSymbols.size() > 0)
@@ -468,11 +480,11 @@ Node* PropagateTypes::visit(Scalar& n) {
 Node* PropagateTypes::visit(Load& n) {
     // skip the :parent field. For nested user types,
     // the parameter doesn't exists at this point
-    if (n.getName() == ":parent")
+    if (n.getName() == "_parent")
         return NULL;
 
     // although this should be done on SymbolizeTree,
-    // some type propagarion in the tree change symbols
+    // some type propagation in the tree changes symbols
     // for scalars (e.g. FunctionCall -> ConstructorCall)
     visit((Node&)n);
     Node *identSymbol = n.getIdentSymbol(false);
@@ -483,7 +495,7 @@ Node* PropagateTypes::visit(Load& n) {
 
 Node* PropagateTypes::visit(MemCopy& n) {
     // although this should be done on SymbolizeTree,
-    // some type propagarion in the tree change symbols
+    // some type propagation in the tree changes symbols
     // for scalars (e.g. FunctionCall -> ConstructorCall)
     visit((Node&)n);
     if (n.children().size() > 0)

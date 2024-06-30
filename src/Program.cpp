@@ -99,6 +99,10 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 			}
 		}
 
+		// setup dispatcher to resolv from destinationTy to bindUserTy
+		program->getDispatcher()->addDataTypeImplementation(destinationTy,
+			bindUserTy->getDataType());
+
 		// generate injection stuff
 
 		const string functionName = ":get_injection_for_" + to.getFullName();
@@ -141,42 +145,6 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 
 		} else { // bs_transient
 			assert(false && "TODO: implement bs_transient scope.");
-		}
-
-		// generate injection function aliases
-	    for(const auto & [key, symbol] : bindUserTy->getSymbols()) {
-			if (FunctionImpl *impl = dynamic_cast<FunctionImpl*>(symbol)) {
-				Identifier destTyIntfName(destinationTyName, loc);
-				Node *destIntf = destTyIntfName.getSymbol(this);
-				if (destIntf && destIntf->findMember(symbol->getName())) {
-					// is a interface member implementation, let add an alias to it
-					string to_name = regex_replace(to.getFullName(), regex("\\."), ":") + ":" + symbol->getName();
-					Function *implFunc = impl->getLLVMFunction();
-
-					// if the function is declared in this module, FunctionCall already create it
-					Function *aliasFunc = mainmodule->getFunction(to_name);
-					if (!aliasFunc) {
-						aliasFunc = Function::Create(implFunc->getFunctionType(), Function::ExternalLinkage,
-							codeAddrSpace, to_name, mainmodule);
-						aliasFunc->setCallingConv(CallingConv::C);
-					}
-					aliasFunc->addFnAttr(Attribute::AlwaysInline);
-
-					auto fblock = BasicBlock::Create(global_context, "", aliasFunc);
-					Builder->SetInsertPoint(fblock);
-					
-					vector<Value*> args;
-					for(auto& arg : aliasFunc->args()) {
-						args.push_back(&arg);
-					}
-					
-					Value *call = Builder->CreateCall(implFunc, args);
-					if (call->getType()->isVoidTy())
-						Builder->CreateRetVoid();
-					else
-						Builder->CreateRet(call);
-				}
-			}
 		}
 	}
 

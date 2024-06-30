@@ -97,9 +97,7 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
             return NULL;
         }
 
-        if (buildTypes->isInterface(call_dt)) {
-            valor = Builder->CreateLoad(valor->getType()->getPointerTo(), valor, "defer");
-        } else if (buildTypes->isComplex(call_dt)) {
+        if (buildTypes->isComplex(call_dt)) {
             //we don't support cohercion between user types yet
             if (call_dt != def_dt) {
                 Node *utnode = findSymbol(buildTypes->name(call_dt));
@@ -193,30 +191,18 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
     // function being called), so we emit location again
     RobDbgInfo.emitLocation(this);
 
-    // when calling an interface function, we generate a larger function name,
-    // including the type name. This enable binding the correct function implementattion
-    // at the end of the build, according to the given hardware .spec
+    // calling an interface function; will use the dispatcher
     if (stemSymbol && buildTypes->isInterface(stemSymbol->getDataType())) {
-        string inject_name;
+        string func_full_name;
         
-        if (UserType *ut = dynamic_cast<UserType*>(stemSymbol->getScope())) {
-            inject_name = stemSymbol->getScope()->getName();
-            inject_name.append(":" + stemSymbol->getName() + ":");
-        }
-        else if (buildTypes->isUserType(stemSymbol->getScope()->getDataType())) {
-            inject_name = buildTypes->name(stemSymbol->getScope()->getDataType());
-            inject_name.append(":" + stemSymbol->getName() + ":");
-        }
-        else if (buildTypes->isInterface(stemSymbol->getDataType())) {
-            inject_name = buildTypes->name(stemSymbol->getDataType());
-            inject_name.append(":");
-        }
+        func_full_name = buildTypes->name(stemSymbol->getDataType());
+        func_full_name.append(":");
+        func_full_name.append(ident.getLastName());
 
-        inject_name.append(ident.getLastName());
-        Function *intf_cfunc = mainmodule->getFunction(inject_name);
+        Function *intf_cfunc = mainmodule->getFunction(func_full_name);
         if (!intf_cfunc) {
             intf_cfunc = Function::Create(cfunc->getFunctionType(), Function::ExternalLinkage, 
-                codeAddrSpace, inject_name, mainmodule);
+                codeAddrSpace, func_full_name, mainmodule);
             intf_cfunc->setCallingConv(CallingConv::C);
             intf_cfunc->addFnAttr(Attribute::AlwaysInline);
         }

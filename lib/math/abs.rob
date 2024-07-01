@@ -1,0 +1,18 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+/* Abs functions without branch */
+
+int8 abs8(int8 value) inline {
+    mask = value >> 7;
+    value = (value ^ mask) - mask;
+    return value;
+}
+
+int16 abs16(int16 value) inline {
+    mask = value >> 15;
+    value = (value ^ mask) - mask;
+    return value;
+}

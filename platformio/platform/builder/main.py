@@ -40,7 +40,8 @@ except:
     hardware_spec = None
     pass
 
-ldflags = ["-nostdlib", "-entry=main", "-L", stdlib_folder, "-Bstatic"]
+#ldflags = ["-nostdlib", "-entry=main", "-L", stdlib_folder, "-Bstatic"]
+ldflags = ["-nostdlib", "-L", stdlib_folder, "-Bstatic"]
 if mcu.startswith("stm32f1"):
     ldflags.append("-Tstm32f1.ld")
     auxsources += Glob(join(stdlib_folder, "stm32f1.rob"))
@@ -62,6 +63,7 @@ if build_type == "debug":
     robcmp_args.append("-g")
     robcmp_args.append("-O0")
 elif build_type == "release":
+    #robcmp_args.append("-g")
     robcmp_args.append("-Oz")
 
 hardware_spec_args = []
@@ -109,7 +111,10 @@ sources += Glob(env.subst(join("$PROJECT_DIR/src/", "main.rob")))
 
 target_objs = []
 for f in sources:
-    target_objs += env.RobDep(join("$BUILD_DIR", f.name + ".o"), f)
+    robdep = env.RobDep(join("$BUILD_DIR", f.name + ".o"), f)
+    # Always building while not proper detect dependencies changes (use inside .rob)
+    AlwaysBuild(robdep)
+    target_objs += robdep
 for f in auxsources:
     target_objs += env.Rob(join("$BUILD_DIR", f.name + ".o"), f)
 

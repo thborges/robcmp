@@ -35,4 +35,35 @@ type canvas8 {
             buffer.set(rowb, col, v & ~(1 << uint8(row & 7)));
         }
     }
+
+    void fill_rect(uint16 x1, uint16 y1, uint16 x2, uint16 y2, bool v) {
+        if x1 >= width() { return; }
+        if y1 >= height() { return; }
+        if x2 >= width() { x2 = width()-1; }
+        if y2 >= height() { y2 = height()-1; }
+        first_bank = y1 >> 3;
+        last_bank = y2 >> 3;
+        bank = first_bank;
+        while bank <= last_bank {
+            mask = 0xFF;
+            if first_bank == last_bank { // all bits in the same bank
+                mask = (mask >> ((y1 & 7) + 7 - (y2 & 7))) << (y1 & 7);
+            } else if bank == first_bank {
+                mask = (mask << (y1 & 7));
+            } else if bank == last_bank {
+                mask = (mask >> (7 - (y2 & 7)));
+            }
+            b = x1;
+            while b <= x2 {
+                bv = buffer.get(bank, b);
+                bv &= ~mask;
+                if v {
+                    bv |= mask;
+                }
+                buffer.set(bank, b, bv);
+                b++;
+            }
+            bank++;
+        }
+    }
 }

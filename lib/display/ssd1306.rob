@@ -9,6 +9,8 @@ use intfs.databus;
 use intfs.buffer8;
 use intfs.display;
 
+use graphic.envelope;
+
 type ssd1306 implements display {
     mmcu = mcu();
 
@@ -25,6 +27,7 @@ type ssd1306 implements display {
 
     framebuffer implements buffer8 {
         buff = {{0u:128}:8};
+        changes = envelope_u16();
         
         uint16 height() inline { return buff.rows; }
         uint16 width() inline { return buff.cols; }
@@ -47,6 +50,7 @@ type ssd1306 implements display {
         
         void set(uint16 row, uint16 col, uint8 v) inline {
             buff[row][col] = v;
+            changes.expand(col, row);
         }
     }
 
@@ -166,11 +170,13 @@ type ssd1306 implements display {
     }
 
     void reset_display() {
-        reset.set(true);
-        mmcu.wait_ms(10);
-        reset.set(false);
-        mmcu.wait_ms(10);
-        reset.set(true);
+        if (dbus.get_protocol() == databus_protocol.SPI) {
+            reset.set(true);
+            mmcu.wait_ms(10);
+            reset.set(false);
+            mmcu.wait_ms(10);
+            reset.set(true);
+        }
     }
 
     void write_commands(int8[] cmds) {
@@ -188,18 +194,18 @@ type ssd1306 implements display {
         select.set(true);
     }
 
-    void reset_cursor() {
+    void reset_cursor(uint8 lx, uint8 ly, uint8 ux, uint8 uy) {
         cmds = {
             // set page update range
-            commands.SET_PAGE_ADDR, 0x0, 0x7,
+            commands.SET_PAGE_ADDR, ly, uy,
             // set column update range
-            commands.SET_COLUMN_ADDRESS, 0x0, 127
+            commands.SET_COLUMN_ADDRESS, lx, ux
         };
         write_commands(cmds);
     }
 
     void clear() {
-        reset_cursor();
+        reset_cursor(0, 0, columns()-1, rows()-1);
         
         datacmd.set(true);
         select.set(false);
@@ -221,7 +227,11 @@ type ssd1306 implements display {
     }
 
     void update_frame() {
-        reset_cursor();
+        ev = framebuffer.changes;
+        if ev.empty() {
+            return;
+        }
+        reset_cursor(ev.lx, ev.ly, ev.ux, ev.uy);
 
         datacmd.set(true);
         select.set(false);
@@ -230,10 +240,10 @@ type ssd1306 implements display {
             dbus.write(i2c_control.DATA_STREAM);
         }
 
-        row = 0u;
-		while row < framebuffer.height() {
-			col = 0u;
-			while col < framebuffer.width() { 
+        row = ev.ly;
+		while row <= ev.uy {
+			col = ev.lx;
+			while col <= ev.ux { 
                 v = framebuffer.get(row, col);
 				dbus.write(v);
 				col++;
@@ -243,5 +253,6 @@ type ssd1306 implements display {
         
         dbus.end_transaction();
         select.set(true);
+        ev.clear();
     }
 }

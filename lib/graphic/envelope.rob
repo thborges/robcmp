@@ -1,0 +1,40 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+use math.limits;
+
+type envelope_u16 {
+
+    lx = uint16_max;
+    ly = uint16_max;
+    ux = uint16(0);
+    uy = uint16(0);
+
+    void set(uint16 lxx, uint16 lyy, uint16 uxx, uint16 uyy) {
+        lx = lxx;
+        ly = lyy;
+        ux = uxx;
+        uy = uyy;        
+    }
+
+    bool empty() {
+        return ux < lx or uy < ly;
+    }
+
+    void clear() {
+        lx = uint16_max;
+        ly = uint16_max;
+        ux = uint16(0);
+        uy = uint16(0);
+    }
+
+    void expand(uint16 x, uint16 y) {
+        if lx > x { lx = x; }
+        if ux < x { ux = x; }
+        if ly > y { ly = y; }
+        if uy < y { uy = y; }
+    }
+
+}

@@ -20,7 +20,7 @@ public:
 		this->dt = dt;
 	}
 
-    virtual Value* getLLVMValue(Node *stem) override;
+    virtual Value* getLLVMValue(Node *stem, FunctionImpl *gfunc = NULL) override;
 	
     virtual void setGEPIndex(int idx) {
 		gepIndex = idx;

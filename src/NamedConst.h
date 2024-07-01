@@ -18,7 +18,7 @@ public:
 		return value->generate(NULL, NULL, NULL);
 	}
 
-	virtual Value *getLLVMValue(Node *stem) override {
+	virtual Value *getLLVMValue(Node *stem, FunctionImpl *gfunc = NULL) override {
 		return value->generate(NULL, NULL, NULL);
 	}
 

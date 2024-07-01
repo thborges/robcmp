@@ -80,7 +80,7 @@ public:
 		return qualifiers.count(dq) == 1;
 	}
 
-	virtual Value* getLLVMValue(Node *stem) {
+	virtual Value* getLLVMValue(Node *stem, FunctionImpl *gfunc = NULL) {
 		return NULL;
 	}
 

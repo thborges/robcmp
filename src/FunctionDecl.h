@@ -52,7 +52,7 @@ public:
 		return *parameters;
 	}
 
-	virtual Value *getLLVMValue(Node *) override {
+	virtual Value *getLLVMValue(Node *, FunctionImpl *) override {
 		return func;
 	}
 

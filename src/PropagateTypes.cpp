@@ -456,9 +456,8 @@ Node* PropagateTypes::visit(Variable& n) {
     if (checkCoercion) {
         Node *result = NULL;
         result = coerceTo(expr, destDt);
-        n.setExpr(result);
-        if (!result)
-            yywarncpp(string_format("The symbol %s was first defined here.", n.getName().c_str()), firstDecl);
+        if (result)
+            n.setExpr(result);
     }
 
     return NULL;

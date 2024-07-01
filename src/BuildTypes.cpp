@@ -30,7 +30,7 @@ BuildTypes::BuildTypes(DataType targetPointerType) :
     tinfo[tint6u]   = {"uint6",         6, Type::getIntNTy(global_context, 6), dwarf::DW_ATE_unsigned};
     tinfo[tint7u]   = {"uint7",         7, Type::getIntNTy(global_context, 7), dwarf::DW_ATE_unsigned};
     tinfo[tint8u]   = {"uint8",         8, Type::getInt8Ty(global_context),    dwarf::DW_ATE_unsigned};
-    tinfo[tint9u]   = {"uint9",         8, Type::getIntNTy(global_context, 9), dwarf::DW_ATE_unsigned};
+    tinfo[tint9u]   = {"uint9",         9, Type::getIntNTy(global_context, 9), dwarf::DW_ATE_unsigned};
     tinfo[tint12u]  = {"uint12",       12, Type::getIntNTy(global_context, 12),dwarf::DW_ATE_unsigned};
     tinfo[tint16u]  = {"uint16",       16, Type::getInt16Ty(global_context),   dwarf::DW_ATE_unsigned};
     tinfo[tint32u]  = {"uint32",       32, Type::getInt32Ty(global_context),   dwarf::DW_ATE_unsigned};

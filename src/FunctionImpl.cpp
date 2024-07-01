@@ -212,7 +212,7 @@ Node* FunctionImpl::accept(Visitor& v) {
 	return v.visit(*this);
 }
 
-Value* FunctionImpl::getLLVMValue(Node *) {
+Value* FunctionImpl::getLLVMValue(Node *, FunctionImpl *) {
 	if (!preGenerated)
 		preGenerate();
 	return func;

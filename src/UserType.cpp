@@ -98,7 +98,7 @@ bool UserType::createDataType() {
         }
 
         if (v && !v->isConstExpr()) {
-            if (PropagateTypes::isUndefined(v)) {
+            if (PropagateTypes::isUndefined(v, false)) {
                 return false;
             } else if (buildTypes->isInterface(v->getDataType())) {
                 v->setPointer(pm_pointer);

@@ -79,7 +79,7 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 				v = Builder->CreateLShr(v, ConstantInt::get(req_eq_ty, bs));
 			return Builder->CreateTrunc(v, buildTypes->llvmType(symbol->getDataType()));
 		} else {
-			alloc = symbol->getLLVMValue(stem);
+			alloc = symbol->getLLVMValue(stem, func);
 		}
 		
 		if (stem->hasQualifier(qvolatile))

@@ -2,7 +2,7 @@
 #include "Variable.h"
 #include "FunctionImpl.h"
 
-Value *Variable::getLLVMValue(Node *stem) {
+Value *Variable::getLLVMValue(Node *stem, FunctionImpl *gfunc) {
 	int gepidx = getGEPIndex();
 	if (gepidx != -1) {
 		Value *zero = ConstantInt::get(Type::getInt32Ty(global_context), 0);
@@ -32,7 +32,7 @@ Value *Variable::getLLVMValue(Node *stem) {
 		} else {
 			// accessing a var of a user type: get the gep in the scope (user type) of the scalar
 			Type *udt = buildTypes->llvmType(stem->getDataType());
-			Value *ptr = stem->getLLVMValue(NULL);
+			Value *ptr = stem->getLLVMValue(gfunc);
 			if (stem->isPointerToPointer()) {
 				ptr = Builder->CreateLoad(udt->getPointerTo(), ptr, "deref");
 			}

@@ -171,8 +171,10 @@ public:
         return n.node_children[i];
     }
 
-    static bool isUndefined(Node *n) {
-        if (n->getDataType() == BuildTypes::undefinedType) {
+    static bool isUndefined(Node *n, bool checkDefined = true) {
+        DataType dt = n->getDataType();
+        if (dt == BuildTypes::undefinedType || 
+            checkDefined && !buildTypes->isDefined(dt)) {
             string name = n->getName();
             if (name != "")
                 yyerrorcpp(string_format("The type of %s is undefined.", name.c_str()), n);

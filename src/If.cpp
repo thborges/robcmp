@@ -16,8 +16,9 @@ If::If(Node *e, vector<Node*> &&tst, vector<Node*> &&est, location_t loc): If(e,
 }
 
 Value *If::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
-	Value *exprv = expr->generate(func, block, allocblock);
 
+	Value *exprv = expr->generate(func, block, allocblock);
+	
 	BasicBlock *thenb = BasicBlock::Create(global_context, "if_then", 
 		func->getLLVMFunction(), 0);
 	Value *thennewb = thenst->generateChildren(func, thenb, allocblock);
@@ -29,7 +30,8 @@ Value *If::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbloc
 		elsenewb = elsest->generateChildren(func, elseb, allocblock);
 	}
 	
-	BranchInst::Create(thenb, elseb, exprv, block);
+	BasicBlock *newblock = dyn_cast<Instruction>(exprv)->getParent();
+	BranchInst::Create(thenb, elseb, exprv, newblock);
 
 	BasicBlock *mergb = BasicBlock::Create(global_context, "if_cont", 
 		func->getLLVMFunction(), 0);

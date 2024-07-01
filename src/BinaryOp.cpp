@@ -2,6 +2,7 @@
 #include "Language_gen_y.hpp"
 
 #include "BinaryOp.h"
+#include "FunctionImpl.h"
 
 BinaryOp::BinaryOp(Node *l, int op, Node *r) : Node(l->getLoc()) {
 	this->op = op;
@@ -11,20 +12,40 @@ BinaryOp::BinaryOp(Node *l, int op, Node *r) : Node(l->getLoc()) {
 
 Value *BinaryOp::logical_operator(enum Instruction::BinaryOps op, 
 	FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
+	
+	// The code below implements boolean short-circuit evaluation
+	// See https://en.wikipedia.org/wiki/Short-circuit_evaluation
 
+	// left
 	Value *lhs = lhsn()->generate(func, block, allocblock);
-	Value *rhs = rhsn()->generate(func, block, allocblock);
-
+	BasicBlock *newlblock = dyn_cast<Instruction>(lhs)->getParent();
 	Type *lhsty = lhs->getType();
-	Type *rhsty = rhs->getType();
+	BasicBlock *fullev = BasicBlock::Create(global_context, "fullev", func->getLLVMFunction());
+	BasicBlock *phiblock = BasicBlock::Create(global_context, "phiblock", func->getLLVMFunction());
+	PHINode *phi = PHINode::Create(lhsty, 0, "phi", phiblock);
+	phi->addIncoming(lhs, newlblock);
+
+	if (op == Instruction::BinaryOps::Or)
+		BranchInst::Create(phiblock, fullev, lhs, newlblock);
+	else // and
+		BranchInst::Create(fullev, phiblock, lhs, newlblock);
+
+	// right
+	Value *rhs = rhsn()->generate(func, fullev, allocblock);
+	BasicBlock *newrblock = dyn_cast<Instruction>(rhs)->getParent();
+	Builder->SetInsertPoint(newrblock);
+	Value *binop = Builder->CreateBinOp(op, lhs, rhs, "logicop");
+	BranchInst::Create(phiblock, newrblock);
+	phi->addIncoming(binop, newrblock);
+	
 	if (!lhsty->isIntegerTy() || !(lhsty->getIntegerBitWidth() == 1))
 		yyerrorcpp("The left side of the logical expression is not boolean.", this);
 	
+	Type *rhsty = rhs->getType();
 	if (!rhsty->isIntegerTy() || !(rhsty->getIntegerBitWidth() == 1))
 		yyerrorcpp("The right side of the logical expression is not boolean.", this);
 
-	Builder->SetInsertPoint(block);
-	return Builder->CreateBinOp(op, lhs, rhs, "logicop");
+	return phi;
 }
 
 Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint, 

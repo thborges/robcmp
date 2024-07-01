@@ -15,8 +15,6 @@ While::While(Node *e, vector<Node*> &&ss, location_t loc) : While(e, loc) {
 Value *While::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	Function *llvmf = func->getLLVMFunction();
 	BasicBlock *condwhile = BasicBlock::Create(global_context, "while_cond", llvmf, 0);
-	BasicBlock *bodywhile = BasicBlock::Create(global_context, "while_body", llvmf, 0);
-	BasicBlock *endwhile = BasicBlock::Create(global_context, "while_end", llvmf, 0);
 
 	// go to condition
 	RobDbgInfo.emitLocation(expr);
@@ -24,10 +22,14 @@ Value *While::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 	Builder->CreateBr(condwhile);
 
 	Value *exprv = expr->generate(func, condwhile, allocblock);
+	BasicBlock *endcondwhile = dyn_cast<Instruction>(exprv)->getParent();
 
 	// check condition
 	RobDbgInfo.emitLocation(expr);
-	Builder->SetInsertPoint(condwhile);
+	Builder->SetInsertPoint(endcondwhile);
+
+	BasicBlock *bodywhile = BasicBlock::Create(global_context, "while_body", llvmf, 0);
+	BasicBlock *endwhile = BasicBlock::Create(global_context, "while_end", llvmf, 0);
 	Builder->CreateCondBr(exprv, bodywhile, endwhile);
 
 	// alloc instructions inside bodywhile should go to allocblock to prevent repeatedly allocation

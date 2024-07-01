@@ -6,6 +6,8 @@ Value *Return::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 	Value *retvalue = NULL;
 	if (value()) {
 		retvalue = value()->generate(func, block, allocblock);
+		if (Instruction *ins = dyn_cast<Instruction>(retvalue))
+			block = ins->getParent();
 	}
 	RobDbgInfo.emitLocation(this);
 	Builder->SetInsertPoint(block);

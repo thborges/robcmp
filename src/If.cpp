@@ -18,6 +18,11 @@ If::If(Node *e, vector<Node*> &&tst, vector<Node*> &&est, location_t loc): If(e,
 Value *If::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
 	Value *exprv = expr->generate(func, block, allocblock);
+	if (!exprv) {
+		// This occurs when loading a var still not defined, so
+		// we let it be False to recovery from the error
+		exprv = ConstantInt::get(Type::getInt1Ty(global_context), 0);
+	}
 	
 	BasicBlock *thenb = BasicBlock::Create(global_context, "if_then", 
 		func->getLLVMFunction(), 0);
@@ -29,8 +34,12 @@ Value *If::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbloc
 	if (elsest != 0) {
 		elsenewb = elsest->generateChildren(func, elseb, allocblock);
 	}
-	
-	BasicBlock *newblock = dyn_cast<Instruction>(exprv)->getParent();
+
+	BasicBlock *newblock = block;
+	// A distinct block can return from boolean short-circuit evaluation
+	Instruction* instr = dyn_cast<Instruction>(exprv);
+	if (instr)
+		newblock = instr->getParent();
 	BranchInst::Create(thenb, elseb, exprv, newblock);
 
 	BasicBlock *mergb = BasicBlock::Create(global_context, "if_cont", 

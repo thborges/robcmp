@@ -22,7 +22,11 @@ Value *While::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 	Builder->CreateBr(condwhile);
 
 	Value *exprv = expr->generate(func, condwhile, allocblock);
-	BasicBlock *endcondwhile = dyn_cast<Instruction>(exprv)->getParent();
+	BasicBlock *endcondwhile = condwhile;
+	// A distinct block can return from boolean short-circuit evaluation
+	Instruction* instr = dyn_cast<Instruction>(exprv);
+	if (instr)
+		endcondwhile = instr->getParent();
 
 	// check condition
 	RobDbgInfo.emitLocation(expr);

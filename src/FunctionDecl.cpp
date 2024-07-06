@@ -89,10 +89,10 @@ void FunctionBase::addFunctionAttributes(Function *func) {
 	if (!attributes)
 		return;
 		
-	for(auto *attr : attributes->getAttributes()) {
-		switch (attr->first) {
+	for(auto &[attr, value] : attributes->getAttributes()) {
+		switch (attr) {
 			case fa_weak:
-				func->setLinkage(GlobalValue::WeakAnyLinkage);
+				func->setLinkage(GlobalValue::ExternalWeakLinkage);
 				break;
 			case fa_inline:
 				func->addFnAttr(Attribute::AlwaysInline);
@@ -101,12 +101,14 @@ void FunctionBase::addFunctionAttributes(Function *func) {
 				func->addFnAttr(Attribute::NoInline);
 				break;
 			case fa_section:
-				func->setSection(attr->second);
+				func->setSection(value);
+				break;
+			case fa_signal:
+				func->addFnAttr("signal"); //no break, share naked attrs
 				break;
 			case fa_naked:
 				func->addFnAttr(Attribute::Naked);
 				func->addFnAttr(Attribute::NoInline);
-				func->addFnAttr(Attribute::OptimizeNone);
 				break;
 		}
 	}

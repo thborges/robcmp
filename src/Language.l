@@ -49,6 +49,7 @@ EXP ([Ee][-+]?[0-9]+)?
 "weak"					{ return TOK_WEAK; }
 "section"				{ return TOK_SECTION; }
 "naked"					{ return TOK_NAKED; }
+"signal"				{ return TOK_SIGNAL; }
 
 "bind"					{ return TOK_BIND; }
 "to"					{ return TOK_TO; }

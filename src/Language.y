@@ -149,6 +149,7 @@ function_attribute
 	| TOK_INLINE						{ $$ = new FunctionAttribute(fa_inline, ""); }
 	| TOK_NOINLINE						{ $$ = new FunctionAttribute(fa_noinline, ""); }
 	| TOK_NAKED							{ $$ = new FunctionAttribute(fa_naked, ""); }
+	| TOK_SIGNAL						{ $$ = new FunctionAttribute(fa_signal, ""); }
 	| TOK_SECTION TOK_IDENTIFIER[id]	{ $$ = new FunctionAttribute(fa_section, $id); }
 
 event : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'[ef] {	

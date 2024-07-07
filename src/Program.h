@@ -16,6 +16,8 @@ public:
 	Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
 	void generate();	
 	void generateInjectionSetup(SourceLocation *sl);
+	void declareBuiltins();
+	void generateBuiltins();
 	void doSemanticAnalysis();
 
 	Dispatch* getDispatcher() {

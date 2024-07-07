@@ -16,6 +16,7 @@ enum BasicDataType {tvoid, tbool, tchar,
   tint8u, tint9u, tint12u, tint16u, tint32u, tint64u,
   tfloat, tdouble, tldouble,
   /* new types here! */
+  tobject,
   __bdt_last};
 
 enum DataQualifier {qnone, qconst, qvolatile};
@@ -59,6 +60,8 @@ struct DataTypeInfo {
         isInterface(false), isEnum(false), arrayDimensions(0) {};
 };
 
+class Program;
+
 class BuildTypes {
 private:
     map<DataType, DataTypeInfo> tinfo;
@@ -79,7 +82,7 @@ private:
 public:
     static const DataType undefinedType = -1;
 
-    BuildTypes(DataType targetPointerType);
+    BuildTypes(DataType targetPointerType, Program *program);
 
     DataType addDataType(Node* userType, Type* llvmType, 
         unsigned typeBitWidth = 0, bool isEnum = false);

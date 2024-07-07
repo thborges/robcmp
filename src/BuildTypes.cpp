@@ -13,8 +13,10 @@
 #include "BackLLVM.h"
 #include "Int8.h"
 
-BuildTypes::BuildTypes(DataType targetPointerType) : 
+BuildTypes::BuildTypes(DataType targetPointerType, Program *program) :
     targetPointerType(targetPointerType) {
+
+    unsigned pts = tinfo[targetPointerType].bitWidth;
 
     tinfo[tvoid]    = {"void",          0, Type::getVoidTy(global_context),    dwarf::DW_ATE_address};
     tinfo[tbool]    = {"bool",          1, Type::getInt1Ty(global_context),    dwarf::DW_ATE_boolean};
@@ -39,7 +41,9 @@ BuildTypes::BuildTypes(DataType targetPointerType) :
     tinfo[tdouble]  = {"double",       64, Type::getDoubleTy(global_context),  dwarf::DW_ATE_float};
     tinfo[tldouble] = {"ldouble",     128, Type::getFP128Ty(global_context),   dwarf::DW_ATE_float};
 
-    unsigned pts = tinfo[targetPointerType].bitWidth;
+    // a generic internal pointer
+    tinfo[tobject]  = {"object", pts, Type::getVoidTy(global_context)->getPointerTo(), dwarf::DW_ATE_address};
+    tinfo[tobject].isComplex = true;
 
     const DataLayout &dl = mainmodule->getDataLayout();
     for(int t = 0; t < __bdt_last; t++) {
@@ -52,6 +56,9 @@ BuildTypes::BuildTypes(DataType targetPointerType) :
             info.diType = DBuilder->createBasicType(info.name, bitWidth, info.dwarfEnc);
             info.diPointerType = DBuilder->createPointerType(info.diType, pts);
         }
+
+        NamedConst *typeidConst = new NamedConst(info.name, new Int8(t, program->getLoc()));
+        program->addSymbol(typeidConst);
     }
 }
 

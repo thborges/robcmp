@@ -29,7 +29,7 @@ Program::Program() : Node({0,0,0,0}) {
 		RobDbgInfo.push_scope(RobDbgInfo.cunit);
 	}
 	
-	buildTypes = make_unique<BuildTypes>(currentTarget().pointerType);
+	buildTypes = make_unique<BuildTypes>(currentTarget().pointerType, this);
 	global_alloc = BasicBlock::Create(global_context, "global");
 
 	dispatch = new Dispatch();
@@ -154,10 +154,55 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 	funcInitGlobals->generate(NULL, NULL, global_alloc);
 }
 
+void Program::declareBuiltins() {
+
+	// typeid function
+	FunctionParams *typeid_params = new FunctionParams();
+	typeid_params->append(new Variable("object", tobject, this->getLoc()));
+	FunctionDecl *typeid_decl = new FunctionDecl(tint8u, "typeid", typeid_params, this->getLoc());
+	typeid_decl->setLinkage(GlobalValue::LinkOnceODRLinkage);
+	addChild(typeid_decl);
+	addSymbol(typeid_decl);
+}
+
+void Program::generateBuiltins() {	
+	// generate the typeid declaration
+	Node *decl = findSymbol("typeid");
+	Value *typeidValue = decl->generate(NULL, NULL, global_alloc);
+	Function *typeidFunc = dyn_cast<Function>(typeidValue);
+
+	// generate the typeid implementation
+	BasicBlock *body = BasicBlock::Create(global_context, "", typeidFunc);
+	Builder->SetInsertPoint(body);
+	auto& Arg = *typeidFunc->args().begin();
+	Arg.addAttr(Attribute::ReadOnly);
+	auto *CmpVoid = Builder->CreateCmp(FCmpInst::ICMP_EQ, &Arg, ConstantPointerNull::get(Arg.getType()->getPointerTo()));
+	
+	// if pointer is not set, return zero/void
+	BasicBlock *returnVoid = BasicBlock::Create(global_context, "", typeidFunc);
+	Builder->SetInsertPoint(returnVoid);
+	Builder->CreateRet(ConstantInt::get(typeidFunc->getReturnType(), 0));
+
+	// else, return the object typeid
+	BasicBlock *returnTypeid = BasicBlock::Create(global_context, "", typeidFunc);
+	Builder->SetInsertPoint(returnTypeid);
+	Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
+	Value *indexList[2] = {zero, zero};
+	Type *idType = Type::getInt8Ty(global_context);
+	Value *idValue = Builder->CreateLoad(typeidFunc->getReturnType(), &Arg);
+	Builder->CreateRet(idValue);
+
+	Builder->SetInsertPoint(body);
+	Builder->CreateCondBr(CmpVoid, returnVoid, returnTypeid);
+
+}
+
 extern bool parseIsCompleted;
 
 void Program::doSemanticAnalysis() {
     parseIsCompleted = true;
+
+	declareBuiltins();
 
 	// instrumentation passes
 	SymbolizeTree st;
@@ -177,6 +222,8 @@ void Program::doSemanticAnalysis() {
 void Program::generate() {
 
 	Node *mainFunc = NULL;
+
+	generateBuiltins();
 
 	for(auto n: children()) {
 		if (FunctionImpl *func = dynamic_cast<FunctionImpl*>(n)) {

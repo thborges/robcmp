@@ -49,7 +49,7 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 	location_t loc = sl->getLoc();
 
 	// a function to init global vars for singleton injections
-	FunctionImpl *funcInitGlobals = new FunctionImpl((DataType)tvoid, ":injections_init", 
+	FunctionImpl *funcInitGlobals = new FunctionImpl((DataType)tvoid, "__injections_init", 
 		new FunctionParams(), vector<Node *>(), loc, loc, false);
 	funcInitGlobals->setScope(this);
 	addSymbol(funcInitGlobals);
@@ -105,7 +105,7 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 
 		// generate injection stuff
 
-		const string functionName = ":get_injection_for_" + to.getFullName();
+		const string functionName = "__get_injection_for_" + to.getFullName();
 		FunctionImpl *finject = new FunctionImpl(destinationTy, functionName, 
 			new FunctionParams(), vector<Node *>(), loc, loc, false);
 		finject->setReturnIsPointer(true);
@@ -115,9 +115,9 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 		if (itype->scope == bs_singleton) {
 			string globalVarName;
 			if (bind.isComplex()) {
-				globalVarName = ":var_injection_for_" + bind.getFullName();
+				globalVarName = "__var_injection_for_" + bind.getFullName();
 			} else {
-				globalVarName = ":var_injection_for_" + bind.getFullName();
+				globalVarName = "__var_injection_for_" + bind.getFullName();
 				Node *var = findSymbol(globalVarName);
 				if (!var) {
 					// alloc the global var
@@ -240,7 +240,7 @@ void Program::generate() {
 	if (mainFunc && injections.size() > 0) {
 		generateInjectionSetup(mainFunc);
 
-		FunctionCall *fc = new FunctionCall(":injections_init", new ParamsCall(), mainFunc->getLoc());
+		FunctionCall *fc = new FunctionCall("__injections_init", new ParamsCall(), mainFunc->getLoc());
 		fc->setScope(mainFunc);
 		mainFunc->addChild(fc, true);
 	}

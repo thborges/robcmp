@@ -34,7 +34,7 @@ Value* ConstructorCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlo
             parent->getName() + "." + leftValue->getName() :
             leftValue->getName();
 
-        const string injectFuncName = ":get_injection_for_" + toInjection;
+        const string injectFuncName = "__get_injection_for_" + toInjection;
         Node *funcNode = findSymbol(injectFuncName);
         FunctionBase *funcDecl = dynamic_cast<FunctionBase*>(funcNode);
         if (!funcDecl) {

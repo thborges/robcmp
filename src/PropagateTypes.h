@@ -64,10 +64,14 @@ public:
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
         Value *v = node->generate(func, block, allocblock);
-        assert(v && "Node must generate a value to ZExt.");
-        RobDbgInfo.emitLocation(this);
-        Builder->SetInsertPoint(block);
-        return Builder->CreateZExt(v, buildTypes->llvmType(dt), "zext");
+        if (!v) {
+            yyerrorcpp("There is no value to cast from (zext) ", node);
+            return NULL;
+        } else {
+            RobDbgInfo.emitLocation(this);
+            Builder->SetInsertPoint(block);
+            return Builder->CreateZExt(v, buildTypes->llvmType(dt), "zext");
+        }
     }
 };
 
@@ -186,6 +190,7 @@ public:
     }
 
     static Node *coerceTo(Node *n, const DataType destTy, bool warns = true);
+    static Node *coerceToUserTypes(Node *n, const DataType destTy);
     DataType coerceArithOrCmp(Node& n, Node *left, Node *right);
 
     virtual Node* visit(Node& n) override {

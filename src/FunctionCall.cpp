@@ -104,38 +104,14 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
             }
         }
 
-        if (buildTypes->isComplex(call_dt)) {
-            //we don't support cohercion between user types yet
-            if (call_dt != def_dt) {
-                Node *utnode = findSymbol(buildTypes->name(call_dt));
-                UserType *ut = dynamic_cast<UserType*>(utnode);
-
-                if (ut && ut->implementsInterface(buildTypes->name(def_dt))) {
-                    program->getDispatcher()->addDataTypeImplementation(def_dt, call_dt);
-
-                } else if (!ut || !ut->implementsInterface(buildTypes->name(def_dt))) {
-                    yyerrorcpp(string_format("Argument %s expects '%s' but '%s' was provided.",
-                        argName.c_str(),
-                        buildTypes->name(def_dt), 
-                        buildTypes->name(call_dt)), this);
-                    yywarncpp("The function declaration is here.", fsymbol);
-                }
-            }
-        } else if (buildTypes->isArrayOrMatrix(call_dt)) {
-            if (!buildTypes->isArrayCompatible(call_dt, def_dt)) {
-                yyerrorcpp(string_format("Argument %s expects '%s' but '%s' was provided.",
-                    argName.c_str(),
-                    buildTypes->name(def_dt), 
-                    buildTypes->name(call_dt)), this);
-            }
-
+        if (buildTypes->isArrayOrMatrix(call_dt)) {
             // we pass the address of the first element
             Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
             Value *indexList[2] = {zero, zero};
             Value *ptr = Builder->CreateGEP(param->getLLVMType(), valor, ArrayRef<Value*>(indexList), "gep");
             valor = ptr;
         }
-        
+
         args.insert(args.begin() + paramId, valor);
         dataTypes.insert(dataTypes.begin() + paramId, def_dt);
 

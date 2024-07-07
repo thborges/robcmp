@@ -2,6 +2,7 @@
 #include "PropagateTypes.h"
 #include "ConstructorCall.h"
 #include "Scalar.h"
+#include "Program.h"
 
 void PropagateTypes::propagateChildren(Node& n, std::function<void(Node&)> lambda) {
     for (auto it = n.node_children.begin(); it != n.node_children.end(); ++it) {
@@ -14,6 +15,30 @@ void PropagateTypes::propagateChildren(Node& n, std::function<void(Node&)> lambd
     }
 }
 
+Node* PropagateTypes::coerceToUserTypes(Node *n, const DataType destTy) {
+    DataType ndt = n->getDataType();
+    if (!buildTypes->isComplex(ndt) && !buildTypes->isArrayOrMatrix(ndt))
+        return NULL;
+
+    if (ndt != destTy) {
+        Node *utnode = n->getScope()->findSymbol(buildTypes->name(ndt));
+        UserType *ut = dynamic_cast<UserType*>(utnode);
+
+        if (ut && ut->implementsInterface(buildTypes->name(destTy))) {
+            program->getDispatcher()->addDataTypeImplementation(destTy, ndt);
+            return n;
+        } else if (buildTypes->isArrayOrMatrix(ndt)) {
+            if (buildTypes->isArrayCompatible(ndt, destTy))
+                return n;
+        } else if (destTy == tobject && 
+            (buildTypes->isComplex(ndt) || buildTypes->isInterface(ndt))) {
+            return n;
+        }
+    }
+
+    return NULL;
+}
+
 Node* PropagateTypes::coerceTo(Node *n, const DataType destTy, bool warns) {
     if (isUndefined(n))
         return NULL;
@@ -23,10 +48,13 @@ Node* PropagateTypes::coerceTo(Node *n, const DataType destTy, bool warns) {
     bool lIsNumeric = buildTypes->isNumericDataType(destTy);
     bool rIsNumeric = buildTypes->isNumericDataType(valueTy);
     if (!lIsNumeric || !rIsNumeric) {
-        yyerrorcpp(string_format("Can not cast from '%s' to '%s'.",
-            buildTypes->name(valueTy),
-            buildTypes->name(destTy)), n);
-        return NULL;
+        Node *result = coerceToUserTypes(n, destTy);
+        if (!result) {
+            yyerrorcpp(string_format("Can not cast from '%s' to '%s'.",
+                buildTypes->name(valueTy),
+                buildTypes->name(destTy)), n);
+            return NULL;
+        }
     }
 
     bool destUnsigned = buildTypes->isUnsignedDataType(destTy);
@@ -38,23 +66,21 @@ Node* PropagateTypes::coerceTo(Node *n, const DataType destTy, bool warns) {
     if (buildTypes->isIntegerDataType(destTy) && buildTypes->isIntegerDataType(valueTy)) {
         
         // if we have signed and unsigned operands, convert valueTy to destTy
-        if (warns) {
-            if ((destUnsigned ^ valueUnsigned) && valueTy != tbool) {
-                // if value is constant, convert it to the dest type
-                bool valueIsConstant = n->isConstExpr();
-                if (valueIsConstant) {
-                    valueTy = valueUnsigned ? buildTypes->unsignedToSigned(valueTy) : 
-                        buildTypes->signedToUnsigned(valueTy);
-                } else {
-                    string name = n->getName();
-                    if (name == "")
-                        name = "Value";
-                    if (destUnsigned)
-                        yywarncpp(string_format("%s has been used as unsigned.", name.c_str()), n);
-                    else
-                        yywarncpp(string_format("%s has been used as signed.", name.c_str()), n);
-                }
-            }
+        if ((destUnsigned ^ valueUnsigned) && valueTy != tbool) {
+            // if value is constant, convert it to the dest type
+            bool valueIsConstant = n->isConstExpr();
+            if (valueIsConstant) {
+                valueTy = valueUnsigned ? buildTypes->unsignedToSigned(valueTy) : 
+                    buildTypes->signedToUnsigned(valueTy);
+            } /*else if (warns) {
+                string name = n->getName();
+                if (name == "")
+                    name = "Value";
+                if (destUnsigned)
+                    yywarncpp(string_format("%s has been used as unsigned.", name.c_str()), n);
+                else
+                    yywarncpp(string_format("%s has been used as signed.", name.c_str()), n);
+            }*/
         }
 
         // if destTy is larger, SExtended or ZExtended value
@@ -67,11 +93,20 @@ Node* PropagateTypes::coerceTo(Node *n, const DataType destTy, bool warns) {
             return expand;
 
         } else if (destBWidth < valueBWidth) {
+            if (n->isConstExpr()) {
+                // if the value is constant, check if the number of active bits
+                // fits in the dest bit width and prevent false trunc warnings
+                Value *nv = n->generate(NULL, NULL, NULL);
+		        Constant *c = dyn_cast<Constant>(nv);
+		        unsigned bits = c->getUniqueInteger().getActiveBits();
+                if (bits <= destBWidth)
+                    warns = false;
+            }
             if (warns) {
                 string name = n->getName();
                 if (name == "")
                     name = "Value";
-                yywarncpp(string_format("%s (%s) has been truncated to fit %s.", name.c_str(), 
+                yywarncpp(string_format("%s (%s) has been truncated to %s.", name.c_str(), 
                     buildTypes->name(valueTy), buildTypes->name(destTy)), n);
             }
             return new TruncInt(n, destTy);
@@ -165,11 +200,11 @@ DataType PropagateTypes::coerceArithOrCmp(Node &n, Node *lNode, Node *rNode) {
                     
             } else {
                 if (lUnsigned) {
-                    yywarncpp("The left operand was converted to signed.", lNode);
+                    //yywarncpp("The left operand was converted to signed.", lNode);
                     lTy = buildTypes->unsignedToSigned(lTy);
                 }
                 else {
-                    yywarncpp("The right operand was converted to signed.", rNode);
+                    //yywarncpp("The right operand was converted to signed.", rNode);
                     rTy = buildTypes->unsignedToSigned(rTy);
                 }
             }
@@ -323,7 +358,7 @@ Node* PropagateTypes::visit(FunctionCall& fc) {
         while (passedParam != fc.getParameters().end()) {
             DataType call_dt = (*passedParam)->getDataType();
             DataType def_dt = (*calledFuncParam)->getDataType();
-            if (buildTypes->isPrimitiveType(def_dt) && call_dt != def_dt) {
+            if (call_dt != def_dt) {
                 Node *newParam = coerceTo((*passedParam), def_dt);
                 *passedParam = newParam;
             }

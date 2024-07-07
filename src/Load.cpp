@@ -100,7 +100,7 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 	}
 
 	if (!alloc) {
-		assert(alloc && "There's no alloc to load from.");
+		yyerrorcpp(string_format("Symbol %s is undefined at this point.", ident.getFullName().c_str()), this);
 		return NULL; // Caused by an error on previous statement that defines the symbol
 	}
 

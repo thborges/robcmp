@@ -1,0 +1,17 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+/*
+ * An assertion function that loops infinitely if the tested condition is false.
+ * The noinline attribute maintains the caller function in the stack 
+ * (even for interrupts), easing the identification of the cause.
+ * The debugonly attribute ensures that the function is compiled only 
+ * while debugging (-g)
+ */
+
+void assert(bool a, char[] message) noinline, debugonly {
+    volatile x = message;
+    if (!a) { loop {} }
+}

@@ -64,6 +64,10 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         return NULL;
     }
 
+    // skip calling onlydebug functions when not debugging
+    if (!debug_info && fsymbol->getAttributes()->hasAttribute(fa_debugonly))
+        return NULL;
+
     dt = fsymbol->getDataType();
 
     Node *stemSymbol = NULL;

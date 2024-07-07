@@ -149,4 +149,6 @@ public:
 	}
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
+
+	virtual Value *getLLVMValue(Node *, FunctionImpl *) override;
 };

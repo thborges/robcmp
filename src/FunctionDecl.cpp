@@ -104,11 +104,13 @@ void FunctionBase::addFunctionAttributes(Function *func) {
 				func->setSection(value);
 				break;
 			case fa_signal:
-				func->addFnAttr("signal"); //no break, share naked attrs
+				func->addFnAttr("signal");
 				break;
 			case fa_naked:
 				func->addFnAttr(Attribute::Naked);
 				func->addFnAttr(Attribute::NoInline);
+				break;
+			default:
 				break;
 		}
 	}
@@ -116,6 +118,9 @@ void FunctionBase::addFunctionAttributes(Function *func) {
 
 Value *FunctionDecl::generate(FunctionImpl*, BasicBlock *, BasicBlock *allocblock) {
 	
+	if (func)
+		return func;
+
 	Node *symbol = findSymbol(name);
 	if (symbol != NULL && symbol != this) {
 		yyerrorcpp("Function/symbol " + name + " already defined.", this);
@@ -160,3 +165,10 @@ Value *FunctionDecl::generate(FunctionImpl*, BasicBlock *, BasicBlock *allocbloc
 	func = nfunc;
 	return func;
 }
+
+Value* FunctionDecl::getLLVMValue(Node *, FunctionImpl *) {
+	if (!func)
+		generate(NULL, NULL, global_alloc);
+	return func;
+}
+

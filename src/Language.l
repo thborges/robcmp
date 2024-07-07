@@ -50,6 +50,7 @@ EXP ([Ee][-+]?[0-9]+)?
 "section"				{ return TOK_SECTION; }
 "naked"					{ return TOK_NAKED; }
 "signal"				{ return TOK_SIGNAL; }
+"debugonly"				{ return TOK_DEBUGONLY; }
 
 "bind"					{ return TOK_BIND; }
 "to"					{ return TOK_TO; }

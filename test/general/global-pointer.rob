@@ -1,0 +1,56 @@
+
+/*
+ * Test case for global pointers to interfaces
+ */
+
+use intfs.interrupt;
+
+myint = interrupt_i8();
+
+// myint defaults to void_interrupt_i8
+bind void_interrupt_i8 to myint singleton;
+
+value = 0xff;
+
+void call_handler() {
+	myint.handler(0);
+}
+
+type custom_handler implements interrupt_i8 {
+    void handler(uint8 byte) {
+        value = byte;
+    }
+}
+
+void set_interface(interrupt_i8 i) {
+    a = i;
+    myint = a;
+}
+
+int8 main() {
+    ch = custom_handler();
+    vo = void_interrupt_i8();
+    
+    // direct set
+    a = ch;
+    myint = a;
+    call_handler();
+    if value != 0 {
+        return 1;
+    }
+
+    // direct set is working, restore
+    // defaults before the next test
+    value = 0xff;
+    myint = vo;
+
+    // set through function call
+    set_interface(ch);
+    call_handler();
+    if value != 0 {
+        return 2;
+    }
+    
+    return value;
+}
+

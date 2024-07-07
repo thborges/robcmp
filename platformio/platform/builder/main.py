@@ -40,30 +40,28 @@ except:
     hardware_spec = None
     pass
 
-#ldflags = ["-nostdlib", "-entry=main", "-L", stdlib_folder, "-Bstatic"]
 ldflags = ["-nostdlib", "-L", stdlib_folder, "-Bstatic"]
+ldflags.append("--gc-sections")
+ldflags.append("--lto=thin")
+
 if mcu.startswith("stm32f1"):
     ldflags.append("-Tstm32f1.ld")
     auxsources += Glob(join(stdlib_folder, "stm32f1.rob"))
 elif mcu == "atmega328p":
-    ldflags.append("-Tavr328p.ld")
+    ldflags.append("-Tatmega328p.ld")
     ldflags.append(join(stdlib_folder, "avr5.o"))
-    auxsources += Glob(join(stdlib_folder, "avr328p.rob"))
+    auxsources += Glob(join(stdlib_folder, "atmega328p.rob"))
 else:
     sys.stderr.write("The requested mcu is not supported.\n")
     env.Exit(1)
 
-ldflags.append("--gc-sections")
-ldflags.append("--lto=thin")
-
-build_type = env.subst("$BUILD_TYPE")
+build_type = env.GetProjectOption("build_type")
 robcmp_args = ["robcmp", "-a", board, "-o", "$TARGET"]
 
 if build_type == "debug":
     robcmp_args.append("-g")
-    robcmp_args.append("-O0")
+    robcmp_args.append("-O1")
 elif build_type == "release":
-    #robcmp_args.append("-g")
     robcmp_args.append("-Oz")
 
 hardware_spec_args = []
@@ -74,8 +72,7 @@ robcmp_args.append("-I")
 robcmp_args.append(stdlib_folder)
 robcmp_args.append("$SOURCE")
 
-if board.startswith("avr"):
-	print("Will use avr-gdb from robcmp")
+if board.startswith("atmega") or board.startswith("attiny"):
 	avr_gdb = join(platform.get_package_dir("toolchain-robcmp"), "bin", "avr-gdb")
 	env.Replace(
 		GDB=avr_gdb
@@ -88,8 +85,7 @@ env.Append(
             suffix=".bin"
         ),
         Linker=Builder(
-            action = ' '.join(["ld.lld", "$SOURCES", ' '.join(ldflags), "-o", "$TARGET"]),
-            #action = ' '.join(["avr-ld", "$SOURCES", ' '.join(ldflags), "-o", "$TARGET"]),
+            action = ' '.join(["ld.lld", ' '.join(ldflags), "$SOURCES", "-o", "$TARGET"]),
             suffix=".elf"
         ),
         Rob=Builder(
@@ -171,7 +167,7 @@ else:
 upload_actions.append(env.VerboseAction("$UPLOADCMD", "Uploading $SOURCE"))
 
 upload = None
-if mcu.startswith("stm32f1"):
+if mcu.startswith("stm32"):
     upload = env.Alias(["upload"], target_elf, upload_actions)
 else:
     upload = env.Alias(["upload"], target_bin, upload_actions)

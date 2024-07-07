@@ -13,12 +13,12 @@ class RobcmpPlatform(PlatformBase):
         required_tool = None
         
         if upload_protocol == "serial":
-            if board == "avr328p":
+            if board.startswith("atmega") or board.startswith("attiny"):
                 required_tool = "tool-avrdude"
-            elif board.startswith("stm32f1"):
+            elif board.startswith("stm32"):
                 required_tool = "tool-stm32duino"
         elif upload_protocol == "stlink":
-            if board.startswith("stm32f1"):
+            if board.startswith("stm32"):
                 required_tool = "tool-openocd"
 
         if required_tool:

@@ -26,8 +26,8 @@ type ssd1306 implements display {
     address = 0u;
 
     framebuffer implements buffer8 {
-        buff = {{0u:128}:8};
         changes = envelope_u16();
+        buff = {{0u:128}:8};
         
         uint16 height() inline { return buff.rows; }
         uint16 width() inline { return buff.cols; }
@@ -194,12 +194,12 @@ type ssd1306 implements display {
         select.set(true);
     }
 
-    void reset_cursor(uint8 lx, uint8 ly, uint8 ux, uint8 uy) {
+    void reset_cursor(uint16 lx, uint16 ly, uint16 ux, uint16 uy) {
         cmds = {
             // set page update range
-            commands.SET_PAGE_ADDR, ly, uy,
+            commands.SET_PAGE_ADDR, int8(ly), int8(uy),
             // set column update range
-            commands.SET_COLUMN_ADDRESS, lx, ux
+            commands.SET_COLUMN_ADDRESS, int8(lx), int8(ux)
         };
         write_commands(cmds);
     }

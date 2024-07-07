@@ -1,0 +1,20 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+interface interrupt {
+    void handler();
+}
+
+interface interrupt_i8 {
+    void handler(uint8 i);
+}
+
+type void_interrupt implements interrupt {
+    void handler() {}
+}
+
+type void_interrupt_i8 implements interrupt_i8 {
+    void handler(uint8 i) {}
+}

@@ -17,13 +17,13 @@ interface analogport {
     uint16 get();
 }
 
-type null_digitalport implements digitalport {
+type void_digitalport implements digitalport {
     void mode(port_mode m) inline {}
     void set(bool v) inline {}
     bool get() inline { return false; }
 }
 
-type null_analogport implements analogport {
+type void_analogport implements analogport {
     void mode(port_mode m) inline {}
     void set(uint16 v) inline {}
     uint16 get() inline { return 0; }

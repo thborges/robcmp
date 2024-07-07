@@ -71,4 +71,4 @@ target_link_libraries(robcmp ${llvm_libs})
 
 set_target_properties(robcmp PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    VS_DEBUGGER_COMMAND_ARGUMENTS "-a avr328p -Oz ../platformio/samples/avr328p-blink/src/main.rob")
+    VS_DEBUGGER_COMMAND_ARGUMENTS "-a atmega328p -Oz ../platformio/samples/atmega328p-blink/src/main.rob")

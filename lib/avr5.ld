@@ -13,6 +13,8 @@ SECTIONS
 	  KEEP(*(__isr))
 	  . = ALIGN(2);
 	  __text_start = .;
+    *(__irqs)
+    KEEP(*(__irqs))
     *(.progmem*)
     . = ALIGN(2);
     *(.text)

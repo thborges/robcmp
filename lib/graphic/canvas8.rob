@@ -3,6 +3,7 @@
  * Apache License v2.0.
  */
 
+use assert;
 use intfs.buffer8;
 
 type canvas8 {
@@ -22,18 +23,16 @@ type canvas8 {
 
     void set_pixel(uint16 row, uint16 col) {
         rowb = row/8;
-        if col < buffer.width() and rowb < buffer.height() {
-            v = buffer.get(rowb, col);
-            buffer.set(rowb, col, v | (1 << uint8(row & 7)));
-        }
+        assert(col < buffer.width() and rowb < buffer.height(), "outside buffer bounds");
+        v = buffer.get(rowb, col);
+        buffer.set(rowb, col, v | (1 << uint8(row & 7)));
     }
 
     void clear_pixel(uint16 row, uint16 col) {
         rowb = row/8;
-        if col < buffer.width() and rowb < buffer.height() {
-            v = buffer.get(rowb, col);
-            buffer.set(rowb, col, v & ~(1 << uint8(row & 7)));
-        }
+        assert(col < buffer.width() and rowb < buffer.height(), "outside buffer bounds");
+        v = buffer.get(rowb, col);
+        buffer.set(rowb, col, v & ~(1 << uint8(row & 7)));
     }
 
     void fill_rect(uint16 x1, uint16 y1, uint16 x2, uint16 y2, bool v) {
@@ -46,12 +45,14 @@ type canvas8 {
         bank = first_bank;
         while bank <= last_bank {
             mask = 0xFF;
+            y1t = uint8(y1);
+            y2t = uint8(y2);
             if first_bank == last_bank { // all bits in the same bank
-                mask = (mask >> ((y1 & 7) + 7 - (y2 & 7))) << (y1 & 7);
+                mask = (mask >> ((y1t & 7) + 7 - (y2t & 7))) << (y1t & 7);
             } else if bank == first_bank {
-                mask = (mask << (y1 & 7));
+                mask = (mask << (y1t & 7));
             } else if bank == last_bank {
-                mask = (mask >> (7 - (y2 & 7)));
+                mask = (mask >> (7 - (y2t & 7)));
             }
             b = x1;
             while b <= x2 {
@@ -67,3 +68,4 @@ type canvas8 {
         }
     }
 }
+

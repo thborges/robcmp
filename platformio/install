@@ -8,5 +8,5 @@ cp -r platform/* ~/.platformio/platforms/robcmp
 cp -r toolchain-robcmp ~/.platformio/packages/
 code --install-extension vscode-syntax/robcmpsyntax-0.0.1.vsix
 echo "Open the examples folder and try to build and upload!"
-echo "	code examples/avr328p-blink"
+echo "	code examples/atmega328p-blink"
 echo "	code examples/stm32f1"

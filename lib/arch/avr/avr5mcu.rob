@@ -2,10 +2,22 @@
 use intfs.mcu;
 use intfs.ports;
 use intfs.databus;
-
+use assert;
 use avr5regs;
 
 void __delay_us();
+
+int_usart_rx = interrupt_i8();
+
+void check_irq_handler(uint8 h) {
+	assert(h != void, "IRQ enabled without setting the handler.");
+}
+
+void irq_usart_rx() signal, section __irqs {
+	check_irq_handler(typeid(int_usart_rx));
+	byte = UDR0;
+	int_usart_rx.handler(byte);
+}
 
 type avr5mcu implements mcu {
 	
@@ -13,8 +25,12 @@ type avr5mcu implements mcu {
 		return 16E6;
 	}
 
-	void set_interruptions(bool enabled) {
-		SREG.I = enabled;
+	void set_interruptions(bool enabled) inline {
+		if enabled {
+			asm "sei";
+		} else  {
+			asm "cli";
+		}
 	}
 
 	/* implement this idea later!
@@ -71,16 +87,18 @@ type avr5mcu implements mcu {
 	}
 
 	void wait_us(uint16 us) {
-		while us > 0 {
+		volatile uus = us;
+		while uus > 0 {
 			__delay_us();
-			us--;
+			uus--;
 		}
 	}
 
 	void wait_ms(uint16 ms) {
-		while ms > 0 {
+		volatile mms = ms;
+		while mms > 0 {
 			wait_us(1000);
-			ms--;
+			mms--;
 		}
 	}
 
@@ -103,6 +121,8 @@ type avr5mcu implements mcu {
 			SPCR.CPOL = false;
 			SPCR.CPHA = false;
 		}
+
+		void async_read_to(interrupt_i8 i) {}
 
 		void enable() {
 			SPCR.SPE = true;
@@ -146,6 +166,7 @@ type avr5mcu implements mcu {
 	}
 
 	uart0 implements databus {
+
 		void setup(uint32 baud) {
 			// use 2x
 			UCSR0A.U2X0 = false;
@@ -172,6 +193,11 @@ type avr5mcu implements mcu {
 			UCSR0C.USBS0 = false;
 		}
 
+		void async_read_to(interrupt_i8 i) {
+			//int_usart_rx = i;
+			UCSR0B.RXCIE0 = true;
+		}
+
 		void enable() {
 			// enable tx and rx
 			UCSR0B.RXEN0 = true;
@@ -182,6 +208,8 @@ type avr5mcu implements mcu {
 			// disable tx and rx
 			UCSR0B.RXEN0 = false;
 			UCSR0B.TXEN0 = false;
+			// disable RX interruption
+			UCSR0B.RXCIE0 = false;
 		}
 
 		void write(uint8 b) inline {
@@ -223,6 +251,8 @@ type avr5mcu implements mcu {
 			TWSR.TWPS = 0;
 			TWBR = uint8(((clock() / speed) - 16) / 2);
 		}
+
+		void async_read_to(interrupt_i8 i) {}
 		
 		void enable() { return; }
 		

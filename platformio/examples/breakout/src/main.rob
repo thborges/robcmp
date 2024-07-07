@@ -1,0 +1,68 @@
+/*
+ * Robcmp examples: Breakout game on a SSD1306 display
+ */
+
+use intfs.ports;
+use intfs.mcu;
+use intfs.display;
+use intfs.databus;
+
+use graphic.canvas8;
+use game;
+
+type globals {
+    mmcu = mcu();
+    oled = display();
+    dbus_display  = databus();
+    dbus_uart = databus();
+}
+
+void setup_hardware(globals gg) {
+    // dbus_serial setup
+    dbus_uart = gg.dbus_uart;
+    dbus_uart.setup(115200);
+    dbus_uart.enable();
+    dbus_uart.write_array("Robcmp Breakout Game for SSD1306 肖\n");
+    dbus_uart.write_array("Use left/right arrows to move and space to pause.\n");
+
+    // dbus_display setup
+    dbus_display = gg.dbus_display;
+    dbus_display.setup(0);
+    dbus_display.enable();
+
+	// init display
+	oled = gg.oled;
+	oled.set_address(0x78);
+	oled.init_display();
+	//oled.clear();
+
+    // enable interruptions
+    mmcu = gg.mmcu;
+    mmcu.set_interruptions(true);
+}
+
+int8 main() {
+    gg = globals();
+    setup_hardware(gg);
+
+    dbus_uart = gg.dbus_uart;
+    mmcu = gg.mmcu;
+    oled = gg.oled;
+
+    gm = game();
+    k = gm.key_press;
+    dbus_uart.async_read_to(k);
+    canvas = canvas8();
+
+    loop {
+        gm.move_bar(canvas);
+
+        if !gm.paused and !gm.gameover {
+            mmcu.wait_ms(20);
+            gm.move_ball(canvas);
+        }
+
+        gm.check_level_done(canvas, oled, mmcu);
+        oled.update_frame();
+    }
+}

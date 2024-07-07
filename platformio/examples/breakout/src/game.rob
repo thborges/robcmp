@@ -1,0 +1,241 @@
+/*
+ * Robcmp examples: Breakout game on a SSD1306 display
+ */
+
+use math.random16;
+use graphic.canvas8;
+use math.abs;
+use intfs.mcu;
+use intfs.display;
+
+
+type game {
+
+    // Bar related vars
+     bar_middle = 0u;
+     bar_width = 30u;
+     bar_next_move = 0;
+
+    // Ball related vars
+     ball_dir_x = 1;
+     ball_dir_y = 1;
+     ball_pos_x = 0u;
+     ball_pos_y = 0u;
+
+    // Game status
+     paused = false;
+     gameover = false;
+     level = 0;
+     rem_blocks = 0u;
+
+    // Blocks const and vars
+     start_y = 0u;
+     const bottom_margin = 4;
+
+    /* The size and position of game elements
+       blocks = 129/(width+1)
+       use block width = 5, 21 blocks */
+     const block_size = 4;
+     const block_sizesp = 4+1;
+     const right_margin = 25 * block_sizesp - 1;
+     blocks = {{true:25}:5};
+
+    void move_bar(canvas8 canvas) {
+        if bar_next_move == 0 {
+            return;
+        }
+        pixels = bar_next_move;
+        bar_next_move = 0;
+
+        left_limit = bar_width/2 - 1;
+        right_limit = right_margin - bar_width/2;
+        
+        if bar_middle + pixels < left_limit {
+            pixels = left_limit - bar_middle + 1;
+        } else if bar_middle + pixels > right_limit {
+            pixels = right_limit - bar_middle;
+        }
+    
+        if pixels == 0 {
+            return;
+        }
+        
+        move = abs8(pixels);
+        bar_middle += pixels;
+        start = bar_middle - bar_width/2;
+        end = start + bar_width - 1;
+        set = pixels > 0;
+        if pixels < 0 {
+            canvas.fill_rect(start, bottom_margin-4, start+move-1, bottom_margin-2, true);
+            canvas.fill_rect(end+1, bottom_margin-4, end+move, bottom_margin-2, false);
+        } else {
+            canvas.fill_rect(start-move, bottom_margin-4, start-1, bottom_margin-2, false);
+            canvas.fill_rect(end-move+1, bottom_margin-4, end, bottom_margin-2, true);
+        }
+
+        if paused {
+            // when paused, set ball direction according
+            // to the first movement
+            if pixels > 0 {
+                ball_dir_x = 1;
+            } else {
+                ball_dir_x = -1;
+            }
+        }
+    }
+
+    void update_block(canvas8 canvas, uint8 row, uint8 col) {
+        c = col * (block_size+1);
+        r = start_y + row * (block_size+1);
+        status = blocks[row][col];
+        canvas.fill_rect(c, r, c+block_size-1, r+block_size-1, status);
+    }
+    
+    void draw_blocks(canvas8 canvas, display oled, mcu mmcu) {
+        // update blocks according to the level
+        if level > 1 {
+            i = 0u;
+            while i < level*10 {
+                arow = random16() % blocks.rows;
+                acol = random16() % blocks.cols;
+                blocks[arow][acol] = true;
+                i++;
+            }
+        }
+
+        // draw blocks
+        row = 0u;
+        while row < blocks.rows {
+            col = 0u;
+            while col < blocks.cols {
+                if level > 1 {
+                    v = !blocks[row][col];
+                    blocks[row][col] = v;
+                }
+                update_block(canvas, row, col);
+                if blocks[row][col] {
+                    rem_blocks++;
+                }
+                col++;
+            }
+            row++;
+            mmcu.wait_ms(100); // animation effect
+            oled.update_frame();
+        }
+        oled.update_frame();
+    }
+    
+    void init_level(canvas8 canvas, display oled, mcu mmcu) {
+        start_y = canvas.height() - blocks.rows * block_sizesp;
+    
+        draw_blocks(canvas, oled, mmcu);
+    
+        // hide current bar
+        start = bar_middle - bar_width/2;
+        canvas.fill_rect(start, bottom_margin-4, start + bar_width-1, bottom_margin-2, false);
+        bar_width = 30 - level;
+        if bar_width < 10 {
+            bar_width = 10;
+        }
+        // draw new bar
+        bar_middle = uint8(right_margin/2);
+        start = bar_middle - bar_width/2;
+        canvas.fill_rect(start, bottom_margin-4, start + bar_width-1, bottom_margin-2, true);
+    
+        // set ball initial pos
+        ball_dir_x = 1;
+        ball_dir_y = 1;
+        ball_pos_x = bar_middle;
+        ball_pos_y = bottom_margin;
+        canvas.fill_rect(ball_pos_x - 1, ball_pos_y - 1, ball_pos_x, ball_pos_y, true);
+    }
+    
+    void move_ball(canvas8 canvas) {
+        canvas.fill_rect(ball_pos_x - 1, ball_pos_y - 1, ball_pos_x, ball_pos_y, false);
+    
+        // ball_pos_{x,y} represents the top right pixel of the ball
+    
+        if ball_pos_y >= start_y - 1 {
+            ball_edge_x = ball_pos_x;
+            if ball_dir_x == -1 {
+                ball_edge_x--;
+            }
+            bcol = ball_edge_x / block_sizesp;
+    
+            brow = (ball_pos_y + 1 - start_y) / block_sizesp;
+            if ball_dir_y == -1 {
+                brow = (ball_pos_y - start_y) / block_sizesp;
+            }
+            
+            if (brow < blocks.rows and 
+                bcol < blocks.cols and 
+                blocks[brow][bcol]) {
+
+                blocks[brow][bcol] = false;
+                rem_blocks--;
+                update_block(canvas, brow, bcol);
+
+                hit_y = (ball_pos_y + 1 - start_y) % block_sizesp == 0;
+                hit_x = ball_pos_x % block_sizesp == 0;
+
+                if hit_y {
+                    ball_dir_y *= -1;
+                } else if hit_x {
+                    ball_dir_x *= -1;
+                }
+            }
+        }
+    
+        if (ball_dir_x == -1 and ball_pos_x - 1 == 0) or // hit left margin
+           (ball_dir_x == 1 and ball_pos_x + 1 == right_margin) { // hit right margin
+            ball_dir_x *= -1;
+        }
+    
+        if ball_dir_y == 1 and ball_pos_y == canvas.height() - 1 {
+            // hit top
+            ball_dir_y *= -1;
+    
+        } else if ball_dir_y == -1 and ball_pos_y - 1 == bottom_margin {
+            // hit bottom
+            ball_dir_y *= -1;
+            mwidth = bar_width/2;
+            if ball_pos_x < bar_middle - mwidth or
+                ball_pos_x > bar_middle + mwidth {
+                //gameover = true;
+            }    
+        }
+    
+        ball_pos_x += ball_dir_x;
+        ball_pos_y += ball_dir_y;
+    
+        if rem_blocks > 0 {
+            canvas.fill_rect(ball_pos_x - 1, ball_pos_y - 1, ball_pos_x, ball_pos_y, true);
+        }
+    }
+
+    void check_level_done(canvas8 canvas, display oled, mcu mmcu) {
+        if rem_blocks == 0 {
+            //set_level_debug();
+            level = (level+1) % 30;
+            init_level(canvas, oled, mmcu);
+            //paused = true;
+        }
+    }
+
+    key_press implements interrupt_i8 {
+        void handler(uint8 key) {
+            if gameover {
+                gameover = false;
+                level = 0;
+            } else {
+                if key == 'C' {// right
+                    bar_next_move += 10;
+                } else if key == 'D' {
+                    bar_next_move -= 10;
+                }
+            }
+            paused = false;
+        }
+    }
+
+}

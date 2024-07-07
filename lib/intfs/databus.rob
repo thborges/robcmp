@@ -3,6 +3,8 @@
  * Apache License v2.0.
  */
 
+use interrupt;
+
 enum databus_protocol {SPI, I2C, UART, CAN}
 
 interface databus {
@@ -16,4 +18,5 @@ interface databus {
     bool start_transaction(uint16 addr);
     void end_transaction();
     databus_protocol get_protocol();
+    void async_read_to(interrupt_i8 i);
 }

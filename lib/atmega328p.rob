@@ -47,42 +47,43 @@ asm "
 	ret";
 }
  
+void irq_usart_rx() naked, weak, section __irqs { }
+void irq_usart_tx() naked, weak, section __irqs { }
+
+void __default_irq() naked, section __irqs {
+	asm "jmp __default_irq";
+}
+
 void __vectors() naked, section __isr {
-	 /* FIXME: provide proper interrupt functions instead of __vectors 
-	  * after implementing "weak" attribute for functions
-	  */
- 
+
 	 /* atmega328p has 26 interruptions */
-	 asm "rjmp __init";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
-	 asm "rjmp __default_irq";
- 
-	 asm "__default_irq:";
-	 asm "reti";
-	
+	 asm "jmp __init";
+	 asm "jmp __default_irq"; // IRQ0
+	 asm "jmp __default_irq"; // IRQ1
+	 asm "jmp __default_irq"; // PCINT0
+	 asm "jmp __default_irq"; // PCINT1
+	 asm "jmp __default_irq"; // PCINT2
+	 asm "jmp __default_irq"; // Watchdog Timer
+	 asm "jmp __default_irq"; // Timer2 Compare A
+	 asm "jmp __default_irq"; // Timer2 Compare B
+	 asm "jmp __default_irq"; // Timer2 Overflow
+	 asm "jmp __default_irq"; // Timer1 Capture
+	 asm "jmp __default_irq"; // Timer1 Compare A
+	 asm "jmp __default_irq"; // Timer1 Compare B 
+	 asm "jmp __default_irq"; // Timer1 Overflow
+	 asm "jmp __default_irq"; // Timer0 Compare A
+	 asm "jmp __default_irq"; // Timer0 Compare B
+	 asm "jmp __default_irq"; // Timer0 Overflow
+	 asm "jmp __default_irq"; // SPI Transfer Complete
+	 asm "jmp irq_usart_rx";  // USART, RX Complete
+	 asm "jmp __default_irq"; // USART, UDR Empty
+	 asm "jmp irq_usart_tx";  // USART, TX Complete
+	 asm "jmp __default_irq"; // ADC Conversion
+	 asm "jmp __default_irq"; // EEPROM Ready
+	 asm "jmp __default_irq"; // Analog Comparator
+	 asm "jmp __default_irq"; // 2-wire Serial Interface
+	 asm "jmp __default_irq"; // Store Program Memory Ready
+	 
 	 asm "__init:";
 	 // clear r1 (zero reg)
 	 asm "clr r1";

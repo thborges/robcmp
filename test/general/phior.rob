@@ -1,0 +1,22 @@
+
+void func(bool x) {
+}
+
+int8 main() {
+    a = true;
+    b = false;
+    c = true;
+    d = a or b and c;
+    e = a and b or c;
+
+    func(e and d and e);
+
+    while a and b and c;
+
+    if (a and b and c) {
+        return 1;
+    }
+
+    return 0;
+}
+

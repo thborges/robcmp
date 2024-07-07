@@ -105,15 +105,15 @@ enum_items : enum_item {
 }
 
 enum_item : TOK_IDENTIFIER[id] '=' TOK_INTEGER[intg] {
-	$$ = new NamedConst($id, new Int8($intg, @intg), @id);
+	$$ = new NamedConst($id, new Int8($intg, @id));
 }
 
 enum_item : TOK_IDENTIFIER[id] '=' '-' TOK_INTEGER[intg] {
-	$$ = new NamedConst($id, new Int8($intg * -1, @intg), @id);
+	$$ = new NamedConst($id, new Int8($intg * -1, @id));
 }
 
 enum_item : TOK_IDENTIFIER[id] '=' TOK_UINTEGER[intg] {
-	$$ = new NamedConst($id, new UInt8($intg, @intg), @id);
+	$$ = new NamedConst($id, new UInt8($intg, @id));
 }
 
 enum_item : TOK_IDENTIFIER[id] {

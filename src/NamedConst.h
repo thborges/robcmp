@@ -8,9 +8,9 @@ protected:
 	Node *value = NULL;
 	
 public:
-	NamedConst(const char *name, location_t loc) : NamedNode(name, loc) {}
+	NamedConst(const string& name, location_t loc) : NamedNode(name, loc) {}
 
-	NamedConst(const char *name, Node *v, location_t loc) : NamedNode(name, loc), value(v) {
+	NamedConst(const string& name, Node *v) : NamedNode(name, v->getLoc()), value(v) {
 		dt = value->getDataType();
 	}
 

@@ -6,8 +6,8 @@
 #include "NamedConst.h"
 
 Matrix::Matrix(const char *n, MatrixElements *me, location_t loc) : Variable(n, loc), melements(me) {
-	NamedConst *rows = new NamedConst("rows", getNodeForUIntConst(me->getRowCount(), this->getLoc()), loc);
-	NamedConst *cols = new NamedConst("cols", getNodeForUIntConst(me->getColumnCount(), this->getLoc()), loc);
+	NamedConst *rows = new NamedConst("rows", getNodeForUIntConst(me->getRowCount(), this->getLoc()));
+	NamedConst *cols = new NamedConst("cols", getNodeForUIntConst(me->getColumnCount(), this->getLoc()));
 	addChild(rows);
 	addSymbol("rows", rows);
 	addChild(cols);

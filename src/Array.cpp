@@ -8,7 +8,7 @@
 #include "PropagateTypes.h"
 
 Array::Array(const string& n, ArrayElements *aes, location_t loc) : Variable(n, loc), elements(aes) {
-	NamedConst *nc = new NamedConst("size", getNodeForUIntConst(aes->getArraySize(), loc), loc);
+	NamedConst *nc = new NamedConst("size", getNodeForUIntConst(aes->getArraySize(), loc));
 	addChild(nc);
 	addSymbol(nc);
 }

@@ -87,8 +87,15 @@ Value* Node::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 Value* Node::generateChildren(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	for(Node *n: children()) {
 		Value *b = n->generate(func, block, allocblock);
-		if (b && b->getValueID() == Value::BasicBlockVal) 
-			block = (BasicBlock*)b;
+		if (b) {
+			if (b->getValueID() == Value::BasicBlockVal) 
+				block = (BasicBlock*)b;
+			else if (Instruction* instr = dyn_cast<Instruction>(b)) {
+				// A distinct block can return from boolean short-circuit evaluation
+				if (instr->getParent() != allocblock)
+					block = instr->getParent();
+			}
+		}
 	}
 	return block;
 }

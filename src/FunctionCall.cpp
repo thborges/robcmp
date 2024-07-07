@@ -95,6 +95,13 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         if (!valor) {
             yyerrorcpp(string_format("The value for argument %s is undefined.", argName.c_str()), param);
             return NULL;
+        } else {
+            // A distinct block can return from boolean short-circuit evaluation
+            Instruction* instr = dyn_cast<Instruction>(valor);
+            if (instr && instr->getParent() != allocblock) {
+                block = instr->getParent();
+                Builder->SetInsertPoint(block);
+            }
         }
 
         if (buildTypes->isComplex(call_dt)) {

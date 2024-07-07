@@ -138,7 +138,7 @@ Value *FunctionImpl::generate(FunctionImpl *, BasicBlock *, BasicBlock *allocblo
 		last_block = fblock;
 
 	// prevent mallformed block at the end without proper return instruction 
-	if (last_block && last_block->getValueID() == Value::BasicBlockVal) {
+	if (last_block->getValueID() == Value::BasicBlockVal) {
 		BasicBlock *lb = (BasicBlock*)last_block;
 		Builder->SetInsertPoint(lb);
 		RobDbgInfo.emitLocation(&endfunction);

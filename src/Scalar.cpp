@@ -54,6 +54,12 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 	Value *exprv = expr->generate(func, block, allocblock);
 	if (!exprv)
 		return NULL;
+	else {
+		// A distinct block can return from boolean short-circuit evaluation
+		Instruction* instr = dyn_cast<Instruction>(exprv);
+		if (instr && instr->getParent() != allocblock)
+			block = instr->getParent();
+	}
 	DataType exprv_dt = expr->getDataType();
 
 	if (hasQualifier(qconst))

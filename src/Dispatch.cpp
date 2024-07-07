@@ -46,6 +46,19 @@ void Dispatch::generateDispatchFunctions(Node *scope) {
                 auto fblock = BasicBlock::Create(global_context, "", dispatchFunc);
                 Builder->SetInsertPoint(fblock);
 
+                if (impls.size() == 0) {
+                    // provide an empty implementation for the dispatcher
+                                        
+                    Type *retTy = dispatchFunc->getReturnType();
+                    if (retTy->isVoidTy()) {
+                        Builder->CreateRetVoid();
+                    } else {
+                        // this returns zero for integers and floats
+                        Builder->CreateRet(Constant::getNullValue(retTy));
+                    }
+                    continue;
+                }
+
                 // the first field of arg this is the object type id
                 Type *thisTy = buildTypes->llvmType(functionDecl->getThisArgDt());
                 Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
@@ -55,7 +68,7 @@ void Dispatch::generateDispatchFunctions(Node *scope) {
 
                 SwitchInst *switchi = Builder->CreateSwitch(idValue, NULL, impls.size());
 
-                int caseid = 0;
+                bool hasDefault = false;
                 for(DataType implDt : impls) {
                     auto implDtBlock = BasicBlock::Create(global_context, "", dispatchFunc);
                     Builder->SetInsertPoint(implDtBlock);
@@ -83,15 +96,20 @@ void Dispatch::generateDispatchFunctions(Node *scope) {
 
                     // add switch case
                     Builder->SetInsertPoint(fblock);
-                    if (caseid == 0)
+                    if (!hasDefault && destTypeName.find("void_") == string::npos) {
                         switchi->setDefaultDest(implDtBlock);
-                    else {
-                        ConstantInt *implDtId = ConstantInt::get(Type::getInt8Ty(global_context), implDt, true); // TODO: provide better ids, per baseType
+                        hasDefault = true;
+                    } else {
+                        // TODO: provide better ids, per baseType
+                        ConstantInt *implDtId = ConstantInt::get(Type::getInt8Ty(global_context), implDt, true);
                         switchi->addCase(implDtId, implDtBlock);
                     }
-                    caseid++;
                 }
 			}
 		}
     }
+}
+
+void Dispatch::notifyInterface(DataType intf) {
+    dispatchHash[intf];
 }

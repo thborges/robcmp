@@ -12,16 +12,32 @@ Value* ConstructorCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlo
     // alloc
     RobDbgInfo.emitLocation(this);
     Builder->SetInsertPoint(block);
+    GlobalVariable *gv = NULL;
     Value *var = leftValue->getLLVMValue(func);
     if (var == NULL) {
         // is a new left var
+        Type *vty = buildTypes->llvmType(dt);
+        if (buildTypes->isInterface(dt)) {
+            vty = vty->getPointerTo();
+            leftValue->setPointerToPointer(true);
+        }
         Builder->SetInsertPoint(allocblock);
-        var = Builder->CreateAlloca(buildTypes->llvmType(dt), dataAddrSpace, 0, 
-            leftValue->getName());
+        if (allocblock == global_alloc) {
+            //Constant *init = ConstantAggregateZero::get(buildTypes->llvmType(dt));
+            Constant *init = ConstantPointerNull::get(buildTypes->llvmType(dt)->getPointerTo());
+            gv = new GlobalVariable(*mainmodule, vty, hasQualifier(qconst), 
+                GlobalValue::ExternalLinkage, init, leftValue->getName());
+            var = gv;
+        } else {
+            var = Builder->CreateAlloca(vty, dataAddrSpace, 0, 
+                leftValue->getName());
+        }
         leftValue->setAlloca(var);
         leftValue->setDataType(dt);
-        if (debug_info)
-            RobDbgInfo.declareVar(leftValue, var, allocblock);
+        if (debug_info) {
+            if (allocblock != global_alloc)
+                RobDbgInfo.declareVar(leftValue, var, allocblock);
+        }
     }
     vector<Value*> args;
     args.push_back(var);
@@ -47,7 +63,7 @@ Value* ConstructorCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlo
             program->addSymbol(funcDecl);
         }
         RobDbgInfo.emitLocation(this);
-        Builder->SetInsertPoint(block);
+        Builder->SetInsertPoint(allocblock == global_alloc ? global_alloc : block);
         return Builder->CreateCall(funcDecl->getLLVMFunction());
 
     } else {
@@ -63,7 +79,7 @@ Value* ConstructorCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlo
         
         FunctionBase *initfunc = dynamic_cast<FunctionBase*>(fsymbol);
         RobDbgInfo.emitLocation(this);
-        Builder->SetInsertPoint(block);
+        Builder->SetInsertPoint(allocblock == global_alloc ? global_alloc : block);
 
         if (initfunc->needsParent()) {
             Type *thisTy = buildTypes->llvmType(func->getThisArgDt());

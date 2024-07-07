@@ -86,8 +86,10 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 				ret = alloc = exprvc;
 			else {
 				Type *gty = buildTypes->llvmType(dt);
-				if (expr->isPointerToPointer())
+				if (expr->isPointerToPointer()) {
+					setPointerToPointer(true);
 					gty = gty->getPointerTo();
+				}
 				GlobalVariable *gv = new GlobalVariable(*mainmodule, gty, hasQualifier(qconst), 
 					GlobalValue::ExternalLinkage, exprvc, name);
 				ret = alloc = gv;
@@ -138,7 +140,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			currty = currty->getPointerTo();
 
 		RobDbgInfo.emitLocation(this);
-		Builder->SetInsertPoint(block);
+		Builder->SetInsertPoint(allocblock == global_alloc ? global_alloc : block);
 		Value *nvalue = NULL;
 
 		// Pointers need a custom procedure: load the stem, set the
@@ -177,7 +179,9 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 		}
 
 		RobDbgInfo.emitLocation(this);
-		return Builder->CreateStore(nvalue, alloc, symbol->hasQualifier(qvolatile));
+		const DataLayout &DL = mainmodule->getDataLayout();
+		Align align = DL.getABITypeAlign(nvalue->getType());
+		return Builder->CreateAlignedStore(nvalue, alloc, align, symbol->hasQualifier(qvolatile));
 	}
 }
 

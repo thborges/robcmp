@@ -3,6 +3,7 @@
 #include "UserType.h"
 #include "FunctionImpl.h"
 #include "FunctionDecl.h"
+#include "Program.h"
 
 void Interface::createDataType() {
     StructType *intftype = StructType::create(global_context, getName());
@@ -11,6 +12,8 @@ void Interface::createDataType() {
     if (dt == BuildTypes::undefinedType) {
         yyerrorcpp("Type " + name + " alread defined.", this);
         yyerrorcpp(name + " was first defined here.", buildTypes->location(dt));
+    } else {
+        program->getDispatcher()->notifyInterface(dt);
     }
 }
 

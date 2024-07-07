@@ -14,4 +14,5 @@ protected:
 public:
     void addDataTypeImplementation(DataType base, DataType impl);
     void generateDispatchFunctions(Node *scope);
+    void notifyInterface(DataType intf);
 };

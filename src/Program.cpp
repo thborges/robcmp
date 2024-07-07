@@ -245,8 +245,53 @@ void Program::generate() {
 		mainFunc->addChild(fc, true);
 	}
 
-	if (mainFunc)
+	FunctionType *global_init_type = FunctionType::get(Type::getVoidTy(global_context), ArrayRef<Type*>(), false);
+	Function *global_init = NULL;
+	if (mainFunc && global_alloc->size() > 0) {
+		// create a function named :global_init to init global vars by calling their constructors
+		global_init = Function::Create(global_init_type, Function::ExternalLinkage, codeAddrSpace, 
+			"__globals_init", mainmodule);
+		global_init->setCallingConv(CallingConv::C);
+
+		// clear debug information as we will move instructions to __globals_init
+		vector<Instruction*> remove;
+		for (auto &a : *global_alloc) {
+			if (a.getOpcode() == Instruction::Call) { 
+				CallInst *call = dyn_cast<CallInst>(&a);
+				if (call->getCalledFunction()->isDeclaration()) {
+					a.replaceAllUsesWith(UndefValue::get(call->getType()));
+					remove.push_back(call);
+					continue;
+				}
+			}
+			a.setDebugLoc(DebugLoc());
+		}
+		for(auto *i : remove) {
+			i->dropAllReferences();
+			i->removeFromParent();
+		}
+		Builder->SetInsertPoint(global_alloc);
+		Builder->CreateRetVoid();
+		global_init->insert(global_init->end(), global_alloc);
+	}
+
+	if (mainFunc) {
+		// add naked attribute to main to prevent backend
+		// of emmiting prologue and epilogue, as it is the
+		// first call in the stack
+		/*if (currentTargetId != st_native)
+			if (FunctionImpl *fi = dynamic_cast<FunctionImpl*>(mainFunc))
+				fi->getAttributes()->addAttribute(fa_naked);*/
+
 		mainFunc->generate(NULL, NULL, global_alloc);
+
+		if (global_init) {
+			Function *mainf = mainmodule->getFunction("main");
+			BasicBlock *entryBlock = &mainf->getEntryBlock();
+			Builder->SetInsertPoint(entryBlock->end()->getPrevNode()); // before br
+			Builder->CreateCall(global_init_type, global_init);
+		}
+	}
 
 	dispatch->generateDispatchFunctions(program);
 

@@ -51,8 +51,14 @@ extern char *build_outputfilename;
 
 TargetInfo supportedTargets[__last_target] = {
 	{rb_native, "", "", "", "", tint64}, // default target
-	{rb_avr,    "avr328p", "avr", "atmega328p", "+avr5", tint16},
+
+	{rb_avr,    "attiny13a",  "avr", "attiny13a",  "+avr25", tint16},
+	{rb_avr,    "attiny85",   "avr", "attiny85",   "+avr25", tint16},
+	{rb_avr,    "atmega328p", "avr", "atmega328p", "+avr5",  tint16},
+	{rb_avr,    "atmega32u4", "avr", "atmega32u4", "+avr5",  tint16},
+
 	{rb_arm,    "stm32f1", "thumbv7m-none-eabi", "cortex-m3", "", tint32},
+
 	{rb_xtensa, "esp32",   "xtensa",  "", "", tint32},
 };
 

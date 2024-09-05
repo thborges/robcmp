@@ -3,7 +3,9 @@
  * Apache License v2.0.
  */
 
-const itoa_chars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+use math.abs;
+
+const itoa_chars = "0123456789abcdef";
 
 void itoa(int16 value, int8 base, char[] result) {
     if base < 2 or base > 16 {
@@ -12,9 +14,7 @@ void itoa(int16 value, int8 base, char[] result) {
     }
 
     negative = value < 0;
-    //abs without branch
-    mask = value >> 15;
-    value = (value ^ mask) - mask;
+    value = abs16(value);
     
     i = 0;
     if value == 0 {
@@ -25,8 +25,6 @@ void itoa(int16 value, int8 base, char[] result) {
             temp = value;
             value /= base;
             result[i] = itoa_chars[temp - value * base];
-            //result[i] = itoa_chars[value % base];
-            //value /= base;
             i++;
         }
         if negative {

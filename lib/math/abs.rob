@@ -16,3 +16,15 @@ int16 abs16(int16 value) inline {
     value = (value ^ mask) - mask;
     return value;
 }
+
+int32 abs32(int32 value) inline {
+    mask = value >> 31;
+    value = (value ^ mask) - mask;
+    return value;
+}
+
+int64 abs64(int64 value) inline {
+    mask = value >> 63;
+    value = (value ^ mask) - mask;
+    return value;
+}

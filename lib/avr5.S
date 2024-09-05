@@ -23,14 +23,14 @@
 
 .macro DEFUN name
 .global \name
-.func \name
+#.func \name
 \name:
 .endm
 
 
 .macro ENDF name
 .size \name, .-\name
-.endfunc
+#.endfunc
 .endm
 
 .macro	mov_l  r_dest, r_src

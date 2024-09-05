@@ -8,6 +8,7 @@ if exists("b:current_syntax")
 endif
 
 syn keyword keywords while loop if else delay print return register at volatile const asm type interface implements use copy bind to singleton transient
+syn keyword keywords naked weak section inline noinline
 syn keyword typeKeywords void char int8 int16 int32 int64 uint8 uint16 uint32 uint64 long float double bool enum
 syn keyword operatorKeywords and or quando esta servo
 syn keyword booleanKeyword true false

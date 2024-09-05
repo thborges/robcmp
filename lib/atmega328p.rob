@@ -47,8 +47,39 @@ asm "
 	ret";
 }
  
-void irq_usart_rx() naked, weak, section __irqs { }
-void irq_usart_tx() naked, weak, section __irqs { }
+/* Weak definitions for supported interruptions
+ */
+ void irq_usart_rx() naked, weak, section __irqs { }
+ void irq_usart_tx() naked, weak, section __irqs { }
+
+/* Timer0 is used to provide milliseconds time readings
+ */
+ const fcpu = 16E6;
+ const cycles_per_us = fcpu / 1E6;
+ const usec_per_ovf = (64 * 256) / cycles_per_us;
+ const millis_per_ovf = usec_per_ovf / 1000;
+ const millis_frac_per_ovf = uint16(usec_per_ovf % 1000);
+ timer0_millis = uint32(0);
+ timer0_fract = uint16(0);
+
+ void irq_timer0_ovf() signal, weak, section __irqs {
+	timer0_millis += millis_per_ovf;
+	timer0_fract += millis_frac_per_ovf;
+	if (timer0_fract > 1000) {
+		timer0_fract -= 1000;
+		timer0_millis += 1;
+	}
+ }
+
+ register int8 SREG at 0x5f;
+
+ uint32 millis() {
+	sreg_bkp = SREG;
+	asm "cli";
+	result = timer0_millis;
+	SREG = sreg_bkp;
+	return result;
+ }
 
 void __default_irq() naked, section __irqs {
 	asm "jmp __default_irq";
@@ -73,7 +104,7 @@ void __vectors() naked, section __isr {
 	 asm "jmp __default_irq"; // Timer1 Overflow
 	 asm "jmp __default_irq"; // Timer0 Compare A
 	 asm "jmp __default_irq"; // Timer0 Compare B
-	 asm "jmp __default_irq"; // Timer0 Overflow
+	 asm "jmp irq_timer0_ovf"; // Timer0 Overflow
 	 asm "jmp __default_irq"; // SPI Transfer Complete
 	 asm "jmp irq_usart_rx";  // USART, RX Complete
 	 asm "jmp __default_irq"; // USART, UDR Empty

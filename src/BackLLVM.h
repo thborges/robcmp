@@ -20,7 +20,22 @@ typedef struct {
 extern unsigned int codeAddrSpace;
 extern unsigned int dataAddrSpace;
 
-enum SupportedTargets {st_native, st_avr328p, st_stm32f1, st_esp32, __last_target};
+enum SupportedTargets {
+	st_native, 
+	
+	// avr
+	st_attiny13a,
+	st_attiny85,
+	st_atmega328p,
+	st_atmega32u4, 
+	
+	// stm32
+	st_stm32f1, 
+	
+	// awaiting backend goes mainstream
+	st_esp32, 
+	__last_target};
+
 extern enum SupportedTargets currentTargetId;
 
 extern TargetInfo supportedTargets[__last_target];

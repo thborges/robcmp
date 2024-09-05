@@ -7,6 +7,7 @@
 class StringConst: public Array {
 protected:
     string str;
+    Value *value = NULL;
 public:
     StringConst(const string& name, const string& str, location_t loc);
     

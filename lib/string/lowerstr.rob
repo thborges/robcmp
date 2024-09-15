@@ -1,0 +1,11 @@
+char lowerchar(char c) {
+    return c | 0x20;
+}
+
+void lowerstr(char[] s) {
+    i = int16 (0);
+    while i < s.size {
+        s[i] = lowerchar(s[i]);
+        i++;
+    }
+}

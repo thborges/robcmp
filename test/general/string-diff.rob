@@ -1,0 +1,10 @@
+use string.diffstr;
+
+int8 main() {
+
+    if (diffsrt("abcd", "12ab")) {
+        return 0;
+    } else {
+        return 1;
+    }
+}

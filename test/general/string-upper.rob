@@ -1,0 +1,13 @@
+use string.upperstr;
+use string.equalstr;
+
+int8 main() {
+    r = "abcde";
+    upperstr(r);
+
+    if equalstr (r, "ABCDE") {
+        return 0;
+    } else {
+        return 1;
+    }
+}

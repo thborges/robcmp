@@ -1,0 +1,20 @@
+use string.utf8strlen;
+
+bool equalstr(char[] s1, char[] s2) {
+
+    i = int16 (0);
+    while (i < s1.size and i < s2.size) {
+        if (s1[i] != s2[i]) {
+            return false;
+        }
+        i++;
+    }
+
+    str1 = utf8strlen(s1);
+    str2 = utf8strlen(s2);
+    if str1 == str2 {
+        return true;
+    } else {
+        return false;
+    }
+}

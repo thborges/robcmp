@@ -1,0 +1,11 @@
+int8 boolteste() {
+    return 0;
+}
+
+int8 main() {
+    if boolteste(){
+        return 0;
+    } else {
+        return 1;
+    }
+}

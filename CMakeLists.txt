@@ -66,7 +66,8 @@ add_dependencies(robcmp parsers)
 llvm_map_components_to_libnames(llvm_libs support core irreader passes
     armasmparser armcodegen 
     avrasmparser avrcodegen 
-    x86asmparser x86codegen)
+    x86asmparser x86codegen
+    aarch64asmparser aarch64codegen)
 
 target_link_libraries(robcmp ${llvm_libs})
 

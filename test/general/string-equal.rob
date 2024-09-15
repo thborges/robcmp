@@ -1,0 +1,10 @@
+use string.equalstr;
+
+int8 main() {
+
+    if equalstr("abcd", "abcd") {
+        return 0;
+    } else {
+        return 1;
+    }
+}

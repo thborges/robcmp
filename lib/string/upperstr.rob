@@ -1,0 +1,11 @@
+char upperchar(char c) {
+    return c & 0xDF;
+}
+
+void upperstr(char[] s) {
+    i = int16 (0);
+    while i < s.size {
+        s[i] = upperchar(s[i]);
+        i++;
+    }
+}

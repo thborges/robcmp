@@ -1,6 +1,10 @@
-CXX=/usr/local/opt/llvm/bin/clang++
-CC=/usr/local/opt/llvm/bin/clang
+CXX=/opt/homebrew/opt/llvm/bin/clang++
+CC=/opt/homebrew/opt/llvm/bin/clang
+LLVM_DIR=/opt/homebrew/Cellar/llvm/18.1.8/lib/cmake/llvm
+BISON_EXECUTABLE=/opt/homebrew/bin/bison
 export CXX
 export CC
+export LLVM_DIR
+export BISON_EXECUTABLE
 cmake -DCMAKE_BUILD_TYPE="Debug" ..
 #cmake -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE="Debug" ..

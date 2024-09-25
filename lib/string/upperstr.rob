@@ -1,11 +1,124 @@
-char upperchar(char c) {
-    return c & 0xDF;
+UnicodeMapping = {
+    { 0x00E1, 0x00C1 }, // á -> Á
+    { 0x00E9, 0x00C9 }, // é -> É
+    { 0x00F3, 0x00D3 }, // ó -> Ó
+    { 0x00F1, 0x00D1 }, // ñ -> Ñ
+    { 0x00E7, 0x00C7 }, // ç -> Ç
+    { 0x00ED, 0x00CD }, // í -> Í
+    { 0x00FA, 0x00DA } // ú -> Ú
+};
+
+int8 utf8_decode(char[] s, char[] codepoint) {
+    i = int16 (0);
+    if (s[i] < 0x80) {
+        codepoint[i] = s[i];
+        return 1; // 1 byte
+    } else if ((s[i] & 0xE0) == 0xC0) {
+        codepoint[i] = ((s[i] & 0x1F) << 6) | (s[1] & 0x3F);
+        return 2; // 2 bytes
+    } else if ((s[i] & 0xF0) == 0xE0) {
+        codepoint[i] = ((s[i] & 0x0F) << 12) | ((s[1] & 0x3F) << 6) | (s[2] & 0x3F);
+        return 3; // 3 bytes
+    } else if ((s[i] & 0xF8) == 0xF0) {
+        codepoint[i] = ((s[i] & 0x07) << 18) | ((s[1] & 0x3F) << 12) | ((s[2] & 0x3F) << 6) | (s[3] & 0x3F);
+        return 4; // 4 bytes
+    }
+    return -1;
 }
 
-void upperstr(char[] s) {
+int8 utf8_encode(int32 codepoint, char[] output) {
+    if (codepoint <= 0x7F) {
+        output[0] = codepoint & 0x7F;
+        return 1; // 1 byte
+    } else if (codepoint <= 0x7FF) {
+        output[0] = 0xC0 | ((codepoint >> 6) & 0x1F);
+        output[1] = 0x80 | (codepoint & 0x3F);
+        return 2; // 2 bytes
+    } else if (codepoint <= 0xFFFF) {
+        output[0] = 0xE0 | ((codepoint >> 12) & 0x0F);
+        output[1] = 0x80 | ((codepoint >> 6) & 0x3F);
+        output[2] = 0x80 | (codepoint & 0x3F);
+        return 3; // 3 bytes
+    } else if (codepoint <= 0x10FFFF) {
+        output[0] = 0xF0 | ((codepoint >> 18) & 0x07);
+        output[1] = 0x80 | ((codepoint >> 12) & 0x3F);
+        output[2] = 0x80 | ((codepoint >> 6) & 0x3F);
+        output[3] = 0x80 | (codepoint & 0x3F);
+        return 4; // 4 bytes
+    }
+    return -1;
+}
+
+int32 to_uppercase(int32 codepoint) {
+    int8 mapping_size = UnicodeMapping.size / UnicodeMapping[0].size;
+    for (int8 i = 0; i < mapping_size; i++) {
+        if (mapping[i].lowercase == codepoint) {
+            return mapping[i].uppercase;
+        }
+    }
+
+    if (codepoint >= 0x61 and codepoint <= 0x7A) {
+        return codepoint & 0x5F;
+    }
+    return codepoint;
+}
+
+int32 to_lowercase(int32 codepoint) {
+    int8 mapping_size = UnicodeMapping.size;
+    for (int8 i = 0; i < mapping_size; i++) { //acessar de 2 em 2
+        if (mapping[i].uppercase == codepoint) {
+            return mapping[i].lowercase;
+        }
+    }
+
+    if (codepoint >= 0x41 and codepoint <= 0x5A) {
+        return codepoint | 0x20;
+    }
+    return codepoint;
+}
+
+void upperutf8str(char[] str) {
+    char[] p = str;
+    char output[4];
     i = int16 (0);
-    while i < s.size {
-        s[i] = upperchar(s[i]);
-        i++;
+    while (i < p.size) {
+        uint32_t codepoint;
+        int len = utf8_decode(p, &codepoint);
+        if (len < 1) {
+            p++;
+            continue;
+        }
+        uint32_t uppercase_codepoint = to_uppercase(codepoint);
+        int out_len = utf8_encode(uppercase_codepoint, output);
+        if (out_len > 0) {
+            memcpy(p, output, out_len);
+            if (out_len != len) {
+                memmove(p + out_len, p + len, strlen(p + len) + 1);
+            }
+        }
+        p += out_len;
+    }
+}
+
+void lowerutf8str(char[] str) {
+    char[] p = str;
+    char output[4];
+    i = int16 (0);
+    while (i < p.size) {
+        uint32_t codepoint;
+        int len = utf8_decode(p, &codepoint);
+        if (len < 1) {
+            p++;
+            continue;
+        }
+        uint32_t lowercase_codepoint = to_lowercase(codepoint);
+        int out_len = utf8_encode(lowercase_codepoint, output);
+        if (out_len > 0) {
+            memcpy(p, output, out_len);
+            if (out_len != len) {
+                memmove(p + out_len, p + len, strlen(p + len) + 1);
+            }
+        }
+        p += out_len;
     }
 }

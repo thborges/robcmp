@@ -2,10 +2,13 @@ use string.upperstr;
 use string.equalstr;
 
 int8 main() {
-    r = "abcde";
-    upperstr(r);
+    str_upper = "olá, mundo! áéíóú ç ñ abc";
+    str_lower = "OLÁ, MUNDO! ÁÉÍÓÚ Ç Ñ ABC";
 
-    if equalstr (r, "ABCDE") {
+    upperutf8str(str_upper);
+    lowerutf8str(str_lower);
+
+    if equalstr (str_upper, "OLÁ, MUNDO! ÁÉÍÓÚ Ç Ñ ABC") {
         return 0;
     } else {
         return 1;

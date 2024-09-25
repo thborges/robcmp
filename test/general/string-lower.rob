@@ -1,11 +1,10 @@
-use string.lowerstr;
-use string.equalstr;
+use string.utf8strlen;
+
+const str = "a1éñअ中😂👍";
 
 int8 main() {
-    r = "ABCDE"
-    lowerstr(r);
-
-    if equalstr(r, "abcde") {
+    r = utf8strlen(str);
+    if r == 8 {
         return 0;
     } else {
         return 1;

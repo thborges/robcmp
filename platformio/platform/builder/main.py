@@ -40,9 +40,14 @@ except:
     hardware_spec = None
     pass
 
-ldflags = ["-nostdlib", "-L", stdlib_folder, "-Bstatic"]
-ldflags.append("--gc-sections")
-ldflags.append("--lto=thin")
+if mcu == "native":
+    ldflags = []
+else:
+    ldflags = ["-L", stdlib_folder]
+    ldflags.append("-nostdlib")
+    ldflags.append("-Bstatic")
+    ldflags.append("--gc-sections")
+    ldflags.append("--lto=thin")
 
 if mcu.startswith("stm32f1"):
     ldflags.append("-Tstm32f1.ld")
@@ -51,6 +56,8 @@ elif mcu == "atmega328p":
     ldflags.append("-Tatmega328p.ld")
     ldflags.append(join(stdlib_folder, "avr5.o"))
     auxsources += Glob(join(stdlib_folder, "atmega328p.rob"))
+elif mcu == "native":
+    pass
 else:
     sys.stderr.write("The requested mcu is not supported.\n")
     env.Exit(1)
@@ -60,7 +67,7 @@ robcmp_args = ["robcmp", "-a", board, "-o", "$TARGET"]
 
 if build_type == "debug":
     robcmp_args.append("-g")
-    robcmp_args.append("-O1")
+    robcmp_args.append("-O0")
 elif build_type == "release":
     robcmp_args.append("-Oz")
 
@@ -77,6 +84,15 @@ if board.startswith("atmega") or board.startswith("attiny"):
 	env.Replace(
 		GDB=avr_gdb
 	)
+else:
+	env.Replace(
+		GDB="gdb"
+	)
+
+
+linker = "ld.lld"
+if mcu == "native":
+    linker = "clang -g -O0" # using clang to link on native platform
 
 env.Append(
     BUILDERS=dict(
@@ -85,7 +101,7 @@ env.Append(
             suffix=".bin"
         ),
         Linker=Builder(
-            action = ' '.join(["ld.lld", ' '.join(ldflags), "$SOURCES", "-o", "$TARGET"]),
+            action = ' '.join([linker, ' '.join(ldflags), "$SOURCES", "-o", "$TARGET"]),
             suffix=".elf"
         ),
         Rob=Builder(
@@ -160,6 +176,8 @@ elif upload_protocol == "stlink":
         sys.stderr.write("Upload protocol %s doesn't support mcu %s\n" % (upload_protocol, mcu))
         env.Exit(1)
 
+elif upload_protocol == "none":
+    pass
 else:
     sys.stderr.write("Unknown upload protocol %s\n" % upload_protocol)
     env.Exit(1)

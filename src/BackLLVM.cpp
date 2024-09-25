@@ -50,7 +50,7 @@ enum SupportedTargets currentTargetId;
 extern char *build_outputfilename;
 
 TargetInfo supportedTargets[__last_target] = {
-	{rb_native, "", "", "", "", tint64}, // default target
+	{rb_native, "native", "", "", "", tint64}, // default target
 
 	{rb_avr,    "attiny13a",  "avr", "attiny13a",  "+avr25", tint16},
 	{rb_avr,    "attiny85",   "avr", "attiny85",   "+avr25", tint16},

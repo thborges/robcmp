@@ -1,0 +1,16 @@
+{
+    "build": {
+        "mcu": "native"
+    },
+    "debug": {
+      "target_mcu": "native",
+      "tools": {}
+    },
+    "name": "Native",
+    "url": "",
+    "vendor": "native",
+    "upload": {
+        "protocol": "none"
+    }
+  }
+  

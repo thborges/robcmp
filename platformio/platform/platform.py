@@ -43,24 +43,29 @@ class RobcmpPlatform(PlatformBase):
             debug["tools"] = {}
 
         if debug.get("target_mcu", ""):
-            debug["tools"]["robcmp-led"]["server"]["arguments"] = [
-                "-f", "$PROG_PATH",
-                "-m", debug["target_mcu"],
-                "-hw", "led",
-                "-g"
-            ]
-            debug["tools"]["robcmp-ssd1306"]["server"]["arguments"] = [
-                "-f", "$PROG_PATH",
-                "-m", debug["target_mcu"],
-                "-hw", "ssd1306",
-                "-g"
-            ]
-            debug["tools"]["robcmp-hd44780"]["server"]["arguments"] = [
-                "-f", "$PROG_PATH",
-                "-m", debug["target_mcu"],
-                "-hw", "hd44780",
-                "-g"
-            ]
+            if "robcmp-led" in debug["tools"]:
+                debug["tools"]["robcmp-led"]["server"]["arguments"] = [
+                    "-f", "$PROG_PATH",
+                    "-m", debug["target_mcu"],
+                    "-hw", "led",
+                    "-g"
+                ]
+
+            if "robcmp-ssd1306" in debug["tools"]:
+                debug["tools"]["robcmp-ssd1306"]["server"]["arguments"] = [
+                    "-f", "$PROG_PATH",
+                    "-m", debug["target_mcu"],
+                    "-hw", "ssd1306",
+                    "-g"
+                ]
+
+            if "robcmp-hd44780" in debug["tools"]:
+                debug["tools"]["robcmp-hd44780"]["server"]["arguments"] = [
+                    "-f", "$PROG_PATH",
+                    "-m", debug["target_mcu"],
+                    "-hw", "hd44780",
+                    "-g"
+                ]
 
         # J-Link, ST-Link
         upload_protocols = board.manifest.get("upload", {}).get("protocols", [])

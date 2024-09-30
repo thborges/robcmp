@@ -2,6 +2,7 @@
 #include <iostream>
 #include <map>
 
+#include <llvm/Config/llvm-config.h>
 #include <llvm/IR/Value.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Constant.h>
@@ -92,12 +93,18 @@ void setup_target_machine(char opt_level) {
 	std::string defaultt = sys::getDefaultTargetTriple();
 	supportedTargets[0].triple = defaultt.c_str();
     SubtargetFeatures Features;
+
+    #if LLVM_VERSION_MAJOR < 19
     StringMap<bool> HostFeatures;
     if (sys::getHostCPUFeatures(HostFeatures)) {
+    #else
+    auto HostFeatures = sys::getHostCPUFeatures(); {
+    #endif
         for (auto &F : HostFeatures) {
             Features.AddFeature(F.first(), F.second);
 		}
 	}
+
 	static string nativeFeatures = Features.getString();
     supportedTargets[0].features = nativeFeatures.c_str();
 

@@ -53,3 +53,4 @@
 #include "MemCopy.h"
 #include "BackLLVM.h"
 #include "NamedConst.h"
+#include "BitCast.h"

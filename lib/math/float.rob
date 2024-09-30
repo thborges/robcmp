@@ -1,0 +1,17 @@
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ */
+
+const NAN = 0.0 / 0.0;
+const INFINITY = 1.0 / 0.0;
+
+bool isnan(float x) {
+    u = bitcast(x, uint32);
+    return (u & 0x7fffffff) > 0x7f800000;
+}
+
+bool isinf(float x) {
+    u = bitcast(x, uint32);
+    return (u & 0x7fffffff) == 0x7f800000;
+}

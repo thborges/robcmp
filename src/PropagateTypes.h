@@ -15,6 +15,7 @@
 #include "Enum.h"
 #include "Load.h"
 #include "MemCopy.h"
+#include "BitCast.h"
 
 class CoercionBase: public Node {
 protected:
@@ -121,9 +122,9 @@ public:
         RobDbgInfo.emitLocation(this);
         Builder->SetInsertPoint(block);
         if (buildTypes->isUnsignedDataType(dt))
-            return Builder->CreateFPToUI(v, buildTypes->llvmType(dt), "trunc");
+            return Builder->CreateFPToUI(v, buildTypes->llvmType(dt), "fptoui");
         else
-            return Builder->CreateFPToSI(v, buildTypes->llvmType(dt), "trunc");
+            return Builder->CreateFPToSI(v, buildTypes->llvmType(dt), "fptosi");
     }
 };
 
@@ -216,4 +217,6 @@ public:
     virtual Node* visit(Return& n) override;
     virtual Node* visit(FunctionImpl& n) override;
     virtual Node* visit(FunctionCall& n) override;
+
+    virtual Node* visit(BitCast& n) override;
 };

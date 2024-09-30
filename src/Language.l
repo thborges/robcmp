@@ -51,6 +51,7 @@ EXP ([Ee][-+]?[0-9]+)?
 "naked"					{ return TOK_NAKED; }
 "signal"				{ return TOK_SIGNAL; }
 "debugonly"				{ return TOK_DEBUGONLY; }
+"noopt"					{ return TOK_NOOPT; }
 
 "bind"					{ return TOK_BIND; }
 "to"					{ return TOK_TO; }

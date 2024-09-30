@@ -151,6 +151,7 @@ function_attribute
 	| TOK_NAKED							{ $$ = new FunctionAttribute(fa_naked, ""); }
 	| TOK_SIGNAL						{ $$ = new FunctionAttribute(fa_signal, ""); }
 	| TOK_DEBUGONLY						{ $$ = new FunctionAttribute(fa_debugonly, ""); }
+	| TOK_NOOPT							{ $$ = new FunctionAttribute(fa_noopt, ""); }
 	| TOK_SECTION TOK_IDENTIFIER[id]	{ $$ = new FunctionAttribute(fa_section, $id); }
 
 event : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'[ef] {	
@@ -464,7 +465,16 @@ unary : '-' factor	{ $$ = new BinaryOp($factor, '*', getNodeForIntConst(-1, @fac
 call_or_cast : ident_or_xident[id] '(' paramscall ')' {
 	if (strncmp("copy", $id, 4) == 0 && $paramscall->getNumParams() == 1)
 		$$ = new MemCopy($paramscall->getParamElement(0));
-	else {
+	else if (strncmp("bitcast", $id, 7) == 0 && $paramscall->getNumParams() == 2) {
+		Node *nodeTy = $paramscall->getParamElement(1);
+		Load *load = dynamic_cast<Load*>(nodeTy);
+		if (load && buildTypes->getType(load->getName()) != BuildTypes::undefinedType) {
+			DataType dt = buildTypes->getType(load->getName());
+			$$ = new BitCast($paramscall->getParamElement(0), dt);
+		} else {
+			$$ = new FunctionCall($id, $paramscall, @id);
+		}
+	} else {
 		$$ = new FunctionCall($id, $paramscall, @id);
 	}
 	$$->setLocation(@id);

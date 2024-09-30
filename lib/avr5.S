@@ -349,3 +349,842 @@ DEFUN memset
     ret
 ENDF memset
 
+/* 
+ * The assembly code below implements float32 functions and was slight
+ * adapted from avrlibc/libm (https://github.com/avrdudes/avr-libc)
+ * by thborges, 29-Sep-2024.
+ */
+
+/* Copyright (c) 2002  Michael Stumpf  <mistumpf@de.pepperl-fuchs.com>
+   Copyright (c) 2006  Dmitry Xmelkov
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+
+   * Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+   * Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in
+     the documentation and/or other materials provided with the
+     distribution.
+   * Neither the name of the copyright holders nor the names of
+     contributors may be used to endorse or promote products derived
+     from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+   POSSIBILITY OF SUCH DAMAGE. */
+
+#define	rB0	r18
+#define	rB1	r19
+#define	rB2	r20
+#define	rB3	r21
+#define	rA0	r22
+#define	rA1	r23
+#define	rA2	r24
+#define	rA3	r25
+#define	rBE	r26
+#define	rAE	r27
+
+
+DEFUN __subsf3
+    subi rB3, 0x80   ; complement sign bit of B
+DEFUN __addsf3
+    clr rAE
+    clr rBE
+    rcall __addsf3x
+    rjmp __fp_round
+ENDF __subsf3
+
+
+
+
+DEFUN __fp_pscA
+	clr	r0
+	dec	r0
+	cp	r1, rA0
+	cpc	r1, rA1
+	cpc	r1, rA2
+	cpc	r0, rA3
+	ret
+ENDF __fp_pscA
+
+
+DEFUN __fp_pscB
+	clr	r0
+	dec	r0
+	cp	r1, rB0
+	cpc	r1, rB1
+	cpc	r1, rB2
+	cpc	r0, rB3
+	ret
+ENDF __fp_pscB
+
+
+DEFUN __fp_nan
+	ldi	rA3, 0xFF
+	ldi	rA2, 0xC0
+	ret
+ENDF __fp_nan
+
+
+DEFUN __fp_inf
+	bld	rA3, 7		; sign
+	ori	rA3, 0x7f
+	ldi	rA2, 0x80
+	ldi	rA1, 0
+	ldi	rA0, 0
+	ret
+ENDF __fp_inf
+
+
+__addsf3xexit:
+    rcall	__fp_pscA
+	brcs	.L_nan
+	rcall	__fp_pscB
+	brcs	.L_nan
+	brne	.L_inf		; B is finite --> return A
+	cpi	rA3, 255
+	brne	.L_infB		; A is finite --> return B
+	brtc	.L_inf		; Inf + Inf with the same sign
+.L_nan:
+	rjmp	__fp_nan
+.L_infB:
+	brtc	.L_inf
+	com	ZL
+.L_inf:
+	bst	ZL, 7
+	rjmp	__fp_inf
+
+DEFUN __addsf3x
+	mov	ZL, rA3		; save sign of A
+	rcall	__fp_split3
+	brcs	__addsf3xexit
+  ; compare A and B
+	cp	rAE, rBE
+	cpc	rA0, rB0
+	cpc	rA1, rB1
+	cpc	rA2, rB2
+	cpc	rA3, rB3
+	brlo	2f		; fabs(A) < fabs(B)
+	brne	4f		; fabs(A) > fabs(B)
+	brtc	.L_add
+	rjmp	__fp_zero	; A + (-A) = +0.0
+  ; swap A and B
+2:	brtc	3f
+	com	ZL		; update sign
+3:	mov	r0, rAE
+	mov	rAE, rBE
+	mov	rBE, r0
+	movw	r0, rA0
+	movw	rA0, rB0
+	movw	rB0, r0
+	movw	r0, rA2
+	movw	rA2, rB2
+	movw	rB2, r0
+	clr	r1
+4:	clr	ZH
+	sub	rB3, rA3
+5:	breq	7f		; shift is not needed
+	cpi	rB3, -7
+	brsh	6f
+	cpi	rB3, -32
+	brlo	.L_ret
+	cp	r1, rBE
+	sbci	ZH, 0
+	mov	rBE, rB0
+	mov	rB0, rB1
+	mov	rB1, rB2
+	clr	rB2
+	subi	rB3, -8
+	rjmp	5b
+
+6:	lsr	rB2
+	ror	rB1
+	ror	rB0
+	ror	rBE
+	sbci	ZH, 0
+	inc	rB3
+	brne	6b
+
+7:
+  ; direction ?
+	brtc	.L_add
+  ; A -= B
+	cp	r1, ZH
+	sbc	rAE, rBE
+	sbc	rA0, rB0
+	sbc	rA1, rB1
+	sbc	rA2, rB2
+	brmi	.L_ret
+8:	subi	rA3, 1
+	breq	9f
+	lsl	ZH
+	rol	rAE
+	rol	rA0
+	rol	rA1
+	rol	rA2
+	brpl	8b
+	rjmp	.L_ret
+
+.L_add:
+	add	rAE, rBE
+	adc	rA0, rB0
+	adc	rA1, rB1
+	adc	rA2, rB2
+	brcc	.L_ret
+	ror	rA2
+	ror	rA1
+	ror	rA0
+	ror	rAE
+	ror	ZH
+	cpi	rA3, 254
+	brlo	9f
+	rjmp	.L_inf
+9:	inc	rA3
+.L_ret:
+	lsl	rA2
+	brcs	1f
+	clr	rA3
+1:	lsl	ZL		; sign
+	ror	rA3
+	ror	rA2
+	ret
+ENDF __addsf3x
+
+
+DEFUN __fp_zero
+	clt
+DEFUN __fp_szero
+	clr	rAE
+	clr	rA0
+	clr	rA1
+	wmov	rA2, rA0
+	bld	rA3, 7
+	ret
+ENDF __fp_szero
+
+
+DEFUN __fp_split3
+  ; rA3[7] := sign(A) ^ sign(B)
+	sbrc	rB3, 7
+	subi	rA3, 0x80
+  ; split B
+	lsl	rB2
+	rol	rB3		; exponent
+	breq	4f
+	cpi	rB3, 0xff	; C = 1, if rB3 != 0xff
+	breq	5f
+1:	ror	rB2		; restore rB2 and (possible) hidden bit
+; <non_standard> __fp_splitA (float A);
+DEFUN __fp_splitA
+	lsl	rA2
+2:	bst	rA3, 7
+	rol	rA3
+	breq	6f
+	cpi	rA3, 0xff
+	breq	7f
+3:	ror	rA2
+	ret
+
+  ; B is zero or subnormal
+4:	cp	r1, rB0
+	cpc	r1, rB1
+	cpc	r1, rB2		; C = 1, if B is not a zero
+	rol	rB3		; C = 0
+	rjmp	1b
+  ; B is not a finite
+5:	lsr	rB2
+	rcall	__fp_splitA
+	rjmp	8f
+
+  ; A is zero or subnormal
+6:	cp	r1, rA0
+	cpc	r1, rA1
+	cpc	r1, rA2
+	rol	rA3
+	rjmp	3b
+  ; A is not a finite
+7:	lsr	rA2		; C = 0
+	cpc	rA1, r1
+	cpc	rA0, r1
+8:	sec
+	ret
+ENDF __fp_split3
+
+
+DEFUN __fixsfsi
+	rcall __fixunssfsi
+	set
+	cpse	rAE, r1			; error flag
+	rjmp	__fp_szero		; return 0x80000000
+	ret
+ENDF __fixsfsi
+
+
+DEFUN __fixunssfsi
+	rcall	__fp_splitA
+	brcs	.L_err
+  ; A is finite
+	subi	rA3, 127	; exponent field of 1.0
+	brlo	.L_zr
+  ; fabs(A) >= 1.0
+	mov	rAE, rA3
+	clr	rA3
+	subi	rAE, 23
+	brlo	4f		; shift to right
+	breq	.L_sign		; no shift
+  ; fabs(A) >= 0x0.800000p+25  To reduce code size we will not check
+  ; number of shifts. Instead we will check a MSB of result.
+1:	lsl	rA0
+	rol	rA1
+	rol	rA2
+	rol	rA3
+	brmi	2f		; next shift is impossible: data lost
+	dec	rAE
+	brne	1b
+	rjmp	.L_sign
+
+2:	cpi	rAE, 1
+	breq	.L_sign		; rAE: overflow for 'signed long' usage
+
+.L_err:	rcall __fp_zero
+	ldi	rAE, 1		; error flag
+	ret
+
+.L_zr:	rjmp __fp_zero	; return 0x00000000, clear rAE
+
+  ; fabs(A) <= 0x0.ffffffp+23
+  ; Shift A to right by 1 (rA3==-1) .. 23 (rA3==-23) positions.
+
+3:	mov	rA0, rA1
+	mov	rA1, rA2
+	clr	rA2
+	subi	rAE, -8
+	breq	.L_sign
+
+4:	cpi	rAE, -7
+	brlt	3b		; quick shift is possible
+
+5:	lsr	rA2
+	ror	rA1
+	ror	rA0
+	inc	rAE
+	brne	5b
+
+  ; restore the sign and return
+.L_sign:
+	brtc	6f
+	com	rA3
+	com	rA2
+	com	rA1
+	neg	rA0
+	sbci	rA1, -1
+	sbci	rA2, -1
+	sbci	rA3, -1
+6:	ret
+
+ENDF __fixunssfsi
+
+
+DEFUN __fp_round
+  ; is A finite ?
+	mov	r0, rA3
+	inc	r0
+	lsl	r0
+	brne	1f
+	tst	rA2
+	brmi	3f		; no, A is not a finite number
+  ; rounding
+1:	lsl	rAE
+	brcc	3f
+	or	rAE, ZH
+	brne	2f
+	sbrs	rA0, 0		; round to even
+	rjmp	3f
+2:	subi	rA0, -1
+	sbci	rA1, -1
+	sbci	rA2, -1
+	sbci	rA3, -1
+
+3:	ret
+ENDF __fp_round
+
+#define	ret_lo	r24
+DEFUN   __cmpsf2
+DEFUN   __eqsf2
+DEFUN   __nesf2
+DEFUN   __ltsf2
+DEFUN   __lesf2
+	rcall __fp_cmp
+	brcc	1f
+	ldi	ret_lo, 1
+1:	ret
+ENDF __cmpsf2
+
+DEFUN __fp_cmp
+	lsl	rA3
+	sbc	r0, r0		; r0 = (A < 0) ? -1 : 0
+	lsl	rB3
+	sbc	rBE, rBE	; rBE = (B < 0) ? -1 : 0
+  ; isnan(A) ?
+	ldi	ZL, 0x80	; NaN: 0x{f/7}f800001..0x{f/7}fffffff
+	ldi	ZH, 0xfe
+	cp	r1, rA0
+	cpc	r1, rA1
+	cpc	ZL, rA2
+	cpc	ZH, rA3
+	brlo	9f		; branch, if C == 1
+  ; isnan(B) ?
+	cp	r1, rB0
+	cpc	r1, rB1
+	cpc	ZL, rB2
+	cpc	ZH, rB3
+	brlo	9f		; branch, if C == 1
+  ; compare
+	sub	rA0, rB0
+	sbc	rA1, rB1
+	sbc	rA2, rB2
+	sbc	rA3, rB3	; C is set, if A < B
+	brne	1f
+  ; absolute values are equal, check signs
+	eor	r0, rBE
+	breq	9f		; if branch, rA2 = 0, C = 0
+  ; force -0.0 == +0.0
+	or	rB0, rB1
+	or	rB0, rB2
+	or	rB0, rB3
+	brne	2f		; evaluate sign(B)
+	ret
+  ; view argument signes
+1:	eor	r0, rBE		; C is not changed
+	brne	2f		; signs are different
+	sbci	rBE, 1		; rBE[0] = (A < B && A > 0) ? 0 : 1
+2:	lsr	rBE		; C = above result OR sign(B)
+  ; build return value, C is set, if A > B
+	ldi	rA2, -1
+	adc	rA2, r1
+	adc	rA2, r1		; C = 0 at any case
+9:	ret
+ENDF __fp_cmp
+
+
+DEFUN __unordsf2
+	rcall __fp_cmp	; return C=1, if any of args is NaN
+	sbc	r24, r24
+	sbc	r25, r25
+	ret
+ENDF __unordsf2
+
+
+DEFUN __mulsf3
+	rcall __mulsf3x
+	rjmp __fp_round
+ENDF __mulsf3
+
+
+__mulsf3x_exit:
+0:	rcall __fp_pscA
+	brcs	1f
+	rcall __fp_pscB
+	brcs	1f
+	and	rA3, rB3		; one of args is 0xff
+	breq	1f
+	rjmp __fp_inf		; nonzero * Inf --> Inf
+1:	rjmp __fp_nan		; 0 * Inf --> NaN
+2:	clr	r1			; after 'mul rA3,rB3'
+	rjmp __fp_szero
+
+DEFUN __mulsf3x
+	rcall __fp_split3
+	brcs	0b
+
+DEFUN __mulsf3_pse			; post split entry
+  ; check zero
+	mul	rA3, rB3		; r1 would be clean
+	breq	2b
+  ; rB3.rA3 := rA3 + rB3
+	add	rA3, rB3
+	ldi	rB3, 0
+	adc	rB3, rB3
+
+  ; multiplication:  rA2.rA1.rA0 * rB2.rB1.rB0  -->  rA2.rA1.rA0.rAE.ZH.ZL
+
+  ; ZH.ZL = rA0 * rB0
+	mul	rA0, rB0
+	movw	ZL, r0
+  ; rAE.ZH += rA1 * rB0
+	mul	rA1, rB0
+	clr	rAE
+	add	ZH, r0
+	adc	rAE, r1
+  ; rBE.rAE.ZH = rAE.ZH + rA0 * rB1
+	mul	rA0, rB1
+	clr	rBE
+	add	ZH, r0
+	adc	rAE, r1
+	adc	rBE, rBE
+  ; rA0.rBE.rAE = rBE.rAE + rA0 * rB2
+	mul	rA0, rB2
+	clr	rA0
+	add	rAE, r0
+	adc	rBE, r1
+	adc	rA0, rA0
+  ; rA0.rBE.rAE += rA2 * rB0
+	mul	rA2, rB0
+	clr	rB0
+	add	rAE, r0
+	adc	rBE, r1
+	adc	rA0, rB0
+  ; rA0.rBE.rAE += rA1 * rB1
+	mul	rA1, rB1
+	add	rAE, r0
+	adc	rBE, r1
+	adc	rA0, rB0	; rB0 == 0
+  ; rB0.rA0.rBE = rA0.rBE + rA2 * rB1
+	mul	rA2, rB1
+	add	rBE, r0
+	adc	rA0, r1
+	adc	rB0, rB0	; rB0 was 0
+  ; rB0.rA0.rBE += rA1 * rB2
+	mul	rA1, rB2
+	clr	rB1
+	add	rBE, r0
+	adc	rA0, r1
+	adc	rB0, rB1
+  ; rB0.rA0 += rA2 * rB2
+	mul	rA2, rB2
+	add	rA0, r0
+	adc	rB0, r1
+  ; move result:  rA2.rA1.rA0.rAE.ZH.ZL = rB0.rA0.rBE.rAE.ZH.ZL
+	mov	rA2, rB0
+	mov	rA1, rA0
+	mov	rA0, rBE
+  ; __zero_reg__
+	clr	r1
+
+  ; exponent -= 127	(Why not 126?  For compare convenience.)
+	subi	rA3, 0x7F ;lo8(127)
+	sbci	rB3, 0x00 ;hi8(127)
+	brmi	13f		; denormalization is needed
+	breq	15f		; normalization is impossible
+  ; result exponent > min ==> normalization is possible
+10:	tst	rA2
+	brmi	11f		; mantissa is normal
+  ; mantissa <<= 1
+	lsl	ZL
+	rol	ZH
+	rol	rAE
+	rol	rA0
+	rol	rA1
+	rol	rA2
+  ; exponent -= 1
+	subi	rA3, 0x01 ;lo8(1)
+	sbci	rB3, 0x00 ;hi8(1)
+	brne	10b
+  ; check to overflow
+11:	cpi	rA3, 254
+	cpc	rB3, r1
+	brlo	15f
+	rjmp __fp_inf
+  ; check lowest value of exponent to avoid long operation
+12:	rjmp __fp_szero
+13:	cpi	rB3, 0xFF  ;hi8(-24)		; here rB3 < 0
+	brlt	12b
+	cpi	rA3, 0XE8  ;lo8(-24)
+	brlt	12b
+  ; mantissa >>= -rA3
+14:	lsr	rA2
+	ror	rA1
+	ror	rA0
+	ror	rAE
+	ror	ZH
+	ror	ZL
+	subi	rA3, -1
+	brne	14b
+  ; for rounding
+15:	or	ZH, ZL
+  ; pack
+	lsl	rA2
+	adc	rA3, r1		; restore exponent for normal values
+	lsr	rA3
+	ror	rA2
+	bld	rA3, 7		; sign
+	ret
+ENDF __mulsf3x
+
+
+DEFUN __gesf2
+DEFUN __gtsf2
+	rcall __fp_cmp
+	brcc	1f
+	ldi	ret_lo, -1
+1:	ret
+ENDF __gesf2
+
+
+DEFUN __divsf3
+	rcall __divsf3x
+	rjmp __fp_round
+ENDF __divsf3
+
+
+__divsf3x_exit:
+0:	rcall __fp_pscB
+	brcs	.L_nan_div
+	rcall __fp_pscA
+	brcs	.L_nan_div
+	brne	.L_zr_div		; finite / Inf --> 0
+.L_infA:
+	cpi	rB3, 255
+	breq	.L_nan_div		; Inf / Inf --> NaN
+.L_inf_div:
+	rjmp __fp_inf
+1:
+	cpse	rB3, r1		; 0/finite --> 0,  0/0 --> NaN
+.L_zr_div:	rjmp __fp_szero
+.L_nan_div:	rjmp __fp_nan
+
+DEFUN __divsf3x
+	rcall __fp_split3
+	brcs	0b
+
+DEFUN __divsf3_pse		; post split entry
+	tst	rA3
+	breq	1b
+	tst	rB3
+	breq	.L_inf_div		; finite / 0.0 --> Inf
+
+	sub	rA3, rB3
+	sbc	rB3, rB3
+
+/* Prepare to division:
+     A:  rAE.rA2.rA1.rA0	0x00000001..0x00FFFFFF
+     B:  rBE.rB2.rB1.rB0	0x00000002..0x01FFFFFE
+     A < B
+ */
+	clr	rAE
+	clr	rBE
+2:	cp	rA0, rB0
+	cpc	rA1, rB1
+	cpc	rA2, rB2
+	brlo	3f
+	subi	rA3, 0xFF ;lo8(-1)
+	sbci	rB3, 0xFF ;hi8(-1)
+	lsl	rB0
+	rol	rB1
+	rol	rB2
+	rol	rBE
+	breq	2b
+3:
+	rcall	.L_div
+	mov	r0, ZL
+	brmi	5f		; N is result of 'com ZL' from .L_div
+
+4:	ldi	ZL, 0x80
+	rcall	.L_div1
+	subi	rA3, 0x01 ;lo8(1)
+	sbci	rB3, 0x00 ;hi8(1)
+	lsr	ZL
+	rol	r0
+	brpl	4b
+
+5:	rcall	.L_div
+	mov	ZH, ZL
+	rcall	.L_div
+
+	lsl	rA0
+	rol	rA1
+	rol	rA2
+	rol	rAE
+	cp	rB0, rA0
+	cpc	rB1, rA1
+	cpc	rB2, rA2
+	cpc	rBE, rAE
+	ldi	rAE, 0x80
+	breq	4f
+	sbc	rAE, rAE
+
+4:	mov	rA2, r0
+	wmov	rA0, ZL
+	clr	ZH
+
+  ; exponent += 125
+	subi	rA3, 0x83 ;lo8(-125)
+	sbci	rB3, 0xFF ;hi8(-125)
+	brmi	13f		; denormalization is needed
+  ; check to overflow
+11:	cpi	rA3, 254
+	cpc	rB3, r1
+	brlo	15f
+	rjmp __fp_inf
+  ; check lowest value of exponent to avoid long operation
+12:	rjmp __fp_szero
+13:	cpi	rB3, 0xFF ;hi8(-24)		; here rB3 < 0
+	brlt	12b
+	cpi	rA3, 0xE8 ;lo8(-24)
+	brlt	12b
+  ; mantissa >>= -rA3
+14:	lsr	rA2
+	ror	rA1
+	ror	rA0
+	ror	rAE
+	ror	ZH
+	subi	rA3, -1
+	brne	14b
+  ; pack
+15:	lsl	rA2
+	adc	rA3, r1		; restore exponent for normal values
+	lsr	rA3
+	ror	rA2
+	bld	rA3, 7
+	ret
+
+.L_div:
+	ldi	ZL, 1
+.L_div1:
+	lsl	rA0
+	rol	rA1
+	rol	rA2
+	rol	rAE
+	cp	rA0, rB0
+	cpc	rA1, rB1
+	cpc	rA2, rB2
+	cpc	rAE, rBE
+	brcs	2f
+	sub	rA0, rB0
+	sbc	rA1, rB1
+	sbc	rA2, rB2
+	sbc	rAE, rBE
+2:	rol	ZL
+	brcc	.L_div1
+	com	ZL
+	ret
+ENDF __divsf3x
+
+
+DEFUN __floatdisf
+	bst	rA3, 7		; sign
+	brtc	1f
+	rcall __fp_negdi
+1:	rjmp __fp_di2sf
+ENDF __floatdisf
+
+
+DEFUN __fp_negdi
+	com	rA3
+	com	rA2
+	com	rA1
+	com	rA0
+	com	rB3
+	com	rB2
+	com	rB1
+	neg	rB0
+	sbci	rB1, -1
+	sbci	rB2, -1
+	sbci	rB3, -1
+	sbci	rA0, -1
+	sbci	rA1, -1
+	sbci	rA2, -1
+	sbci	rA3, -1
+	ret
+ENDF __fp_negdi
+
+
+DEFUN __floatundisf
+	clt			; result sign
+
+DEFUN __fp_di2sf
+	mov	ZH, rA3
+	ldi	rA3, 127 + 55	; exponent for 00.80.00.00.00.00.00.00
+	tst	ZH
+	breq	.L_tstA2
+
+/* Shift to right is needed by 1..8 positions.
+   Optimization: accumulate an info about tail into rB2.	*/
+	cp	r1, rB0
+	cpc	r1, rB1
+	cpc	r1, rB2
+	sbc	rB2, rB2
+  ; shift to right
+1:	inc	rA3		; exponent += 1
+	lsr	ZH
+	ror	rA2
+	ror	rA1
+	ror	rA0
+	ror	rB3
+	sbci	rB2, 0		; set rB2[7] if C was 1
+	tst	ZH
+	brne	1b
+	rjmp	.L_round
+
+  ; x == 0
+2:	clr	rA3
+	ret
+  ; check: is fast shift possible?
+.L_tstA2:
+	tst	rA2
+	brne	4f
+  ; fast shift to left
+3:	subi	rA3, 8
+	brpl	2b		; 127+55 - 7*8 --> 126
+	or	rA2, rA1	; obtain Z flag
+	mov	rA1, rA0
+	mov	rA0, rB3
+	mov	rB3, rB2
+	mov	rB2, rB1
+	mov	rB1, rB0
+	ldi	rB0, 0
+	breq	3b		; Z is result of 'or rA2,rA1'
+
+/* rA2 is not 0.  It is needed shift to left by 0..7 positions.
+   Optimization: rB2..rB0 are not shifted. Instead, save an info
+   about tail in rB2.	*/
+4:	cp	r1, rB0
+	cpc	r1, rB1
+	cpc	r1, rB2
+	sbc	rB2, rB2
+	tst	rA2
+	brmi	.L_round
+5:	dec	rA3		; exponent -= 1
+	lsl	rB2
+	rol	rB3
+	rol	rA0
+	rol	rA1
+	rol	rA2
+	brpl	5b
+
+/* Round and pack. Now we have:
+     rA3		- mantissa
+     rA2.rA1.rA0.rB3	- fraction
+     rB2		- is negative if tail is not equal 0	*/
+.L_round:
+	tst	rB3
+	brpl	7f
+	lsl	rB2
+	rol	rB3
+	brne	6f
+	sbrs	rA0, 0		; round to even
+	rjmp	7f
+6:	subi	rA0, -1
+	sbci	rA1, -1
+	sbci	rA2, -1
+	sbci	rA3, -1
+  ; pack
+7:	lsl	rA2
+	lsr	rA3
+	ror	rA2
+	bld	rA3, 7		; sign
+	ret
+ENDF __floatundisf
+
+

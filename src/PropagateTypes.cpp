@@ -536,3 +536,19 @@ Node* PropagateTypes::visit(MemCopy& n) {
         n.symbols = n.children()[0]->getSymbols();
     return NULL;
 }
+
+Node* PropagateTypes::visit(BitCast& n) {
+    propagateChildren(n);
+    DataType dt = n.getDataType();
+    int returnBitwidth = buildTypes->bitWidth(dt);
+    DataType st = n.getSourceType();
+    int sourceBitwidth = buildTypes->bitWidth(st);
+    
+    if (returnBitwidth != sourceBitwidth) {
+        yyerrorcpp(string_format("Can not bitcast from '%s' to '%s'.",
+                buildTypes->name(st),
+                buildTypes->name(dt)), &n);
+    }
+
+    return NULL;
+}

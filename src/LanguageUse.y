@@ -159,6 +159,7 @@ function_attribute
 	| TOK_NAKED							{ $$ = new FunctionAttribute(fa_naked, ""); }
 	| TOK_SIGNAL						{ $$ = new FunctionAttribute(fa_signal, ""); }
 	| TOK_DEBUGONLY						{ $$ = new FunctionAttribute(fa_debugonly, ""); }
+	| TOK_NOOPT							{ $$ = new FunctionAttribute(fa_noopt, ""); }
 	| TOK_SECTION TOK_IDENTIFIER[id]	{ $$ = new FunctionAttribute(fa_section, $id); }
 
 qualifier : TOK_CONST		{ $$ = qconst; }

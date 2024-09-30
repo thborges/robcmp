@@ -9,6 +9,7 @@ enum FunctionAttributeType {
 	fa_naked,
 	fa_signal,
 	fa_debugonly,
+	fa_noopt,
 };
 
 typedef pair<FunctionAttributeType, string> FunctionAttribute;

@@ -110,6 +110,10 @@ void FunctionBase::addFunctionAttributes(Function *func) {
 				func->addFnAttr(Attribute::Naked);
 				func->addFnAttr(Attribute::NoInline);
 				break;
+			case fa_noopt:
+				func->addFnAttr(Attribute::OptimizeNone);
+				func->addFnAttr(Attribute::NoInline);
+				break;
 			default:
 				break;
 		}

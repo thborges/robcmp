@@ -26,6 +26,14 @@ float div() {
     return c;
 }
 
+int64 floattoi64(float x) {
+    return int64(x);
+}
+
+int32 floattoi32(float x) {
+    return int32(x);
+}
+
 const epsilon = 0.000001;
 
 int8 main() {
@@ -64,6 +72,17 @@ int8 main() {
         return 7;
     }
 
-    return 0;
+    r = div();
+    s = floattoi64(r);
+    if s != 1 {
+        return 8;
+    }
+
+    t = floattoi32(r);
+    if t != 1 {
+        return 9;
+    }
+
+   return 0;
 }
 

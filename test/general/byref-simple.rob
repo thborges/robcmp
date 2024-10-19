@@ -1,0 +1,24 @@
+
+mapping = {
+    0x00E1, 0x00C1,
+    0x00E9, 0x00C9
+};
+
+type Integer {
+    codepoint = int32(0);
+}
+
+void utf8_decode(Integer i) {
+    i.codepoint = 10;
+}
+
+int8 main() {
+    cp = Integer();
+    utf8_decode(cp);
+    if cp.codepoint != 10 {
+        return 1;
+    }
+
+    return 0;
+}
+

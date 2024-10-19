@@ -178,10 +178,13 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			nvalue = exprv;
 		}
 
-		RobDbgInfo.emitLocation(this);
-		const DataLayout &DL = mainmodule->getDataLayout();
-		Align align = DL.getABITypeAlign(nvalue->getType());
-		return Builder->CreateAlignedStore(nvalue, alloc, align, symbol->hasQualifier(qvolatile));
+		if (nvalue != alloc) {
+			RobDbgInfo.emitLocation(this);
+			const DataLayout &DL = mainmodule->getDataLayout();
+			Align align = DL.getABITypeAlign(nvalue->getType());
+			return Builder->CreateAlignedStore(nvalue, alloc, align, symbol->hasQualifier(qvolatile));
+		} else 
+			return nvalue;
 	}
 }
 

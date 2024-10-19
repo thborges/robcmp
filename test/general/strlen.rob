@@ -1,0 +1,16 @@
+
+const str = "abcd";
+
+int8 strlen(char[] s) {
+    return s.size;
+}
+
+int8 main() {
+    r = strlen(str);
+    if r == 4 {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+

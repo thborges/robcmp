@@ -1,5 +1,6 @@
 
 #include "StringConst.h"
+#include "BackLLVM.h"
 #include "NamedConst.h"
 
 StringConst::StringConst(const string& name, const string& str, location_t loc) :
@@ -21,8 +22,32 @@ Value* StringConst::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *
         constant, name);
     gv->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
     gv->setAlignment(Align(1));
-    Constant *zero = ConstantInt::get(Type::getInt32Ty(global_context), 0);
-    Constant *indices[] = {zero, zero};
-    value = ConstantExpr::getInBoundsGetElementPtr(gv->getValueType(), gv, indices);
+
+    // const a = "abcdef"
+    if (leftValue->hasQualifier(qconst)) {
+        Constant *zero = ConstantInt::get(Type::getInt32Ty(global_context), 0);
+        Constant *indices[] = {zero, zero};
+        value = ConstantExpr::getInBoundsGetElementPtr(gv->getValueType(), gv, indices);
+    } else {
+        // a = "abcdef", alloc array and copy string const to it
+	    Type* I = buildTypes->llvmType(tchar);
+        auto arrayType = ArrayType::get(I, str.size());
+
+        // alloc array
+        Builder->SetInsertPoint(allocblock);
+        auto alloc = Builder->CreateAlloca(arrayType, dataAddrSpace, 0, leftValue->getName());
+        if (debug_info) {
+            RobDbgInfo.emitLocation(this);
+            RobDbgInfo.declareVar(leftValue, alloc, allocblock);
+        }
+        leftValue->setAlloca(alloc);
+
+        // copy string to the new array
+		Builder->SetInsertPoint(block);
+        Builder->CreateMemCpy(alloc, Align(1), gv, Align(1), str.size());
+        value = alloc;
+        
+    }
+
     return value;
 }

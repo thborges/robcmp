@@ -69,3 +69,5 @@ test/atmega328p/out
 platformio/toolchain-robcmp/bin
 platformio/toolchain-robcmp/lib
 platformio/avr-gdb-build
+Documentation
+hack

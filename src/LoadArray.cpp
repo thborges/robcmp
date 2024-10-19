@@ -73,6 +73,7 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 		alloc = Builder->CreateLoad(ty, alloc, symbol->hasQualifier(qvolatile), "deref");
 	}
 
+	Builder->SetInsertPoint(block);
 	Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 	Value *indexList[2] = {zero, indice};
 	Value *ptr = Builder->CreateGEP(symbol->getLLVMType(), alloc, ArrayRef<Value*>(indexList), "gep");

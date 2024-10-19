@@ -92,7 +92,7 @@ void FunctionBase::addFunctionAttributes(Function *func) {
 	for(auto &[attr, value] : attributes->getAttributes()) {
 		switch (attr) {
 			case fa_weak:
-				func->setLinkage(GlobalValue::ExternalWeakLinkage);
+				func->setLinkage(GlobalValue::WeakAnyLinkage);
 				break;
 			case fa_inline:
 				func->addFnAttr(Attribute::AlwaysInline);

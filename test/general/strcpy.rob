@@ -1,0 +1,21 @@
+void strcpy(char[] src, int16 spos, char[] dst, int16 dpos, int16 len) {
+    i = 0;
+    while (i < len) {
+        dst[dpos + i] = src[spos + i];
+        i++;
+    }
+}
+
+int16 main(){
+    a = "a noifas SDOINDAda";
+    b = "B akjsad ADJNDAODA";
+    strcpy(a, 0, b, 0, a.size);
+    i = 0;
+    while i < a.size {
+        if b[i] != a[i] {
+            return i;
+        }
+        i++;
+    }
+    return 0;
+}

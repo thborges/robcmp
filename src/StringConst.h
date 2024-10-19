@@ -8,6 +8,7 @@ class StringConst: public Array {
 protected:
     string str;
     Value *value = NULL;
+    Variable *leftValue = NULL;
 public:
     StringConst(const string& name, const string& str, location_t loc);
     
@@ -34,4 +35,8 @@ public:
     virtual bool isConstExpr() override {
 		return true;
 	}
+
+    void setLeftValue(Variable *symbol) override {
+        leftValue = symbol;
+    }
 };

@@ -43,6 +43,9 @@ out/%.ll : %.rob ${DEPENDS}
 out/% : out/%.o ${LINK_DEPENDS} 
 	ld.lld ${LD_FLAGS} $^ -o $@
 
+%.time : %.rob ${DEPENDS} clean
+	@-./timetest.sh $< $(patsubst %.rob,out/%,$<) 
+
 test: ${ALL_TT}
 
 clean:

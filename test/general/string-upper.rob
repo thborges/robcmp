@@ -743,13 +743,17 @@ mapping = {
         return codepoint;
     }
     
-    void strcpy (char[] src, int16 s, char[] dst, int16 d, int16 len) {
+    void strcpy(char[] src, int16 spos, char[] dst, int16 dpos, int16 len) {
         i = 0;
+        if (spos + len > src.size) or (dpos + len > dst.size) {
+            return;
+        }
         while (i < len) {
-            dst[d + i] = src[s + i];
+            dst[dpos + i] = src[spos + i];
             i++;
         }
     }
+    
     
     void utf8_string_to_uppercase(char[] str) {
         p = int16 (0);
@@ -802,6 +806,11 @@ mapping = {
     }
 
 int8 main() {
+
+    const a = "a noifas SDOINDAda";
+    const b = "B akjsad ADJNDAODA";
+
+    strcpy(a, 0, b, 0, 5);
 
     const l_str = "a";
 

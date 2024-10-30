@@ -807,11 +807,6 @@ mapping = {
 
 int8 main() {
 
-    const a = "a noifas SDOINDAda";
-    const b = "B akjsad ADJNDAODA";
-
-    strcpy(a, 0, b, 0, 5);
-
     const l_str = "a";
 
     utf8_string_to_uppercase(l_str);

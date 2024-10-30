@@ -23,8 +23,8 @@ Value* StringConst::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *
     gv->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
     gv->setAlignment(Align(1));
 
-    // const a = "abcdef"
-    if (leftValue->hasQualifier(qconst)) {
+    // const a = "abcdef" or a call to func("abc")
+    if (!leftValue || leftValue->hasQualifier(qconst)) {
         Constant *zero = ConstantInt::get(Type::getInt32Ty(global_context), 0);
         Constant *indices[] = {zero, zero};
         value = ConstantExpr::getInBoundsGetElementPtr(gv->getValueType(), gv, indices);

@@ -673,7 +673,7 @@ mapping = {
         code = int32(0);
     }
     
-    int8 utf8_decode(char[] s, int16 i, Codepoint c) {
+    int32 utf8_decode(char[] s, int16 i, Codepoint c) {
         if (s[i] < 0x80) {
             c.code = s[i];
             return 1; // 1 byte
@@ -690,7 +690,7 @@ mapping = {
         return -1;
     }
     
-    int8 utf8_encode(int32 codepoint, char[] output) {
+    int32 utf8_encode(int32 codepoint, char[] output) {
         if (codepoint <= 0x7F) {
             output[0] = codepoint & 0x7F;
             return 1; // 1 byte
@@ -805,9 +805,9 @@ mapping = {
         }
     }
 
-int8 main() {
+int32 main() {
 
-    const l_str = "a";
+    l_str = "á";
 
     utf8_string_to_uppercase(l_str);
 

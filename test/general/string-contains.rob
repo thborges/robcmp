@@ -1,8 +1,8 @@
 use string.contains;
 
 int8 main() {
-    r = containsstr("abcde", "cd");
-    if r == 2 {
+    r = containsstr("exemplo de string", "string");
+    if r == 11 {
         return 0;
     } else {
         return 1;

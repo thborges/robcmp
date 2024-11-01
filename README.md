@@ -28,12 +28,23 @@ This commands will install the robcmp platform in ~/.platformio/platforms and th
 
 To build robcmp from source, you will need to follow these steps. Please note that currently, only Linux and OSX are supported:
 
-- Install LLVM version 17 or newer:
-  - On Linux, you can follow the instructions provided at https://apt.llvm.org to install llvm. Install the following packages: apt-install llvm-17 cmake flex bison zlib1g-dev libzstd-dev
+- Install LLVM version 18 or newer:
+  - On Linux, you can follow the instructions provided at https://apt.llvm.org to install llvm. Install the following packages: apt install llvm-18 cmake flex bison zlib1g-dev libzstd-dev git lld-18 gdb-avr binutils-avr clang
   - On macOS, you can use Homebrew by running the command brew install llvm17.
 - Flex (version 2.6.4 or newer) and Bison (version 3.8.2 or newer) are required.
-- Clone the robcmp repository: `git clone git@github.com:thborges/robcmp.git && cd robcmp`
-- Switch to the most recent or desired branch: `git checkout standard-lib`
+- Clone the robcmp repository: `git clone https://github.com/thborges/robcmp.git && cd robcmp`
+- Switch to the most recent or desired branch: `git checkout llvm18`
 - Create a builder folder: `mkdir build && cd build`
 - Configure the source code with cmake: `cmake -DCMAKE_BUILD_TYPE="Debug" ..`
 - Execute the make command: `$ make`
+
+To debug .rob programs using visual code, you should also build the source code at https://github.com/thborges/simavr.git, branch pr-test
+- apt install avr-gcc avr-libc libglut-dev libelf-dev
+- git clone https://github.com/thborges/simavr.git
+- cd simavr && git checkout pr-test
+- make
+- cp examples/robcmp-simavr-debug/**/robcmp-simavr-debug ~/robcmp/build
+
+To integrate robcmp with Visual Code:
+- cd ~/robcmp (return to robcmp folder)
+- ./platformio/integrate2vc

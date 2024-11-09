@@ -57,6 +57,7 @@ TargetInfo supportedTargets[__last_target] = {
 	{rb_avr,    "attiny85",   "avr", "attiny85",   "+avr25", tint16},
 	{rb_avr,    "atmega328p", "avr", "atmega328p", "+avr5",  tint16},
 	{rb_avr,    "atmega32u4", "avr", "atmega32u4", "+avr5",  tint16},
+	{rb_avr,    "atmega1284p", "avr", "atmega1284p", "+avr51", tint16},
 
 	{rb_arm,    "stm32f1", "thumbv7m-none-eabi", "cortex-m3", "", tint32},
 

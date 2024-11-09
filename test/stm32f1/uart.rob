@@ -1,0 +1,41 @@
+
+use intfs.ports;
+use arch.stm32.stm32f1;
+use convert.itoa;
+
+void run_test() {
+
+}
+
+int16 main() {
+    mmcu = stm32f1();
+    serial = mmcu.uart2;
+    serial.setup(9600);
+    serial.enable();
+
+    //led = mmcu.c13;
+	//led.mode(port_mode.output);
+
+    loop {
+        start = mmcu.time();
+
+        run_test();
+
+        time = mmcu.time() - start;
+
+        timestr = {'0': 10};
+        itoa(time, 10, timestr);
+
+        serial.write(timestr);
+        serial.write('\r');
+        serial.write('\n');
+
+        /*led.set(true);
+		mmcu.wait_ms(500);
+		led.set(false);
+		mmcu.wait_ms(500);*/
+
+    }
+    return 0;
+}
+

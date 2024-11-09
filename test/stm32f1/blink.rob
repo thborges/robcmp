@@ -1,0 +1,20 @@
+/*
+ * Blinks the board default led
+ */
+
+use intfs.ports;
+use arch.stm32.stm32f1;
+
+int16 main() {
+	mmcu = stm32f1();
+	led = mmcu.c13;
+
+	led.mode(port_mode.output);
+
+	loop {
+		led.set(true);
+		mmcu.wait_ms(500);
+		led.set(false);
+		mmcu.wait_ms(500);
+	}
+}

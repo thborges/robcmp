@@ -28,6 +28,7 @@ enum SupportedTargets {
 	st_attiny85,
 	st_atmega328p,
 	st_atmega32u4, 
+	st_atmega1284p, 
 	
 	// stm32
 	st_stm32f1, 

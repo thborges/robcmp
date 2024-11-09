@@ -1,0 +1,147 @@
+/*
+ * Robcmp interruptions vector for atmega1284p
+ */
+
+int8 main();
+
+void __do_copy_data() naked {
+asm "
+	ldi r17, hi8(__data_end)
+    ldi r26, lo8(__data_start)
+    ldi r27, hi8(__data_start)
+    ldi r30, lo8(__data_load_start)
+    ldi r31, hi8(__data_load_start)
+    rjmp __do_copy_data_start
+	__do_copy_data_loop:
+    	lpm r0, Z+
+	    st  X+, r0
+	__do_copy_data_start:
+    	cpi r26, lo8(__data_end)
+    	cpc r27, r17
+    	brne __do_copy_data_loop
+	ret";
+}
+
+void __do_clear_bss() naked {
+asm "
+	ldi r17, hi8(__bss_end)
+    ldi r26, lo8(__bss_start)
+    ldi r27, hi8(__bss_start)
+    rjmp __do_clear_bss_start
+	__do_clear_bss_loop:
+    	st  X+, r1
+	__do_clear_bss_start:
+    	cpi r26, lo8(__bss_end)
+    	cpc r27, r17
+    	brne __do_clear_bss_loop
+	ret";
+}
+ 
+void __delay_us() naked {
+asm "
+	ldi r18, 5
+	__delay_ms_loop:
+		dec r18
+		brne __delay_ms_loop
+	nop
+	ret";
+}
+ 
+/* Weak definitions for supported interruptions
+ */
+ void irq_usart_rx() naked, weak, section __irqs { }
+ void irq_usart_tx() naked, weak, section __irqs { }
+
+/* Timer0 is used to provide milliseconds time readings
+ */
+ const fcpu = 16E6;
+ const cycles_per_us = fcpu / 1E6;
+ const usec_per_ovf = (64 * 256) / cycles_per_us;
+ const millis_per_ovf = usec_per_ovf / 1000;
+ const millis_frac_per_ovf = uint16(usec_per_ovf % 1000);
+ timer0_millis = uint32(0);
+ timer0_fract = uint16(0);
+
+ void irq_timer0_ovf() signal, weak, section __irqs {
+	timer0_millis += millis_per_ovf;
+	timer0_fract += millis_frac_per_ovf;
+	if (timer0_fract > 1000) {
+		timer0_fract -= 1000;
+		timer0_millis += 1;
+	}
+ }
+
+ register int8 SREG at 0x5f;
+
+ uint32 millis() {
+	sreg_bkp = SREG;
+	asm "cli";
+	result = timer0_millis;
+	SREG = sreg_bkp;
+	return result;
+ }
+
+void __default_irq() naked, section __irqs {
+	asm "jmp __default_irq";
+}
+
+void __vectors() naked, section __isr {
+
+	 /* atmega1284p has 31 interruptions */
+	 asm "jmp __init";
+	 asm "jmp __default_irq"; // IRQ0
+	 asm "jmp __default_irq"; // IRQ1
+	 asm "jmp __default_irq"; // IRQ2
+	 asm "jmp __default_irq"; // PCINT0
+	 asm "jmp __default_irq"; // PCINT1
+	 asm "jmp __default_irq"; // PCINT2
+	 asm "jmp __default_irq"; // PCINT3
+	 asm "jmp __default_irq"; // Watchdog Timer
+	 asm "jmp __default_irq"; // Timer2 Compare A
+	 asm "jmp __default_irq"; // Timer2 Compare B
+	 asm "jmp __default_irq"; // Timer2 Overflow
+	 asm "jmp __default_irq"; // Timer1 Capture
+	 asm "jmp __default_irq"; // Timer1 Compare A
+	 asm "jmp __default_irq"; // Timer1 Compare B 
+	 asm "jmp __default_irq"; // Timer1 Overflow
+	 asm "jmp __default_irq"; // Timer0 Compare A
+	 asm "jmp __default_irq"; // Timer0 Compare B
+	 asm "jmp irq_timer0_ovf"; // Timer0 Overflow
+	 asm "jmp __default_irq"; // SPI Transfer Complete
+	 asm "jmp irq_usart_rx";  // USART, RX Complete
+	 asm "jmp __default_irq"; // USART, UDR Empty
+	 asm "jmp irq_usart_tx";  // USART, TX Complete
+	 asm "jmp __default_irq"; // Analog Comparator
+	 asm "jmp __default_irq"; // ADC Conversion
+	 asm "jmp __default_irq"; // EEPROM Ready
+	 asm "jmp __default_irq"; // 2-wire Serial Interface (TWI)
+	 asm "jmp __default_irq"; // Store Program Memory Ready
+	 asm "jmp __default_irq"; // USART1 Rx Complete
+	 asm "jmp __default_irq"; // USART1 Data Register Empty
+	 asm "jmp __default_irq"; // USART1 Tx Complete
+	 
+	 asm "__init:";
+	 // clear r1 (zero reg)
+	 asm "clr r1";
+	 // clear sreg
+	 asm "out 0x3f, r1";
+	 // set stack at 0x40FF (0x100+16K-1)
+	 asm "ldi r28, 0xFF";
+	 asm "ldi r29, 0x40";
+	 asm "out 0x3e, r29";
+	 asm "out 0x3d, r28";
+ 
+	 // copy global vars init data
+	 __do_copy_data();
+ 
+	 // clear zeroed global vars 
+	 __do_clear_bss();
+ 
+	 main();
+ 
+	 // if main returns, disable interruptions and sleep. 
+	 // this is used to quit simavr in our tests
+	 asm "cli";
+	 asm "sleep";
+ }
+ 

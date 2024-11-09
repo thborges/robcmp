@@ -132,8 +132,8 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
             for(const string& p: params) {
                 Node *coerced;
                 Value *value;
-                if (param->isConstExpr()) {
-                    Node *size = param->findMember("size");
+                Node *size = param->findMember("size");
+                if (size) {
                     coerced = PropagateTypes::coerceTo(size, tint32u);
                     value = coerced->generate(func, block, allocblock);
                 } else {

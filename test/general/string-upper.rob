@@ -670,10 +670,10 @@ mapping = {
 };
     
     type Codepoint {
-        code = int32(0);
+        code = uint32(0);
     }
     
-    int32 utf8_decode(char[] s, int16 i, Codepoint c) {
+    int32 utf8_decode(char[] s, uint16 i, Codepoint c) {
         if (s[i] < 0x80) {
             c.code = s[i];
             return 1; // 1 byte
@@ -690,7 +690,7 @@ mapping = {
         return -1;
     }
     
-    int32 utf8_encode(int32 codepoint, char[] output) {
+    int32 utf8_encode(uint32 codepoint, char[] output) {
         if (codepoint <= 0x7F) {
             output[0] = codepoint & 0x7F;
             return 1; // 1 byte
@@ -713,11 +713,11 @@ mapping = {
         return -1;
     }
     
-    int32 to_uppercase(int32 codepoint) {
+    int32 to_uppercase(uint32 codepoint) {
         i = uint16(0);
         while i < mapping.size {
-            if mapping[i + 1] == codepoint {
-                return mapping[i];
+            if mapping[i] == codepoint {
+                return mapping[i + 1];
             }
             i += 2;
         }
@@ -728,11 +728,11 @@ mapping = {
         return codepoint;
     }
     
-    int32 to_lowercase(int32 codepoint) {
+    int32 to_lowercase(uint32 codepoint) {
         i = uint16(0);
         while i < mapping.size {
-            if mapping[i] == codepoint {
-                return mapping[i + 1];
+            if mapping[i + 1] == codepoint {
+                return mapping[i];
             }
             i += 2;
         }
@@ -743,7 +743,7 @@ mapping = {
         return codepoint;
     }
     
-    void strcpy(char[] src, int16 spos, char[] dst, int16 dpos, int16 len) {
+    void strcpy(char[] src, uint16 spos, char[] dst, uint16 dpos, uint16 len) {
         i = 0;
         if (spos + len > src.size) or (dpos + len > dst.size) {
             return;
@@ -756,8 +756,8 @@ mapping = {
     
     
     void utf8_string_to_uppercase(char[] str) {
-        p = int16 (0);
-        w = int16 (0);
+        p = uint16 (0);
+        w = uint16 (0);
         output = {0:4};
         
         while p < str.size {
@@ -774,15 +774,15 @@ mapping = {
                     w += out_len;
                 }
                 
-                p += len;
+                p += len; 
             }
              
         }
     }
     
     void utf8_string_to_lowercase(char[] str) {
-        p = int16 (0);
-        w = int16 (0);
+        p = uint16 (0);
+        w = uint16 (0);
         output = {0:4};
         
         while p < str.size {
@@ -807,11 +807,11 @@ mapping = {
 
 int32 main() {
 
-    l_str = "á";
+    l_str = "áç";
 
     utf8_string_to_uppercase(l_str);
 
-    if equalstr (l_str, "A") {
+    if equalstr (l_str, "ÁÇ") {
         return 0;
     } else {
         return 1;

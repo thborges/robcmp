@@ -1,5 +1,6 @@
 int16 containsstr(char[] str, char[] substr) {
     i = uint16 (0);
+    
     while i < str.size {
         j = uint16 (0);
 
@@ -10,9 +11,7 @@ int16 containsstr(char[] str, char[] substr) {
         if j == substr.size {
             return i;
         }
-
         i++;
     }
-
     return -1;
 }

@@ -438,3 +438,66 @@ register I2C_SR2_t I2C2_SR2 at 0x40005818;
 register I2C_CCR_t I2C2_CCR at 0x4000581C;
 // I2C 2 T RISE register
 register uint16 I2C2_TRISE at 0x40005820;
+
+/*
+ * USART types
+ */
+
+ type SR_t {
+	PE    = false;              // Parity error
+	FE    = false;              // Framing error
+	NE    = false;              // Noise error flag
+	ORE   = false;              // Overrun error
+	IDLE  = false;              // IDLE line detected
+	RXNE  = false;              // Read data register not empty
+	TC    = false;              // Transmission complete
+	TXE   = false;              // Transmit data register empty
+	LBD   = false;              // LIN break detection flag
+	CTS   = false;              // CTS flag
+	_res1 = uint16(0);          // Reserved, 22 bits
+	_res2 = uint6(0);           // 
+ }
+
+ type CR1_t {
+	SBK    = false;              // Send break
+	RWU    = false;              // Receiver wakeup
+	RE     = false;              // Receiver enable
+	TE     = false;              // Transmitter enable
+	IDLEIE = false;              // IDLE interrupt enable
+	RXNEIE = false;              // RXNE interrupt enable
+	TCIE   = false;              // Transmission complete interrupt enable
+	TXEIE  = false;              // TXE interrupt enable
+	PEIE   = false;              // PE interrupt enable
+	PS     = false;              // Parity selection
+	PCE    = false;              // Parity control enable
+	WAKE   = false;              // Wakeup method
+	M      = false;              // Word length
+	UE     = false;              // USART enable
+	_res1  = uint16(0);          // Reserved, 18 bits
+	_res2  = uint2(0);           // 
+ }
+
+ type DR_t {
+	DR    = uint9(0);           // Data value
+	_res1 = uint16(0);          // Reserved, 23 bits
+	_res2 = uint7(0);           // 
+ }
+
+ type BRR_t {
+	DIV_Fraction = uint4(0);           // fraction of USARTDIV
+	DIV_Mantissa = uint12(0);          // mantissa of USARTDIV
+	_res1        = uint16(0);          // Reserved, 16 bits
+ }
+
+ // Status register
+ register SR_t USART2_SR at 0x40004400;
+
+ // Data register
+ register DR_t USART2_DR at 0x40004404;
+
+ // Baud rate register
+ register BRR_t USART2_BRR at 0x40004408;
+
+ // Control register 1
+ register CR1_t USART2_CR1 at 0x4000440C;
+

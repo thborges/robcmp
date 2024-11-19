@@ -16,6 +16,48 @@ type stm32f1 implements mcu {
         return;
 	}
 
+	a2 implements digitalport {
+		void mode_input(PIN_MODE mode, INPUT_MODE cnf) inline {
+			GPIOA_CRL.mode2 = mode;
+			GPIOA_CRL.cnf2 = cnf;
+		}
+		void mode_output(PIN_MODE mode, OUTPUT_MODE cnf) inline {
+			GPIOA_CRL.mode2 = mode;
+			GPIOA_CRL.cnf2 = cnf;
+		}
+		void mode(port_mode m)  {
+            APB2EN.iopa = true;
+            if (m == port_mode.input) {
+				mode_input(PIN_MODE.INPUT, INPUT_MODE.PULLUPDOWN);
+            } else {
+				mode_output(PIN_MODE.OUTPUT50MHz, OUTPUT_MODE.PUSHPULL);
+            }
+        }
+		void set(bool v) inline { GPIOA_ODR.odr2 = v; }
+		bool get()       inline { return GPIOA_IDR.idr2; }
+	}
+
+	a3 implements digitalport {
+		void mode_input(PIN_MODE mode, INPUT_MODE cnf) inline {
+			GPIOA_CRL.mode3 = mode;
+			GPIOA_CRL.cnf3 = cnf;
+		}
+		void mode_output(PIN_MODE mode, OUTPUT_MODE cnf) inline {
+			GPIOA_CRL.mode3 = mode;
+			GPIOA_CRL.cnf3 = cnf;
+		}
+		void mode(port_mode m)  {
+            APB2EN.iopa = true;
+            if (m == port_mode.input) {
+				mode_input(PIN_MODE.INPUT, INPUT_MODE.PULLUPDOWN);
+            } else {
+				mode_output(PIN_MODE.OUTPUT50MHz, OUTPUT_MODE.PUSHPULL);
+            }
+        }
+		void set(bool v) inline { GPIOA_ODR.odr3 = v; }
+		bool get()       inline { return GPIOA_IDR.idr3; }
+	}
+	
 	c13 implements digitalport {
 		void mode(port_mode m)  {
             APB2EN.iopc = true;
@@ -86,6 +128,14 @@ type stm32f1 implements mcu {
 		}
 	}
 
+	uint32 micros() {
+		return SYSTICK_VAL / (clock()/1E6);
+	}
+
+	uint32 millis() {
+		return micros() / 1000;
+	}
+
 	spi implements databus {
 		/* setup hardware SPI at:
 		   xx = MOSI
@@ -100,20 +150,67 @@ type stm32f1 implements mcu {
 		bool has_data() { return false; }
 		bool start_transaction(uint16 address) { return true; }
 		void end_transaction() { }
+		void async_read_to(interrupt_i8 i) {}
 
 		databus_protocol get_protocol() {
 			return databus_protocol.SPI;
 		}
 	}
 
-	uart0 implements databus {
-		void setup(uint32 baud) {}
-		void enable() {}
-		void disable() {}
-		void write(uint8 b) {}
-		void write_array(int8[] data) {}
-		uint8 read() { return 0; }
-		bool has_data() { return false; }
+	uart2 implements databus {
+		void setup(uint32 baud) {
+			APB1EN.usart2 = true; // enable usart2 clock
+			//AHBENR.sdio = true; // enable SDIO clock
+			APB2EN.afio = true; //? enable alternate function I/O clock
+			APB2EN.iopa = true; // port A clock
+
+			// set ports a2 (output TX) and a3 (input RX)
+			a2.mode_output(PIN_MODE.OUTPUT2MHz, OUTPUT_MODE.APUSH_PULL);
+			a3.mode_input(PIN_MODE.INPUT, INPUT_MODE.FLOATING);
+
+			// assuming reset configuration, that is 8 bits per byte,
+			// no parity checks, and 1 “stop bit”. 
+
+			// set baudrate
+			uartdiv = clock() / baud;
+			USART2_BRR.DIV_Fraction = uint4(uartdiv % 16);
+			USART2_BRR.DIV_Mantissa = uint12(uartdiv / 16);
+		}
+
+		void async_read_to(interrupt_i8 i) {}
+
+		void enable() {
+			USART2_CR1.RE = true; // receptor
+			USART2_CR1.TE = true; // transmiter
+			USART2_CR1.UE = true; // usart enable
+		}
+
+		void disable() {
+			USART2_CR1.UE = false;
+		}
+
+		void write(uint8 b) inline {
+			while !USART2_SR.TXE;
+			USART2_DR.DR = b;
+		}
+		
+		void write_array(int8[] data) {
+			i = 0u;
+			while i < data.size {
+				write(uint8(data[i]));
+				i++;
+			}
+		}
+		
+		uint8 read() { 
+			while !USART2_SR.RXNE;
+			return uint8(USART2_DR.DR);
+		}
+
+		bool has_data() {
+			return USART2_SR.RXNE;
+		}
+
 		bool start_transaction(uint16 address) { return true; }
 		void end_transaction() {}
 		
@@ -158,6 +255,8 @@ type stm32f1 implements mcu {
 			I2C1_CCR.ccr = uint12(((1.0/400000)/2) / (3.0/clock()));
 			I2C1_TRISE = uint16(clock()/1E6*0.3+1);
 		}
+
+		void async_read_to(interrupt_i8 i) {}
 		
 		void enable() {
 			I2C1_CR1.pe = true;

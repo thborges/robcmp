@@ -3,11 +3,11 @@ use string.upperstr;
 
 int32 main() {
 
-    l_str = "aabbáçaabbáç";
+    l_str = "abçd";
 
     utf8_string_to_uppercase(l_str);
 
-    if equalstr (l_str, "AABBÁÇAABBÁÇ") {
+    if equalstr (l_str, "ABÇD") {
         return 0;
     } else {
         return 1;

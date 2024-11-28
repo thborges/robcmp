@@ -9,7 +9,7 @@ INCLUDES=-I ../../lib
 
 ifndef OPT
 #OPT=-g -O0
-OPT=-Oz
+OPT=-Os
 endif
 
 LD_FLAGS=-nostdlib -entry=main -L../../lib -Tatmega328p.ld ../../lib/avr5.o

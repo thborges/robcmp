@@ -131,18 +131,20 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 
             for(const string& p: params) {
                 Node *coerced;
-                Value *value;
+                Value *value = NULL;
                 Node *size = param->findMember("size");
                 if (size) {
                     coerced = PropagateTypes::coerceTo(size, tint32u);
                     value = coerced->generate(func, block, allocblock);
-                } else {
+                }
+                if (!value) {
                     string pname = param->getName() + p;
                     Load ld(Identifier(pname, param->getLoc()));
                     ld.setScope(func);
                     coerced = PropagateTypes::coerceTo(&ld, tint32u);
                     value = coerced->generate(func, block, allocblock);
                 }
+                assert(value != NULL && "must pass the array size.");
                 args.push_back(value);
                 dataTypes.push_back(coerced->getDataType());
             }

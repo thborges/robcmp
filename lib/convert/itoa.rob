@@ -7,10 +7,10 @@ use math.abs;
 
 const itoa_chars = "0123456789abcdef";
 
-void itoa(int16 value, int8 base, char[] result) {
+uint16 itoa(int16 value, int8 base, char[] result) {
     if base < 2 or base > 16 {
         result[0] = 0;
-        return;
+        return 0;
     }
 
     negative = value < 0;
@@ -34,6 +34,7 @@ void itoa(int16 value, int8 base, char[] result) {
     }
 
     result[i] = 0;
+    ret = i;
     
     // reverse result
     j = 0;
@@ -45,4 +46,6 @@ void itoa(int16 value, int8 base, char[] result) {
         j++;
         i--;
     }
+
+    return ret;
 }

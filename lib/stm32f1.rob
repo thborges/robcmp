@@ -161,7 +161,7 @@ void __isr_reset() {
 	__do_copy_data();
     __system_clock_config();
 	
-    main();
+    ret = main();
  
 	__error_handler();
 }

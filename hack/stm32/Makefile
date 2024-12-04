@@ -1,10 +1,11 @@
-#GCC=~/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc
-CC=/usr/local/robllvm/bin/clang
-LLC=/usr/local/robllvm/bin/llc
-OBJCOPY=/usr/local/robllvm/bin/llvm-objcopy
+CC=~/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc
+#CC=/usr/local/opt/llvm/bin/clang
+LLC=/usr/local/opt/llvm/bin/llc
+OBJCOPY=/usr/local/opt/llvm/bin/llvm-objcopy
 INCLUDES=
-CCPLAT=-target arm-none-eabi -mcpu=cortex-m3 -mthumb
-ROBCMP=../../robcmp
+#CCPLAT=-target arm-none-eabi -mcpu=cortex-m3 -mthumb
+CCPLAT=-mcpu=cortex-m3 -mthumb
+ROBCMP=../../build/robcmp
 
 USBPORT=`ls /dev/cu.usb*`
 
@@ -15,10 +16,11 @@ ALL=${ALL_C} ${ALL_ROB}
 all: ${ROBCMP} ${ALL}
 
 %.c.ll: %.c
-	${CC} ${CCPLAT} -Oz -S -emit-llvm ${INCLUDES} $< -o $@
+	#${CC} ${CCPLAT} -Oz -S -emit-llvm ${INCLUDES} $< -o $@
+	${CC} ${CCPLAT} -Os -S -emit-llvm ${INCLUDES} $< -o $@
 
 %.c.o: %.c
-	${CC} ${CCPLAT} -Oz -c ${INCLUDES} $< -o $@
+	${CC} -v ${CCPLAT} -Os -c ${INCLUDES} $< -o $@
 
 
 
@@ -34,8 +36,8 @@ all: ${ROBCMP} ${ALL}
 	${LLC} $< -o $@ -filetype=asm
 
 %.elf : %.o
-	${CC} -v ${CCPLAT} -nostdlib -Wl,-entry=main -Wl,-Tmemory.lld.ld $< -o $@
-	@#${GCC} -mthumb -mcpu=cortex-m3 -nostdlib -Wl,-Tmemory.gcc.ld $< -o $@
+	#${CC} ${CCPLAT} -nostdlib -Wl,-entry=main -Wl,-Tmemory.lld.ld $< -o $@
+	${CC} -mthumb -mcpu=cortex-m3 -nostdlib -Wl,-Tmemory.gcc.ld $< -o $@
 
 
 %.bin : %.elf

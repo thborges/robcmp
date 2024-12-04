@@ -18,7 +18,7 @@ LD_FLAGS+=--gc-sections
 LD_FLAGS+=--lto=thin
 
 DEPENDS=${ROBCMP} Makefile
-LINK_DEPENDS=out/stm32f1.o
+LINK_DEPENDS=out/stm32f1.o  ../../lib/cortex-m3-arm-missing.o ../../lib/arm-eabi-libgcc.a
 
 all: out test
 

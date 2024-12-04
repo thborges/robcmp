@@ -51,6 +51,8 @@ else:
 
 if mcu.startswith("stm32f1"):
     ldflags.append("-Tstm32f1.ld")
+    ldflags.append(join(stdlib_folder, "arm-eabi-libgcc.a"))
+    ldflags.append(join(stdlib_folder, "cortex-m3-arm-missing.o"))
     auxsources += Glob(join(stdlib_folder, "stm32f1.rob"))
 elif mcu == "atmega328p":
     ldflags.append("-Tatmega328p.ld")

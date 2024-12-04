@@ -1,9 +1,9 @@
 INCLUDES=-I/Users/thborges/.platformio/packages/toolchain-atmelavr/avr/include
 #AVRLIB=-L~/.platformio/packages/toolchain-atmelavr/lib/gcc/avr/7.3.0/avr5 -lgcc
-CC=/usr/local/robllvm/bin/clang
-LLC=/usr/local/robllvm/bin/llc
+CC=clang
+LLC=llc
 CCPLAT=-target avr -mmcu=atmega328p -DF_CPU=16000000
-ROBCMP=../../robcmp
+ROBCMP=../../build/robcmp
 
 AVRDUDECFG=-C /Users/thborges/.platformio/packages/tool-avrdude/avrdude.conf
 AVRDUDEPORT=`ls /dev/cu.usb*`
@@ -36,10 +36,13 @@ all: ${ROBCMP} ${ALL}
 %.elf : %.o
 	@#${CC} -v ${CCPLAT} ${AVRLIB} $< -o $@
 	@#avr-gcc -v -mmcu=atmega328p $< -o $@
-	avr-ld -o $@ -Tdata=0x800100 $<
+	#avr-ld -o $@ -Tdata=0x800100 $<
+	ld.lld -o $@ -Tdata=0x800100 $<
+
 
 %.hex : %.elf
-	avr-objcopy -Oihex $< $@
+	#avr-objcopy -Oihex $< $@
+	llvm-objcopy -Oihex $< $@
 
 %.up: %.hex
 	avrdude ${AVRDUDECFG} -v -V -c arduino -p m328p -U flash:w:$<:i -P ${AVRDUDEPORT}

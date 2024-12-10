@@ -1,0 +1,12 @@
+int16 lenstr(char[] s) {
+    length = int16 (0);
+    i = int16 (0);
+    
+    while i < s.size {
+        if ((s[i] & 0xC0) != 0x80) {
+            length++;
+        }
+        i++;
+    }
+    return length;
+}

@@ -1,6 +1,7 @@
 ALL=$(patsubst %.rob,out/%,$(wildcard *.rob))
 ALL_LL=$(patsubst %.rob,out/%.ll,$(wildcard *.rob))
 ALL_TT=$(patsubst %.rob,%.tt,$(wildcard *.rob))
+ALL_TIME=$(patsubst %.rob,%.time,$(wildcard *.rob))
 ALL_OO=$(patsubst %.rob,out/%.o,$(wildcard *.rob)) out/atmega1284p.o
 
 ROBCMP=../../build/robcmp
@@ -21,6 +22,8 @@ LINK_DEPENDS=out/atmega1284p.o
 
 all: out test
 
+time: out time
+
 out:
 	mkdir -p out
 
@@ -40,12 +43,20 @@ out/%.ll : %.rob ${DEPENDS}
 %.tt : %.rob ${DEPENDS}
 	@-./runtest.sh $< $(patsubst %.rob,out/%,$<) 
 
+%.time : %.rob ${DEPENDS} clean
+	@-./timetest.sh $< $(patsubst %.rob,out/%,$<) 
+
 out/% : out/%.o ${LINK_DEPENDS} 
     # exchange here if ld.lld show relocation errors
 	ld.lld ${LD_FLAGS} $^ -o $@
 	#avr-ld ${LD_FLAGS} $^ -o $@
 
 test: ${ALL_TT}
+
+time: ${ALL_TIME}
+
+size:
+	avr-size out/*.o
 
 clean:
 	@rm -f ${ALL} ${ALL_LL} ${ALL_OO}

@@ -1,0 +1,15 @@
+use string.utf8lenstr;
+use string.upperlowerstr;
+int32 main() {
+    ol_str = "ƌեὀ";
+    ou_str = "ƋԵὈ";
+    l_str = "ƌեὀ";
+    u_str = "ƋԵὈ";
+    strtouppercase(l_str);
+    strtolowercase(u_str);
+    if equalstr (ol_str, u_str) and equalstr(ou_str, l_str) {
+        return 0;
+    } else {
+        return 1;
+    }
+}

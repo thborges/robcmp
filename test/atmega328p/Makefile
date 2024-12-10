@@ -9,7 +9,7 @@ INCLUDES=-I ../../lib
 
 ifndef OPT
 #OPT=-g -O0
-OPT=-Os
+OPT=-Oz -w
 endif
 
 LD_FLAGS=-nostdlib -entry=main -L../../lib -Tatmega328p.ld ../../lib/avr5.o
@@ -53,9 +53,5 @@ test: ${ALL_TT}
 
 time: ${ALL_TIME}
 
-all_time: 
-	@echo "Medindo o tempo total de execução para todos os arquivos..."
-	@{ time make ${ALL_TIME}; } 2> total_time.log
-
 clean:
-	@rm -f ${ALL} ${ALL_LL} ${ALL_OO} ${ALL_TIME} total_time.log
+	@rm -f ${ALL} ${ALL_LL} ${ALL_OO} ${ALL_TIME}

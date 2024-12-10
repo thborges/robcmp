@@ -1,0 +1,15 @@
+use string.utf8lenstr;
+use string.upperlowerstr;
+int32 main() {
+    ol_str = "ʃჭⓟ";
+    ou_str = "ƩႽⓅ";
+    l_str = "ʃჭⓟ";
+    u_str = "ƩႽⓅ";
+    strtouppercase(l_str);
+    strtolowercase(u_str);
+    if equalstr (ol_str, u_str) and equalstr(ou_str, l_str) {
+        return 0;
+    } else {
+        return 1;
+    }
+}

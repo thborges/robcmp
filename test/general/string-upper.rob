@@ -1,13 +1,13 @@
 use string.equalstr;
-use string.upperstr;
-
+use string.upperlowerstr;
 int32 main() {
-
-    l_str = "abçd";
-
-    utf8_string_to_uppercase(l_str);
-
-    if equalstr (l_str, "ABÇD") {
+    ol_str = "aώḹ";
+    ou_str = "AΏḸ";
+    l_str = "aώḹ";
+    u_str = "AΏḸ";
+    strtouppercase(l_str);
+    strtolowercase(u_str);
+    if equalstr (ol_str, u_str) and equalstr(ou_str, l_str) {
         return 0;
     } else {
         return 1;

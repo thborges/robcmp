@@ -1,4 +1,4 @@
-use string.utf8strlen;
+use string.lenstr;
 
 bool equalstr(char[] s1, char[] s2) {
 
@@ -10,8 +10,8 @@ bool equalstr(char[] s1, char[] s2) {
         i++;
     }
 
-    str1 = utf8strlen(s1);
-    str2 = utf8strlen(s2);
+    str1 = lenstr(s1);
+    str2 = lenstr(s2);
     if str1 == str2 {
         return true;
     } else {

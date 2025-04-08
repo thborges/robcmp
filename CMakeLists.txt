@@ -63,12 +63,19 @@ add_flex_bison_dependency(lexer scanner_main)
 add_flex_bison_dependency(lexer scanner_use)
 add_dependencies(robcmp parsers)
 
-llvm_map_components_to_libnames(llvm_libs support core irreader passes
-    armasmparser armcodegen 
-    avrasmparser avrcodegen 
-    x86asmparser x86codegen)
+find_library(LLVM_MONOLITHIC_LIBRARY LLVM HINTS ${LLVM_LIBRARY_DIRS})
 
-target_link_libraries(robcmp ${llvm_libs})
+if (LLVM_MONOLITHIC_LIBRARY)
+	message(STATUS "LLVM is using monolithic libLLVM.so")
+	target_link_libraries(robcmp LLVM)
+else()
+	llvm_map_components_to_libnames(llvm_libs support core irreader passes
+    		armasmparser armcodegen 
+    		avrasmparser avrcodegen 
+    		x86asmparser x86codegen)
+
+	target_link_libraries(robcmp ${llvm_libs})
+endif()
 
 set_target_properties(robcmp PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"

@@ -22,16 +22,15 @@ type mcu {
 
 int16 main() {
 	m = mcu();
-	spi = m.spi;
 
-	if spi.speed != 0 or spi.lastb != 0 {
+	if m.spi.speed != 0 or m.spi.lastb != 0 {
 		return 1;
 	}
 
-	spi.setup(1000);
-	spi.write(8);
+	m.spi.setup(1000);
+	m.spi.write(8);
 	
-	if spi.speed != 1000 or spi.lastb != 8 {
+	if m.spi.speed != 1000 or m.spi.lastb != 8 {
 		return 1;
 	}
 

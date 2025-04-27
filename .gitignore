@@ -66,6 +66,8 @@ build
 test/general/out
 test/general/temp.spec
 test/atmega328p/out
+test/atmega1284p/out
+test/stm32f1/out
 platformio/toolchain-robcmp/bin
 platformio/toolchain-robcmp/lib
 platformio/avr-gdb-build

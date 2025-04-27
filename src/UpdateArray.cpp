@@ -2,6 +2,7 @@
 #include "UpdateArray.h"
 #include "FunctionImpl.h"
 #include "HeaderGlobals.h"
+#include "Load.h"
 
 UpdateArray::UpdateArray(const string &i, Node *pos, Node *expr, location_t loc): 
 	BaseArrayOper(i, pos, NULL, loc) {
@@ -31,7 +32,11 @@ Value *UpdateArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *
 	}
 
 	Builder->SetInsertPoint(block);
-	Value *sym = symbol->getLLVMValue(func);
+	Value *sym = NULL;
+	if (ident.isComplex())
+		sym = Load::getRecursiveField(ident, getScope(), func);
+	else
+		sym = symbol->getLLVMValue(func);
 
 	// sym type can be GlobalVariable or AllocInst
 	Type *ty = NULL;

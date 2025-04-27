@@ -78,13 +78,8 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
     if (ident.isComplex()) {
         Identifier istem = ident.getStem();
         stemSymbol = istem.getSymbol(getScope());
-        stem = stemSymbol->getLLVMValue(func);
         stemdt = stemSymbol->getDataType();
-        
-        // TODO: When accessing a.x.func(), need to load a and gep x
-        //Load loadstem(ident.getStem());
-        //loadstem.setParent(this->parent);
-        //stem = loadstem.generate(func, block, allocblock);
+        stem = Load::getRecursiveField(istem, getScope(), func);
     }
 
     vector<Value*> args;
@@ -155,8 +150,6 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 
     // this parameter
     if (stemSymbol) {
-        if (stemSymbol->isPointerToPointer())
-            stem = Builder->CreateLoad(stem->getType()->getPointerTo(), stem, "defer");
         args.push_back(stem);
         dataTypes.push_back(stemSymbol->getDataType());
     } else if (fsymbol->getThisArgDt() != BuildTypes::undefinedType) {

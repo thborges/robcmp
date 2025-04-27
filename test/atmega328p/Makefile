@@ -41,7 +41,9 @@ out/%.ll : %.rob ${DEPENDS}
 	@-./runtest.sh $< $(patsubst %.rob,out/%,$<) 
 
 out/% : out/%.o ${LINK_DEPENDS} 
+    # exchange here if ld.lld show relocation errors
 	ld.lld ${LD_FLAGS} $^ -o $@
+	#avr-ld ${LD_FLAGS} $^ -o $@
 
 test: ${ALL_TT}
 

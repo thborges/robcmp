@@ -78,8 +78,11 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 			if (bs > 0)
 				v = Builder->CreateLShr(v, ConstantInt::get(req_eq_ty, bs));
 			return Builder->CreateTrunc(v, buildTypes->llvmType(symbol->getDataType()));
-		} else {
+		} else if (symbol->isPseudoVar()) {
 			alloc = symbol->getLLVMValue(stem, func);
+		} else {
+			// not pointer and isComplex: two or more recursive levels: a.x.y
+			alloc = getRecursiveField(ident, getScope(), func);
 		}
 		
 		if (stem->hasQualifier(qvolatile))
@@ -90,11 +93,6 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 		// this is needed by injection
 		if (leftValue)
 			leftValue->setScope(stem, true);
-		
-		// TODO: When accessing a.x.func(), need to load a and gep x
-		//Load loadstem(ident.getStem());
-		//loadstem.setParent(this->parent);
-		//stem = loadstem.generate(func, block, allocblock);
 	} else {
 		alloc = symbol->getLLVMValue(func);
 	}
@@ -126,4 +124,34 @@ bool Load::isConstExpr() {
 
 void Load::setLeftValue(Variable *symbol) {
     leftValue = symbol;
+}
+
+Value* Load::getRecursiveField(Identifier &ident, Node *scope, FunctionImpl *func) {
+	list<Node*> symbols;
+	Node *last = ident.getSymbol(scope, false, &symbols);
+	symbols.push_back(last);
+	
+	Node *first = symbols.front();
+	symbols.pop_front();
+	Value *alloc = first->getLLVMValue(func);
+	Type *udt = buildTypes->llvmType(first->getDataType());
+	if (first->isPointerToPointer()) {
+		alloc = Builder->CreateLoad(udt->getPointerTo(), alloc, "deref");
+	}
+
+	for(auto &x : symbols) {
+		Variable *var = dynamic_cast<Variable*>(x);
+		if (var) {
+			int gepidx = var->getGEPIndex();
+			if (var->isPointerToPointer()) {
+				alloc = Builder->CreateLoad(udt->getPointerTo(), alloc, "deref");
+			}
+			alloc = Builder->CreateStructGEP(udt, alloc, gepidx, x->getName());		
+			udt = buildTypes->llvmType(var->getDataType());
+		} else {
+			yyerrorcpp(x->getName() + " is not a variable.", &ident);
+			break;
+		}
+	}
+	return alloc;
 }

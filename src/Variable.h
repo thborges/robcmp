@@ -12,6 +12,7 @@ protected:
     Identifier ident;
 	int gepIndex = -1;
 	enum PointerMode pointer = pm_unknown;
+	bool pseudoVar = false;
 
 public:
     Variable(const string &name, location_t loc): NamedNode(name, loc), ident(name, loc) {}
@@ -50,5 +51,13 @@ public:
 
 	Identifier& getIdent() {
 		return ident;
+	}
+
+	void setPseudoVar(bool value) {
+		pseudoVar = value;
+	}
+
+	bool isPseudoVar() {
+		return pseudoVar;
 	}
 };

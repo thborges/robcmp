@@ -18,16 +18,10 @@ type container implements intf {
     uint8 cols() { return buff.cols; }
 }
 
-type globals {
-    c = intf();
-}
-
-bind container to globals.c singleton;
+c = intf();
+bind container to c singleton;
 
 int8 main() {
-    a = globals();
-    c = a.c;
-
     row = 0u;
     while row < c.rows() {
         col = 0u;

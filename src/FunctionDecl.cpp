@@ -64,6 +64,7 @@ void FunctionBase::addPseudoParameters() {
 				//TODO: There is something better than fix this to Int32? Fix here and in FunctionCall::generate
 				string spname = p->getName() + "." + s;
 				Variable *sp = new Variable(spname, tint32u, p->getLoc()); 
+				sp->setPseudoVar(true);
 				this->parameters->append(sp);
 
 				// add a pseudo symbol to resolve to pname.s

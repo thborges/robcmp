@@ -4,6 +4,7 @@
 #include "BackLLVM.h"
 #include "HeaderGlobals.h"
 #include "Pointer.h"
+#include "Load.h"
 
 Scalar::Scalar(Identifier ident, Node *e) :
 	Variable(ident.getFullName(), ident.getLoc()) {
@@ -33,16 +34,11 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 		if (reg && buildTypes->isComplex(reg->getDataType())) {
 			alloc = reg->getLLVMValue(NULL);
 		} else {
-			alloc = symbol->getLLVMValue(stem);
+			alloc = Load::getRecursiveField(ident, getScope(), func);
 		}
 		
 		if (stem->hasQualifier(qvolatile))
 			symbol->setQualifier(qvolatile);
-
-		// TODO: When accessing a.x.func(), need to load a and gep x
-		//Load loadstem(ident.getStem());
-		//loadstem.setParent(this->parent);
-		//stem = loadstem.generate(func, block, allocblock);
 	}
 
 	// set the allocated left value to:

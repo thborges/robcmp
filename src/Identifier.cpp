@@ -1,7 +1,7 @@
 
 #include "Identifier.h"
 
-Node* Identifier::getSymbol(Node *scope, bool validate) {
+Node* Identifier::getSymbol(Node *scope, bool validate, list<Node*> *symbols) {
 
     if (scope == NULL)
         assert(scope && "scope can't be null!");
@@ -16,6 +16,8 @@ Node* Identifier::getSymbol(Node *scope, bool validate) {
     if (result) {
         while (!ss.eof() && result != NULL) {
             getline(ss, ci, '.');
+            if (symbols)
+                symbols->push_back(result);
             result = result->findMember(ci);
         }
     }

@@ -3,6 +3,7 @@
 #include "LoadArray.h"
 #include "BuildTypes.h"
 #include "FunctionImpl.h"
+#include "Load.h"
 
 LoadArray::LoadArray(const string &i, Node *pos, location_t loc): BaseArrayOper(i, pos, NULL, loc) {
 	addChild(pos);
@@ -42,15 +43,10 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 	if (ident.isComplex()) {
 		Identifier istem = ident.getStem();
 		Node *stem = istem.getSymbol(getScope());
-		alloc = symbol->getLLVMValue(stem);
+		alloc = Load::getRecursiveField(ident, getScope(), func);
 		
 		if (stem->hasQualifier(qvolatile))
 			symbol->setQualifier(qvolatile);
-		
-		// TODO: When accessing a.x.func(), need to load a and gep x
-		//Load loadstem(ident.getStem());
-		//loadstem.setParent(this->parent);
-		//stem = loadstem.generate(func, block, allocblock);
 	} else {
 		alloc = symbol->getLLVMValue(func);
 	}
@@ -68,7 +64,7 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 		return NULL;
 	}
 
-	if (symbol->isPointerToPointer()) {
+	if (!ident.isComplex() && symbol->isPointerToPointer()) {
 		Type *ty = buildTypes->llvmType(symbol->getDataType())->getPointerTo();	
 		alloc = Builder->CreateLoad(ty, alloc, symbol->hasQualifier(qvolatile), "deref");
 	}

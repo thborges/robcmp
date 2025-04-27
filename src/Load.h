@@ -34,6 +34,8 @@ public:
 	}
 
 	Node* getIdentSymbol(bool showError = true);
+
+	static Value* getRecursiveField(Identifier &ident, Node *scope, FunctionImpl *func);
 	
 	friend class SymbolizeTree;
 };

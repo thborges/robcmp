@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <list>
 #include "Node.h"
 
 class Identifier: public SourceLocation {
@@ -14,7 +15,7 @@ public:
         complex = ident.find('.') != string::npos;
     }
 
-    Node* getSymbol(Node *scope, bool validate = true);
+    Node* getSymbol(Node *scope, bool validate = true, list<Node*> *symbols = nullptr);
 
     string const getFullName() const {
         return ident;

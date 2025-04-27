@@ -5,15 +5,10 @@
 
 use intfs.ports;
 
-type globals {
-	mmcu = mcu();
-	led = digitalport();
-}
+mmcu = mcu();
+led = digitalport();
 
 int16 main() {
-	gg = globals();
-	mmcu = gg.mmcu;
-	led = gg.led;
 
 	led.mode(port_mode.output);
 

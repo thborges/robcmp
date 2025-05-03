@@ -2,7 +2,7 @@
 
 #include "Node.h"
 #include "Identifier.h"
-#include "Visitor.h"
+#include "semantic/Visitor.h"
 
 class Load: public Node {
 private:

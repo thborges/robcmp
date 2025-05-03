@@ -25,6 +25,7 @@ add_definitions(${LLVM_DEFINITIONS_LIST})
 
 file(GLOB robcmp_SRC CONFIGURE_DEPENDS
     "src/*.cpp"
+    "src/**/*.cpp"
 )
 
 flex_target(lexer "${CMAKE_CURRENT_SOURCE_DIR}/src/Language.l" "${CMAKE_BINARY_DIR}/Language_l.cpp")

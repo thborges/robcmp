@@ -3,7 +3,7 @@
 
 #include "Node.h"
 #include "Variable.h"
-#include "Visitor.h"
+#include "semantic/Visitor.h"
 
 class MemCopy: public Node {
 private:

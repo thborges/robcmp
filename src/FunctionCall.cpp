@@ -3,13 +3,13 @@
 #include "FunctionDecl.h"
 #include "FunctionImpl.h"
 #include "HeaderGlobals.h"
-#include "PropagateTypes.h"
 #include "Load.h"
-#include "Visitor.h"
 #include "BackLLVM.h"
 #include "UserType.h"
 #include "Program.h"
 #include "Interface.h"
+#include "semantic/PropagateTypes.h"
+#include "semantic/Visitor.h"
 
 extern Program *program;
 

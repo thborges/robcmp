@@ -2,7 +2,6 @@
 #pragma once
 
 #include "Node.h"
-#include "Visitor.h"
 #include "UserType.h"
 #include "Matrix.h"
 #include "Array.h"
@@ -10,6 +9,7 @@
 #include "FunctionImpl.h"
 #include "Scalar.h"
 #include "Enum.h"
+#include "semantic/Visitor.h"
 
 class SymbolizeTree: public Visitor {
 public:

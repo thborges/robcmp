@@ -36,7 +36,7 @@
 #include "Program.h"
 #include "Return.h"
 #include "Scalar.h"
-#include "Semantic.h"
+#include "semantic/Semantic.h"
 #include "StringConst.h"
 #include "UpdateArray.h"
 #include "UpdateMatrix.h"

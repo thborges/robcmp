@@ -1,7 +1,7 @@
 #pragma oncd
 
 #include "Node.h"
-#include "Visitor.h"
+#include "semantic/Visitor.h"
 
 class CmpOp: public Node {
 private:

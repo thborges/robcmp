@@ -1,16 +1,18 @@
+
+#include <cstddef>
 #include "Program.h"
 #include "FunctionImpl.h"
 #include "HeaderGlobals.h"
-#include "SymbolizeTree.h"
-#include "PropagateTypes.h"
-#include "PrintAstVisitor.h"
 #include "BackLLVM.h"
 #include "UndefInit.h"
 #include "Return.h"
 #include "Load.h"
 #include "BuildTypes.h"
 #include "ConstructorCall.h"
-#include <cstddef>
+#include "semantic/PrintAstVisitor.h"
+#include "semantic/PropagateTypes.h"
+#include "semantic/SymbolizeTree.h"
+#include "semantic/IdentifyVirtualDispatch.h"
 
 Program::Program() : Node({0,0,0,0}) {
 	mainmodule = new Module(this->getFile(), global_context);

@@ -27,7 +27,7 @@
 #include <llvm/IR/AutoUpgrade.h>
 
 #include "BackLLVM.h"
-#include "PassStripUnusedFields.h"
+#include "passes/PassStripUnusedFields.h"
 
 using namespace llvm;
 

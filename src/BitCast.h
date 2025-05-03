@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Node.h"
-#include "Visitor.h"
+#include "semantic/Visitor.h"
 
 class BitCast: public Node {
 private:

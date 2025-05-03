@@ -1,7 +1,7 @@
 
 #include "If.h"
 #include "FunctionImpl.h"
-#include "Visitor.h"
+#include "semantic/Visitor.h"
 
 If::If(Node *e, vector<Node*> &&tst, location_t loc): Node(loc), expr(e) {
 	addChild(expr);

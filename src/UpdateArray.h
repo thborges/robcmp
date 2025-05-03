@@ -3,7 +3,7 @@
 
 #include "Node.h"
 #include "LoadArray.h"
-#include "Visitor.h"
+#include "semantic/Visitor.h"
 
 class UpdateArray: public BaseArrayOper {
 protected:

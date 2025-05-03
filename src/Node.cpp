@@ -4,7 +4,7 @@
 #include "Int16.h"
 #include "Int32.h"
 #include "Int64.h"
-#include "Visitor.h"
+#include "semantic/Visitor.h"
 
 Node::~Node() {}
 

@@ -9,14 +9,14 @@
 #include "FunctionParams.h"
 #include "ConstructorCall.h"
 #include "Variable.h"
-#include "Visitor.h"
 #include "Enum.h"
 #include "Load.h"
 #include "BackLLVM.h"
 #include "Int8.h"
 #include "Scalar.h"
 #include "Program.h"
-#include "PropagateTypes.h"
+#include "semantic/PropagateTypes.h"
+#include "semantic/Visitor.h"
 
 class ParentScalar: public Scalar {
 public:

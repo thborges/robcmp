@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Node.h"
-#include "Visitor.h"
+#include "semantic/Visitor.h"
 
 class Enum : public NamedNode {
 private:

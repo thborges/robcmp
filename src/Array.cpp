@@ -1,11 +1,11 @@
 #include "Array.h"
 #include "ArrayElements.h"
 #include "BackLLVM.h"
-#include "Visitor.h"
 #include "FunctionImpl.h"
 #include "NamedConst.h"
 #include "BinaryOp.h"
-#include "PropagateTypes.h"
+#include "semantic/PropagateTypes.h"
+#include "semantic/Visitor.h"
 
 Array::Array(const string& n, ArrayElements *aes, location_t loc) : Variable(n, loc), elements(aes) {
 	NamedConst *nc = new NamedConst("size", getNodeForUIntConst(aes->getArraySize(), loc));

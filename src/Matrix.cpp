@@ -1,9 +1,9 @@
 #include "Matrix.h"
 #include "Array.h"
-#include "Visitor.h"
 #include "BackLLVM.h"
 #include "FunctionImpl.h"
 #include "NamedConst.h"
+#include "semantic/Visitor.h"
 
 Matrix::Matrix(const char *n, MatrixElements *me, location_t loc) : Variable(n, loc), melements(me) {
 	NamedConst *rows = new NamedConst("rows", getNodeForUIntConst(me->getRowCount(), this->getLoc()));

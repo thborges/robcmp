@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Variable.h"
-#include "Visitor.h"
+#include "semantic/Visitor.h"
 
 class Scalar: public Variable {
 private:

@@ -2,7 +2,6 @@
 #pragma once
 
 #include "Node.h"
-#include "Visitor.h"
 #include "UserType.h"
 #include "Matrix.h"
 #include "Array.h"
@@ -16,6 +15,7 @@
 #include "Load.h"
 #include "MemCopy.h"
 #include "BitCast.h"
+#include "semantic/Visitor.h"
 
 class CoercionBase: public Node {
 protected:

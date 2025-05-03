@@ -1,6 +1,6 @@
 #include "FunctionImpl.h"
-#include "Visitor.h"
 #include "BackLLVM.h"
+#include "semantic/Visitor.h"
 
 FunctionImpl::FunctionImpl(DataType dt, string name, FunctionParams *fp, vector<Node*> &&stmts,
 	location_t loc, location_t ef, bool constructor) :

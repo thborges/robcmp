@@ -7,8 +7,19 @@
 #include "Scanner.h"
 
 void Dispatch::addDataTypeImplementation(DataType base, DataType impl) {
+    //errs() << "addDataTypeImplementation: " << buildTypes->name(base) << " -> " << buildTypes->name(impl) << "\n";
     set<DataType>& impls = dispatchHash[base];
     impls.insert(impl);
+}
+
+int Dispatch::getImplementationCount(DataType intf) {
+    if (dispatchHash.find(intf) != dispatchHash.end())
+        return dispatchHash[intf].size();
+    return 0;
+}
+
+void Dispatch::addIntfInvocation(DataType intf) {
+    intfsInvoked.insert(intf);
 }
 
 void Dispatch::generateDispatchFunctions(Node *scope) {

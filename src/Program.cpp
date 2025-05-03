@@ -210,11 +210,14 @@ void Program::doSemanticAnalysis() {
 	SymbolizeTree st;
 	st.visit(*this);
 
+	IdentifyVirtualDispatch ivd;
+	ivd.visit(*this);
+
 	PropagateTypes pt;
 	pt.visit(*this);
-
+	
 	buildTypes->generateDebugInfoForTypes();
-
+	
 	/*std::fstream fs;
 	fs.open("ast", std::fstream::out);
 	PrintAstVisitor(fs).visit(*this);

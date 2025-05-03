@@ -435,7 +435,16 @@ Node* PropagateTypes::visit(UserType& n) {
             }
         }
     }
-    n.dt = n.getDataType();
+
+    Node *firstDecl = n.getScope()->findSymbol(n.getTypeName());
+    DataType sameNameDt = buildTypes->getType(n.getTypeName());
+    if (!n.getParent() && sameNameDt != BuildTypes::undefinedType && buildTypes->isDefined(sameNameDt)) {
+        yyerrorcpp(string_format("The name %s is already used to define a type.", n.getName().c_str()), &n);
+        if (firstDecl)
+            yywarncpp(string_format("The type %s was defined here.", n.getName().c_str()), firstDecl);
+    }
+
+    n.createDataType();
     propagateChildren(n);
     return NULL;
 }
@@ -461,14 +470,7 @@ Node* PropagateTypes::visit(Variable& n) {
     }
     
     Node *firstDecl = n.getScope()->findSymbol(n.getName());
-    DataType sameNameDt = buildTypes->getType(n.getName());
-    
-    if (sameNameDt != BuildTypes::undefinedType) {
-        yyerrorcpp(string_format("The name %s is already used to define a type.", n.getName().c_str()), &n);
-        if (firstDecl)
-            yywarncpp(string_format("The type %s was defined here.", n.getName().c_str()), firstDecl);
-
-    } else if (firstDecl && firstDecl != &n) {
+    if (firstDecl && firstDecl != &n) {
         DataType ndt = n.getDataType();
         destDt = firstDecl->getDataType();
         if (ndt != BuildTypes::undefinedType &&

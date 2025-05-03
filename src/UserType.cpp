@@ -45,58 +45,75 @@ void UserType::setNestedParent() {
     }
 }
 
+void UserType::createTempDataType() {
+    if (dt == BuildTypes::undefinedType) {
+        // create an undefined type to use in recursive subtypes
+        dt = buildTypes->getType(getTypeName(), true);
+    }
+}
+
 bool UserType::createDataType() {
-    
-    if (dt != BuildTypes::undefinedType)
+
+    if (buildTypes->isDefined(dt))
         return true;
-    
-    // create an undefined type to use in recursive subtypes
-    dt = buildTypes->getType(getTypeName(), true);
-    std::vector<Type*> elements;
 
     int idx = 0;
     unsigned startBit = 0;
+    std::vector<Type*> elements;
 
     // if needed, add typeid as the first field
     UInt8 *typeId = NULL;
     if (implements.size() > 0) {
-        typeId = new UInt8(0, getLoc()); // zero is changed below
-        Scalar *sc = new Scalar("typeid", typeId);
-        sc->setScope(this);
-        addChild(sc, true);
-        addSymbol(sc);
+        // the typeid field is needed if any implemented interface is unbound
+        // (not injected) and at least one of its methods was invoked        
+        bool intfInvoked = false;
+        for(auto &intf : implements) {
+            DataType dt = buildTypes->getType(intf);
+            intfInvoked |= program->getDispatcher()->isIntfInvoked(dt);
+        }
+
+        if (intfInvoked) {
+            typeId = new UInt8(0, getLoc()); // zero is changed below
+            Scalar *sc = new Scalar("typeid", typeId);
+            sc->setScope(this);
+            addChild(sc, true);
+            addSymbol(sc);
+        }
+    }
+
+    // Process nested types
+    // They can add child to this instance, so we first identify nested UserTypes
+    vector<UserType*> nested;
+    for(auto child : this->children()) {
+        if (UserType *ut = dynamic_cast<UserType*>(child))
+            nested.push_back(ut);
+    }
+    for(auto ut : nested) {
+        // internal user type:
+        // add a var in the internal type to store a reference to his parent
+        ParentScalar *s = new ParentScalar(dt, ut->getLoc());
+        s->setScope(ut);
+        ut->addChild(s);
+        ut->addSymbol(s);
+        ut->createDataType();
+
+        // create a new var in the parent to store the intf implementation
+        ConstructorCall *cc = new ConstructorCall(ut->getTypeName(), ut->getLoc());
+        Variable *v = new Scalar(ut->getName(), cc);
+        v->dt = ut->getDataType();
+        cc->setScope(v);
+        v->setScope(this);
+        addChild(v);
+        
+        // replace the v->getName() symbol with its var and
+        symbols[v->getName()] = v;
+
+        // add the nested type to the program root
+        program->addSymbol(ut->getTypeName(), ut);
     }
 
     for(auto child : this->children()) {
-        Variable *v = NULL;
-
-        if (UserType *ut = dynamic_cast<UserType*>(child)) {
-            // internal user type:
-            // add a var in the internal type to store a reference to his parent
-            ParentScalar *s = new ParentScalar(dt, ut->getLoc());
-            s->setScope(ut);
-            ut->addChild(s);
-            ut->addSymbol(s);
-            ut->createDataType();
-
-            // create a new var in the parent to store the intf implementation
-            ConstructorCall *cc = new ConstructorCall(ut->getTypeName(), ut->getLoc());
-            v = new Scalar(ut->getName(), cc);
-            v->dt = ut->getDataType();
-            cc->setScope(v);
-            v->setScope(this);
-            addChild(v);
-            
-            // replace the v->getName() symbol with its var and
-            symbols[v->getName()] = v;
-
-            // add the nested type to the program root
-            program->addSymbol(ut->getTypeName(), ut);
-
-        } else {
-            v = dynamic_cast<Variable*>(child);
-        }
-
+        Variable *v = dynamic_cast<Variable*>(child);
         if (v && !v->isConstExpr()) {
             if (PropagateTypes::isUndefined(v, false)) {
                 return false;

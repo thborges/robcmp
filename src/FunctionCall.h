@@ -37,4 +37,8 @@ public:
 	const string getName() const override {
 		return ident.getFullName();
 	}
+
+	Identifier& getIdent() {
+		return ident;
+	}
 };

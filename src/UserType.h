@@ -15,17 +15,20 @@ private:
 
     bool createDataType();
     void setNestedParent();
+    void createTempDataType();
 
 public:
 
 	UserType(const string name, vector<Node*> &&stmts, location_t loc):
         NamedNode(name, std::move(stmts), loc) {
         setNestedParent();
+        createTempDataType();
     }
 
     UserType(const string name, vector<Node*> &&stmts, vector<string> &&implements, location_t loc):
         NamedNode(name, std::move(stmts), loc), implements(std::move(implements)) {
         setNestedParent();
+        createTempDataType();
     }
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
@@ -58,13 +61,9 @@ public:
         return std::find(implements.begin(), implements.end(), intf) != implements.end();
     }
 
-    DataType getDataType() override {
-        if (parent) {
-            // forces the definition of the parent first, as it adds the 
-            // parent field on subtypes and also create them
-            parent->getDataType();
-        } else
-            createDataType();
-        return dt;
+    const vector<string>& implementedIntfs() {
+        return implements;
     }
+
+    friend class PropagateTypes;
 };

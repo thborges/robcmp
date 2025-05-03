@@ -56,6 +56,7 @@ public:
 	virtual Node* findMember(const string& name);
 
 	void addChild(Node *n, bool prepend = false);
+	void removeChild(Node *n);
 
 	virtual map<string, NamedNode*> const& getSymbols();
 

@@ -5,7 +5,7 @@
 #include "PropagateTypes.h"
 #include "PrintAstVisitor.h"
 #include "BackLLVM.h"
-#include "ZeroInit.h"
+#include "UndefInit.h"
 #include "Return.h"
 #include "Load.h"
 #include "BuildTypes.h"
@@ -121,7 +121,7 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 				Node *var = findSymbol(globalVarName);
 				if (!var) {
 					// alloc the global var
-					ZeroInit *nc = new ZeroInit(injectType->getDataType(), loc);
+					UndefInit *nc = new UndefInit(injectType->getDataType(), loc);
 					Scalar *svar = new Scalar(globalVarName, nc);
 					svar->setScope(this);
 					addSymbol(svar);
@@ -251,6 +251,7 @@ void Program::generate() {
 		// create a function named :global_init to init global vars by calling their constructors
 		global_init = Function::Create(global_init_type, Function::ExternalLinkage, codeAddrSpace, 
 			"__globals_init", mainmodule);
+		global_init->addFnAttr(Attribute::AlwaysInline);
 		global_init->setCallingConv(CallingConv::C);
 
 		// clear debug information as we will move instructions to __globals_init

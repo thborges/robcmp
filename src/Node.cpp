@@ -58,6 +58,15 @@ void Node::addChild(Node *n, bool prepend) {
 		node_children.push_back(n);
 }
 
+void Node::removeChild(Node *n) {
+	NamedNode *nn = dynamic_cast<NamedNode*>(n);
+	if (nn)
+		symbols.erase(nn->getName());
+	auto it = find(node_children.begin(), node_children.end(), n);
+	if (*it)
+		node_children.erase(it);
+}
+
 void Node::addSymbol(NamedNode *nm) {
 	addSymbol(nm->getName(), nm);
 }

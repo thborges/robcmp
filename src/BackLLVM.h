@@ -46,3 +46,4 @@ const TargetInfo& currentTarget();
 class Variable;
 
 extern map<string, Injection*> injections;
+extern set<string> unusedParents;

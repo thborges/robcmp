@@ -100,7 +100,12 @@ public:
     }
 
     void updateName(DataType tid, const string& name) {
+        namedTypes.erase(tinfo[tid].name);
         tinfo[tid].name = name;
+        namedTypes[name] = tid;
+        StructType *st = dyn_cast<StructType>(llvmType(tid));
+        if (st)
+            st->setName(name);
     }
 
     const unsigned bitWidth(DataType tid) {

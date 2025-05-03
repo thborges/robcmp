@@ -5,6 +5,9 @@
 #include "Visitor.h"
 
 class Scalar: public Variable {
+private:
+	bool used = false;
+
 public:
 	Scalar(const string& ident, Node *e);
 
@@ -29,6 +32,14 @@ public:
 
 	virtual Node* accept(Visitor& v) override {
 		return v.visit(*this);
+	}
+
+	void setUsed(bool value) {
+		used = value;
+	}
+
+	bool isUsed() {
+		return used;
 	}
 
 	friend class SymbolizeTree;

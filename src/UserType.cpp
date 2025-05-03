@@ -124,7 +124,7 @@ bool UserType::createDataType() {
     }
     bitWidth = startBit;
 
-    StructType *uttype = StructType::create(global_context, ArrayRef<Type*>(elements), getName());
+    StructType *uttype = StructType::create(global_context, ArrayRef<Type*>(elements), getTypeName());
     dt = buildTypes->addDataType(this, uttype, bitWidth);
     if (parent)
         buildTypes->setInternal(dt, true);
@@ -192,6 +192,28 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
         }
     }
 
+    // generate functions
+    for(auto & [key, stmt] : getSymbols()) {
+        if (FunctionImpl *f = dynamic_cast<FunctionImpl*>(stmt)) {
+            f->generate(func, block, allocblock);
+        }
+    }
+
+    // check if parent was not used and remove it
+    bool parentUsed = true;
+    if (parent) {
+        NamedNode *sparent = symbols["parent"];
+        Scalar *parentscalar = dynamic_cast<Scalar*>(sparent);
+        parentUsed = parentscalar && parentscalar->isUsed();
+        if (!parentUsed && parentscalar) {
+            auto parentf = find(fields.begin(), fields.end(), parentscalar);
+            if (*parentf)
+                fields.erase(parentf);
+            removeChild(parentscalar);
+            unusedParents.insert(getTypeName());
+        }
+    }
+
     // generate init function/constructor
     FunctionParams *fp = new FunctionParams();
     FunctionBase *finit;
@@ -203,7 +225,9 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
     }
     finit->addThisArgument(dt);
     if (parent) {
-        finit->addParentArgument(parent->getDataType());
+        if (parentUsed) {
+            finit->addParentArgument(parent->getDataType());
+        }
         // nested user types can be inlined in the parent init
         finit->getAttributes()->addAttribute(fa_inline);
     }
@@ -211,13 +235,6 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
     finit->setExternal(declaration);
     finit->setConstructor(true);
     finit->generate(func, block, allocblock);
-
-    // generate functions
-    for(auto & [key, stmt] : getSymbols()) {
-        if (FunctionImpl *f = dynamic_cast<FunctionImpl*>(stmt)) {
-            f->generate(func, block, allocblock);
-        }
-    }
 
     addChild(finit);
     addSymbol(finit);

@@ -1,6 +1,7 @@
 
 #include "Variable.h"
 #include "FunctionImpl.h"
+#include "Scalar.h"
 
 Value *Variable::getLLVMValue(Node *stem, FunctionImpl *gfunc) {
 	int gepidx = getGEPIndex();
@@ -26,7 +27,10 @@ Value *Variable::getLLVMValue(Node *stem, FunctionImpl *gfunc) {
 				// Thus, we access parent in _this and gep the field
 				DataType parentDt = this->getScope()->getDataType();
 				Type *parentTy = buildTypes->llvmType(parentDt);
-				int idxParentInThis = static_cast<Variable*>(symbols["parent"])->getGEPIndex();
+				NamedNode *parent = symbols["parent"];
+				Scalar *parentscalar = dynamic_cast<Scalar*>(parent);
+				parentscalar->setUsed(true);
+				int idxParentInThis = static_cast<Variable*>(parent)->getGEPIndex();
 				Value *parentAlloc = Builder->CreateStructGEP(parentTy, thisptr, idxParentInThis, "gepthis");
 				Value *parentptr = Builder->CreateLoad(parentTy->getPointerTo(), parentAlloc, "derefparent");
 				return Builder->CreateStructGEP(parentTy, parentptr, gepidx, "gep" + getName());
@@ -37,7 +41,8 @@ Value *Variable::getLLVMValue(Node *stem, FunctionImpl *gfunc) {
 				Node *nestedType = stem->getScope();
 				auto nestedSymbols = nestedType->getSymbols();
 				Node *parentField = nestedSymbols.find("parent")->second;
-				Variable *parentFieldVar = static_cast<Variable*>(parentField);
+				Scalar *parentFieldVar = dynamic_cast<Scalar*>(parentField);
+				parentFieldVar->setUsed(true);
 				assert(parentField && "Parent field must exists and have a gepIndex!");
 				int idxParentInThis = parentFieldVar->getGEPIndex();
 				Type *parentTy = buildTypes->llvmType(parentFieldVar->getDataType());

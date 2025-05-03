@@ -27,6 +27,7 @@
 #include <llvm/IR/AutoUpgrade.h>
 
 #include "BackLLVM.h"
+#include "PassStripUnusedFields.h"
 
 using namespace llvm;
 
@@ -46,6 +47,7 @@ unsigned int dataAddrSpace = 0;
 
 // Injections
 map<string, Injection*> injections;
+set<string> unusedParents;
 
 enum SupportedTargets currentTargetId;
 extern char *build_outputfilename;
@@ -202,6 +204,11 @@ int print_llvm_ir(char opt_level) {
 		return 1;
 
 	UpgradeDebugInfo(*mainmodule);
+
+	// Run passes that need unoptimized code
+	auto modulePassManagerUnopt = ModulePassManager();
+	modulePassManagerUnopt.addPass(StripUnusedParentFieldsPass());
+	modulePassManagerUnopt.run(*mainmodule, moduleAnalysisManager);
 
 	ModulePassManager modulePassManager;
 	if (ol == OptimizationLevel::O0)

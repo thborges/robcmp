@@ -18,7 +18,16 @@ Value *BinaryOp::logical_operator(enum Instruction::BinaryOps op,
 
 	// left
 	Value *lhs = lhsn()->generate(func, block, allocblock);
-	BasicBlock *newlblock = dyn_cast<Instruction>(lhs)->getParent();
+	auto lhsi = dyn_cast<Instruction>(lhs);
+	BasicBlock *newlblock;
+	if (lhsi) 
+		newlblock = lhsi->getParent();
+	else {
+		// if lhsi is null, lhs has no parent (e.g. a global variable/constant).
+		// use block as newlbblock
+		newlblock = block;
+	}
+
 	Type *lhsty = lhs->getType();
 	BasicBlock *fullev = BasicBlock::Create(global_context, "fullev", func->getLLVMFunction());
 	BasicBlock *phiblock = BasicBlock::Create(global_context, "phiblock", func->getLLVMFunction());

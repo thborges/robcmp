@@ -1,0 +1,19 @@
+
+a = "-10";
+
+bool test() {
+    return a[0] == '-';
+}
+
+bool test2(char[] b) {
+    return b[1] == '1';
+}
+
+int16 main() {
+    if a.size == 3 and test() and test2(a) and a[2] == '0' {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+

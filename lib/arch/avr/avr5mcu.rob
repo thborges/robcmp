@@ -13,11 +13,11 @@ void check_irq_handler(uint8 h) {
 	assert(h != void, "IRQ enabled without setting the handler.");
 }
 
-void irq_usart_rx() signal, section __irqs {
+/*void irq_usart_rx() signal, section __irqs {
 	check_irq_handler(typeid(int_usart_rx));
 	byte = UDR0;
 	int_usart_rx.handler(byte);
-}
+}*/
 
 type avr5mcu implements mcu {
 	
@@ -94,16 +94,32 @@ type avr5mcu implements mcu {
 		}
 	}
 
+	void busy_wait_loop5(uint16 count) noopt {
+		// trusting that ABI will put the count parameter in r25:r24
+		// cycles total: 3 + count*5-1 + 3
+		//   +2 (ldi r25:r24 prior to cal) + count*5 - 1 + 3
+		//   +1 (ser)
+		//   +count*5-1 (loop)
+		//   +2 (rjmp)
+		//   +1 (ret)
+		asm "ser r18
+			 loop: subi r18,1
+				   sbci r24,0
+				   sbci r25,0
+				   brne loop
+			 rjmp end
+			 end: "; // a ret is appended here
+	}
+	
+	// secure range 1 -- 5460
 	void wait_ms(uint16 ms) {
-		volatile mms = ms;
-		while mms > 0 {
-			wait_us(1000);
-			mms--;
-		}
+		count = uint16(clock() / 1280e3) * ms - 1;
+		busy_wait_loop5(count);
 	}
 
 	spi implements databus {
 		/* setup hardware SPI at:
+		   b2 = SS
 		   b3 = MOSI
 		   b4 = MISO
 		   b5 = SCK */
@@ -111,6 +127,11 @@ type avr5mcu implements mcu {
 			b3.mode(port_mode.output);
 			b4.mode(port_mode.input);
 			b5.mode(port_mode.output);
+
+			// set SS pin high before enabling master mode 
+			// (mandatory for master mode)
+			b2.mode(port_mode.output);
+			b2.set(true);
 			SPCR.MSTR = true; // master
 			
 			//TODO: ignoring speed for now. Set to fsck/4 = 4Mhz

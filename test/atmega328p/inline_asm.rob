@@ -1,0 +1,77 @@
+
+/* AVR inline assembly constraints
+Obtained from https://github.com/avr-llvm/architecture/blob/master/Instructions/inline-assembly-constraints.md
+Constraint | Used for                                                                  | Range
+---------- | --------------------------------------------------------------------------|----------------------
+a          | Simple upper registers                                                    | r16 to r23
+b          | Base pointer registers pairs                                              | y, z
+d          | Upper register                                                            | r16 to r31
+e          | Pointer register pairs                                                    | x, y, z
+q          | Stack pointer register                                                    | SPH:SPL
+r          | Any register                                                              | r0 to r31
+t          | Temporary register                                                        | r0
+w          | Special upper register pairs                                              | r24, r26, r28, r30
+x          | Pointer register pair X                                                   | x (r27:r26)
+y          | Pointer register pair Y                                                   | y (r29:r28)
+z          | Pointer register pair Z                                                   | z (r31:r30)
+G          | Floating point constant                                                   | 0.0
+I          | 6-bit positive integer constant                                           | 0 to 63
+J          | 6-bit negative integer constant                                           | -63 to 0
+K          | Integer constant                                                          | 2
+L          | Integer constant                                                          | 0
+l          | Lower registers                                                           | r0 to r15
+M          | 8-bit integer constant                                                    | 0 to 255
+N          | Integer constant                                                          | -1
+O          | Integer constant                                                          | 8, 16, 24
+P          | Integer constant                                                          | 1
+Q          | A memory address based on Y or Z pointer with displacement                |
+R          | Integer constant                                                          | -6 to 5
+*/
+
+void wait_asm_us2(uint16 count1, uint16 count2) noinline {
+    // wait 4 cycles per count +
+    // + 2 cycles in add/adc
+    // + 4 cycles moving r24:r25 to x and r22:r23 to z
+    asm "add r26, r30
+         adc r27, r31
+         1:
+           sbiw $0, 1
+           brne 1b" // a ret is appended here
+        : "x(count1),z(count2)";
+}
+
+void wait_asm_us(uint16 count) inline {
+    // wait 4 cycles per count
+    asm "1:
+           sbiw $0, 1
+           brne 1b" // a ret is appended here
+        : "r(count)";
+}
+
+uint32 clock() {
+    return 16e6;
+}
+
+void wait_us(uint16 us) {
+    count = uint16(clock() / 4e6) * us - 1;
+    wait_asm_us(count);
+}
+
+int16 main() {
+    wait_us(10);
+    // return if non zero
+    asm "or r24, r25
+         brne 1f";
+
+    // start with a dirty X
+    asm "ldi r26, 0x1
+         ldi r27, 0x0";
+    // X will decrease to zero
+    wait_asm_us2(1000, 2000);
+    // return X
+    asm "movw r24, X
+         1: ret";
+    
+    // unreachable code
+    return 0; 
+}

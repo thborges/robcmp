@@ -17,7 +17,7 @@
 %type <node> simplevar_decl call_or_cast complexvar_set
 %type <node> term term2 expr factor stmt condblock whileblock logicexpr
 %type <node> logicterm logicfactor TOK_AND TOK_OR event unary logicunary
-%type <node> bind
+%type <node> bind asminline
 %type <strings> type_impls
 
 %type <ae> element
@@ -36,7 +36,7 @@
 %type <nfloat> TOK_FLOAT
 %type <ndouble> TOK_DOUBLE
 %type <nldouble> TOK_LDOUBLE
-%type <str> TOK_STRING asminline
+%type <str> TOK_STRING
 %type <fattrs> function_attributes
 %type <fattr> function_attribute
 
@@ -302,7 +302,8 @@ elements : elements ',' element			{ $1->append($3);
 element : expr ':' TOK_INTEGER		{ $$ = new ArrayElement($1, (unsigned)$3); }
         | expr						{ $$ = new ArrayElement($1, 1); }
 	
-asminline : TOK_ASM TOK_STRING { $$ = $2; }
+asminline : TOK_ASM TOK_STRING { $$ = new InlineAssembly($2, @1); }
+          | TOK_ASM TOK_STRING ':' TOK_STRING { $$ = new InlineAssembly($2, $4, @1); }
 
 stmts : %empty { $$ = new vector<Node*>(); }
 	  | stmts_rec
@@ -336,7 +337,7 @@ stmt : ident_or_xident '+' '+' ';'					{ $$ = new Scalar($1, new BinaryOp(new Lo
 			Node *bop = new BinaryOp(new LoadMatrix($id, $e1, $e2, @id), '|', $e3);
 			$$ = new UpdateMatrix($id, $e1, $e2, bop, @1);
 	   }
-	 | asminline ';'											{ $$ = new InlineAssembly($1, @1); }
+	 | asminline ';'											{ $$ = $1; }
 	 | qualifier simplevar_decl ';'								{ $$ = $2; $$->setQualifier((DataQualifier)$1); }
 	 | simplevar_decl ';'
 	 | complexvar_set ';'

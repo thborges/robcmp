@@ -1,0 +1,12 @@
+mkdir -p toolchain-robcmp
+cd toolchain-robcmp && make
+cd ..
+cd ../lib && make
+cd ..
+mkdir -p ~/.platformio/platforms
+mkdir -p ~/.platformio/packages
+ln -sf `realpath ../lib` toolchain-robcmp/stdlib
+ln -sf `realpath platform` ~/.platformio/platforms/robcmp
+ln -sf `realpath toolchain-robcmp` ~/.platformio/packages/toolchain-robcmp
+code --install-extension vscode-syntax/robcmpsyntax-0.0.1.vsix
+echo "Open the examples folder and try to build and upload!"

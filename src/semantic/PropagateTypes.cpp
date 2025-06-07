@@ -445,6 +445,7 @@ Node* PropagateTypes::visit(UserType& n) {
     }
 
     n.createDataType();
+    n.setThisArgToFunctions();
     propagateChildren(n);
     return NULL;
 }

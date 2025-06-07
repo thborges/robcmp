@@ -7,9 +7,6 @@ use intfs.interrupt;
 
 myint = interrupt_i8();
 
-// myint defaults to void_interrupt_i8
-bind void_interrupt_i8 to myint singleton;
-
 value = 0xff;
 
 void call_handler() {

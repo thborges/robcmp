@@ -4,6 +4,8 @@
 #include "Interface.h"
 #include "FunctionImpl.h"
 #include "BackLLVM.h"
+#include "Program.h"
+#include "UserType.h"
 #include "Scanner.h"
 
 void Dispatch::addDataTypeImplementation(DataType base, DataType impl) {
@@ -108,12 +110,17 @@ void Dispatch::generateDispatchFunctions(Node *scope) {
                     // add switch case
                     Builder->SetInsertPoint(fblock);
                     if (!hasDefault && destTypeName.find("void_") == string::npos) {
+                        //TODO: The default should halt the MCU? For security reasons, memory corruption, control flow hijack.
                         switchi->setDefaultDest(implDtBlock);
                         hasDefault = true;
                     } else {
-                        // TODO: provide better ids, per baseType
-                        ConstantInt *implDtId = ConstantInt::get(Type::getInt8Ty(global_context), implDt, true);
-                        switchi->addCase(implDtId, implDtBlock);
+                        UserType *type = dynamic_cast<UserType*>(program->findSymbol(destTypeName));
+                        assert(type && "UserType should exists.");
+                        int concreteId = type->getConcreteId();
+                        if (concreteId != -1) {
+                            ConstantInt *implDtId = ConstantInt::get(Type::getInt8Ty(global_context), concreteId, true);
+                            switchi->addCase(implDtId, implDtBlock);
+                        }
                     }
                 }
 			}
@@ -123,4 +130,8 @@ void Dispatch::generateDispatchFunctions(Node *scope) {
 
 void Dispatch::notifyInterface(DataType intf) {
     dispatchHash[intf];
+}
+
+bool Dispatch::isIntfInvoked(DataType intf) {
+    return (intfsInvoked.find(intf) != intfsInvoked.end());
 }

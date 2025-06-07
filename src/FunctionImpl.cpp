@@ -70,12 +70,18 @@ bool FunctionImpl::preGenerate() {
 	RobDbgInfo.emitLocation(this);
 	Builder->SetInsertPoint(falloc);
 
+	bool nooptfunc = func->hasFnAttribute(Attribute::OptimizeNone);
+
 	unsigned Idx = 0;
 	for (auto &Arg : func->args()) {
 		Variable *fp = parameters->getParameters()[Idx];
 		DataType ptype = fp->getDataType();
 		const string& argname = fp->getName();
 		Arg.setName(argname);
+
+		if (nooptfunc) {
+			Arg.addAttr(Attribute::NoUndef);
+		}
 
 		if (buildTypes->isUnsignedDataType(ptype))
 			Arg.addAttr(Attribute::ZExt);

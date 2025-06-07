@@ -4,6 +4,8 @@
 #include "FunctionImpl.h"
 #include "HeaderGlobals.h"
 #include "BackLLVM.h"
+#include "Interface.h"
+#include "Pointer.h"
 #include "UndefInit.h"
 #include "Return.h"
 #include "Load.h"
@@ -12,7 +14,7 @@
 #include "semantic/PrintAstVisitor.h"
 #include "semantic/PropagateTypes.h"
 #include "semantic/SymbolizeTree.h"
-#include "semantic/IdentifyVirtualDispatch.h"
+#include "semantic/VirtualDispatchPasses.h"
 
 Program::Program() : Node({0,0,0,0}) {
 	mainmodule = new Module(this->getFile(), global_context);
@@ -46,15 +48,56 @@ Value *Program::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
 	return NULL;
 }
 
-void Program::generateInjectionSetup(SourceLocation *sl) {
-
+void Program::generateInjectionGlobals(SourceLocation *sl) {
 	location_t loc = sl->getLoc();
 
 	// a function to init global vars for singleton injections
-	FunctionImpl *funcInitGlobals = new FunctionImpl((DataType)tvoid, "__injections_init", 
+	funcInitGlobals = new FunctionImpl((DataType)tvoid, "__injections_init", 
 		new FunctionParams(), vector<Node *>(), loc, loc, false);
 	funcInitGlobals->setScope(this);
+	funcInitGlobals->setAttributes(new FunctionAttributes(fa_inline));
 	addSymbol(funcInitGlobals);
+
+	for (auto &[key, itype] : injections) {
+		Identifier bind(itype->bind, loc);
+
+		// injection validation
+		auto subTypeName = regex_replace(bind.getFullName(), regex("\\."), ":"); //internal types use :
+		Identifier bindSubtypes(subTypeName, loc);
+		Node *injectType = bindSubtypes.getSymbol(this, false);
+		if (!injectType) {
+			yyerrorcpp(string_format("Injection symbol %s not found.", 
+				bind.getFullName().c_str()), &itype->loc);
+			continue;
+		}
+
+		if (itype->scope == bs_singleton) {
+			string globalVarName = itype->singletonName;
+			if (!bind.isComplex()) {
+				Node *var = findSymbol(globalVarName);
+				if (!var) {
+					// alloc the global var
+					UndefInit *nc = new UndefInit(injectType->getDataType(), loc);
+					Scalar *svar = new Scalar(globalVarName, nc);
+					svar->setScope(this);
+					addSymbol(svar);
+					svar->generate(NULL, NULL, global_alloc);
+					var = svar;
+
+					ConstructorCall *cc = new ConstructorCall(bind.getFullName(), loc);
+					Scalar *sc = new Scalar(globalVarName, cc);
+					cc->setScope(funcInitGlobals);
+					sc->setScope(funcInitGlobals);
+					funcInitGlobals->addChild(sc);
+				}
+			}
+		}
+	}
+}
+
+void Program::generateInjectionSetup(SourceLocation *sl) {
+
+	location_t loc = sl->getLoc();
 
 	/* create a function for each injection, named :get_injection_for_[to]:
 	    function :get_injection_for_[to] {
@@ -71,11 +114,6 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 		auto subTypeName = regex_replace(bind.getFullName(), regex("\\."), ":"); //internal types use :
 		Identifier bindSubtypes(subTypeName, loc);
 		Node *injectType = bindSubtypes.getSymbol(this, false);
-		if (!injectType) {
-			yyerrorcpp(string_format("Injection symbol %s not found.", 
-				bind.getFullName().c_str()), &itype->loc);
-			continue;
-		}
 
 		DataType destinationTy = BuildTypes::undefinedType;
 		string destinationTyName;
@@ -115,29 +153,7 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 		finject->setAttributes(new FunctionAttributes(fa_inline));
 		
 		if (itype->scope == bs_singleton) {
-			string globalVarName;
-			if (bind.isComplex()) {
-				globalVarName = "__var_injection_for_" + bind.getFullName();
-			} else {
-				globalVarName = "__var_injection_for_" + bind.getFullName();
-				Node *var = findSymbol(globalVarName);
-				if (!var) {
-					// alloc the global var
-					UndefInit *nc = new UndefInit(injectType->getDataType(), loc);
-					Scalar *svar = new Scalar(globalVarName, nc);
-					svar->setScope(this);
-					addSymbol(svar);
-					svar->generate(NULL, NULL, global_alloc);
-					var = svar;
-
-					ConstructorCall *cc = new ConstructorCall(bind.getFullName(), loc);
-					Scalar *sc = new Scalar(globalVarName, cc);
-					cc->setScope(funcInitGlobals);
-					sc->setScope(funcInitGlobals);
-					funcInitGlobals->addChild(sc);
-				}
-			}
-
+			string globalVarName = itype->singletonName;
 			Load *load = new Load(Identifier(globalVarName, loc));
 			Return *ret = new Return(load);
 			ret->setScope(finject);
@@ -210,11 +226,13 @@ void Program::doSemanticAnalysis() {
 	SymbolizeTree st;
 	st.visit(*this);
 
-	PropagateTypes pt;
-	pt.visit(*this);
-	
 	IdentifyVirtualDispatch ivd;
 	ivd.visit(*this);
+
+	PropagateTypes pt;
+	pt.visit(*this);
+
+	ivd.applyIdentifiedChanges();
 
 	buildTypes->generateDebugInfoForTypes();
 	
@@ -226,25 +244,36 @@ void Program::doSemanticAnalysis() {
 
 void Program::generate() {
 
-	Node *mainFunc = NULL;
-
 	generateBuiltins();
+	
+	// find the main function
+	auto mainFuncIt = symbols.find("main");
+	if (mainFuncIt == symbols.end())
+		mainFuncIt = symbols.find("__main");
+	Node *mainFunc = mainFuncIt->second;
+	
+	generateInjectionGlobals(mainFunc);
+
+	// build types and global vars first
+	map<Node*, bool> already_generated;
+	for(auto n: children()) {
+		if (dynamic_cast<UserType*>(n) ||
+			dynamic_cast<Pointer*>(n) || 
+			dynamic_cast<Variable*>(n) ||
+			dynamic_cast<Interface*>(n)) {
+			n->generate(NULL, NULL, global_alloc);
+			already_generated[n] = true;
+		}
+	}
 
 	for(auto n: children()) {
-		if (FunctionImpl *func = dynamic_cast<FunctionImpl*>(n)) {
-			if (func->getName() == "main" || func->getName() == "__main") {
-				// generate main function after all others
-				mainFunc = n;
-				continue;
-			}
-		}
-
+		if (n == mainFunc || already_generated[n])
+			continue;
 		n->generate(NULL, NULL, global_alloc);
 	}
 
 	if (mainFunc && injections.size() > 0) {
 		generateInjectionSetup(mainFunc);
-
 		FunctionCall *fc = new FunctionCall("__injections_init", new ParamsCall(), mainFunc->getLoc());
 		fc->setScope(mainFunc);
 		mainFunc->addChild(fc, true);

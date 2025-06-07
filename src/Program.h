@@ -7,6 +7,7 @@
 class Program : public Node {
 protected:
 	Dispatch *dispatch;
+	FunctionImpl *funcInitGlobals = NULL;
 public:
 	Program();
 	~Program();
@@ -16,6 +17,7 @@ public:
 	Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
 	void generate();	
 	void generateInjectionSetup(SourceLocation *sl);
+	void generateInjectionGlobals(SourceLocation *sl);
 	void declareBuiltins();
 	void generateBuiltins();
 	void doSemanticAnalysis();

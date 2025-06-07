@@ -99,6 +99,7 @@ public:
 	friend class Program;
 	friend class MemCopy;
 	friend class PropagateTypes;
+	friend class IdentifyVirtualDispatch;
 };
 
 class NamedNode: public Node {

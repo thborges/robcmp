@@ -92,7 +92,7 @@ public:
 		returnIsPointer = r;
 	}
 
-	void addThisArgument(DataType dt);
+	virtual void addThisArgument(DataType dt);
 	
 	DataType getThisArgDt() const {
 		return thisArgDt;

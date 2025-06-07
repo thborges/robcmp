@@ -6,6 +6,7 @@
 class Interface: public NamedNode {
 private:
 	void createDataType();
+	int nextConcreteTypeId = 0;
 
 public:
 	Interface(const string& name, location_t loc) : NamedNode(name, loc) {
@@ -21,5 +22,8 @@ public:
 
 	bool validateImplementation(UserType *ut);
 
-	
+	int getNextConcreteId() {
+		nextConcreteTypeId++;
+		return nextConcreteTypeId-1;
+	}
 };

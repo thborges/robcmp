@@ -11,6 +11,10 @@ private:
 
 public:
     Identifier(const string& ident, location_t loc): SourceLocation(loc) {
+        changeIdentifier(ident);
+    }
+
+    void changeIdentifier(const string& ident) {
         this->ident = ident;
         complex = ident.find('.') != string::npos;
     }

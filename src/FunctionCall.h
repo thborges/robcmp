@@ -41,4 +41,8 @@ public:
 	Identifier& getIdent() {
 		return ident;
 	}
+
+	void changeIdentifier(const string& id) {
+		ident.changeIdentifier(id);
+	}
 };

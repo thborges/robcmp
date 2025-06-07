@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Node.h"
+#include "Int8.h"
 
 class Visitor;
 
@@ -12,10 +13,12 @@ private:
     bool declaration = false;
     UserType *parent = NULL;
     unsigned bitWidth = 0;
+    UInt8 *typeId = NULL;
 
     bool createDataType();
     void setNestedParent();
     void createTempDataType();
+    void setThisArgToFunctions();
 
 public:
 
@@ -63,6 +66,15 @@ public:
 
     const vector<string>& implementedIntfs() {
         return implements;
+    }
+
+    int getConcreteId() {
+        if (typeId) {
+            //assert(typeId && "Typeid field is not set.");
+            return typeId->getNumber();
+        } else {
+            return -1;
+        }
     }
 
     friend class PropagateTypes;

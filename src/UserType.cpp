@@ -62,7 +62,6 @@ bool UserType::createDataType() {
     std::vector<Type*> elements;
 
     // if needed, add typeid as the first field
-    UInt8 *typeId = NULL;
     if (implements.size() > 0) {
         // the typeid field is needed if any implemented interface is unbound
         // (not injected) and at least one of its methods was invoked        
@@ -152,10 +151,28 @@ bool UserType::createDataType() {
         return false;
     }
 
-    if (typeId)
-        typeId->setNumber(dt);
+    if (typeId) {
+        Node *intfsymbol = program->findSymbol(implements[0]);
+        if (Interface *intf = dynamic_cast<Interface*>(intfsymbol))
+            typeId->setNumber(intf->getNextConcreteId());
+    }
 
     return true;
+}
+
+void UserType::setThisArgToFunctions() {
+    /* set function parameters before generate
+     *  A function can call others that are still not generated
+     *  and request their type info. So, here we set all needed
+     *  info to pre-generate their type.
+     */
+    for(auto & [key, stmt] : getSymbols()) {
+        if (FunctionImpl *f = dynamic_cast<FunctionImpl*>(stmt)) {
+            f->setPrefixName(getTypeName());
+            f->addThisArgument(dt);
+            f->setExternal(declaration);
+        }
+    }
 }
 
 Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
@@ -184,18 +201,11 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
         }
     }
 
-    /* set function parameters before generate
-     *  A function can call others that are still not generated
-     *  and request their type info. So, here we set all needed
-     *  info to pre-generate their type.
-     */
+    // add parent fields to the function so that it can use them without prefix
     for(auto & [key, stmt] : getSymbols()) {
         if (FunctionImpl *f = dynamic_cast<FunctionImpl*>(stmt)) {
-            f->setPrefixName(getTypeName());
-            f->addThisArgument(dt);
             for(auto &field : fields)
                 f->addSymbol(dynamic_cast<NamedNode*>(field));
-            f->setExternal(declaration);
         }
     }
 

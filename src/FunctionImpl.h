@@ -37,4 +37,9 @@ public:
 		return func;
 	}
 
+	void addThisArgument(DataType dt) override {
+		if (preGenerated)
+			assert(!preGenerated && "The function is already generated. This should not happen!\n");
+		FunctionBase::addThisArgument(dt);
+	};
 };

@@ -40,6 +40,15 @@ except:
     hardware_spec = None
     pass
 
+try:
+    upload_speed = env.GetProjectOption("upload_speed")
+except:
+    if mcu.startswith("stm32"):
+        upload_speed = 115200
+    else:
+        upload_speed = 57600
+    pass
+
 if mcu == "native":
     ldflags = []
 else:
@@ -146,7 +155,7 @@ if upload_protocol == "serial":
         stm32flash_bin = join(platform.get_package_dir("tool-stm32duino"), "stm32flash")
         env.Replace(
             UPLOADER=join(stm32flash_bin, "stm32flash"),
-            UPLOADERFLAGS=["-b", "115200", "-w"],
+            UPLOADERFLAGS=["-b", upload_speed, "-w"],
             UPLOADCMD='$UPLOADER $UPLOADERFLAGS "$SOURCE" $UPLOAD_PORT'
         )
 
@@ -155,7 +164,7 @@ if upload_protocol == "serial":
         avrdude_cfg = join(platform.get_package_dir("tool-avrdude"), "avrdude.conf")
         env.Replace(
             UPLOADER=avrdude_bin,
-            UPLOADERFLAGS=["-C", avrdude_cfg, "-v", "-V", "-c", "arduino", "-p", "m328p", "-b", "57600", "-U"],
+            UPLOADERFLAGS=["-C", avrdude_cfg, "-v", "-V", "-c", "arduino", "-p", "m328p", "-b", upload_speed, "-U"],
             UPLOADCMD='$UPLOADER $UPLOADERFLAGS flash:w:${SOURCE}:i -P $UPLOAD_PORT'
         )
 

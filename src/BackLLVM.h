@@ -32,6 +32,9 @@ enum SupportedTargets {
 	
 	// stm32
 	st_stm32f1, 
+
+	// raspberry pico
+	st_rp2040,
 	
 	// awaiting backend goes mainstream
 	st_esp32, 

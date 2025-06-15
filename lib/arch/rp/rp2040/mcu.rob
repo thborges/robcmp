@@ -1,0 +1,86 @@
+
+use intfs.mcu;
+use intfs.ports;
+use intfs.databus;
+
+use regs;
+
+type rp2040mcu implements mcu {
+	
+	uint32 clock() inline {
+		// 133Mhz
+		return 133E6;
+	}
+
+	void set_interruptions(bool enabled) {
+        return;
+	}
+
+	io24 implements digitalport {
+		void mode(port_mode m) {
+			GPIO24_CTRL.FUNCSEL = 5;
+			GPIO24.SLEWFAST = true;
+			GPIO24.SCHMITT = true;
+			GPIO24.OD = false;
+			if m == port_mode.input {
+				GPIO_OE.IO24 = false;
+				GPIO24.IE = true;
+				GPIO24.DRIVE = 0;
+			} else {
+				GPIO_OE.IO24 = true;
+				GPIO24.IE = false;
+				GPIO24.DRIVE = 3;
+			}
+        }
+		void set(bool v) {
+			if (v) { GPIO_OUT_SET.IO24 = true; }
+			else { GPIO_OUT_CLR.IO24 = true; } 
+		}
+		bool get() { return GPIO_IN.IO24; }
+	}
+
+	io25 implements digitalport {
+		void mode(port_mode m) {
+			GPIO25_CTRL.FUNCSEL = 5;
+			GPIO25.SLEWFAST = true;
+			GPIO25.SCHMITT = true;
+			GPIO25.OD = false;
+			if m == port_mode.input {
+				GPIO_OE.IO25 = false;
+				GPIO25.IE = true;
+				GPIO25.DRIVE = 0;
+			} else {
+				GPIO_OE.IO25 = true;
+				GPIO25.IE = false;
+				GPIO25.DRIVE = 3;
+			}
+        }
+		void set(bool v) {
+			if (v) { GPIO_OUT_SET.IO25 = true; }
+			else { GPIO_OUT_CLR.IO25 = true; } 
+		}
+		bool get() { return GPIO_IN.IO25; }
+	}
+
+    void wait_us(uint16 us) {
+		volatile x = us;
+		while x > 0 {
+			x--;
+		}
+	}
+
+	void wait_ms(uint16 ms) {
+		while ms > 0 {
+			wait_us(1000);
+			ms--;
+		}
+	}
+
+	uint32 micros() {
+		return 0;
+	}
+
+	uint32 millis() {
+		return micros() / 1000;
+	}
+}

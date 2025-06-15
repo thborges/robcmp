@@ -1,0 +1,20 @@
+/*
+ * Blinks the board default led
+ */
+
+use intfs.ports;
+use arch.rp.rp2040.mcu;
+
+int16 main() {
+	mmcu = rp2040mcu();
+	led = mmcu.io25;
+
+	led.mode(port_mode.output);
+
+	loop {
+		led.set(true);
+		mmcu.wait_ms(100);
+		led.set(false);
+		mmcu.wait_ms(100);
+	}
+}

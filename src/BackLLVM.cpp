@@ -62,6 +62,8 @@ TargetInfo supportedTargets[__last_target] = {
 	{rb_avr,    "atmega1284p", "avr", "atmega1284p", "+avr51", tint16},
 
 	{rb_arm,    "stm32f1", "thumbv7m-none-eabi", "cortex-m3", "", tint32},
+	
+	{rb_arm,    "rp2040", "thumbv6m-none-eabi", "cortex-m0plus", "+soft-float", tint32},
 
 	{rb_xtensa, "esp32",   "xtensa",  "", "", tint32},
 };

@@ -1,0 +1,6 @@
+AFDT files for AVRs
+- http://packs.download.atmel.com
+- To convert from .afdt to .svd, use atdf2svd from Rust language, available through cargo install
+
+SVDs files for STM32 can be downloaded at:
+- https://www.st.com/en/microcontrollers-microprocessors/stm32-32-bit-arm-cortex-mcus.html#cad-resources under System View Description

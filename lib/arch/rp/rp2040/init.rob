@@ -1,0 +1,95 @@
+/*
+ * Robcmp bare-metal routines for rp2040
+ */
+
+use regs;
+//use math.limits;
+
+int16 main();
+
+void __system_config() {
+	// set vtor table offset from __start symbol of linker
+	/*asm "LDR     R0, =__isr_start";
+	asm "LDR     R1, =0xE000ED08";
+	asm "STR     R0, [R1]";*/
+
+	// disable Watchdog
+	//WATCHDOG_CTRL.ENABLE = false;
+	//WATCHDOG_CTRL.TIME = 0;
+
+	//ROSC_CTRL.ENABLE = 0xfab;
+	//CLK_SYS_CTRL.SRC = 0x1; // CLKSRC_CLK_SYS_AUX
+	//CLK_SYS_CTRL.AUXSRC = 0x2; // ROSC_CLKSRC
+	//while (CLK_SYS_SELECTED.CLK_SYS_SELECTED & 0x7) != 1;
+
+	RESET.IO_BANK0 = false;
+	RESET.PADS_BANK0 = false;
+	while !RESET_DONE.IO_BANK0;
+	while !RESET_DONE.PADS_BANK0;
+}
+
+void __error_handler() {
+    asm "bkpt #0"; // breakpoint
+}
+
+void __enter_vtable_in_r0() naked {
+	
+	//#define PPB_BASE _u(0xe0000000)
+	//#define M0PLUS_VTOR_OFFSET _u(0x0000ed08)
+	//ldr r1, =(PPB_BASE + ARM_CPU_PREFIXED(VTOR_OFFSET))
+	asm "ldr r1, =0xe000ed08
+		 str r0, [r1]
+		 ldmia r0!, {r1, r2}
+		 msr msp, r1
+		 bx r2
+		";
+}
+
+void __do_copy_data_and_bss() noinline {
+// TODO: Improve __do_copy_data, this is a copy of stm32f1
+asm
+   "movs r1, #0						
+	b __do_copy_data_start				
+	__do_copy_data_loop:
+	    ldr r3, =__data_init
+	    ldr r3, [r3, r1]
+	    str r3, [r0, r1]
+	    adds r1, r1, #4
+	__do_copy_data_start:
+	 	ldr r0, =__data_start
+		ldr r3, =__data_end
+	    adds r2, r0, r1
+	    cmp r2, r3
+	    bcc __do_copy_data_loop
+	    ldr r1, =__bss_start
+		ldr r2, =__bss_end
+	    movs r0, #0
+		b __do_clear_bss_start
+	__do_clear_bss_loop:
+		stm r1!, {r0}
+	__do_clear_bss_start:
+	 	cmp r1, r2
+	 	bcc __do_clear_bss_loop";
+}
+
+void __isr_reset() naked {
+	// check if core 1 is sleeping in the bootrom 
+	// xx = (SIO_BASE) 0xd0000000 + SIO_CPUID_OFFSET 0x00000000
+	// value of xx is 0 when read from processor core 0, and 1 when read from processor core 1
+    asm "ldr r0, =0xd0000000
+		 ldr r0, [r0]
+		 cmp r0, #0
+		 beq 1f
+		 hold_non_core0_in_bootrom:
+		 	ldr r0, #0 //BOOTROM_VTABLE_OFFSET
+    		b __enter_vtable_in_r0
+		 1: ";
+
+	__do_copy_data_and_bss();
+	
+    __system_config();
+	
+    ret = main();
+ 
+	__error_handler();
+}

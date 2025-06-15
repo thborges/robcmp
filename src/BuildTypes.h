@@ -12,8 +12,11 @@ typedef int DataType;
  */
 enum BasicDataType {tvoid, tbool, tchar,
   tint8, tint16, tint32, tint64, 
-  tint2u, tint3u, tint4u, tint5u, tint6u, tint7u,
-  tint8u, tint9u, tint12u, tint16u, tint32u, tint64u,
+  tint2u, tint3u, tint4u, tint5u, tint6u, tint7u, tint8u,
+  tint9u, tint10u, tint11u, tint12u, tint13u, tint14u, tint15u, tint16u,
+  tint17u, tint18u, tint19u, tint20u, tint21u, tint22u, tint23u, tint24u,
+  tint25u, tint26u, tint27u, tint28u, tint29u, tint30u, tint31u, tint32u,
+  tint64u,
   tfloat, tdouble, tldouble,
   /* new types here! */
   tobject,

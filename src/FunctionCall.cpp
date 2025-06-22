@@ -155,7 +155,7 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
     } else if (fsymbol->getThisArgDt() != BuildTypes::undefinedType) {
         // calling a function of the type itself, without stem
         Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
-        Value *ptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
+        Value *ptr = Builder->CreateLoad(PointerType::getUnqual(thisTy), func->getThisArg(), "derefthis");
         args.push_back(ptr);
         dataTypes.push_back(fsymbol->getThisArgDt());
     }

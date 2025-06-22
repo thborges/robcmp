@@ -13,7 +13,7 @@ public:
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
 		return ConstantAggregateZero::get(buildTypes->llvmType(dt));
-        //return ConstantPointerNull::get(buildTypes->llvmType(dt)->getPointerTo());
+        //return ConstantPointerNull::get(PointerType::getUnqual(buildTypes->llvmType(dt)));
     }
 
 	virtual bool isConstExpr() override {

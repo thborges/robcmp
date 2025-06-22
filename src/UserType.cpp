@@ -33,7 +33,7 @@ public:
 		return dt;
 	}
     virtual Type* getLLVMType() override {
-        return PointerType::get(global_context, dataAddrSpace);
+        return PointerType::getUnqual(global_context);
     }
 };
 

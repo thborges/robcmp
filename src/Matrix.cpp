@@ -36,7 +36,7 @@ void Matrix::createDataType() {
 	if (buildTypes->isComplex(element_dt)) {
 		// in rob, all matrices of user types (complex types)
 		// are matrices of references
-		I = I->getPointerTo(codeAddrSpace);
+		I = PointerType::getUnqual(I);
 	}
 
 	// The matrix type and size

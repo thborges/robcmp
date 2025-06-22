@@ -59,7 +59,7 @@ Value *UpdateArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *
 	Builder->SetInsertPoint(block);
 
 	if (symbol->isPointerToPointer()) {
-		Type *ty = buildTypes->llvmType(symbol->getDataType())->getPointerTo();	
+		Type *ty = PointerType::getUnqual(buildTypes->llvmType(symbol->getDataType()));	
 		sym = Builder->CreateLoad(ty, sym, symbol->hasQualifier(qvolatile), "deref");
 	}
 

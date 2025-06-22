@@ -15,7 +15,7 @@ Value *Variable::getLLVMValue(Node *stem, FunctionImpl *gfunc) {
 			// generating a function of a type: get the gep on _this or _parent parameters
 			DataType thisDt = func->getThisArgDt();
 			Type *thisTy = buildTypes->llvmType(thisDt);
-			Value *thisptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
+			Value *thisptr = Builder->CreateLoad(PointerType::getUnqual(thisTy), func->getThisArg(), "derefthis");
 			
 			if (!stem->getScope() || this->getScope() == stem->getScope()) {
 				// the var is being accessed in global scope (!stem->getScope()) or
@@ -32,7 +32,7 @@ Value *Variable::getLLVMValue(Node *stem, FunctionImpl *gfunc) {
 				parentscalar->setUsed(true);
 				int idxParentInThis = static_cast<Variable*>(parent)->getGEPIndex();
 				Value *parentAlloc = Builder->CreateStructGEP(parentTy, thisptr, idxParentInThis, "gepthis");
-				Value *parentptr = Builder->CreateLoad(parentTy->getPointerTo(), parentAlloc, "derefparent");
+				Value *parentptr = Builder->CreateLoad(PointerType::getUnqual(parentTy), parentAlloc, "derefparent");
 				return Builder->CreateStructGEP(parentTy, parentptr, gepidx, "gep" + getName());
 
 			} else {
@@ -47,7 +47,7 @@ Value *Variable::getLLVMValue(Node *stem, FunctionImpl *gfunc) {
 				int idxParentInThis = parentFieldVar->getGEPIndex();
 				Type *parentTy = buildTypes->llvmType(parentFieldVar->getDataType());
 				Value *parentAlloc = Builder->CreateStructGEP(parentTy, thisptr, idxParentInThis, "gepparent");
-				Value *parentptr = Builder->CreateLoad(parentTy->getPointerTo(), parentAlloc, "derefparent");
+				Value *parentptr = Builder->CreateLoad(PointerType::getUnqual(parentTy), parentAlloc, "derefparent");
 				return Builder->CreateStructGEP(parentTy, parentptr, gepidx, "gep" + getName());
 			}
 		} else {
@@ -55,7 +55,7 @@ Value *Variable::getLLVMValue(Node *stem, FunctionImpl *gfunc) {
 			Type *udt = buildTypes->llvmType(stem->getDataType());
 			Value *ptr = stem->getLLVMValue(gfunc);
 			if (stem->isPointerToPointer()) {
-				ptr = Builder->CreateLoad(udt->getPointerTo(), ptr, "deref");
+				ptr = Builder->CreateLoad(PointerType::getUnqual(udt), ptr, "deref");
 			}
 			return Builder->CreateStructGEP(udt, ptr, gepidx, "gepu");
 		}

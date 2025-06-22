@@ -84,7 +84,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 				Type *gty = buildTypes->llvmType(dt);
 				if (expr->isPointerToPointer()) {
 					setPointerToPointer(true);
-					gty = gty->getPointerTo();
+					gty = PointerType::getUnqual(gty);
 				}
 				GlobalVariable *gv = new GlobalVariable(*mainmodule, gty, hasQualifier(qconst), 
 					GlobalValue::ExternalLinkage, exprvc, name);
@@ -133,7 +133,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 
 		Type *currty = buildTypes->llvmType(currdt);
 		if (pm == pm_pointer)
-			currty = currty->getPointerTo();
+			currty = PointerType::getUnqual(currty);
 
 		RobDbgInfo.emitLocation(this);
 		Builder->SetInsertPoint(allocblock == global_alloc ? global_alloc : block);

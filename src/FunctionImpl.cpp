@@ -27,7 +27,7 @@ bool FunctionImpl::preGenerate() {
 
 	Type *xtype = buildTypes->llvmType(dt);
 	if (returnIsPointer)
-		xtype = xtype->getPointerTo();
+		xtype = PointerType::getUnqual(xtype);
 
 	if (fsymbol) {
 		validateImplementation(fsymbol);
@@ -88,7 +88,7 @@ bool FunctionImpl::preGenerate() {
 
 		Type *talloc = buildTypes->llvmType(ptype);
 		if (buildTypes->isComplex(ptype) || buildTypes->isArrayOrMatrix(ptype)) {
-			talloc = talloc->getPointerTo();
+			talloc = PointerType::getUnqual(talloc);
 			fp->setPointerToPointer(true);
 		}
 		Value *variable = Builder->CreateAlloca(talloc, dataAddrSpace, 0, argname);

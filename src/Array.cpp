@@ -39,7 +39,7 @@ void Array::createDataType() {
 	if (buildTypes->isComplex(element_dt)) {
 		// in rob, all arrays of user types (complex types)
 		// are array of references
-		I = I->getPointerTo(codeAddrSpace);
+		I = PointerType::getUnqual(I);
 	}
 
 	//Declare array type.

@@ -113,7 +113,7 @@ Type* Node::getLLVMType() {
 	DataType aux = getDataType();
 	Type *taux = buildTypes->llvmType(getDataType());
 	if (buildTypes->isInterface(aux))
-		return taux->getPointerTo();
+		return PointerType::getUnqual(taux);
 	else
 		return taux;
 }

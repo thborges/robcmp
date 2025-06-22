@@ -29,7 +29,7 @@ bool FunctionBase::validateAndGetArgsTypes(std::vector<Type*> &argsty) {
 			valid = false;
 		} else {
 			if (buildTypes->isComplex(dt) || buildTypes->isArrayOrMatrix(dt)) {
-				atype = atype->getPointerTo();
+				atype = PointerType::getUnqual(atype);
 			}
 			argsty.push_back(atype);
 		}
@@ -140,7 +140,7 @@ Value *FunctionDecl::generate(FunctionImpl*, BasicBlock *, BasicBlock *allocbloc
 
 	Type *xtype = buildTypes->llvmType(dt);
 	if (returnIsPointer)
-		xtype = xtype->getPointerTo();
+		xtype = PointerType::getUnqual(xtype);
 	
 	FunctionType *ftype = FunctionType::get(xtype, ArrayRef<Type*>(arg_types), false);
 	Function *nfunc = Function::Create(ftype, linkage, codeAddrSpace, getFinalName(), mainmodule);

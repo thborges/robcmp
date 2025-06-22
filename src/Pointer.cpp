@@ -32,7 +32,7 @@ Value *Pointer::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
         return NULL;
     }
 
-    Type *targetPointerType = buildTypes->llvmType(dt)->getPointerTo();
+    Type *targetPointerType = PointerType::getUnqual(buildTypes->llvmType(dt));
 
     // In favor of faster and smaller code size, we return the pointer
     // as a ConstantExpr. This limits pointer arithmetic.

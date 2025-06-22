@@ -27,13 +27,14 @@ Value* ConstructorCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlo
         // is a new left var
         Type *vty = buildTypes->llvmType(dt);
         if (buildTypes->isInterface(dt)) {
-            vty = vty->getPointerTo();
+            vty = PointerType::getUnqual(vty);
             leftValue->setPointerToPointer(true);
         }
         Builder->SetInsertPoint(allocblock);
         if (allocblock == global_alloc) {
             //Constant *init = ConstantAggregateZero::get(buildTypes->llvmType(dt));
-            Constant *init = ConstantPointerNull::get(buildTypes->llvmType(dt)->getPointerTo());
+            PointerType *dtPointerTy = PointerType::getUnqual(buildTypes->llvmType(dt));
+            Constant *init = ConstantPointerNull::get(dtPointerTy);
             gv = new GlobalVariable(*mainmodule, vty, hasQualifier(qconst), 
                 GlobalValue::ExternalLinkage, init, leftValue->getName());
             var = gv;
@@ -92,7 +93,7 @@ Value* ConstructorCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlo
 
         if (initfunc->needsParent()) {
             Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
-            Value *ptr = Builder->CreateLoad(thisTy->getPointerTo(), func->getThisArg(), "derefthis");
+            Value *ptr = Builder->CreateLoad(PointerType::getUnqual(thisTy), func->getThisArg(), "derefthis");
             args.push_back(ptr);
         }
 

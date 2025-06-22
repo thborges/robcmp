@@ -2,19 +2,14 @@
 #pragma once
 
 #include "Node.h"
-#include "Variable.h"
 #include "FunctionImpl.h"
+#include "MemCopy.h"
 
-class ConstructorCall: public Node {
+class ConstructorCall: public Constructor {
 protected:
-	Variable *leftValue = NULL;
 	string name;
 public:
-	ConstructorCall(const string tyName, location_t loc): Node(loc), name(tyName) { }
-	
-	virtual void setLeftValue(Variable *symbol) override {
-		leftValue = symbol;
-	}
+	ConstructorCall(const string tyName, location_t loc): Constructor(loc), name(tyName) { }
     
 	virtual Value* generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 

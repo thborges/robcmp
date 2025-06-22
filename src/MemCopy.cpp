@@ -4,10 +4,6 @@
 #include "BackLLVM.h"
 #include "FunctionImpl.h"
 
-void MemCopy::setLeftValue(Variable *symbol) {
-    leftValue = symbol;
-}
-
 Value* MemCopy::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
     
     RobDbgInfo.emitLocation(this);
@@ -55,7 +51,12 @@ Value* MemCopy::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
 
     // Prepare dest memory
     Type *leftvty;
-    Value *dest = leftValue->getLLVMValue(func);
+    Value *dest;
+    if (leftGEP)
+        dest = leftGEP;
+    else
+        dest = leftValue->getLLVMValue(func);
+
     if (dest) {
         leftvty = dest->getType();
         //FIXME: must check the alloc size for array and matrix

@@ -80,17 +80,18 @@ DataType BuildTypes::getArrayType(const string& elementName, SourceLocation n,
             } else {
                 DataType dt = addDataType(DataTypeInfo(arrayTyName));
                 DataTypeInfo &info = tinfo[dt];
-                info.llvmType = ArrayType::get(elementInfo.llvmType, 0); // we couldn't know the array size at compile time
+                Type *I = elementInfo.llvmType;
+                if (elementInfo.isComplex) {
+                    // In rob, any array of complex types is an array of refs
+                    I = elementInfo.llvmType->getPointerTo();
+                }
+                // we don't know the array size at compile time
+                info.llvmType = ArrayType::get(I, 0); 
                 info.isDefined = true;
                 info.isComplex = false;
                 info.arrayDimensions = dimensions;
-                info.bitWidth = elementInfo.bitWidth;
+                info.bitWidth = tinfo[targetPointerType].bitWidth;
                 info.dwarfEnc = dwarf::DW_ATE_address;
-                if (debug_info) {
-                    info.diType = DBuilder->createArrayType(0, 0, elementInfo.diType, {});
-                    unsigned ptbw = tinfo[currentTarget().pointerType].bitWidth;
-                    info.diPointerType = DBuilder->createPointerType(elementInfo.diType, ptbw);
-                }
                 return dt;
             }
         }
@@ -272,13 +273,23 @@ void BuildTypes::generateDebugInfoForTypes() {
         auto& info = tinfo[dt];
 
         Node *userType = program->findSymbol(info.name);
-        if (!userType)
-            continue;
+        if (userType) {
+            if (info.isEnum)
+                generateDebugInfoForEnum(info, userType);
+            else if (info.isComplex)
+                generateDebugInfoForUserType(info, userType);
 
-        if (info.isEnum)
-            generateDebugInfoForEnum(info, userType);
-        else
-            generateDebugInfoForUserType(info, userType);
+        }
+    }
+
+    for (DataType dt = nextt-1; dt >= __bdt_last; dt--) {
+        auto& info = tinfo[dt];
+        if (info.arrayDimensions > 0) {
+            auto elementInfo = tinfo[getArrayElementType(dt)];
+            info.diType = DBuilder->createArrayType(0, 0, elementInfo.diPointerType, {});
+            unsigned ptbw = tinfo[currentTarget().pointerType].bitWidth;
+            info.diPointerType = DBuilder->createPointerType(elementInfo.diType, ptbw);
+        }
     }
 }
 

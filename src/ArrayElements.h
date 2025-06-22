@@ -28,4 +28,9 @@ public:
 	std::vector<ArrayElement*>& getElements() {
 		return elements;
 	}
+
+	void insertElements(ArrayElements *newElements) {
+		elements.insert(elements.end(),
+			newElements->elements.begin(), newElements->elements.end());
+	}
 };

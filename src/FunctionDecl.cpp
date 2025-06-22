@@ -2,6 +2,7 @@
 #include "FunctionDecl.h"
 #include "BackLLVM.h"
 #include "FunctionAttributes.h"
+#include "Array.h"
 #include "Matrix.h"
 
 void FunctionBase::addThisArgument(DataType dt) {
@@ -50,15 +51,16 @@ void FunctionBase::addPseudoParameters() {
 	for (int i = 0; i < vparams.size(); ++i) {
 		Variable *p = vparams[i];
 
-		DataType pdt = p->getDataType();
-		if (buildTypes->isArrayOrMatrix(pdt)) {
+		ParamArray *paramArray = dynamic_cast<ParamArray*>(p);
+		ParamMatrix *paramMatrix = dynamic_cast<ParamMatrix*>(p);
+
+		if (paramArray || paramMatrix) {
 			vector<string> pseudos;
-			if (buildTypes->isArray(pdt))
-				pseudos.push_back("size");
-			else if (buildTypes->isMatrix(pdt)) {
+			if (paramMatrix) {
 				pseudos.push_back("rows");
 				pseudos.push_back("cols");
-			}
+			} else if (paramArray)
+				pseudos.push_back("size");
 
 			for(const string& s: pseudos) {
 				//TODO: There is something better than fix this to Int32? Fix here and in FunctionCall::generate
@@ -72,9 +74,8 @@ void FunctionBase::addPseudoParameters() {
 			}
 
 			// ParamMatrix need to know the number of cols to compute element indexes
-			if (buildTypes->isMatrix(pdt)) {
-				if (ParamMatrix *pm = dynamic_cast<ParamMatrix*>(p))
-					pm->addSymbol("cols", vparams.back());
+			if (paramMatrix) {
+				paramMatrix->addSymbol("cols", vparams.back());
 			}
 		}
 	}

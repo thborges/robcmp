@@ -5,18 +5,31 @@
 #include "Variable.h"
 #include "semantic/Visitor.h"
 
-class MemCopy: public Node {
+class Constructor: public Node {
+protected:
+	Variable *leftValue = NULL;
+	Value *leftGEP = NULL;
+public:
+	Constructor(location_t l): Node(l) {}
+
+	virtual void setLeftValue(Variable *symbol) override {
+		leftValue = symbol;
+	}
+
+	virtual void setLeftGEP(Value *gep) {
+		leftGEP = gep;
+	}
+};
+
+class MemCopy: public Constructor {
 private:
 	Node *expr;
-	Variable *leftValue = NULL;
 
 public:
-	MemCopy(Node *expr): Node(expr->getLoc()) {
+	MemCopy(Node *expr): expr(expr), Constructor(expr->getLoc()) {
 		addChild(expr);
 		this->expr = expr;
 	}
-
-	virtual void setLeftValue(Variable *symbol) override;
 	
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 

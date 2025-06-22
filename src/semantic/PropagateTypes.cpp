@@ -42,7 +42,10 @@ Node* PropagateTypes::coerceToUserTypes(Node *n, const DataType destTy) {
 Node* PropagateTypes::coerceTo(Node *n, const DataType destTy, bool warns) {
     if (isUndefined(n))
         return NULL;
+
     DataType valueTy = n->getDataType();
+    if (valueTy == destTy)
+        return n;
 
     // can coerce only between numeric types
     bool lIsNumeric = buildTypes->isNumericDataType(destTy);
@@ -372,7 +375,7 @@ Node* PropagateTypes::visit(FunctionCall& fc) {
 
 Node* PropagateTypes::visit(Matrix& n) {
     // visit elements to propagate their types
-    for(MatrixElement *me : n.getElements()) {
+    for(MatrixElement *me : n.getMatrixElements()) {
         for(ArrayElement *k: me->array->getElements()) {
             Node *aux = k->value->accept(*this);
             if (aux)
@@ -385,7 +388,7 @@ Node* PropagateTypes::visit(Matrix& n) {
     DataType edt = n.getElementDataType();
 
     // visit elements to sext or zext their values
-    for(MatrixElement *me : n.getElements()) {
+    for(MatrixElement *me : n.getMatrixElements()) {
         for(ArrayElement *k: me->array->getElements()) {
             k->value = coerceTo(k->value, edt);
         }

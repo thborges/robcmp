@@ -73,10 +73,17 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 	Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 	Value *indexList[2] = {zero, indice};
 	Value *ptr = Builder->CreateGEP(symbol->getLLVMType(), alloc, ArrayRef<Value*>(indexList), "gep");
+
 	DataType elementDt = buildTypes->getArrayElementType(symbol->getDataType());
 	Type *elemType = buildTypes->llvmType(elementDt);
-	LoadInst *ret = Builder->CreateLoad(elemType, ptr, ident.getFullName());
+	if (buildTypes->isUserType(elementDt)) {
+		if (leftValue) {
+			leftValue->setPointerToPointer(true);
+		}
+		elemType = elemType->getPointerTo();
+	}
 
+	LoadInst *ret = Builder->CreateLoad(elemType, ptr, ident.getFullName());	
 	return ret;
 }
 

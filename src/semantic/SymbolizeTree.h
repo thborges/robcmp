@@ -47,7 +47,7 @@ public:
 		        n.addSymbol(dynamic_cast<NamedNode*>(c));
             }
         }
-	    for(MatrixElement *i: n.getElements()) {
+	    for(MatrixElement *i: n.getMatrixElements()) {
 			for(ArrayElement *e: i->array->getElements()) {
                 e->value->setScope(&n);
                 e->value->accept(*this);

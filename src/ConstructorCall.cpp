@@ -13,7 +13,16 @@ Value* ConstructorCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlo
     RobDbgInfo.emitLocation(this);
     Builder->SetInsertPoint(block);
     GlobalVariable *gv = NULL;
-    Value *var = leftValue->getLLVMValue(func);
+
+    Value *var;
+    if (leftGEP) {
+        // init a previously set gep (e.g., array element)
+        var = leftGEP;
+    } else {
+        assert(leftValue && "leftValue or gep must be set.");
+        var = leftValue->getLLVMValue(func);
+    }
+    
     if (var == NULL) {
         // is a new left var
         Type *vty = buildTypes->llvmType(dt);

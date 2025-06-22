@@ -1,0 +1,76 @@
+
+type element {
+    fa = int16(0);
+}
+
+int16 check(element[] x) {
+    i = 0;
+    while i < x.size {
+        xx = x[i];
+        if xx.fa != (i+1)*10 {
+            return i+1;
+        }
+        i++;
+    }
+    return 0;
+}
+
+int16 test_vector_of_instances() {
+    x2 = element();
+    x2.fa = 30;
+
+    x3 = element();
+    x3.fa = 40;
+    
+    x = {element():2, copy(x2), copy(x3)};
+    
+    x0 = x[0];
+    x0.fa = 10;
+
+    x1 = x[1];
+    x1.fa = 20;
+    
+    return check(x);
+}
+
+int16 test_vector_of_pointers() {
+    x0 = element();
+    x1 = element();
+    
+    x2 = element();
+    x2.fa = 30;
+
+    x3 = element();
+    x3.fa = 50;
+    
+    // this will be a vector of references to element
+    x = {x0, x1, x2, x3};
+    
+    x0 = x[0];
+    x0.fa = 10;
+
+    x1 = x[1];
+    x1.fa = 20;
+
+    // test update of an element
+    x3_copy = element();
+    x3_copy.fa = 40;
+    x[3] = x3_copy;
+    
+    return check(x);
+}
+
+int16 main() {
+    vi = test_vector_of_instances();
+    if vi != 0 {
+        return vi;
+    }
+
+    vp = test_vector_of_pointers();
+    if vp != 0 {
+        return vp;
+    }
+
+    return 0;
+}
+

@@ -30,9 +30,7 @@ unsigned MatrixElements::getColumnCount() {
 DataType MatrixElements::getMatrixType() {
 	set<DataType> types;
 	for(auto& j : elements) {
-		for (auto& i : j->array->getElements()) {
-			types.emplace(i->value->getDataType());
-		}
+		types.emplace(j->array->getArrayType());
 	}
 	return ArrayElements::getArrayConstType(types, &location);
 }

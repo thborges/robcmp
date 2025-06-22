@@ -7,14 +7,14 @@
 #include "semantic/PropagateTypes.h"
 #include "semantic/Visitor.h"
 
-Array::Array(const string& n, ArrayElements *aes, location_t loc) : Variable(n, loc), elements(aes) {
+Array::Array(const string& n, ArrayElements *aes, location_t loc) : Variable(n, loc), arrayElements(aes) {
 	NamedConst *nc = new NamedConst("size", getNodeForUIntConst(aes->getArraySize(), loc));
 	addChild(nc);
 	addSymbol(nc);
 }
 
 Array::Array(const string& n, location_t loc) : Variable(n, loc) {
-	elements = new ArrayElements(getLoc());
+	arrayElements = new ArrayElements(getLoc());
 }
 
 DataType Array::getDataType() {
@@ -28,14 +28,19 @@ void Array::createDataType() {
 		return;
 
 	//Create a constant with the array size
-	size = elements->getArraySize();
-	Value *array_size = ConstantInt::get(Type::getInt8Ty(global_context), size);
+	size = arrayElements->getArraySize();
 	
 	//Get Type of elements in Array of Elements, and define as I.
-	element_dt = elements->getArrayType();
+	element_dt = arrayElements->getArrayType();
 	dt = buildTypes->getArrayType(buildTypes->name(element_dt),
 		this->getLoc(), 1, true);
+	
 	Type* I = buildTypes->llvmType(element_dt);
+	if (buildTypes->isComplex(element_dt)) {
+		// in rob, all arrays of user types (complex types)
+		// are array of references
+		I = I->getPointerTo(codeAddrSpace);
+	}
 
 	//Declare array type.
 	arrayType = ArrayType::get(I, size);
@@ -46,22 +51,39 @@ Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 	createDataType();
 	
 	//Generate array elements
-	unsigned int struct_size = elements->getStructSize();
 	unsigned int index = 0;
 	bool allConst = true;
 	vector<Value*> elementValues;
-	elementValues.reserve(elements->getArraySize());
+	map<int, Constructor*> ctorsValues;
+	
+	int currentElement = 0;
+	elementValues.reserve(arrayElements->getArraySize());
+	unsigned int struct_size = arrayElements->getStructSize();
 	for (int i=0; i<struct_size; i++) {
-		Node* elValue = elements->getStructElement(i);
-		Value *val = elValue->generate(func, block, allocblock);
-		if (!val)
-			return NULL;
-		if (!dyn_cast<Constant>(val))
+		Node* elValue = arrayElements->getStructElement(i);
+		Value *val;
+		Constructor *ctor;
+		if ((ctor = dynamic_cast<Constructor*>(elValue))) {
+			// constructors are called latter, for each array element
+			val = nullptr;
 			allConst = false;
+		} else {
+			ctor = nullptr;
+			val = elValue->generate(func, block, allocblock);
+			if (!val) {
+				yyerrorcpp(string_format("Can not generate the value for element at pos %d", i).c_str(), elValue, true);
+				return NULL;
+			}
+			if (!dyn_cast<Constant>(val))
+				allConst = false;
+		}
 
-		unsigned elCount = elements->getElementCount(i);
+		unsigned elCount = arrayElements->getElementCount(i);
 		for (int j=0; j < elCount; j++) {
 			elementValues.push_back(val);
+			if (!val) // is ctor
+			 	ctorsValues[currentElement] = ctor;
+			currentElement++;
 		}
 	}
 
@@ -106,17 +128,40 @@ Value *Array::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 				RobDbgInfo.declareVar(this, alloc, allocblock);
 			}
 		}
+
+		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
+
+		// create an array and initialize the Copy/Constructors instances
+		// e.g. a = {element(), element():2, copy(x1), copy(y)}
+		if (ctorsValues.size() > 0) {
+			Type* ctorTy = buildTypes->llvmType(element_dt);
+			ArrayType *ctorArrayType = ArrayType::get(ctorTy, ctorsValues.size());
+			Builder->SetInsertPoint(allocblock);
+			Value *ctorArray = Builder->CreateAlloca(ctorArrayType, dataAddrSpace, 0, "inlineArrayElems");
+			
+			Builder->SetInsertPoint(block);
+			int idxCtor = 0;
+			for(auto &[key, ctor] : ctorsValues) {
+				Value *idx = ConstantInt::get(Type::getInt32Ty(global_context), idxCtor);
+				Value* indexList[2] = {zero, idx};
+				RobDbgInfo.emitLocation(ctor);
+				Value* gep = Builder->CreateGEP(ctorArrayType, ctorArray, indexList, "ctorElem");
+				ctor->setLeftGEP(gep);
+				ctor->generate(func, block, allocblock);
+				elementValues[key] = gep;
+				idxCtor++;
+			}
+		}
+
 		RobDbgInfo.emitLocation(this);
 		Builder->SetInsertPoint(block);
 
-		Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
-		StoreInst *store = NULL;
+		// set array elements
 		for(unsigned index = 0; index < elementValues.size(); index++) {
 			Value *idx = ConstantInt::get(Type::getInt32Ty(global_context), index);
 			Value* indexList[2] = {zero, idx};
-			Value* gep = Builder->CreateGEP(arrayType, alloc, 
-				ArrayRef<Value*>(indexList), "elem");
-			store = Builder->CreateStore(elementValues[index], gep, false);
+			Value* gep = Builder->CreateGEP(arrayType, alloc, indexList, "elem");
+			Builder->CreateStore(elementValues[index], gep, false);
 		}
 	}
 

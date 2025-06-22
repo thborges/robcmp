@@ -1,5 +1,7 @@
 
 #include "ArrayElements.h"
+#include "ConstructorCall.h"
+#include "MemCopy.h"
 
 ArrayElements::ArrayElements(location_t loc): location(loc) {};
 
@@ -19,7 +21,20 @@ unsigned ArrayElements::getStructSize() {
 }
 
 DataType ArrayElements::getArrayConstType(const set<DataType>& types, SourceLocation *location) {
-	
+
+	// detect use of two or more usertype
+	if (types.size() >= 2) {
+		int userTypesCount = 0;
+		for(auto &dt : types) {
+			if (buildTypes->isComplex(dt))
+				userTypesCount++;
+		}
+		if (userTypesCount > 1) {
+			yyerrorcpp(string_format("There are %d heterogeneous element types. Can not convert between them.", userTypesCount), location);
+			return tvoid;
+		}
+	}
+
 	if (types.size() == 1) {
 		// only one type
 		return *types.begin();
@@ -50,10 +65,9 @@ DataType ArrayElements::getArrayConstType(const set<DataType>& types, SourceLoca
 		return floatdt; // convert all to largest float
 	else if (largest_int > 0)
 		return intdt;   // convert all to largest int
-	else {
-		yyerrorcpp("Can't identify the array type based on its values.", location);
-		return BuildTypes::undefinedType;
-	}
+	
+	yyerrorcpp("Can't identify the array type based on its values.", location);
+	return BuildTypes::undefinedType;
 }
 
 DataType ArrayElements::getArrayType() {
@@ -63,8 +77,13 @@ DataType ArrayElements::getArrayType() {
 		DataType edt = i->value->getDataType();
 		if (buildTypes->isEnum(edt))
 			edt = tint8;
-		types.emplace(edt);
+		
+		if (buildTypes->isArrayOrMatrix(edt))
+			yyerrorcpp("Can not make array of arrays yet.", i->value);
+		else
+			types.emplace(edt);
 	}
+
 	return getArrayConstType(types, &location);
 }
 

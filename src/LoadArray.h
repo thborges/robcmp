@@ -9,6 +9,7 @@ protected:
 	Identifier ident;
 	Node *position;
 	Node *position2;
+	Variable *leftValue = nullptr;
 public:
 	BaseArrayOper(const string& i, Node *pos, Node *pos2, location_t loc): 
 		Node(loc), ident(i, loc), position(pos), position2(pos2) {}
@@ -23,12 +24,20 @@ public:
 		return position2;
 	}
 
-	const string getIdent() {
+	const string getIdent() const {
 		return ident.getFullName();
 	}
 
 	const int getDimensions() {
 		return children().size();
+	}
+
+	virtual const string getName() const override {
+		return getIdent();
+	}
+
+	virtual void setLeftValue(Variable *symbol) override {
+		leftValue = symbol;
 	}
 };
 

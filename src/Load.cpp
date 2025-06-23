@@ -134,6 +134,8 @@ Value* Load::getRecursiveField(Identifier &ident, Node *scope, FunctionImpl *fun
 	Node *first = symbols.front();
 	symbols.pop_front();
 	Value *alloc = first->getLLVMValue(func);
+	assert(alloc && "Can't get a field of an unallocated symbol.");
+
 	Type *udt = buildTypes->llvmType(first->getDataType());
 	if (first->isPointerToPointer()) {
 		alloc = Builder->CreateLoad(PointerType::getUnqual(udt), alloc, "deref");

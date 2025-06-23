@@ -1,17 +1,19 @@
 
 int8 main() {
-    block = {true:2};
+    block = {false:2};
     i = 2;
     while (i > 0) {
         row = i;
-        block[row] = false;
+        block[row] = true;
+        i--;
     }
 
     row = 0;
     while row < block.size {
-        block[row] = true;
+        block[row] = false;
+        row++;
     }
-   
-    return 0;
+
+    return block[0];
 }
 

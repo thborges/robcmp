@@ -22,7 +22,9 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 	if (!symbol)
 		return NULL;
 
+	RobDbgInfo.emitLocation(this);
 	Builder->SetInsertPoint(block);
+
 	Pointer *reg = NULL;
 	Node *stem = NULL;
 	if (ident.isComplex()) {
@@ -61,7 +63,10 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 	if (hasQualifier(qconst))
 		return exprv;
 
+	// expr->generate changes the location and block
+	RobDbgInfo.emitLocation(this);
 	Builder->SetInsertPoint(block);
+
 	if (!alloc)
 		alloc = symbol->getLLVMValue(func);
 	
@@ -69,9 +74,6 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 	if (alloc == NULL) {
 		Value *ret = NULL;
 		setDataType(exprv_dt);
-
-		auto sp = RobDbgInfo.currScope();
-		auto funit = RobDbgInfo.currFile();
 
 		if (allocblock == global_alloc) {
 			Constant *exprvc = dyn_cast<Constant>(exprv);
@@ -94,15 +96,17 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 					RobDbgInfo.declareGlobalVar(expr, gv, allocblock);
 			}
 		} else {
-			RobDbgInfo.emitLocation(this);
 			Builder->SetInsertPoint(allocblock);
-			AllocaInst *temp = Builder->CreateAlloca(exprv->getType(), dataAddrSpace, 0, name);
-			alloc = temp;
+			alloc = Builder->CreateAlloca(exprv->getType(), dataAddrSpace, 0, name);
 			Builder->SetInsertPoint(block);
 			ret = Builder->CreateStore(exprv, alloc, symbol->hasQualifier(qvolatile));
 
 			if (debug_info)
 				RobDbgInfo.declareVar(this, alloc, allocblock);
+
+			// the symbol is in another scope
+			if (alloc && this != symbol)
+				symbol->setAlloca(alloc);
 		}
 
 		return ret;
@@ -135,7 +139,6 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 		if (pm == pm_pointer)
 			currty = PointerType::getUnqual(currty);
 
-		RobDbgInfo.emitLocation(this);
 		Builder->SetInsertPoint(allocblock == global_alloc ? global_alloc : block);
 		Value *nvalue = NULL;
 
@@ -175,7 +178,6 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 		}
 
 		if (nvalue != alloc) {
-			RobDbgInfo.emitLocation(this);
 			const DataLayout &DL = mainmodule->getDataLayout();
 			Align align = DL.getABITypeAlign(nvalue->getType());
 			return Builder->CreateAlignedStore(nvalue, alloc, align, symbol->hasQualifier(qvolatile));

@@ -183,7 +183,10 @@ void Program::declareBuiltins() {
 	addSymbol(typeid_decl);
 }
 
-void Program::generateBuiltins() {	
+void Program::generateBuiltins() {
+	auto SavedLoc = Builder->getCurrentDebugLocation();
+	Builder->SetCurrentDebugLocation(DebugLoc());
+
 	// generate the typeid declaration
 	Node *decl = findSymbol("typeid");
 	Value *typeidValue = decl->generate(NULL, NULL, global_alloc);
@@ -214,6 +217,7 @@ void Program::generateBuiltins() {
 	Builder->SetInsertPoint(body);
 	Builder->CreateCondBr(CmpVoid, returnVoid, returnTypeid);
 
+	Builder->SetCurrentDebugLocation(SavedLoc);
 }
 
 extern bool parseIsCompleted;

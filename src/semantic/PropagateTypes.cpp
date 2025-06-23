@@ -374,6 +374,8 @@ Node* PropagateTypes::visit(FunctionCall& fc) {
 }
 
 Node* PropagateTypes::visit(Matrix& n) {
+    PropagateTypes::visit((Variable&)n);
+    
     // visit elements to propagate their types
     for(MatrixElement *me : n.getMatrixElements()) {
         for(ArrayElement *k: me->array->getElements()) {
@@ -398,6 +400,8 @@ Node* PropagateTypes::visit(Matrix& n) {
 }
 
 Node* PropagateTypes::visit(Array& n) {
+    PropagateTypes::visit((Variable&)n);
+    
     // visit elements to propagate their types
     for(ArrayElement *ae : n.getElements()) {
         Node *aux = ae->value->accept(*this);
@@ -481,7 +485,7 @@ Node* PropagateTypes::visit(Variable& n) {
             destDt != BuildTypes::undefinedType &&
             ndt != destDt) {
             // the var was first defined as destDt.
-            // we coherce the right hand side to match it
+            // try to coherce the right hand side to match it
             checkCoercion = true;
         }
     }
@@ -492,6 +496,9 @@ Node* PropagateTypes::visit(Variable& n) {
         // this can occur when using types, e.g. usertype.x = newvalue;
         destDt = n.getDataType();
         checkCoercion = true;
+    } else if (!expr) {
+        // for array and matrix, getExpr returns null
+        expr = &n;
     }
 
     if (checkCoercion) {

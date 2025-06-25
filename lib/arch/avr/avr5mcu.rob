@@ -86,31 +86,39 @@ type avr5mcu implements mcu {
 		b5.set(s);
 	}
 
-	void wait_us(uint16 us) {
-		volatile uus = us;
-		while uus > 0 {
-			__delay_us();
-			uus--;
-		}
+	void busy_wait_loop1(uint16 count) noopt {
+		/* trusting that ABI will put the count parameter in r25:r24
+		   sbiw takes 2 cycles
+		   brne takes 2 cycles when branching, 1 when not
+		   ret +1 cycle */
+		asm "1:
+		       sbiw r24, 1
+		       brne 1b"; // a ret is appended here
 	}
 
 	void busy_wait_loop5(uint16 count) noopt {
-		// trusting that ABI will put the count parameter in r25:r24
-		// cycles total: 3 + count*5-1 + 3
-		//   +2 (ldi r25:r24 prior to cal) + count*5 - 1 + 3
-		//   +1 (ser)
-		//   +count*5-1 (loop)
-		//   +2 (rjmp)
-		//   +1 (ret)
+		/* trusting that ABI will put the count parameter in r25:r24
+		   cycles total: 3 + count*5-1 + 3
+		     +2 (ldi r25:r24 prior to cal) + count*5 - 1 + 3
+		     +1 (ser)
+		     +count*5-1 (loop)
+		     +2 (rjmp)
+		     +1 (ret) */
 		asm "ser r18
-			 loop: subi r18,1
+			 busy_wait_loop5_loop:
+			       subi r18,1
 				   sbci r24,0
 				   sbci r25,0
-				   brne loop
-			 rjmp end
-			 end: "; // a ret is appended here
+				   brne busy_wait_loop5_loop
+			 rjmp busy_wait_loop5_end
+			 busy_wait_loop5_end: "; // a ret is appended here
 	}
 	
+	void wait_us(uint16 us) {
+		count = uint16(clock() / 4e6) * us - 1;
+		busy_wait_loop1(count);
+	}
+
 	// secure range 1 -- 5460
 	void wait_ms(uint16 ms) {
 		count = uint16(clock() / 1280e3) * ms - 1;
@@ -282,7 +290,7 @@ type avr5mcu implements mcu {
 		bool start_transaction(uint16 addr) {
 			// write START condition
 			TWCR = ETWCR.TWSTA | ETWCR.TWEN | ETWCR.TWINT;
-			while TWCR & ETWCR.TWINT == 0;
+			while (TWCR & ETWCR.TWINT) == 0;
 
 			if TWSR.TWS != STATUS.START_OK {
 				return false;
@@ -291,7 +299,7 @@ type avr5mcu implements mcu {
 			// write SLA addr
 			TWDR = uint8(addr);
 			TWCR = ETWCR.TWEN | ETWCR.TWINT;
-			while TWCR & ETWCR.TWINT == 0;
+			while (TWCR & ETWCR.TWINT) == 0;
 
 			if TWSR.TWS != STATUS.MT_SLA_ACK_OK {
 				return false;
@@ -308,7 +316,7 @@ type avr5mcu implements mcu {
 		void write(uint8 b) {
 			TWDR = b;
 			TWCR = ETWCR.TWINT | ETWCR.TWEN;
-			while TWCR & ETWCR.TWINT == 0;
+			while (TWCR & ETWCR.TWINT) == 0;
 		}
 
 		void write_array(int8[] data) {
@@ -316,7 +324,7 @@ type avr5mcu implements mcu {
 			while (i < data.size) {
 				TWDR = uint8(data[i]);
 				TWCR = ETWCR.TWEN | ETWCR.TWINT;
-				while TWCR & ETWCR.TWINT == 0;
+				while (TWCR & ETWCR.TWINT) == 0;
 				// check if TWSR.TWS != 0x5 // 0x28 >> 3
 				// data transmited and ack received
 				i++;

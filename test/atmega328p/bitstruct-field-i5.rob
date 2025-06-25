@@ -7,7 +7,7 @@ use arch.avr.avr5regs;
 int8 main() {
     
     TWCR = ETWCR.TWSTA | ETWCR.TWEN | ETWCR.TWINT;
-    while TWCR & ETWCR.TWINT == 0;
+    while (TWCR & ETWCR.TWINT) == 0;
 
 	if TWSR.TWS != (0x8 >> 3) {
 		return 1;

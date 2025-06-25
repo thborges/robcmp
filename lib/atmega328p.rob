@@ -2,7 +2,7 @@
  * Robcmp interruptions vector for atmega328p
  */
 
-int8 main();
+int16 main();
 
 void __do_copy_data() naked {
 asm "
@@ -37,16 +37,6 @@ asm "
 	ret";
 }
  
-void __delay_us() naked {
-asm "
-	ldi r18, 5
-	__delay_ms_loop:
-		dec r18
-		brne __delay_ms_loop
-	nop
-	ret";
-}
- 
 /* Weak definitions for supported interruptions
  */
  void irq_usart_rx() naked, weak, section __irqs { }
@@ -62,7 +52,7 @@ asm "
  timer0_millis = uint32(0);
  timer0_fract = uint16(0);
 
- void irq_timer0_ovf() signal, weak, section __irqs {
+void irq_timer0_ovf() signal, weak, section __irqs {
 	timer0_millis += millis_per_ovf;
 	timer0_fract += millis_frac_per_ovf;
 	if (timer0_fract > 1000) {

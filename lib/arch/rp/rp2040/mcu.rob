@@ -8,8 +8,8 @@ use regs;
 type rp2040mcu implements mcu {
 	
 	uint32 clock() inline {
-		// 133Mhz
-		return 133E6;
+		// 200Mhz set by init
+		return 200E6;
 	}
 
 	void set_interruptions(bool enabled) {
@@ -33,8 +33,9 @@ type rp2040mcu implements mcu {
 			}
         }
 		void set(bool v) {
-			if (v) { GPIO_OUT_SET.IO24 = true; }
-			else { GPIO_OUT_CLR.IO24 = true; } 
+			x = uint32(1) << 24;
+			if (v) { GPIO_OUT_SET_raw = x; }
+			else { GPIO_OUT_CLR_raw = x; } 
 		}
 		bool get() { return GPIO_IN.IO24; }
 	}
@@ -56,31 +57,101 @@ type rp2040mcu implements mcu {
 			}
         }
 		void set(bool v) {
-			if (v) { GPIO_OUT_SET.IO25 = true; }
-			else { GPIO_OUT_CLR.IO25 = true; } 
+			x = uint32(1) << 25;
+			if (v) { GPIO_OUT_SET_raw = x; }
+			else { GPIO_OUT_CLR_raw = x; } 
 		}
 		bool get() { return GPIO_IN.IO25; }
 	}
 
+	uint64 micros() {
+		timeLR = TIMELR_raw;
+    	timeHR = TIMEHR_raw;
+    	return (uint64(timeHR) << 32) | timeLR;
+	}
+
+	uint64 millis() {
+		return micros() / 1000;
+	}
+
     void wait_us(uint16 us) {
-		volatile x = us;
-		while x > 0 {
-			x--;
-		}
+		old = micros();
+		while micros() - old < us;
 	}
 
 	void wait_ms(uint16 ms) {
-		while ms > 0 {
-			wait_us(1000);
-			ms--;
+		old = millis();
+		while millis() - old < ms;
+	}
+
+	uart0 implements databus {
+
+		void setup(uint32 baud) {
+			// set uart0 in IO0 (tx) and IO1 (rx)
+			GPIO0_CTRL.FUNCSEL = GPIO0_CTRL_FUNCSEL.uart0_tx;
+			GPIO1_CTRL.FUNCSEL = GPIO1_CTRL_FUNCSEL.uart0_rx;
+			
+			// set baudrate integer and fraction
+			// for clock = 133E6 > 125E6, clk_peri automatically switches to 48E6
+			common_denominator = baud * 16;
+			baud_rate_integer = 48E6 / common_denominator;
+			baud_rate_frac = ((48E6 % common_denominator) * 64) / common_denominator;
+			UART0_UARTIBRD.BAUD_DIVINT = uint16(baud_rate_integer);
+			UART0_UARTFBRD.BAUD_DIVFRAC = uint6(baud_rate_frac);
+
+			// 8 bit
+			UART0_UARTLCR_H.WLEN = 0b11;  // 8 bit
+			UART0_UARTLCR_H.FEN = true;  // enable FIFO buffers
+			UART0_UARTLCR_H.STP2 = false; // 1 stop bit
+			UART0_UARTLCR_H.PEN = false;  // no parity
+			UART0_UARTLCR_H.BRK = false;  // don't send break
+
+			// enable TX and RX
+			UART0_UARTCR.TXE = true;
+			UART0_UARTCR.RXE = true;
+		}
+
+		void async_read_to(interrupt_i8 i) {
+			//int_usart_rx = i;
+			//UCSR0B.RXCIE0 = true;
+		}
+
+		void enable() {
+			UART0_UARTCR.UARTEN = true;
+		}
+
+		void disable() {
+			UART0_UARTCR.UARTEN = false;
+		}
+
+		void write(uint8 b) inline {
+			while UART0_UARTFR.TXFF; // wait if transmit fifo is full
+			UART0_UARTDR.DATA = b;
+		}
+
+		void write_array(int8[] data) {
+			i = 0u;
+			while i < data.size {
+				write(uint8(data[i]));
+				i++;
+			}
+		}
+
+		uint8 read() inline {
+			while UART0_UARTFR.RXFE; // wait if receive fifo is empty
+			return UART0_UARTDR.DATA;    
+		}
+
+		bool has_data() inline {
+			return !UART0_UARTFR.RXFE;
+		}
+
+		bool start_transaction(uint16 address) inline { return true; }
+		void end_transaction() { }
+		
+		databus_protocol get_protocol() inline {
+			return databus_protocol.UART;
 		}
 	}
 
-	uint32 micros() {
-		return 0;
-	}
-
-	uint32 millis() {
-		return micros() / 1000;
-	}
 }

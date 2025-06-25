@@ -18,7 +18,8 @@ LD_FLAGS+=--gc-sections
 LD_FLAGS+=--lto=thin
 
 DEPENDS=${ROBCMP} Makefile
-LINK_DEPENDS=out/init.o ../../lib/arch/rp/rp2040/boot2.o
+LINK_DEPENDS=out/init.o ../../lib/arch/rp/rp2040/boot2.o ../../lib/arm-none-eabi-thumb-v6m-libgcc.a ../../lib/cortex-m0plus-arm-missing.o
+#../../lib/libclang_rt.builtins-armv6.a
 
 all: out test
 
@@ -41,13 +42,14 @@ out/%.ll : %.rob ${DEPENDS}
 	@-./runtest.sh $< $(patsubst %.rob,out/%,$<) 
 
 out/%.uf2 : out/%
+	llvm-size $<
 	./elf2uf2/elf2uf2 -v $< $@
 
 out/% : out/%.o ${LINK_DEPENDS} 
 	ld.lld ${LD_FLAGS} $^ -o $@
 
 %.up : out/%.uf2
-	cp out/blink.uf2 /Volumes/RPI-RP2
+	cp $< /Volumes/RPI-RP2
 
 test: ${ALL_TT}
 

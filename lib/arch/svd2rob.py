@@ -36,14 +36,18 @@ template_type = """\
 
 template_register = """\
  // {prefix_desc}{description}
- register {type}_t {prefix_name}{name} at {addr};
+ register {type} {prefix_name}{name} at {addr};
 """
 
-template_field = "\t{name:<xxlenxx} = {type:<20}// {description}"
+template_register_raw = " register {type_raw} {prefix_name}{name}_raw at {addr};\n"
+
+template_field = "\t{name:<{maxlen}} = {type:<20}// {description}"
+
 
 def clear_description(string):
     return " ".join(string.split())
-    
+
+
 def get_type_for_size(size):
     if size <= 8:
         return 'uint8'
@@ -66,45 +70,40 @@ def get_field_for_type(string):
     else:
         field['type'] = 'uint' + str(size) + '(0);'
     return field
-
+    
 
 def add_reserved(reservedfields, start, size, resnum):
-    first = True
-    orig_size = size
-    while size > 0:
-        fsize = 0
-        if size == 1:
-            ftype = "false;"
-            fsize = 1
-        elif size in [2,3,4,5,6,7,8]:
-            ftype = "uint%d(0);" % size
-            fsize = size
-        elif size >= 32:
-            ftype = "uint32(0);"
-            fsize = 32
-        elif size >= 16:
-            ftype = "uint16(0);"
-            fsize = 16
-        elif size > 8:
-            ftype = "uint8(0);"
-            fsize = 8
-        fres = {}
-        fres['name'] = '_res%d' % resnum
-        if first:
-            fres['description'] = 'Reserved, %d bits' % (orig_size,)
-            first = False
-        else:
-            fres['description'] = ''
-        fres['type'] = ftype
-        fres['start'] = start
-        start = start + fsize
-        size = size - fsize
-        resnum = resnum + 1;
-        reservedfields.append(fres)
-    return resnum
+    fres = {}
+    fres['name'] = f'_res{resnum}'
+    fres['description'] = f'Reserved, {size} bits'
+    if size == 1:
+        fres['type'] = "false;"
+    else:
+        fres['type'] = f"uint{size}(0);"
+    fres['start'] = start
+    reservedfields.append(fres)
 
 
-def get_fields_str(fields_node, size):
+def print_field_enumeration(register_name, field, enum_node):
+    enum_values = list(enum_node.iter('enumeratedValue'))
+    last = len(enum_values)-1
+    maxlen = max([len(f.find('name').text) + len(f.find('value').text) for f in enum_values])
+
+    print(f" enum {register_name}_{field['name']} {{")
+    for i, enum_value in enumerate(enum_values):
+        name = enum_value.find('name').text
+        if name[0] >= '0' and name[0] <= '9':
+            name = "_" + name
+        value = enum_value.find('value').text
+        desc = enum_value.find('description')
+        desc = '' if desc is None else desc.text
+        comma = '' if i == last else ','
+        leftstr = f"\t{name} = {value}{comma}"
+        print(f"{leftstr:<{maxlen+6}} // {desc}")
+    print(" }\n")
+
+
+def get_fields_str(register_name, fields_node, size):
     if fields_node == None:
         return ""
     
@@ -125,6 +124,10 @@ def get_fields_str(fields_node, size):
         if description_node is not None:
             field['description'] = clear_description(description_node.text)
 
+        enum_node = field_node.find('enumeratedValues')
+        if enum_node is not None:
+            print_field_enumeration(register_name, field, enum_node)
+
         fields.append(field)
 
     fields = sorted(fields, key=lambda field: field['start'])
@@ -136,7 +139,8 @@ def get_fields_str(fields_node, size):
     for f in fields:
         if f['start'] > i:
             #print("start: %d, i: %d\n" % (f['start'], i))
-            resnum = add_reserved(reservedfields, i, f['start']-i, resnum)
+            add_reserved(reservedfields, i, f['start']-i, resnum)
+            resnum = resnum + 1
         i = f['end'] + 1
 
     # missing bits at end
@@ -145,9 +149,8 @@ def get_fields_str(fields_node, size):
 
     fields = fields + reservedfields
     maxlen = max([len(f['name']) for f in fields])
-    custom_template_field = template_field.replace('xxlenxx', str(maxlen))
     fields = sorted(fields, key=lambda field: field['start'])
-    return "\n".join([custom_template_field.format(**f) for f in fields])
+    return "\n".join([template_field.format(**f, maxlen=maxlen) for f in fields])
 
 
 # map dependencies to generate peripherals prefixes
@@ -178,8 +181,10 @@ def print_tags(tags):
             print("\t%s: %s" % (t, node.text))
 
 print("/*")
-print_tags(['vendor', 'name', 'series', 'version', 'description'])
+print_tags(['vendor', 'name', 'series', 'version', 'description', 'width', 'size'])
 print("*/")
+
+default_size = int(root.find('width').text)
 
 for peripheral in root.iter('peripheral'):
     # peripheral name
@@ -250,6 +255,9 @@ for peripheral in root.iter('peripheral'):
         size_node = register.find('size')
         if size_node is not None:
             size = int(size_node.text, 0)
+        else:
+            size = default_size
+        regdata['type_raw'] = get_type_for_size(size)
 
         fields = register.find('fields')
         if fields == None:
@@ -257,7 +265,9 @@ for peripheral in root.iter('peripheral'):
             print(template_register.format(**regdata))
         else:
             if not isDerived:
-                regdata['fields'] = get_fields_str(fields, size)
+                regdata['fields'] = get_fields_str(regdata['name'], fields, size)
                 print(template_type.format(**regdata))
-            print(template_register.format(**regdata))
+            regdata['type'] = regdata['type'] + "_t"
+            print(template_register.format(**regdata), end="")
+            print(template_register_raw.format(**regdata))
 

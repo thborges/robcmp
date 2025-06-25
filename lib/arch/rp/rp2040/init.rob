@@ -3,7 +3,6 @@
  */
 
 use regs;
-//use math.limits;
 
 int16 main();
 
@@ -17,11 +16,43 @@ void __system_config() {
 	//WATCHDOG_CTRL.ENABLE = false;
 	//WATCHDOG_CTRL.TIME = 0;
 
-	//ROSC_CTRL.ENABLE = 0xfab;
-	//CLK_SYS_CTRL.SRC = 0x1; // CLKSRC_CLK_SYS_AUX
-	//CLK_SYS_CTRL.AUXSRC = 0x2; // ROSC_CLKSRC
-	//while (CLK_SYS_SELECTED.CLK_SYS_SELECTED & 0x7) != 1;
+	// Configure and Enable XOSC (External Crystal Oscillator)
+	XOSC_CTRL.ENABLE = XOSC_CTRL_ENABLE.ENABLE;
+	while !XOSC_STATUS.STABLE; // wait it becomes stable
 
+	// Reset pll_sys
+	RESET.PLL_SYS = false;
+	while !RESET_DONE.PLL_SYS;
+
+	// Configure PLL_SYS to generate 200MHz from 12MHz XOSC
+	PLL_SYS_FBDIV_INT.FBDIV_INT = 200;
+	PLL_SYS_PWR.PD = false;
+	PLL_SYS_PWR.VCOPD = false;
+	while !PLL_SYS_PLL_SYS_CS.LOCK;
+
+	// set and turn on the post dividers
+	PLL_SYS_PRIM.POSTDIV1 = 6;
+	PLL_SYS_PRIM.POSTDIV2 = 2;
+	PLL_SYS_PWR.POSTDIVPD = false;
+
+	// Setup clock generators
+	// Setup clk_ref
+	CLK_REF_CTRL.SRC = CLK_REF_CTRL_SRC.xosc_clksrc;
+	while (CLK_REF_SELECTED.CLK_REF_SELECTED & 0b100) != 0b100;
+
+	// Setup clk_sys
+	CLK_SYS_CTRL.SRC = CLK_SYS_CTRL_SRC.clksrc_clk_sys_aux;
+	while (CLK_SYS_SELECTED.CLK_SYS_SELECTED & 0b10) != 0b10;
+
+	// disable ROSC
+	ROSC_CTRL.ENABLE = ROSC_CTRL_ENABLE.DISABLE;
+
+	// Enable 64-bit Timer
+	WATCHDOG_CTRL.TIME = 12; // 12 or 6?
+	RESET.TIMER = false;
+	while !RESET_DONE.TIMER;
+
+	// reset GPIOs
 	RESET.IO_BANK0 = false;
 	RESET.PADS_BANK0 = false;
 	while !RESET_DONE.IO_BANK0;
@@ -33,16 +64,14 @@ void __error_handler() {
 }
 
 void __enter_vtable_in_r0() naked {
-	
-	//#define PPB_BASE _u(0xe0000000)
-	//#define M0PLUS_VTOR_OFFSET _u(0x0000ed08)
-	//ldr r1, =(PPB_BASE + ARM_CPU_PREFIXED(VTOR_OFFSET))
+	//read the VTOR offset and send core to vtable previously set in r0
+	//PPB_BASE is at _u(0xe0000000) and the M0PLUS_VTOR_OFFSET is 0x0000ed08
+	//thus, ldr r1, =(PPB_BASE + M0PLUS_VTOR_OFFSET)
 	asm "ldr r1, =0xe000ed08
 		 str r0, [r1]
 		 ldmia r0!, {r1, r2}
 		 msr msp, r1
-		 bx r2
-		";
+		 bx r2";
 }
 
 void __do_copy_data_and_bss() noinline {
@@ -73,9 +102,9 @@ asm
 }
 
 void __isr_reset() naked {
-	// check if core 1 is sleeping in the bootrom 
-	// xx = (SIO_BASE) 0xd0000000 + SIO_CPUID_OFFSET 0x00000000
-	// value of xx is 0 when read from processor core 0, and 1 when read from processor core 1
+	// check if (and put) core 1 to sleep in the bootrom 
+	// xx = 0xd0000000 = (SIO_BASE) 0xd0000000 + SIO_CPUID_OFFSET 0x00000000
+	// value from [xx] is 0 when read from processor core 0, and 1 when read from processor core 1
     asm "ldr r0, =0xd0000000
 		 ldr r0, [r0]
 		 cmp r0, #0

@@ -157,6 +157,34 @@ ENDF __mulsi3
 	
 #define	r_cnt __zero_reg__  /* loop count (0 after the loop!) */
 
+
+/*******************************************************
+       Division 8 / 8 => (result + remainder)
+*******************************************************/
+#define	r_rem	r25	/* remainder */
+#define	r_arg1	r24	/* dividend, quotient */
+#define	r_arg2	r22	/* divisor */
+#define	r_ucnt	r23	/* loop count */
+
+DEFUN __udivmodqi4
+	sub	r_rem,r_rem	; clear remainder and carry
+	ldi	r_ucnt,9		; init loop counter
+	rjmp	__udivmodqi4_ep	; jump to entry point
+__udivmodqi4_loop:
+	rol	r_rem		; shift dividend into remainder
+	cp	r_rem,r_arg2	; compare remainder & divisor
+	brcs	__udivmodqi4_ep	; remainder <= divisor
+	sub	r_rem,r_arg2	; restore remainder
+__udivmodqi4_ep:
+	rol	r_arg1		; shift dividend (with CARRY)
+	dec	r_ucnt		; decrement loop counter
+	brne	__udivmodqi4_loop
+	com	r_arg1		; complement result
+				; because C flag was complemented in loop
+	ret
+ENDF __udivmodqi4
+
+
 DEFUN __udivmodsi4
 	ldi	r_remL, 33	; init loop counter
 	mov	r_cnt, r_remL

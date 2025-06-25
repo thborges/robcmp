@@ -1,5 +1,5 @@
 
-GEN=avr5.o avr51.o cortex-m3-arm-missing.o
+GEN=avr5.o avr51.o cortex-m3-arm-missing.o cortex-m0plus-arm-missing.o
 
 all: ${GEN}
 
@@ -15,6 +15,9 @@ avr51.o: avr51.S
 
 cortex-m3-arm-missing.o: arm-missing.c
 	clang --target=arm-none-eabi -mcpu=cortex-m3 -mthumb -O3 -c $< -o $@
+
+cortex-m0plus-arm-missing.o: arm-missing.c
+	clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -O3 -c $< -o $@
 
 clean:
 	rm -f ${GEN}

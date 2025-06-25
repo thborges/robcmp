@@ -2,10 +2,6 @@ MEMORY
 {
 	FLASH (rx) : ORIGIN = 0x10000000, LENGTH = 2M
 	RAM (rwx) : ORIGIN = 0x20000000, LENGTH = 264K
-	/*qemu
-	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 2M
-	RAM (rwx) : ORIGIN = 0x20000000, LENGTH = 2K
-	*/
 }
 
 __reset_stack_pointer = ORIGIN(RAM) + LENGTH(RAM);
@@ -51,17 +47,6 @@ SECTIONS
 		*(.rodata.*)
 		. = ALIGN(4);
 	} > FLASH
-
-    /* Machine inspectable binary information */
-    . = ALIGN(4);
-    __binary_info_start = .;
-    .binary_info :
-    {
-        KEEP(*(.binary_info.keep.*))
-        *(.binary_info.*)
-    } > RAM
-    __binary_info_end = .;
-    . = ALIGN(4);
 
 	__data_init = LOADADDR(.data);
 

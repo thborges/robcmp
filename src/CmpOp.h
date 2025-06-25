@@ -1,4 +1,4 @@
-#pragma oncd
+#pragma once
 
 #include "Node.h"
 #include "semantic/Visitor.h"
@@ -8,7 +8,7 @@ private:
 	int op;
 	
 public:
-	CmpOp (Node *l, int op, Node *r);
+	CmpOp (Node *l, int op, Node *r, location_t loc);
 	int getOperator() const { return op; };
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 	Node *lexpn() {
@@ -17,7 +17,6 @@ public:
 	Node *rexpn() {
 		return node_children[1];
 	}
-
 	Node* accept(Visitor &v) override {
 		return v.visit(*this);
 	}

@@ -46,13 +46,13 @@ Value *UpdateArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *
 		ty = aux->getValueType();
 
 	Node *indn = getElementIndex(symbol);
-	Value *indice = indn->generate(func, block, allocblock);
+	Value *indice = indn->generateNewBlock(func, &block, allocblock);
 	if (!indice || !indice->getType()->isIntegerTy()){
 		yyerrorcpp("Index to update " + ident.getFullName() + " elements must be of type integer.", this);
 		return NULL;
 	}
 
-	Value *val = expr->generate(func, block, allocblock);
+	Value *val = expr->generateNewBlock(func, &block, allocblock);
 	ArrayType *arrayTy = (ArrayType*)buildTypes->llvmType(symbol->getDataType());
 
 	RobDbgInfo.emitLocation(this);

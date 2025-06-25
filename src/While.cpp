@@ -21,12 +21,8 @@ Value *While::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 	Builder->SetInsertPoint(block);
 	Builder->CreateBr(condwhile);
 
-	Value *exprv = expr->generate(func, condwhile, allocblock);
 	BasicBlock *endcondwhile = condwhile;
-	// A distinct block can return from boolean short-circuit evaluation
-	Instruction* instr = dyn_cast<Instruction>(exprv);
-	if (instr)
-		endcondwhile = instr->getParent();
+	Value *exprv = expr->generateNewBlock(func, &endcondwhile, allocblock);
 
 	// check condition
 	RobDbgInfo.emitLocation(expr);
@@ -47,7 +43,7 @@ Value *While::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocb
 		endbody = (BasicBlock*)newb;
 	
 	// if end block already has a terminator, don't generate branch
-	if (!((BasicBlock*)endbody)->getTerminator()) {
+	if (!endbody->getTerminator()) {
 		Builder->SetInsertPoint(endbody);
 		Builder->CreateBr(condwhile);
 	}

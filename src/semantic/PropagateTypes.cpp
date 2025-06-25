@@ -1,4 +1,7 @@
 
+#include "FlexDependencies.h"
+#include "Language_gen_y.hpp"
+
 #include "PropagateTypes.h"
 #include "ConstructorCall.h"
 #include "Scalar.h"
@@ -89,7 +92,7 @@ Node* PropagateTypes::coerceTo(Node *n, const DataType destTy, bool warns) {
         // if destTy is larger, SExtended or ZExtended value
         if (destBWidth > valueBWidth) {
             Node *expand;
-            if (destUnsigned)
+            if (valueUnsigned)
                 expand = new ZExtInt(n, destTy);
             else
                 expand = new SExtInt(n, destTy);
@@ -182,6 +185,28 @@ DataType PropagateTypes::coerceArithOrCmp(Node &n, Node *lNode, Node *rNode) {
     uint lBWidth = buildTypes->bitWidth(lTy);
     uint rBWidth = buildTypes->bitWidth(rTy);
 
+    // special cases for BinaryOp (left and right shift, or and and)
+    if (BinaryOp *bop = dynamic_cast<BinaryOp*>(&n)) {
+        bool rIsSigned = buildTypes->isSignedDataType(rTy);
+        bool lIsSigned = buildTypes->isSignedDataType(lTy);
+
+        if (bop->getOperator() == TOK_LSHIFT || bop->getOperator() == TOK_RSHIFT) {
+            // special case for left and right shift, preserve the left side type
+            // TODO: C standard promotes left operand to int32
+            if (rTy != lTy)
+                n.node_children[1] = new IntCast(rNode, rIsSigned, lTy);
+            return lTy;
+        
+        } else if (bop->getOperator() == TOK_OR || bop->getOperator() == TOK_AND) {
+            // special case for or and and: convert to bool (int1)
+            if (lTy != tbool)
+                n.node_children[0] = new IntCast(lNode, rIsSigned, tbool);
+            if (rTy != tbool)
+                n.node_children[1] = new IntCast(rNode, rIsSigned, tbool);
+            return tbool;
+        }
+    }
+
     // both sides integer
     if (buildTypes->isIntegerDataType(lTy) && buildTypes->isIntegerDataType(rTy)) {
         bool lUnsigned = buildTypes->isUnsignedDataType(lTy);
@@ -189,46 +214,40 @@ DataType PropagateTypes::coerceArithOrCmp(Node &n, Node *lNode, Node *rNode) {
 
         // if we have signed and unsigned operands
         if (lUnsigned ^ rUnsigned) {
-            // if one side is constant, convert it to the other side type
-            bool lIsConstant = lNode->isConstExpr();
-            bool rIsConstant = rNode->isConstExpr();
-            if (lIsConstant ^ rIsConstant) {
-                if (lIsConstant) {
-                    lTy = lUnsigned ? buildTypes->unsignedToSigned(lTy) : buildTypes->signedToUnsigned(lTy);
-                    returnTy = rTy;
-                } else {
-                    rTy = rUnsigned ? buildTypes->unsignedToSigned(rTy) : buildTypes->signedToUnsigned(rTy);
-                    returnTy = lTy;
-                }
-                    
+
+            if ((lUnsigned && lBWidth >= rBWidth) ||
+                (rUnsigned && rBWidth >= lBWidth)) {
+                // Unsigned has equal or greater width: promote signed to unsigned
+                returnTy = lUnsigned ? lTy : rTy;
+
+            } else if (!lUnsigned && lBWidth > rBWidth) {
+                // l is signed, has greater width, can hold r: promote r to l
+                returnTy = lTy;
+
+            } else if (!rUnsigned && rBWidth > lBWidth) {
+                // r is signed, has greater width, can hold l: promote l to r
+                returnTy = rTy;
+
             } else {
-                if (lUnsigned) {
-                    //yywarncpp("The left operand was converted to signed.", lNode);
-                    lTy = buildTypes->unsignedToSigned(lTy);
-                }
-                else {
-                    //yywarncpp("The right operand was converted to signed.", rNode);
-                    rTy = buildTypes->unsignedToSigned(rTy);
-                }
+                // fallback: l or r is signed and smaller than unsigned: convert the 
+                // signed to unsigned version of the wider type
+                returnTy = lBWidth > rBWidth ? lTy : rTy; // wider
+                if (buildTypes->isSignedDataType(returnTy))
+                    returnTy = buildTypes->signedToUnsigned(returnTy);
             }
+            
+        } else {
+            // same signedness, return wider
+            returnTy = lBWidth > rBWidth ? lTy : rTy;
         }
 
-        // At this point, rTy has the same signedness of lTy.
-        // Thus, temporarily set returnTy to check the signedness below
-        returnTy = rTy;
+        if (lTy != returnTy)
+            n.node_children[0] = new IntCast(lNode, !lUnsigned, returnTy);
+        
+        if (rTy != returnTy)
+            n.node_children[1] = new IntCast(rNode, !rUnsigned, returnTy);
 
-        // if sizes are distinct, the smaller int is SExtended or ZExtended
-        if (lBWidth != rBWidth) {
-            Node *convert = lBWidth < rBWidth ? lNode : rNode;
-            DataType newTy = lBWidth < rBWidth ? rTy : lTy;
-            Node *expand;
-            if (buildTypes->isSignedDataType(returnTy))
-                expand = new SExtInt(convert, newTy);
-            else
-                expand = new ZExtInt(convert, newTy);
-            n.node_children[lBWidth < rBWidth ? 0 : 1] = expand;
-            return newTy;
-        }
+        return returnTy;
     }
 
     // both sides float point
@@ -375,7 +394,7 @@ Node* PropagateTypes::visit(FunctionCall& fc) {
 
 Node* PropagateTypes::visit(Matrix& n) {
     PropagateTypes::visit((Variable&)n);
-    
+
     // visit elements to propagate their types
     for(MatrixElement *me : n.getMatrixElements()) {
         for(ArrayElement *k: me->array->getElements()) {

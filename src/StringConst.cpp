@@ -52,7 +52,7 @@ Value* StringConst::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *
             value = alloc;
         }
     } else {
-        value = Builder->CreateGlobalStringPtr(str, name, 0, mainmodule, false);
+        value = Builder->CreateGlobalString(str, name, 0, mainmodule, false);
         leftValue->setAlloca(value);
     }
 

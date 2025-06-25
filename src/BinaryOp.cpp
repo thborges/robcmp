@@ -17,18 +17,10 @@ Value *BinaryOp::logical_operator(enum Instruction::BinaryOps op,
 	// See https://en.wikipedia.org/wiki/Short-circuit_evaluation
 
 	// left
-	Value *lhs = lhsn()->generate(func, block, allocblock);
-	auto lhsi = dyn_cast<Instruction>(lhs);
-	BasicBlock *newlblock;
-	if (lhsi) 
-		newlblock = lhsi->getParent();
-	else {
-		// if lhsi is null, lhs has no parent (e.g. a global variable/constant).
-		// use block as newlbblock
-		newlblock = block;
-	}
-
+	BasicBlock *newlblock = block;
+	Value *lhs = lhsn()->generateNewBlock(func, &newlblock, allocblock);
 	Type *lhsty = lhs->getType();
+	
 	BasicBlock *fullev = BasicBlock::Create(global_context, "fullev", func->getLLVMFunction());
 	BasicBlock *phiblock = BasicBlock::Create(global_context, "phiblock", func->getLLVMFunction());
 	PHINode *phi = PHINode::Create(lhsty, 0, "phi", phiblock);
@@ -40,15 +32,17 @@ Value *BinaryOp::logical_operator(enum Instruction::BinaryOps op,
 		BranchInst::Create(fullev, phiblock, lhs, newlblock);
 
 	// right
-	Value *rhs = rhsn()->generate(func, fullev, allocblock);
-	BasicBlock *newrblock = dyn_cast<Instruction>(rhs)->getParent();
+	BasicBlock *newrblock = fullev;
+	Value *rhs = rhsn()->generateNewBlock(func, &newrblock, allocblock);
 	Builder->SetInsertPoint(newrblock);
 	Value *binop = Builder->CreateBinOp(op, lhs, rhs, "logicop");
 	BranchInst::Create(phiblock, newrblock);
 	phi->addIncoming(binop, newrblock);
 	
-	if (!lhsty->isIntegerTy() || !(lhsty->getIntegerBitWidth() == 1))
+	if (!lhsty->isIntegerTy() || !(lhsty->getIntegerBitWidth() == 1)) {
+		errs() << "Left: " << *lhsty << "\n";
 		yyerrorcpp("The left side of the logical expression is not boolean.", this);
+	}
 	
 	Type *rhsty = rhs->getType();
 	if (!rhsty->isIntegerTy() || !(rhsty->getIntegerBitWidth() == 1))
@@ -62,9 +56,11 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 
 	DataType lty = lhsn()->getDataType();
 	DataType rty = rhsn()->getDataType();
-	
-	Value *lhs = lhsn()->generate(func, block, allocblock);
-	Value *rhs = rhsn()->generate(func, block, allocblock);
+
+	// Generate left and right side
+	Value *lhs = lhsn()->generateNewBlock(func, &block, allocblock);
+	Value *rhs = rhsn()->generateNewBlock(func, &block, allocblock);
+
 	if (lhs == NULL || rhs == NULL)
 		return NULL;
 

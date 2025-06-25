@@ -40,10 +40,29 @@ public:
     ExpandFloat(Node *n, DataType newDt): CoercionBase(n, newDt) {}
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
-        Value *v = node->generate(func, block, allocblock);
+        Value *v = node->generateNewBlock(func, &block, allocblock);
         RobDbgInfo.emitLocation(this);
         Builder->SetInsertPoint(block);
         return Builder->CreateFPExt(v, buildTypes->llvmType(dt), "fpext");
+    }
+};
+
+class IntCast: public CoercionBase {
+private:
+    bool isSigned;
+public:
+    IntCast(Node *n, bool isSigned, DataType newDt):
+        CoercionBase(n, newDt), isSigned(isSigned) {}
+
+	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
+        Value *v = node->generateNewBlock(func, &block, allocblock);
+        RobDbgInfo.emitLocation(this);
+        Builder->SetInsertPoint(block);
+        return Builder->CreateIntCast(v, buildTypes->llvmType(dt), isSigned, "intcast");
+    }
+
+    Node* accept(Visitor& v) override {
+        return v.visit(*this);
     }
 };
 
@@ -52,7 +71,7 @@ public:
     SExtInt(Node *n, DataType newDt): CoercionBase(n, newDt) {}
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
-        Value *v = node->generate(func, block, allocblock);
+        Value *v = node->generateNewBlock(func, &block, allocblock);
         RobDbgInfo.emitLocation(this);
         Builder->SetInsertPoint(block);
         return Builder->CreateSExt(v, buildTypes->llvmType(dt), "sext");
@@ -64,7 +83,7 @@ public:
     ZExtInt(Node *n, DataType newDt): CoercionBase(n, newDt) {}
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
-        Value *v = node->generate(func, block, allocblock);
+        Value *v = node->generateNewBlock(func, &block, allocblock);
         if (!v) {
             yyerrorcpp("There is no value to cast from (zext) ", node);
             return NULL;
@@ -81,7 +100,7 @@ public:
     TruncInt(Node *n, DataType newDt): CoercionBase(n, newDt) {}
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
-        Value *v = node->generate(func, block, allocblock);
+        Value *v = node->generateNewBlock(func, &block, allocblock);
         RobDbgInfo.emitLocation(this);
         Builder->SetInsertPoint(block);
         return Builder->CreateTrunc(v, buildTypes->llvmType(dt), "trunc");
@@ -93,7 +112,7 @@ public:
     ExtendFloat(Node *n, DataType newDt): CoercionBase(n, newDt) {}
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
-        Value *v = node->generate(func, block, allocblock);
+        Value *v = node->generateNewBlock(func, &block, allocblock);
         RobDbgInfo.emitLocation(this);
         Builder->SetInsertPoint(block);
         return Builder->CreateFPExt(v, buildTypes->llvmType(dt), "fpext");
@@ -105,7 +124,7 @@ public:
     TruncFloat(Node *n, DataType newDt): CoercionBase(n, newDt) {}
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
-        Value *v = node->generate(func, block, allocblock);
+        Value *v = node->generateNewBlock(func, &block, allocblock);
         RobDbgInfo.emitLocation(this);
         Builder->SetInsertPoint(block);
         return Builder->CreateFPTrunc(v, buildTypes->llvmType(dt), "trunc");
@@ -118,7 +137,7 @@ public:
         CoercionBase(n, newDt) {}
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
-        Value *v = node->generate(func, block, allocblock);
+        Value *v = node->generateNewBlock(func, &block, allocblock);
         RobDbgInfo.emitLocation(this);
         Builder->SetInsertPoint(block);
         if (buildTypes->isUnsignedDataType(dt))
@@ -134,7 +153,7 @@ public:
         CoercionBase(n, newDt) {}
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
-        Value *v = node->generate(func, block, allocblock);
+        Value *v = node->generateNewBlock(func, &block, allocblock);
         RobDbgInfo.emitLocation(this);
         Builder->SetInsertPoint(block);
         if (buildTypes->isUnsignedDataType(node->getDataType()))
@@ -150,7 +169,7 @@ public:
         CoercionBase(n, n->getDataType()) {}
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override {
-        Value *v = node->generate(func, block, allocblock);
+        Value *v = node->generateNewBlock(func, &block, allocblock);
         RobDbgInfo.emitLocation(this);
         Builder->SetInsertPoint(block);
         return Builder->CreateLoad(buildTypes->llvmType(dt), v, false, "deref");

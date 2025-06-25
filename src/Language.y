@@ -7,6 +7,7 @@
   #define YY_DECL int MAINlex(YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t yyscanner)
   YY_DECL;
   void yyerror(YYLTYPE *yyloc, yyscan_t yyscanner, const char *msg);
+  Node* get_compound_node(Node *load, char op, Node *right);
 }
 
 %type <nodes> globals type_stmts enum_items interface_decls
@@ -15,9 +16,9 @@
 %type <node> function function_decl function_impl returnblock
 %type <node> enum enum_item interface_impl
 %type <node> simplevar_decl call_or_cast complexvar_set
-%type <node> term term2 expr factor stmt condblock whileblock logicexpr
-%type <node> logicterm logicfactor TOK_AND TOK_OR event unary logicunary
-%type <node> bind asminline
+%type <node> expr factor stmt condblock whileblock
+%type <node> TOK_AND TOK_OR event
+%type <node> bind asminline compound_left
 %type <strings> type_impls
 
 %type <ae> element
@@ -39,6 +40,20 @@
 %type <str> TOK_STRING
 %type <fattrs> function_attributes
 %type <fattr> function_attribute
+
+/* operator precedences */
+%left TOK_OR
+%left TOK_AND
+%left '|'
+%left '^'
+%left '&'
+%left EQ_OP NE_OP
+%left LT_OP GT_OP LE_OP GE_OP
+%left TOK_LSHIFT TOK_RSHIFT
+%left '+' '-'
+%left '*' '/' '%'
+%right UMINUS '!' '~'
+/*%left '(' ')'*/
 
 %%
 
@@ -262,7 +277,7 @@ type_stmt : simplevar_decl ';'
 		  | interface_impl
 		  | enum
 
-simplevar_decl : TOK_IDENTIFIER[id] '=' logicexpr	{ $$ = new Scalar($id, $logicexpr);	$$->setLocation(@id); }
+simplevar_decl : TOK_IDENTIFIER[id] '=' expr		{ $$ = new Scalar($id, $expr);	$$->setLocation(@id); }
 simplevar_decl : TOK_IDENTIFIER[id] '=' array		{ $$ = new Array($id, $array, @id); }
 simplevar_decl : TOK_IDENTIFIER[id] '=' matrix		{ $$ = new Matrix($id, $matrix, @id); }
 
@@ -317,26 +332,31 @@ stmts_rec : stmt {
 	$stmt->setLocation(@stmt);
 }
 
-stmt : ident_or_xident '+' '+' ';'					{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '+', new Int8(1, @1))); }
-	 | ident_or_xident '-' '-' ';'					{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '-', new Int8(1, @1))); }
-	 | ident_or_xident '+' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '+', $4)); }
-	 | ident_or_xident '-' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '-', $4)); }
-	 | ident_or_xident '*' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '*', $4)); }
-	 | ident_or_xident '/' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '/', $4)); }
-	 | ident_or_xident '|' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '|', $4)); }
-	 | ident_or_xident '&' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '&', $4)); }
-	 | ident_or_xident '^' '=' expr ';'				{ $$ = new Scalar($1, new BinaryOp(new Load($1, @1), '^', $4)); }
-	 | ident_or_xident '[' expr ']' '=' expr ';'	{ $$ = new UpdateArray($1, $3, $6, @1);}
+compound_left : ident_or_xident[id] {
+	$$ = new Load($id, @id);
+}
+
+compound_left : ident_or_xident[id] '[' expr ']' {
+	$$ = new LoadArray($id, $expr, @id);
+}
+
+compound_left : ident_or_xident[id] '[' expr[e1] ']' '[' expr[e2] ']' {
+	$$ = new LoadMatrix($id, $e1, $e2, @id);
+}
+
+stmt : compound_left[cl] '+' '+' ';'		{ $$ = get_compound_node($cl, '+', new Int8(1, @cl)); }
+	 | compound_left[cl] '-' '-' ';'		{ $$ = get_compound_node($cl, '-', new Int8(1, @cl)); }
+	 | compound_left[cl] '+' '=' expr ';'	{ $$ = get_compound_node($cl, '+', $expr); }
+	 | compound_left[cl] '-' '=' expr ';'	{ $$ = get_compound_node($cl, '-', $expr); }
+	 | compound_left[cl] '*' '=' expr ';'	{ $$ = get_compound_node($cl, '*', $expr); }
+	 | compound_left[cl] '/' '=' expr ';'	{ $$ = get_compound_node($cl, '/', $expr); }
+	 | compound_left[cl] '|' '=' expr ';'	{ $$ = get_compound_node($cl, '|', $expr); }
+	 | compound_left[cl] '&' '=' expr ';'	{ $$ = get_compound_node($cl, '&', $expr); }
+	 | compound_left[cl] '^' '=' expr ';'	{ $$ = get_compound_node($cl, '^', $expr); }
 	 
+	 | ident_or_xident '[' expr ']' '=' expr ';'				{ $$ = new UpdateArray($1, $3, $6, @1);}
 	 | ident_or_xident '[' expr ']' '[' expr ']' '=' expr ';'	{ $$ = new UpdateMatrix($1, $3, $6, $9, @1); }
-	 | ident_or_xident[id] '[' expr[e1] ']' '[' expr[e2] ']' '&' '=' expr[e3] ';'	{
-			Node *bop = new BinaryOp(new LoadMatrix($id, $e1, $e2, @id), '&', $e3);
-			$$ = new UpdateMatrix($id, $e1, $e2, bop, @1);
-	   }
-	 | ident_or_xident[id] '[' expr[e1] ']' '[' expr[e2] ']' '|' '=' expr[e3] ';'	{
-			Node *bop = new BinaryOp(new LoadMatrix($id, $e1, $e2, @id), '|', $e3);
-			$$ = new UpdateMatrix($id, $e1, $e2, bop, @1);
-	   }
+
 	 | asminline ';'											{ $$ = $1; }
 	 | qualifier simplevar_decl ';'								{ $$ = $2; $$->setQualifier((DataQualifier)$1); }
 	 | simplevar_decl ';'
@@ -345,26 +365,25 @@ stmt : ident_or_xident '+' '+' ';'					{ $$ = new Scalar($1, new BinaryOp(new Lo
 	 | call_or_cast ';'
 	 | condblock
 	 | whileblock
-	 | interface_impl
 
-complexvar_set : TOK_XIDENTIFIER[id] '=' logicexpr	{ $$ = new Scalar($id, $logicexpr);	$$->setLocation(@id); }
+complexvar_set : TOK_XIDENTIFIER[id] '=' expr		{ $$ = new Scalar($id, $expr);	$$->setLocation(@id); }
 complexvar_set : TOK_XIDENTIFIER[id] '=' array		{ $$ = new Array($id, $array, @id); }
 complexvar_set : TOK_XIDENTIFIER[id] '=' matrix		{ $$ = new Matrix($id, $matrix, @id); }
 
-returnblock : TOK_RETURN logicexpr		{ $$ = new Return($2); }
+returnblock : TOK_RETURN expr			{ $$ = new Return($2); }
 returnblock : TOK_RETURN				{ $$ = new Return(@1); }
 
 /*
  * Conditional
  */
 
-condblock : TOK_IF logicexpr '{' stmts '}' {
-	$logicexpr->setLocation(@logicexpr);
-	$$ = new If($logicexpr, std::move(*$stmts), @TOK_IF);
+condblock : TOK_IF expr '{' stmts '}' {
+	$expr->setLocation(@expr);
+	$$ = new If($expr, std::move(*$stmts), @TOK_IF);
 }
-condblock : TOK_IF logicexpr '{' stmts '}' elseblock {
-	$logicexpr->setLocation(@logicexpr);
-	$$ = new If($logicexpr, std::move(*$stmts), std::move(*$elseblock), @TOK_IF);
+condblock : TOK_IF expr '{' stmts '}' elseblock {
+	$expr->setLocation(@expr);
+	$$ = new If($expr, std::move(*$stmts), std::move(*$elseblock), @TOK_IF);
 }
 
 elseblock : TOK_ELSE '{' stmts '}' { $$ = $stmts; }
@@ -378,14 +397,14 @@ elseblock : TOK_ELSE condblock {
  * Repetition
  */
 
-whileblock : TOK_WHILE logicexpr '{' stmts '}' {
-	$logicexpr->setLocation(@logicexpr);
-	$$ = new While($logicexpr, std::move(*$stmts), @TOK_WHILE);
+whileblock : TOK_WHILE expr '{' stmts '}' {
+	$expr->setLocation(@expr);
+	$$ = new While($expr, std::move(*$stmts), @TOK_WHILE);
 }
 
-whileblock : TOK_WHILE logicexpr ';' {
-	$logicexpr->setLocation(@logicexpr);
-	$$ = new While($logicexpr, @TOK_WHILE);
+whileblock : TOK_WHILE expr ';' {
+	$expr->setLocation(@expr);
+	$$ = new While($expr, @TOK_WHILE);
 }
 
 whileblock : TOK_LOOP '{' stmts '}' {
@@ -393,54 +412,36 @@ whileblock : TOK_LOOP '{' stmts '}' {
 }
 
 /*
- * Logic
+ * Logic and Arithmetic
  */
 
-logicexpr : logicexpr TOK_OR logicterm		{ $$ = new BinaryOp($1, TOK_OR, $3); }
-		  | logicterm						{ $$ = $1; }
-		  ;
+// logic
+expr: expr[e1] TOK_AND expr[e2]	    { $$ = new BinaryOp($e1, TOK_AND, $e2); }
+expr: expr[e1] TOK_OR expr[e2]      { $$ = new BinaryOp($e1, TOK_OR, $e2); }
+expr: expr[e1] EQ_OP expr[e2]       { $$ = new CmpOp($e1, EQ_OP, $e2, @EQ_OP); }
+expr: expr[e1] NE_OP expr[e2]       { $$ = new CmpOp($e1, NE_OP, $e2, @NE_OP); }
+expr: expr[e1] LE_OP expr[e2]		{ $$ = new CmpOp($e1, LE_OP, $e2, @LE_OP); }
+expr: expr[e1] GE_OP expr[e2]		{ $$ = new CmpOp($e1, GE_OP, $e2, @GE_OP); }
+expr: expr[e1] LT_OP expr[e2]		{ $$ = new CmpOp($e1, LT_OP, $e2, @LT_OP); }
+expr: expr[e1] GT_OP expr[e2]		{ $$ = new CmpOp($e1, GT_OP, $e2, @GT_OP); }
+expr: '!'[op] expr[e]               { $$ = new CmpOp($e, EQ_OP, new Int1(0, @e), @op); }
 
-logicterm : logicterm TOK_AND logicfactor	{ $$ = new BinaryOp($1, TOK_AND, $3); }
-		  | logicfactor						{ $$ = $1; }
-		  ;
+// arithmetic
+expr: expr[e1] '+' expr[e2]			{ $$ = new BinaryOp($e1, '+', $e2); }
+expr: expr[e1] '-' expr[e2]			{ $$ = new BinaryOp($e1, '-', $e2); }
+expr: expr[e1] '|' expr[e2]			{ $$ = new BinaryOp($e1, '|', $e2); }
+expr: expr[e1] '*' expr[e2]			{ $$ = new BinaryOp($e1, '*', $e2); }
+expr: expr[e1] '/' expr[e2]			{ $$ = new BinaryOp($e1, '/', $e2); }
+expr: expr[e1] '%' expr[e2]			{ $$ = new BinaryOp($e1, '%', $e2); }
+expr: expr[e1] '^' expr[e2]			{ $$ = new BinaryOp($e1, '^', $e2); }
+expr: expr[e1] '&' expr[e2]			{ $$ = new BinaryOp($e1, '&', $e2); }
+expr: expr[e1] TOK_LSHIFT expr[e2]	{ $$ = new BinaryOp($e1, TOK_LSHIFT, $e2); }
+expr: expr[e1] TOK_RSHIFT expr[e2]	{ $$ = new BinaryOp($e1, TOK_RSHIFT, $e2); }
+expr: '-' expr[e] %prec UMINUS		{ $$ = new BinaryOp($e, '*', getNodeForIntConst(-1, @e)); }
+expr: '~' expr[e]					{ $$ = new FlipOp($e); }
+expr: factor
 
-logicfactor : '(' logicexpr ')'		{ $$ = $2; }
-			| expr '=''=' expr		{ $$ = new CmpOp($1, EQ_OP, $4); }
-			| expr '!''=' expr		{ $$ = new CmpOp($1, NE_OP, $4); }
-			| expr '<''=' expr		{ $$ = new CmpOp($1, LE_OP, $4); }
-			| expr '>''=' expr		{ $$ = new CmpOp($1, GE_OP, $4); }
-			| expr '<' expr			{ $$ = new CmpOp($1, LT_OP, $3); }
-			| expr '>' expr			{ $$ = new CmpOp($1, GT_OP, $3); }
-			| expr %expect 1
-			| logicunary
-			;
-
-logicunary : '!' logicfactor { $$ = new BinaryOp(new Int1(1, @2), '-', $2); }
-
-/*
- * Arithmetic
- */
-
-expr : expr '+' term			{ $$ = new BinaryOp($1, '+', $3); }
-	 | expr '-' term			{ $$ = new BinaryOp($1, '-', $3); }
-	 | expr '|' term			{ $$ = new BinaryOp($1, '|', $3); }
-	 | expr TOK_LSHIFT term		{ $$ = new BinaryOp($1, TOK_LSHIFT, $3); }
-	 | expr TOK_RSHIFT term		{ $$ = new BinaryOp($1, TOK_RSHIFT, $3); }
-	 | term						{ $$ = $1; }
-	 ;
-
-term : term '*' term2		{ $$ = new BinaryOp($1, '*', $3); }
-	 | term '/' term2		{ $$ = new BinaryOp($1, '/', $3); }
-	 | term '%' term2		{ $$ = new BinaryOp($1, '%', $3); }
-	 | term '^' term2		{ $$ = new BinaryOp($1, '^', $3); }
-	 | term2				{ $$ = $1; }
-	 ;
-
-term2 : term2 '&' factor    { $$ = new BinaryOp($1, '&', $3); }
-	  | factor				{ $$ = $1; }
-	  ;
-
-factor : '(' expr ')' 			{ $$ = $2; }
+factor : '(' expr[e] ')'		{ $$ = $e; }
 	   | ident_or_xident		{ $$ = new Load($1, @1); }
 	   | TOK_TRUE				{ $$ = new Int1(1, @1); }
 	   | TOK_FALSE				{ $$ = new Int1(0, @1); }
@@ -454,14 +455,9 @@ factor : '(' expr ')' 			{ $$ = $2; }
 	   | ident_or_xident[id] '[' expr ']'				{ $$ = new LoadArray($1, $3, @id);} 
 	   | ident_or_xident[id] '[' expr ']' '[' expr ']'	{ $$ = new LoadMatrix($1, $3, $6, @id);}
 	   | call_or_cast
-	   | unary
 	   ;
 
 ident_or_xident: TOK_IDENTIFIER | TOK_XIDENTIFIER
-
-unary : '-' factor	{ $$ = new BinaryOp($factor, '*', getNodeForIntConst(-1, @factor)); }
-	  | '~' factor	{ $$ = new FlipOp($factor); }
-      ;
 
 call_or_cast : ident_or_xident[id] '(' paramscall ')' {
 	if (strncmp("copy", $id, 4) == 0 && $paramscall->getNumParams() == 1)
@@ -481,12 +477,12 @@ call_or_cast : ident_or_xident[id] '(' paramscall ')' {
 	$$->setLocation(@id);
 }
 
-paramscall : paramscall ',' logicexpr {
+paramscall : paramscall ',' expr {
 	$1->append($3);
 	$$ = $1;
 }
 
-paramscall : logicexpr {
+paramscall : expr {
 	ParamsCall *pc = new ParamsCall();
 	pc->append($1);
 	$$ = pc;
@@ -495,3 +491,14 @@ paramscall : logicexpr {
 paramscall : %empty { $$ = new ParamsCall(); }
 
 %%
+
+Node *get_compound_node(Node *load, char op, Node *right) {
+	if (dynamic_cast<Load*>(load))
+		return new Scalar(load->getName(), new BinaryOp(load, op, right));
+	else if (LoadArray *la = dynamic_cast<LoadArray*>(load))
+		return new UpdateArray(load->getName(), la->getPosition(), new BinaryOp(load, op, right), load->getLoc());
+	else if (LoadMatrix *lm = dynamic_cast<LoadMatrix*>(load))
+		return new UpdateMatrix(load->getName(), lm->getPosition(), lm->getPosition2(), new BinaryOp(load, op, right), load->getLoc());
+	else
+		assert(false && "Unknown load node.");
+}

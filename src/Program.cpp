@@ -257,7 +257,8 @@ void Program::generate() {
 		mainFuncIt = symbols.find("__main");
 	Node *mainFunc = mainFuncIt->second;
 	
-	generateInjectionGlobals(mainFunc);
+	if (mainFunc)
+		generateInjectionGlobals(mainFunc);
 
 	// build types and global vars first
 	map<Node*, bool> already_generated;

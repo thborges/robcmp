@@ -75,9 +75,12 @@ EXP ([Ee][-+]?[0-9]+)?
 "<<"					{ return TOK_LSHIFT; }
 ">>"					{ return TOK_RSHIFT; }
 
-"!"						{ return '!'; }
-"<"						{ return '<'; }
-">"						{ return '>'; }
+"=="					{ return EQ_OP; }
+"!="					{ return NE_OP; }
+"<="					{ return LE_OP; }
+">="					{ return GE_OP; }
+"<"						{ return LT_OP; }
+">"						{ return GT_OP; }
 
 "["						{ return '['; }
 "]"						{ return ']'; }
@@ -99,6 +102,7 @@ EXP ([Ee][-+]?[0-9]+)?
 "&"						{ return '&'; }
 "^"						{ return '^'; }
 "~"						{ return '~'; }
+"!"						{ return '!'; }
 
 ":"						{ return ':'; }
 "."						{ return '.'; }
@@ -128,6 +132,11 @@ EXP ([Ee][-+]?[0-9]+)?
 						  return TOK_LDOUBLE; }
 
 "0x"[0-9a-fA-F]+		{ char *aux = strndup(yytext, yyleng);
+						  yylval->nint = strtoll(aux, NULL, 16);
+						  free(aux);
+						  return TOK_INTEGER; }
+
+"0x"[0-9a-fA-F]+[Uu]	{ char *aux = strndup(yytext, yyleng);
 						  yylval->unint = strtoull(aux, NULL, 16);
 						  free(aux);
 						  return TOK_UINTEGER; }

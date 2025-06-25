@@ -90,18 +90,12 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         DataType def_dt = fsymbol->getParameters().getParamType(paramId);
         string argName = fsymbol->getParameters().getParamName(paramId);
 
-        Value *valor = param->generate(func, block, allocblock);
+        Value *valor = param->generateNewBlock(func, &block, allocblock);
         if (!valor) {
             yyerrorcpp(string_format("The value for argument %s is undefined.", argName.c_str()), param);
             return NULL;
-        } else {
-            // A distinct block can return from boolean short-circuit evaluation
-            Instruction* instr = dyn_cast<Instruction>(valor);
-            if (instr && instr->getParent() != allocblock) {
-                block = instr->getParent();
-                Builder->SetInsertPoint(block);
-            }
         }
+        Builder->SetInsertPoint(block);
 
         if (buildTypes->isArrayOrMatrix(call_dt)) {
             // we pass the address of the first element
@@ -130,14 +124,14 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
                 Node *size = param->findMember("size");
                 if (size) {
                     coerced = PropagateTypes::coerceTo(size, tint32u);
-                    value = coerced->generate(func, block, allocblock);
+                    value = coerced->generateNewBlock(func, &block, allocblock);
                 }
                 if (!value) {
                     string pname = param->getName() + p;
                     Load ld(Identifier(pname, param->getLoc()));
                     ld.setScope(func);
                     coerced = PropagateTypes::coerceTo(&ld, tint32u);
-                    value = coerced->generate(func, block, allocblock);
+                    value = coerced->generateNewBlock(func, &block, allocblock);
                 }
                 assert(value != NULL && "must pass the array size.");
                 args.push_back(value);

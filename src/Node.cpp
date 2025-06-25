@@ -93,17 +93,36 @@ Value* Node::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 	return NULL;
 }
 
+Value* Node::generateNewBlock(FunctionImpl *func, BasicBlock **block, BasicBlock *allocblock) {
+	Value *ret = generate(func, *block, allocblock);
+
+	// Check if the last Instruction is in another block
+	// e.g. a block returned from boolean short-circuit evaluation
+	if (ret) {
+		Instruction* instr = dyn_cast<Instruction>(ret);
+		if (instr && instr->getParent() != allocblock)
+			*block = instr->getParent();
+	}
+	
+	return ret;
+}
+
 Value* Node::generateChildren(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
+	Node *ret = nullptr;
 	for(Node *n: children()) {
-		Value *b = n->generate(func, block, allocblock);
-		if (b) {
-			if (b->getValueID() == Value::BasicBlockVal) 
-				block = (BasicBlock*)b;
-			else if (Instruction* instr = dyn_cast<Instruction>(b)) {
-				// A distinct block can return from boolean short-circuit evaluation
-				if (instr->getParent() != allocblock)
-					block = instr->getParent();
+		if (!ret) {
+			Value *b = n->generateNewBlock(func, &block, allocblock);
+			if (b) {
+				if (b->getValueID() == Value::BasicBlockVal) 
+					block = (BasicBlock*)b;
+
+				if (isa<ReturnInst>(b))
+					ret = n;
 			}
+		} else {
+			// there's instructions after return: warn and don't generate
+			yywarncpp("Unreachable statement following return.", n);
+			yywarncpp("The return statement is here.", ret);
 		}
 	}
 	return block;

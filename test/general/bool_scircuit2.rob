@@ -1,0 +1,30 @@
+uint64 safe_sub(uint64 a, uint64 b) {
+    return a - b;
+}
+
+uint64 safe_add(uint64 a, uint64 b) {
+    return a + b;
+}
+
+uint16 safe_rshift(uint16 a, uint16 b) {
+    return a << b;
+}
+
+uint8 safe_div(uint8 a, uint8 b) {
+    return a/b;
+}
+
+int16 main() {
+	l_10 = int64(0xD6C3F0BC5021C3A2);
+	l_11 = int8(1);
+	l_12 = int32(5);
+	l_12 = safe_sub(
+             safe_rshift(
+               safe_add(
+                 (safe_div(l_10, l_10) != 0) or (0xECC2 != 0) | l_10 ^ l_10 != l_10 ^ l_11 <= 0xC7B7F609B2B534DE,
+            0x885EA6EDAD94E8FE),
+        5),
+      0xCE4B0AD8EA5F34BD);
+	return l_12;
+}
+

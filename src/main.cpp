@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
 			spec_filename = argv[++i];
 			specin = fopen(spec_filename, "r");
 			if (specin == NULL) {
-				fprintf(stderr, "Could not open file %s.\n", spec_filename);
+				fprintf(stderr, "Could not open specification file %s.\n", spec_filename);
 				exit(1);
 			}
 		}

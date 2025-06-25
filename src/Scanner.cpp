@@ -144,12 +144,8 @@ bool parseUseFile(const string& use, location_t loc, bool isPath) {
     FILE *f = findFile(file_name, file_path);
 
     if (f == NULL) {
-        if (loc.first_line == 0) // spec file
-            cerr << string_format(file_not_found, file_name.c_str());
-        else {
-            SourceLocation s(loc);
-            yyerrorcpp(string_format(file_not_found, file_name.c_str()), &s);
-        }
+        SourceLocation s(loc);
+        yyerrorcpp(string_format(file_not_found, file_name.c_str()), &s);
         return false;
     }
 

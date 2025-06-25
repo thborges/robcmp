@@ -29,11 +29,12 @@ public:
 		return false;
 	}
 	
-	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
+	virtual Value* generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
+	virtual Value* generateNewBlock(FunctionImpl *func, BasicBlock **block, BasicBlock *allocblock);
 	
-	virtual Value *generateChildren(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
+	virtual Value* generateChildren(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock);
 
-	virtual std::vector<Node *> const& children() const;
+	virtual std::vector<Node*> const& children() const;
 	
 	virtual Node* accept(Visitor &);
 
@@ -45,7 +46,7 @@ public:
 		return "";
 	}
 
-	Node *getScope() {
+	Node* getScope() {
 		return scope;
 	}
 
@@ -71,7 +72,7 @@ public:
 		return dt;
 	}
 
-	virtual Type *getLLVMType();
+	virtual Type* getLLVMType();
 
 	void setQualifier(DataQualifier dq) {
 		qualifiers.insert(dq);

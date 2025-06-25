@@ -1,0 +1,19 @@
+
+int16 main() {
+    i1 = int16(0x1FC2);
+    i2 = int32(7);
+    i3 = int8(0);
+
+    ret = 0;
+    while ret > -29 {
+        i1 |= 0U != i3 or (i2 != 0) < i2;
+        ret--;
+    }
+
+    if i1 == 0x1FC3 {
+        return 0;
+    }
+
+    return i1;
+}
+

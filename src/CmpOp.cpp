@@ -3,7 +3,7 @@
 #include "FlexDependencies.h"
 #include "Language_gen_y.hpp"
 
-CmpOp::CmpOp (Node *l, int op, Node *r): Node(l->getLoc()) {
+CmpOp::CmpOp (Node *l, int op, Node *r, location_t loc): Node(loc) {
 	this->op = op;
 	this->dt = tbool;
 	addChild(l);
@@ -13,8 +13,8 @@ CmpOp::CmpOp (Node *l, int op, Node *r): Node(l->getLoc()) {
 Value *CmpOp::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	CmpInst::Predicate predicate; 
 
-	Value *lexp = lexpn()->generate(func, block, allocblock);
-	Value *rexp = rexpn()->generate(func, block, allocblock);
+	Value *lexp = lexpn()->generateNewBlock(func, &block, allocblock);
+	Value *rexp = rexpn()->generateNewBlock(func, &block, allocblock);
 
 	if (rexp == NULL || lexp == NULL) // can't generate values, error message emitted during generate.
 		return ConstantInt::get(Type::getInt1Ty(global_context), 1); // error recovery

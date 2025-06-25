@@ -146,11 +146,11 @@ public:
     }
 
     bool isSignedDataType(DataType tid) const {
-        return (tid >= tint8 && tid <= tint64) || (tid == tbool);
+        return (tid >= tint8 && tid <= tint64);
     }
 
     bool isUnsignedDataType(DataType tid) const {
-        return (tid >= tint2u && tid <= tint64u) || (tid == tchar);
+        return (tid >= tint2u && tid <= tint64u) || (tid == tchar) || (tid == tbool);
     }
 
     bool isFloatDataType(DataType tid) const {

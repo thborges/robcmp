@@ -27,6 +27,10 @@ public:
 	virtual Node* visit(Load& n) override;
 	virtual Node* visit(Scalar& n) override;
 
+	virtual Node* visit(NamedNode& n) override;
+	virtual Node* visit(FunctionCall& n) override;
+	virtual Node* visit(CoercionBase& n) override;
+
 	virtual bool before(Program& p) override;
 	virtual void after(Program& p) override;
 };

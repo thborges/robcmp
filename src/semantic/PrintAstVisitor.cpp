@@ -88,7 +88,9 @@ const string PrintAstVisitor::getOperatorName(int op) {
 		case GT_OP: return ">";
 		case TOK_AND : return "and";
 		case TOK_OR  : return "or";
-		default: return std::to_string(op);
+		case TOK_LSHIFT: return "<<";
+		case TOK_RSHIFT: return ">>";
+		default: return string(1, (char)op);
 	}
 }
 
@@ -118,6 +120,27 @@ Node* PrintAstVisitor::visit(Load& n) {
 Node* PrintAstVisitor::visit(Scalar& n) {
 	this->os << "N" << std::hex << (uint64_t)&n 
 			 << "[label=\"" << get_typename(n) << "(" << n.getName() << ")\"];\n";
+	visit_children(n);
+	return NULL;
+}
+
+Node* PrintAstVisitor::visit(NamedNode& n) {
+	this->os << "N" << std::hex << (uint64_t)&n 
+			 << "[label=\"" << get_typename(n) << "(" << n.getName() << ")\"];\n";
+	visit_children(n);
+	return NULL;
+}
+
+Node* PrintAstVisitor::visit(FunctionCall& n) {
+	this->os << "N" << std::hex << (uint64_t)&n 
+			 << "[label=\"" << get_typename(n) << "(" << n.getIdent().getFullName() << ")\"];\n";
+	visit_children(n);
+	return NULL;
+}
+
+Node* PrintAstVisitor::visit(CoercionBase& n) {
+	this->os << "N" << std::hex << (uint64_t)&n 
+			 << "[label=\"" << get_typename(n) << "(" << buildTypes->name(n.getDataType()) << ")\"];\n";
 	visit_children(n);
 	return NULL;
 }

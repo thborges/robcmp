@@ -54,3 +54,4 @@
 #include "BackLLVM.h"
 #include "NamedConst.h"
 #include "BitCast.h"
+#include "semantic/PropagateTypes.h"

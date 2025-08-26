@@ -28,12 +28,12 @@ This commands will install the robcmp platform in ~/.platformio/platforms and th
 
 To build robcmp from source, you will need to follow these steps. Currently, only Linux and OSX are supported:
 
-- Install LLVM version 18 or newer:
-  - Install the following packages: apt install llvm-18 cmake flex bison zlib1g-dev libzstd-dev git lld-18 gdb-avr binutils-avr clang
+- Install LLVM version 20 or newer:
+  - Install the following packages: apt install llvm-20 cmake flex bison zlib1g-dev libzstd-dev git lld-20 gdb-avr binutils-avr clang
   - On macOS, you can use Homebrew by running the command brew install and the equivalent names for the packages above.
 - Flex (version 2.6.4 or newer) and Bison (version 3.8.2 or newer) are required.
 - Clone the robcmp repository: `git clone https://github.com/thborges/robcmp.git && cd robcmp`
-- Switch to the most recent or desired branch: `git checkout llvm18`
+- Switch to the most recent or desired branch: `git checkout llvm20`
 - Create a builder folder: `mkdir build && cd build`
 - Configure the source code with cmake: `cmake -DCMAKE_BUILD_TYPE="Debug" ..`
 - Execute the make command: `$ make`

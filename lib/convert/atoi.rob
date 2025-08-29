@@ -1,0 +1,23 @@
+
+int16 atoi(char[] str, int8 base) {
+    result = int16(0);
+    i = 0;
+    negativo = 0;
+
+    while i < str.size and str[i] != 0 {
+        if str[i] == '-'{
+            negativo = 1;
+        }else if str[i] >= '0' and str[i] <= '9' {
+            result = result * base + (str[i] - '0');
+        } else {
+            return i;
+        }
+        i++;
+    }
+
+    if negativo == 1{
+        result = result * -1;
+    }
+    
+    return result;
+}

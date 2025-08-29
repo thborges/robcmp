@@ -1,0 +1,15 @@
+
+enum stepper_mode {wave, fullstep, halfstep}
+enum stepper_direction {clockwise, counterclockwise}
+
+interface stepper{
+	void setup(stepper_mode mode);
+	
+	void enable();
+	void disable();
+
+	void set_mode(stepper_mode mode);
+	void set_direction(stepper_direction direction);
+
+	void step();
+}

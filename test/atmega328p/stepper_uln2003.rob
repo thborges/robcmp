@@ -1,0 +1,18 @@
+use intfs.mcu;
+use motor.stepper.uln2003;
+
+mmcu = mcu();
+
+int16 main(){
+	stepper_base = uln2003();
+	
+	stepper_base.setup(stepper_mode.fullstep); 
+	stepper_base.set_direction(stepper_direction.counterclockwise);
+
+	loop{
+		stepper_base.step();
+		mmcu.wait_ms(2);
+	} 
+
+	return 0;
+}

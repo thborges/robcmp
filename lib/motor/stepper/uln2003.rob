@@ -1,0 +1,117 @@
+use intfs.ports;
+use intfs.stepper;
+
+type uln2003 implements stepper{
+        current_step = 0u;
+        incrementer = 0;
+        mode = stepper_mode.wave;
+
+        dp1 = digitalport();
+        dp2 = digitalport();
+        dp3 = digitalport();
+        dp4 = digitalport();
+
+        void setup(stepper_mode selected_mode){
+                mode = selected_mode;
+
+                dp1.mode(port_mode.output);
+                dp2.mode(port_mode.output);
+                dp3.mode(port_mode.output);
+                dp4.mode(port_mode.output);
+        }
+
+        void set_mode(stepper_mode mode){
+                if mode == stepper_mode.wave{
+                        if current_step % 2 == 0{       //Tem que ser indice impar
+                                current_step++;
+                        }
+                        incrementer = 2;
+
+                }else if mode == stepper_mode.halfstep{
+                        incrementer = 1;
+
+                }else if mode == stepper_mode.fullstep{
+                        if current_step % 2 != 0{       //Tem que ser indice par
+                                current_step++;
+                        }
+                        incrementer = 2;
+                }
+        }
+
+        void set_direction(stepper_direction direction){
+                set_mode(mode);
+
+                if direction == stepper_direction.counterclockwise{
+                        incrementer *= -1;
+                }
+        }
+        	
+        void enable(){
+                dp1.set(true);
+                dp2.set(true);
+                dp3.set(true);
+                dp4.set(true);
+        }
+
+        void disable(){
+                dp1.set(false);
+                dp2.set(false);
+                dp3.set(false);
+                dp4.set(false);
+        }
+
+        void step(){
+		if current_step == 0 {         //1000
+			dp1.set(true);
+			dp2.set(false);
+			dp3.set(false);
+			dp4.set(false);
+		}else if current_step == 1{    //1100
+			dp1.set(true);
+                        dp2.set(true);
+                        dp3.set(false);
+                        dp4.set(false);
+		}else if current_step == 2{    //0100
+			dp1.set(false);
+                        dp2.set(true);
+                        dp3.set(false);
+                        dp4.set(false);
+		}else if current_step == 3{    //0110
+			dp1.set(false);
+                        dp2.set(true);
+                        dp3.set(true);
+                        dp4.set(false);
+		}else if current_step == 4{    //0010
+			dp1.set(false);
+                        dp2.set(false);
+                        dp3.set(true);
+                        dp4.set(false);
+		}else if current_step == 5{    //0011
+			dp1.set(false);
+                        dp2.set(false);
+                        dp3.set(true);
+                        dp4.set(true);
+		}else if current_step == 6{    //0001
+			dp1.set(false);
+                        dp2.set(false);
+                        dp3.set(false);
+                        dp4.set(true);
+		}else if current_step == 7{    //1001
+			dp1.set(true);
+                        dp2.set(false);
+                        dp3.set(false);
+                        dp4.set(true);
+		}
+
+                current_step = (current_step + incrementer + 8) % 8;
+
+                /*current_step += incrementer;
+
+                if current_step > 7{
+                        current_step = 0;
+                }else if current_step < 0{
+                        current_step = 7;
+                }*/
+        }
+}
+

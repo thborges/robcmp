@@ -1,0 +1,6 @@
+CXX=clang++
+CC=clang
+export CXX
+export CC
+cmake -DCMAKE_BUILD_TYPE="Debug" ..
+#cmake -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE="Debug" ..

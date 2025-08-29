@@ -1,0 +1,8 @@
+{
+	"name": "toolchain-robcmp",
+	"version": "0.1",
+	"description": "Robcmp Toolchain",
+	"keywords": ["toolchain", "build tools", "compiler", "assembler", "linker", "preprocessor", "avr", "stm32"],
+	"homepage": "https://thborges.github.io/robcmp", "license": "GPL-2.0",
+	"system": ["linux_x86_64"]
+}

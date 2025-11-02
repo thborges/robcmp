@@ -7,7 +7,7 @@ type fillmemory {
     a = {{2u:8}:8};
 }
 
-int8 main() {
+int16 main() {
     x = fillmemory();
     matrix = {{1u:128}:8};
     ma2 = {{0u:32}:8};

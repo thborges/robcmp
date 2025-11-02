@@ -14,7 +14,7 @@ void FunctionParams::insert(int at, Variable *fp) {
 unsigned FunctionParams::getNumCodedParams() {
 	unsigned num = 0;
 	for(auto p : parameters) {
-		// don't count parameters _this, _parent, and other pseudo 
+		// don't count parameters _parent, and other pseudo 
 		// parameters like _any_.size, _any_.cols
 		if (p->getName() != "_this" && p->getName() != "_parent" &&
 			p->getName().find('.') == string::npos)

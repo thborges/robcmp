@@ -55,3 +55,8 @@
 #include "NamedConst.h"
 #include "BitCast.h"
 #include "semantic/PropagateTypes.h"
+#include "ast/FieldAccess.h"
+#include "ast/ArrayAccess.h"
+#include "ast/MatrixAccess.h"
+#include "ast/LeftValueData.h"
+#include "ast/CompoundStore.h"

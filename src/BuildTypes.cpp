@@ -289,7 +289,7 @@ void BuildTypes::generateDebugInfoForTypes() {
     if (!debug_info)
         return;
 
-    for (DataType dt = nextt-1; dt >= __bdt_last; dt--) {
+    for (DataType dt = __bdt_last; dt < nextt; dt++) {
         auto& info = tinfo[dt];
 
         Node *userType = program->findSymbol(info.name);

@@ -3,6 +3,7 @@
 
 #include "Node.h"
 #include "Int8.h"
+#include "Identifier.h"
 
 class Visitor;
 
@@ -38,7 +39,7 @@ public:
 
     Node* accept(Visitor& v) override;
 
-    unsigned getFieldStartBit(Node *field);
+    unsigned getFieldStartBit(const string& fieldName);
 
     void setDeclaration(bool d) {
         declaration = d;

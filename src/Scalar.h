@@ -1,24 +1,32 @@
 
 #pragma once
 
+#include "Load.h"
 #include "Variable.h"
 #include "semantic/Visitor.h"
+#include "ast/LeftValueData.h"
 
 class Scalar: public Variable {
 private:
 	bool used = false;
+	LeftValueData *leftv;
 
 public:
-	Scalar(const string& ident, Node *e);
+	Scalar(LeftValueData *lv, Node *e);
 
-	Scalar(Identifier ident, Node *e);
+	Scalar(const string& ident, location_t loc);
+
+	Scalar(const string& ident, Node *e);
 
 	virtual Node *getExpr() override {
 		return node_children[0];
 	}
 
 	virtual void setExpr(Node *expr) override {
-		node_children[0] = expr;
+		if (node_children.size() == 0)
+			node_children.push_back(expr);
+		else 
+			node_children[0] = expr;
 		dt = expr->getDataType();
 	} 
 
@@ -42,5 +50,9 @@ public:
 		return used;
 	}
 
+	Node* getLeftValue() {
+		return leftv->value;
+	}
+	
 	friend class SymbolizeTree;
 };

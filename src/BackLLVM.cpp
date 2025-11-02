@@ -20,6 +20,8 @@
 #include <llvm/MC/TargetRegistry.h>
 #include <llvm/TargetParser/Host.h>
 #include <llvm/TargetParser/SubtargetFeature.h>
+#include <llvm/Transforms/Scalar/MemCpyOptimizer.h>
+#include <llvm/Transforms/InstCombine/InstCombine.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/CodeGen.h>
 #include <llvm/Target/TargetMachine.h>
@@ -213,11 +215,15 @@ int print_llvm_ir(char opt_level) {
 	modulePassManagerUnopt.run(*mainmodule, moduleAnalysisManager);
 
 	ModulePassManager modulePassManager;
-	if (ol == OptimizationLevel::O0)
+	if (ol == OptimizationLevel::O0) {
 		modulePassManager = passBuilder.buildO0DefaultPipeline(ol);
-	else
+		// Put only passes that reduces the file size, without compromising debug
+		modulePassManager.addPass(createModuleToFunctionPassAdaptor(MemCpyOptPass()));
+		modulePassManager.addPass(createModuleToFunctionPassAdaptor(InstCombinePass()));
+	} else {
 		//modulePassManager = passBuilder.buildPerModuleDefaultPipeline(ol);
 		modulePassManager = passBuilder.buildThinLTODefaultPipeline(ol, nullptr);
+	}
 
 	modulePassManager.run(*mainmodule, moduleAnalysisManager);
 

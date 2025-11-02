@@ -7,7 +7,7 @@
 #include "Array.h"
 #include "UpdateArray.h"
 #include "FunctionImpl.h"
-#include "Scalar.h"
+#include "FunctionCall.h"
 #include "Enum.h"
 #include "semantic/Visitor.h"
 
@@ -74,6 +74,21 @@ public:
     virtual Node* visit(Enum &n) override {
         visit((Node&)n);
         n.getDataType();
+        return NULL;
+    }
+
+    virtual Node* visit(FunctionCall &n) override {
+        Node *stem = n.getStem();
+        if (stem) {
+            visit(*stem);
+            stem->setScope(&n);
+        }
+        visit((Node&)n);
+        return NULL;
+    }
+
+    virtual Node* visit(FieldAccess &n) override {
+        visit((Node&)n);
         return NULL;
     }
 };

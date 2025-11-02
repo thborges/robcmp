@@ -3,8 +3,10 @@
 
 Node* Identifier::getSymbol(Node *scope, bool validate, list<Node*> *symbols) {
 
-    if (scope == NULL)
+    if (scope == NULL) {
+        yyerrorcpp("Scope can't be null! Symbol propagation failed.", this);
         assert(scope && "scope can't be null!");
+    }
 
     Node *result = scope;
     stringstream ss(ident);

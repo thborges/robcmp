@@ -18,6 +18,7 @@ class ArrayElement;
 class MatrixElement;
 class Variable;
 class Field;
+class LeftValueData;
 
 #include "Colors.h"
 #include "SourceLocation.h"

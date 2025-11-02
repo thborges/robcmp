@@ -20,7 +20,9 @@ Value* ConstructorCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlo
         var = leftGEP;
     } else {
         assert(leftValue && "leftValue or gep must be set.");
-        var = leftValue->getLLVMValue(func);
+        var = leftValue->getAlloc();
+        if (!var)
+            var = leftValue->getLLVMValue(func);
     }
     
     if (var == NULL) {

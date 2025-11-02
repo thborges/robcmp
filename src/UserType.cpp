@@ -21,7 +21,7 @@
 class ParentScalar: public Scalar {
 public:
     ParentScalar(DataType parentDt, location_t loc) : 
-        Scalar(Identifier("parent", loc), NULL) {
+        Scalar("parent", loc) {
         Load *load = new Load("_parent", loc);
         load->setDataType(parentDt);
         load->setScope(this);
@@ -272,8 +272,8 @@ Node* UserType::accept(Visitor& v) {
 	return v.visit(*this);
 }
 
-unsigned UserType::getFieldStartBit(Node *field) {
-    return startBits[field->getName()];
+unsigned UserType::getFieldStartBit(const string& fieldName) {
+    return startBits[fieldName];
 }
 
 const string UserType::getTypeName() const {

@@ -6,48 +6,52 @@
 #include "Pointer.h"
 #include "Load.h"
 
-Scalar::Scalar(Identifier ident, Node *e) :
-	Variable(ident.getFullName(), ident.getLoc()) {
+Scalar::Scalar(LeftValueData *lv, Node *e) : Variable(lv->ident, lv->loc) {
+	leftv = lv;
 	addChild(e);
+	if (leftv->value)
+		addChild(leftv->value);
+	for(auto &[key, value] : e->getSymbols())
+		symbols[key] = value;
+}
+
+Scalar::Scalar(const string& ident, location_t loc): Variable(ident, loc) {
+	leftv = new LeftValueData();
+	leftv->ident = ident;
 }
 
 Scalar::Scalar(const string& ident, Node *e): Variable(ident, e->getLoc()) {
+	leftv = new LeftValueData();
+	leftv->ident = ident;
 	addChild(e);
+	for(auto &[key, value] : e->getSymbols())
+		symbols[key] = value;
 }
 
 Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 
-	Node *isymbol = ident.getSymbol(getScope());
-	Variable *symbol = dynamic_cast<Variable*>(isymbol);
-	if (!symbol)
-		return NULL;
-
-	RobDbgInfo.emitLocation(this);
-	Builder->SetInsertPoint(block);
-
-	Pointer *reg = NULL;
-	Node *stem = NULL;
-	if (ident.isComplex()) {
-		Identifier istem = ident.getStem();
-		stem = istem.getSymbol(getScope());
-
-		// Pointers need to load the stem, get its alloc
-		reg = dynamic_cast<Pointer*>(stem);
-		if (reg && buildTypes->isComplex(reg->getDataType())) {
-			alloc = reg->getLLVMValue(NULL);
-		} else {
-			alloc = Load::getRecursiveField(ident, getScope(), func);
-		}
-		
-		if (stem->hasQualifier(qvolatile))
-			symbol->setQualifier(qvolatile);
+	Variable *symbol = NULL;
+	bool isVolatile = false;
+	if (!leftv->stem) {
+		// local var
+		Node *isymbol = ident.getSymbol(getScope());
+		symbol = dynamic_cast<Variable*>(isymbol);
+		if (!symbol)
+			return NULL;
+		isVolatile = symbol->hasQualifier(qvolatile);
+		if (symbol != this || symbol->getGEPIndex() != -1)
+			alloc = symbol->getLLVMValue(func);
+	} else {
+		// field var, recursive load to get the store pointer
+		alloc = leftv->value->generateNewBlock(func, &block, allocblock);
+		//TODO: set isVolatile
 	}
 
 	// set the allocated left value to:
 	//  - a constructor initializing a user type field
 	//  - a load for a new variable
 	Node *expr = getExpr();
-	expr->setLeftValue(symbol);
+	expr->setLeftValue(this);
 
 	Value *exprv = expr->generateNewBlock(func, &block, allocblock);
 	if (!exprv)
@@ -60,9 +64,6 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 	// expr->generate changes the location and block
 	RobDbgInfo.emitLocation(this);
 	Builder->SetInsertPoint(block);
-
-	if (!alloc)
-		alloc = symbol->getLLVMValue(func);
 	
 	// variable not allocated
 	if (alloc == NULL) {
@@ -98,56 +99,43 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			if (debug_info)
 				RobDbgInfo.declareVar(this, alloc, allocblock);
 
-			// the symbol is in another scope
-			if (alloc && this != symbol)
+			if (buildTypes->isComplex(dt)) {
+				setPointerToPointer(true);
+			}
+
+			// the symbol is in another scope or
+			// the var is set more than once
+			if (alloc && this != symbol) {
 				symbol->setAlloca(alloc);
+			}
 		}
 
 		return ret;
 
 	} else { // variable already allocated
-		
-		if (symbol->hasQualifier(qconst) && !func->isConstructor()) {
-			yyerrorcpp("Constant '" + symbol->getName() + "' can not be changed.", this);
-			return NULL;
-		}
-		
-		DataType currdt = symbol->getDataType();
-		enum PointerMode pm = symbol->getPointerMode();
 
-		if (buildTypes->isComplex(currdt)) {
-			if (pm == pm_unknown) {
-				symbol->setPointer(pm_pointer);
-				pm = pm_pointer;
-
-			} else if (pm == pm_nopointer && !func->isConstructor() &&
-				exprv->getType()->isPointerTy()) {
-				// as any complex type is passed by ref, one must deref it before assigning
-				// to leftv, using the copy operator.
-				yyerrorcpp("Use the copy operator to dereference the rvalue.", this);
-				return NULL;
-			}
-		}
-
-		Type *currty = buildTypes->llvmType(currdt);
-		if (pm == pm_pointer)
-			currty = PointerType::getUnqual(currty);
-
+		Type *currty = buildTypes->llvmType(dt);
 		Builder->SetInsertPoint(allocblock == global_alloc ? global_alloc : block);
 		Value *nvalue = NULL;
 
 		// Pointers need a custom procedure: load the stem, set the
 		// requested bit value through bit shifting, and store the new value
+		Node *loadSymbol = NULL;
+		if (leftv->value)
+			loadSymbol = leftv->value->getLoadSymbol();
+		
+		Pointer *reg = dynamic_cast<Pointer*>(loadSymbol);
 		if (reg && buildTypes->isComplex(reg->getDataType())) {		
 			/* this code does:
-			*   symbol->value &= ~(0x11... << fieldStartBit)
-			*   symbol->value |= (exprv << fieldStartBit)
-			*/
+			 *   symbol->value &= ~(0x11... << fieldStartBit)
+			 *   symbol->value |= (exprv << fieldStartBit)
+			 */
 			Type *req_eq_ty = Type::getIntNTy(global_context, buildTypes->bitWidth(reg->getDataType()));
 			Value *v = Builder->CreateLoad(req_eq_ty, alloc, reg->hasQualifier(qvolatile), "ptrvalue");
 
 			// Prepare the mask
-			unsigned bitWidth = buildTypes->bitWidth(symbol->getDataType());
+			Node *member = loadSymbol->findMember(leftv->ident);
+			unsigned bitWidth = buildTypes->bitWidth(member->getDataType());
 			Constant *allone = Constant::getAllOnesValue(Type::getIntNTy(global_context, bitWidth));
 			Value *ones = Builder->CreateZExt(allone, req_eq_ty);
 
@@ -155,7 +143,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 			exprv = Builder->CreateZExt(exprv, req_eq_ty);
 			exprv = Builder->CreateAnd(exprv, ones, "truncrval");
 
-			unsigned fieldStartBit = reg->getFieldStartBit(symbol);
+			unsigned fieldStartBit = reg->getFieldStartBit(leftv->ident);
 			if (fieldStartBit > 0) {
 				Constant *shiftl = ConstantInt::get(req_eq_ty, fieldStartBit);
 				ones = Builder->CreateShl(ones, shiftl);
@@ -174,7 +162,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 		if (nvalue != alloc) {
 			const DataLayout &DL = mainmodule->getDataLayout();
 			Align align = DL.getABITypeAlign(nvalue->getType());
-			return Builder->CreateAlignedStore(nvalue, alloc, align, symbol->hasQualifier(qvolatile));
+			return Builder->CreateAlignedStore(nvalue, alloc, align, isVolatile);
 		} else 
 			return nvalue;
 	}
@@ -182,12 +170,18 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 
 DataType Scalar::getDataType() {
 	if (dt == BuildTypes::undefinedType) {
-		if (ident.isComplex()) {
-			Node *symbol = ident.getSymbol(getScope(), false);
-			if (symbol)
+		if (leftv->stem) {
+			// return the type of the field
+			dt = leftv->value->getDataType();
+		} else {
+			Node *symbol = ident.getSymbol(getScope());
+			if (symbol && symbol != this)
 				dt = symbol->getDataType();
-		} else
-			dt = getExpr()->getDataType();
+			
+			// as dt is still undefiend, the expr defines the first type
+			if (dt == BuildTypes::undefinedType)
+				dt = getExpr()->getDataType();
+		}
 	}
 	return dt;
 }

@@ -84,10 +84,6 @@ Value *BinaryOp::binary_operator(enum Instruction::BinaryOps opint,
 	return Builder->CreateBinOp(llvmop, lhs, rhs, "binop");
 }
 
-DataType BinaryOp::getDataType() {
-	return dt;
-}
-
 Value *BinaryOp::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	switch (op) {
 		case '+' : return binary_operator(Instruction::Add, Instruction::FAdd, func, block, allocblock);

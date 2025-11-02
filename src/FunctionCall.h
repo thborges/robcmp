@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Node.h"
+#include "Load.h"
 #include "ParamsCall.h"
 #include "Identifier.h"
 #include "Variable.h"
@@ -11,6 +12,7 @@ private:
 	Identifier ident;
 	Node *symbol = NULL;
 	Variable *leftValue = NULL;
+	LoadBase *stem = NULL;
 
 public:
 	FunctionCall(const string& name, ParamsCall *pc, location_t loc): Node(loc), ident(name, loc) {
@@ -18,6 +20,11 @@ public:
 		node_children.insert(end(node_children), pc->getParameters().begin(),
 			pc->getParameters().end());
 		delete pc;
+	}
+
+	FunctionCall(const string& name, ParamsCall *pc, LoadBase *stem, location_t loc):
+		FunctionCall(name, pc, loc) {
+		this->stem = stem;
 	}
 	
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
@@ -42,7 +49,11 @@ public:
 		return ident;
 	}
 
-	void changeIdentifier(const string& id) {
-		ident.changeIdentifier(id);
+	int getNumCodedParams();
+
+	LoadBase* getStem() {
+		return stem;
 	}
+
+	Node* getSymbol();
 };

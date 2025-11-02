@@ -2,12 +2,15 @@
 %name-prefix="MAIN"
 //%define api.prefix {MAIN} // not working in Bison 3.8.2
 %define parse.error verbose
+// enable this to trace the parser. Also, set MAINDebug=1 at Scanner.cpp.
+%define parse.trace
 
 %code provides {
   #define YY_DECL int MAINlex(YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t yyscanner)
   YY_DECL;
   void yyerror(YYLTYPE *yyloc, yyscan_t yyscanner, const char *msg);
   Node* get_compound_node(Node *load, char op, Node *right);
+  string join_strings(const vector<string>& strings, const string& separator);
 }
 
 %type <nodes> globals type_stmts enum_items interface_decls
@@ -15,11 +18,11 @@
 %type <node> global register interface type type_stmt use
 %type <node> function function_decl function_impl returnblock
 %type <node> enum enum_item interface_impl
-%type <node> simplevar_decl call_or_cast complexvar_set
+%type <node> var_decl var_decl_stmt
 %type <node> expr factor stmt condblock whileblock
-%type <node> TOK_AND TOK_OR event
-%type <node> bind asminline compound_left
-%type <strings> type_impls
+%type <node> TOK_AND TOK_OR left_value function_call
+%type <node> bind asminline
+%type <strings> type_impls string_chain
 
 %type <ae> element
 %type <aes> elements relements array
@@ -30,7 +33,7 @@
 %type <fp> function_param
 %type <pc> paramscall
 
-%type <ident> TOK_IDENTIFIER TOK_XIDENTIFIER ident_or_xident
+%type <ident> TOK_IDENTIFIER
 %type <ch> TOK_CHAR
 %type <nint> TOK_INTEGER qualifier bind_scope
 %type <unint> TOK_UINTEGER
@@ -40,6 +43,7 @@
 %type <str> TOK_STRING
 %type <fattrs> function_attributes
 %type <fattr> function_attribute
+%type <leftvd> ident_access array_access matrix_access left_value_base
 
 /* operator precedences */
 %left TOK_OR
@@ -52,8 +56,7 @@
 %left TOK_LSHIFT TOK_RSHIFT
 %left '+' '-'
 %left '*' '/' '%'
-%right UMINUS '!' '~'
-/*%left '(' ')'*/
+%precedence UMINUS '!' '~'
 
 %%
 
@@ -84,20 +87,24 @@ global : use
 	   | type
 	   | register
 	   | function
-	   | event
+//	   | event
 	   | enum
-	   | simplevar_decl ';'
-	   | qualifier simplevar_decl ';'	{ $$ = $2; $$->setQualifier((DataQualifier)$1); }
+	   | var_decl
 	   | bind
 
-use : TOK_USE TOK_IDENTIFIER ';' {
-	parseUseFile($2, @TOK_USE);
+use : TOK_USE string_chain ';' {
+	parseUseFile(join_strings(*$string_chain, "."), @TOK_USE);
 	$$ = NULL;
 }
 
-use : TOK_USE TOK_XIDENTIFIER ';' {
-	parseUseFile($2, @TOK_USE);
-	$$ = NULL;
+string_chain : string_chain '.' TOK_IDENTIFIER[id] {
+	$$ = $1;
+	$$->push_back($id);
+}
+
+string_chain : TOK_IDENTIFIER[id] {
+	$$ = new vector<string>();
+	$$->push_back($id);
 }
 
 enum : TOK_ENUM TOK_IDENTIFIER[id] '{' enum_items '}' {
@@ -169,15 +176,14 @@ function_attribute
 	| TOK_NOOPT							{ $$ = new FunctionAttribute(fa_noopt, ""); }
 	| TOK_SECTION TOK_IDENTIFIER[id]	{ $$ = new FunctionAttribute(fa_section, $id); }
 
-event : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'[ef] {	
+//event : TOK_QUANDO TOK_INTEGER TOK_ESTA TOK_INTEGER '{' stmts '}'[ef] {	
 				/*char funcname[100];
 				snprintf(funcname, 100, "__callback_int_p%d_e%d", (int)$2, (int)$4);
 				vectorglobal.push_back(new AttachInterrupt($2, funcname, $4));
 				FunctionParams *fps = new FunctionParams();
 				$$ = new FunctionImpl(tvoid, funcname, fps, $6, @ef);*/
-				return 0;
-             }
-		   ;
+//				return 0;
+//             }
 
 qualifier : TOK_CONST		{ $$ = qconst; }
 		  | TOK_VOLATILE	{ $$ = qvolatile; }
@@ -271,18 +277,15 @@ type_stmts : type_stmt {
 		$$->push_back($type_stmt);
 }
 
-type_stmt : simplevar_decl ';'
-		  | qualifier[q] simplevar_decl ';'	{ $simplevar_decl->setQualifier((DataQualifier)$q); $$ = $2; }
+type_stmt : var_decl
           | function_impl
 		  | interface_impl
 		  | enum
 
-simplevar_decl : TOK_IDENTIFIER[id] '=' expr		{ $$ = new Scalar($id, $expr);	$$->setLocation(@id); }
-simplevar_decl : TOK_IDENTIFIER[id] '=' array		{ $$ = new Array($id, $array, @id); }
-simplevar_decl : TOK_IDENTIFIER[id] '=' matrix		{ $$ = new Matrix($id, $matrix, @id); }
-
-bind : TOK_BIND ident_or_xident[id] TOK_TO ident_or_xident[to] bind_scope[scope] ';' {
-	injections.insert({$to, new Injection($id, $to, BindScope($scope), @id)});
+bind : TOK_BIND string_chain[id] TOK_TO string_chain[to] bind_scope[scope] ';' {
+	string sid = join_strings(*$id, ".");
+	string sto = join_strings(*$to, ".");
+	injections.insert({sto, new Injection(sid, sto, BindScope($scope), @id)});
 	$$ = NULL;
 }
 
@@ -332,43 +335,32 @@ stmts_rec : stmt {
 	$stmt->setLocation(@stmt);
 }
 
-compound_left : ident_or_xident[id] {
-	$$ = new Load($id, @id);
-}
-
-compound_left : ident_or_xident[id] '[' expr ']' {
-	$$ = new LoadArray($id, $expr, @id);
-}
-
-compound_left : ident_or_xident[id] '[' expr[e1] ']' '[' expr[e2] ']' {
-	$$ = new LoadMatrix($id, $e1, $e2, @id);
-}
-
-stmt : compound_left[cl] '+' '+' ';'		{ $$ = get_compound_node($cl, '+', new Int8(1, @cl)); }
-	 | compound_left[cl] '-' '-' ';'		{ $$ = get_compound_node($cl, '-', new Int8(1, @cl)); }
-	 | compound_left[cl] '+' '=' expr ';'	{ $$ = get_compound_node($cl, '+', $expr); }
-	 | compound_left[cl] '-' '=' expr ';'	{ $$ = get_compound_node($cl, '-', $expr); }
-	 | compound_left[cl] '*' '=' expr ';'	{ $$ = get_compound_node($cl, '*', $expr); }
-	 | compound_left[cl] '/' '=' expr ';'	{ $$ = get_compound_node($cl, '/', $expr); }
-	 | compound_left[cl] '|' '=' expr ';'	{ $$ = get_compound_node($cl, '|', $expr); }
-	 | compound_left[cl] '&' '=' expr ';'	{ $$ = get_compound_node($cl, '&', $expr); }
-	 | compound_left[cl] '^' '=' expr ';'	{ $$ = get_compound_node($cl, '^', $expr); }
-	 
-	 | ident_or_xident '[' expr ']' '=' expr ';'				{ $$ = new UpdateArray($1, $3, $6, @1);}
-	 | ident_or_xident '[' expr ']' '[' expr ']' '=' expr ';'	{ $$ = new UpdateMatrix($1, $3, $6, $9, @1); }
-
-	 | asminline ';'											{ $$ = $1; }
-	 | qualifier simplevar_decl ';'								{ $$ = $2; $$->setQualifier((DataQualifier)$1); }
-	 | simplevar_decl ';'
-	 | complexvar_set ';'
+stmt : left_value_base[cl] '+' '+' ';'		{ $$ = new CompoundStore($cl, '+', new Int8(1, @cl)); }
+	 | left_value_base[cl] '-' '-' ';'		{ $$ = new CompoundStore($cl, '-', new Int8(1, @cl)); }
+	 | left_value_base[cl] '+' '=' expr ';'	{ $$ = new CompoundStore($cl, '+', $expr); }
+	 | left_value_base[cl] '-' '=' expr ';'	{ $$ = new CompoundStore($cl, '-', $expr); }
+	 | left_value_base[cl] '*' '=' expr ';'	{ $$ = new CompoundStore($cl, '*', $expr); }
+	 | left_value_base[cl] '/' '=' expr ';'	{ $$ = new CompoundStore($cl, '/', $expr); }
+	 | left_value_base[cl] '|' '=' expr ';'	{ $$ = new CompoundStore($cl, '|', $expr); }
+	 | left_value_base[cl] '&' '=' expr ';'	{ $$ = new CompoundStore($cl, '&', $expr); }
+	 | left_value_base[cl] '^' '=' expr ';'	{ $$ = new CompoundStore($cl, '^', $expr); }
+	 | var_decl
+	 | asminline ';'
 	 | returnblock ';'
-	 | call_or_cast ';'
+	 | function_call ';'
 	 | condblock
 	 | whileblock
 
-complexvar_set : TOK_XIDENTIFIER[id] '=' expr		{ $$ = new Scalar($id, $expr);	$$->setLocation(@id); }
-complexvar_set : TOK_XIDENTIFIER[id] '=' array		{ $$ = new Array($id, $array, @id); }
-complexvar_set : TOK_XIDENTIFIER[id] '=' matrix		{ $$ = new Matrix($id, $matrix, @id); }
+
+var_decl : qualifier var_decl_stmt ';'  { $$ = $2; $$->setQualifier((DataQualifier)$qualifier); }
+         | var_decl_stmt  ';'
+
+var_decl_stmt : left_value_base[lv] '=' array		{ $$ = new Array($lv->ident, $array, @lv); }
+var_decl_stmt : left_value_base[lv] '=' matrix	{ $$ = new Matrix($lv->ident, $matrix, @lv); }
+var_decl_stmt : left_value_base[lv] '=' expr {
+	$lv->value->setToStore(true);
+	$$ = new Scalar($lv, $expr);
+}
 
 returnblock : TOK_RETURN expr			{ $$ = new Return($2); }
 returnblock : TOK_RETURN				{ $$ = new Return(@1); }
@@ -442,7 +434,6 @@ expr: '~' expr[e]					{ $$ = new FlipOp($e); }
 expr: factor
 
 factor : '(' expr[e] ')'		{ $$ = $e; }
-	   | ident_or_xident		{ $$ = new Load($1, @1); }
 	   | TOK_TRUE				{ $$ = new Int1(1, @1); }
 	   | TOK_FALSE				{ $$ = new Int1(0, @1); }
 	   | TOK_CHAR				{ $$ = new Char($1, @1); }
@@ -452,29 +443,87 @@ factor : '(' expr[e] ')'		{ $$ = $e; }
 	   | TOK_DOUBLE				{ $$ = new Double($1, @1); }
 	   | TOK_LDOUBLE			{ $$ = new Float128($1, @1); }
 	   | TOK_STRING				{ $$ = new StringConst("conststr", $1, @1); }
-	   | ident_or_xident[id] '[' expr ']'				{ $$ = new LoadArray($1, $3, @id);} 
-	   | ident_or_xident[id] '[' expr ']' '[' expr ']'	{ $$ = new LoadMatrix($1, $3, $6, @id);}
-	   | call_or_cast
+	   | left_value
 	   ;
 
-ident_or_xident: TOK_IDENTIFIER | TOK_XIDENTIFIER
+// var
+// var[x]
+// var[x][y]
+// var.field
+// var[x].field
+// var[x][y].field
 
-call_or_cast : ident_or_xident[id] '(' paramscall ')' {
-	if (strncmp("copy", $id, 4) == 0 && $paramscall->getNumParams() == 1)
-		$$ = new MemCopy($paramscall->getParamElement(0));
-	else if (strncmp("bitcast", $id, 7) == 0 && $paramscall->getNumParams() == 2) {
-		Node *nodeTy = $paramscall->getParamElement(1);
-		Load *load = dynamic_cast<Load*>(nodeTy);
-		if (load && buildTypes->getType(load->getName()) != BuildTypes::undefinedType) {
-			DataType dt = buildTypes->getType(load->getName());
-			$$ = new BitCast($paramscall->getParamElement(0), dt);
+left_value : left_value_base[lv]	{ $$ = $lv->value; }
+		   | function_call
+
+left_value_base : ident_access
+        		| array_access
+				| matrix_access
+
+ident_access : TOK_IDENTIFIER[id] {
+	auto *lvd = new LeftValueData();
+	lvd->ident = $id;
+	lvd->loc = @id;
+	// temporarily set as a load; can be changed below
+	lvd->value = new Load($id, @id);
+	$$ = lvd;
+}
+
+ident_access : ident_access[lv] '.' TOK_IDENTIFIER[id] {
+	$lv->ident = $id;
+	$lv->stem = $lv->value;
+	$lv->value = new FieldAccess($lv->stem, $id, @id);
+	$$ = $lv;
+}
+
+ident_access : array_access[lv] '.' TOK_IDENTIFIER[id] {
+	$lv->ident = $id;
+	$lv->stem = $lv->value;
+	$lv->value = new FieldAccess($lv->stem, $id, @id);
+	$$ = $lv;
+}
+
+ident_access : matrix_access[lv] '.' TOK_IDENTIFIER[id] {
+	$lv->ident = $id;
+	$lv->stem = $lv->value;
+	$lv->value = new FieldAccess($lv->stem, $id, @id);
+	$$ = $lv;
+}
+
+function_call : ident_access[ia] '(' paramscall ')' {
+	if ($ia->stem == NULL) { // is a simple global call
+		if ($ia->ident == "copy" && $paramscall->getNumParams() == 1)
+			$$ = new MemCopy($paramscall->getParamElement(0));
+		else if ($ia->ident == "bitcast" && $paramscall->getNumParams() == 2) {
+			Node *nodeTy = $paramscall->getParamElement(1);
+			Load *load = dynamic_cast<Load*>(nodeTy);
+			if (load && buildTypes->getType(load->getName()) != BuildTypes::undefinedType) {
+				DataType dt = buildTypes->getType(load->getName());
+				$$ = new BitCast($paramscall->getParamElement(0), dt);
+			} else {
+				yyerrorcpp("Wrong call to bitcast(var, new_type)", $ia->value);
+				$$ = NULL;
+			}
 		} else {
-			$$ = new FunctionCall($id, $paramscall, @id);
+			$$ = new FunctionCall($ia->ident, $paramscall, @ia);
 		}
-	} else {
-		$$ = new FunctionCall($id, $paramscall, @id);
+	} else { // call to a function of a User type
+		delete $ia->value; // the last ident is the function name; ignore the previous access
+		$$ = new FunctionCall($ia->ident, $paramscall, $ia->stem, @ia);
 	}
-	$$->setLocation(@id);
+	$$->setLocation(@ia);
+}
+
+array_access : left_value_base[lv] '[' expr ']' {
+	$lv->stem = $lv->value;
+	$lv->value = new ArrayAccess($lv->stem, $expr);
+	$$ = $lv;
+}
+
+matrix_access : left_value_base[lv] '[' expr[e1] ']' '[' expr[e2]']' {
+	$lv->stem = $lv->value;
+	$lv->value = new MatrixAccess($lv->stem, $e1, $e2);
+	$$ = $lv;
 }
 
 paramscall : paramscall ',' expr {
@@ -501,4 +550,11 @@ Node *get_compound_node(Node *load, char op, Node *right) {
 		return new UpdateMatrix(load->getName(), lm->getPosition(), lm->getPosition2(), new BinaryOp(load, op, right), load->getLoc());
 	else
 		assert(false && "Unknown load node.");
+}
+
+string join_strings(const vector<string>& strings, const string& separator) {
+	string result = strings[0];
+	for(int i = 1; i < strings.size(); i++)
+		result += separator + strings[i];
+	return result;
 }

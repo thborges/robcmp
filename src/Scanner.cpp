@@ -14,7 +14,6 @@ vector<filesystem::path> buildStack;
 stack<filesystem::path> useStack;
 vector<yyscan_t> buildStackScanner;
 int buildStackCurrent;
-bool parseIsCompleted = false;
 extern bool build_dependencies;
 
 int USElex(YYSTYPE *yylval_param, location_t *yylloc_param, yyscan_t yyscanner) {
@@ -81,6 +80,9 @@ bool parseFile(const string& source) {
         cerr << string_format(file_not_found, file_path.string().c_str());
         return false;
     }
+
+    extern int MAINdebug;
+    //MAINdebug = 1;
 
 	yyscan_t scanner;
 	MAINlex_init(&scanner);

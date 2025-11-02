@@ -12,5 +12,5 @@ public:
 
 	virtual Value *generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) override;
 
-	unsigned getFieldStartBit(Node *symbol);
+	unsigned getFieldStartBit(const string& fieldName);
 };

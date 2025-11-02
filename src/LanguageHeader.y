@@ -23,7 +23,7 @@
 %token TOK_IF TOK_ELSE
 %token TOK_LOOP TOK_WHILE
 %token TOK_AND TOK_OR
-%token TOK_IDENTIFIER TOK_XIDENTIFIER
+%token TOK_IDENTIFIER TOK_USE_IDENTIFIER
 %token TOK_CHAR TOK_UINTEGER
 %token TOK_FLOAT TOK_DOUBLE TOK_LDOUBLE TOK_INTEGER TOK_STRING TOK_TRUE TOK_FALSE
 %token TOK_FINT8 TOK_FINT16 TOK_FINT32 TOK_FINT64
@@ -58,6 +58,7 @@
 	ArrayElement *ae;
 	MatrixElement *me;
 	Variable *fp;
+	LeftValueData *leftvd;
 }
 
 %start programa

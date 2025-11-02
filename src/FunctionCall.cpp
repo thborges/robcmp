@@ -13,22 +13,43 @@
 
 extern Program *program;
 
+Node* FunctionCall::getSymbol() {
+    if (dt == BuildTypes::undefinedType)
+        getDataType();
+    return symbol;
+}
+
 DataType FunctionCall::getDataType() {
     
     if (dt == BuildTypes::undefinedType) {
-        // is a constructor? this can occur while running PropagateTypes.
+        // is a constructor?
         dt = buildTypes->getType(ident.getFullName());
         if (node_children.size() <= 1 && dt != BuildTypes::undefinedType) {
+            symbol = findSymbol(buildTypes->name(dt));
             return dt;
         }
 
-        if (!symbol)
-            symbol = ident.getSymbol(getScope());
+        if (!symbol) {
+            if (stem) {
+                // method of a user type
+                symbol = findSymbol(buildTypes->name(stem->getDataType()));
+                symbol = symbol->findMember(ident.getFullName());
+            } else {
+                symbol = ident.getSymbol(getScope());
+            }
+        }
 
         if (symbol)
             dt = symbol->getDataType();
     }
     return dt;
+}
+
+int FunctionCall::getNumCodedParams() {
+    int result = node_children.size();
+    if (stem)
+        return result--;
+    return result;
 }
 
 Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
@@ -37,9 +58,9 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
     string name = ident.getFullName();
 
     if (!symbol)
-        symbol = ident.getSymbol(getScope(), false);
+        getDataType();
 
-    if (symbol == NULL) {
+    if (!symbol) {
         yyerrorcpp("Function " + name + " not defined.", this);
         return NULL;
     }
@@ -49,17 +70,16 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         yyerrorcpp("Symbol " + name + " is not a function.", this);
         return NULL;
     } else if (ident.isComplex()) {
-        Node *stem = ident.getStem().getSymbol(getScope());
         if (Interface *intf = dynamic_cast<Interface*>(stem)) {
             yyerrorcpp("Can not call an interface function.", this);
             return NULL;
         }
     }
 
-    if (fsymbol->getNumCodedParams() != node_children.size()) {
+    if (fsymbol->getNumCodedParams() != getNumCodedParams()) {
         yyerrorcpp(string_format("Function %s has %d argument(s) but was called with %d.",
             name.c_str(), fsymbol->getNumCodedParams(), 
-            node_children.size()), this);
+            getNumCodedParams()), this);
         yywarncpp("The function declaration is here.", symbol);
         return NULL;
     }
@@ -68,19 +88,7 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
     if (!debug_info && fsymbol->getAttributes()->hasAttribute(fa_debugonly))
         return NULL;
 
-    dt = fsymbol->getDataType();
-
-    Node *stemSymbol = NULL;
-    Value *stem = func->getThisArg();
-    DataType stemdt = func->getThisArgDt();
-
     Builder->SetInsertPoint(block);
-    if (ident.isComplex()) {
-        Identifier istem = ident.getStem();
-        stemSymbol = istem.getSymbol(getScope());
-        stemdt = stemSymbol->getDataType();
-        stem = Load::getRecursiveField(istem, getScope(), func);
-    }
 
     vector<Value*> args;
     vector<DataType> dataTypes;
@@ -142,14 +150,17 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         paramId++;
     }
 
-    // this parameter
-    if (stemSymbol) {
-        args.push_back(stem);
-        dataTypes.push_back(stemSymbol->getDataType());
+    // this parameter at the end
+    if (stem) {
+        Value *stemValue = stem->generateNewBlock(func, &block, allocblock);
+        args.push_back(stemValue);
+        dataTypes.push_back(stem->getDataType());
     } else if (fsymbol->getThisArgDt() != BuildTypes::undefinedType) {
         // calling a function of the type itself, without stem
-        Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
-        Value *ptr = Builder->CreateLoad(PointerType::getUnqual(thisTy), func->getThisArg(), "derefthis");
+        Value *thisPointer = func->getThisArg();
+        DataType thisDt = func->getThisArgDt();
+        Type *thisTy = buildTypes->llvmType(thisDt);
+        Value *ptr = Builder->CreateLoad(PointerType::getUnqual(thisTy), thisPointer, "derefthis");
         args.push_back(ptr);
         dataTypes.push_back(fsymbol->getThisArgDt());
     }
@@ -158,22 +169,19 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 
     Builder->SetInsertPoint(allocblock);
     Value *vfunc = symbol->getLLVMValue(func);
-    if (!vfunc) {
-        return NULL; //FIXME:??
-    }
+    assert(vfunc && "Need a function to call.");
     Function *cfunc = dyn_cast<Function>(vfunc);
 
     // symbol->getLLVMValue above can emit another location (preGenerate of the 
     // function being called), so we emit location again
     RobDbgInfo.emitLocation(this);
+    Builder->SetInsertPoint(block);
 
     // calling an interface function; will use the dispatcher
-    if (stemSymbol && buildTypes->isInterface(stemSymbol->getDataType())) {
-        string func_full_name;
-        
-        func_full_name = buildTypes->name(stemSymbol->getDataType());
-        func_full_name.append(":");
-        func_full_name.append(ident.getLastName());
+    if (stem && buildTypes->isInterface(stem->getDataType())) {
+        string func_full_name = string_format("%s:%s",
+            buildTypes->name(stem->getDataType()),
+            ident.getFullName().c_str());
 
         Function *intf_cfunc = mainmodule->getFunction(func_full_name);
         if (!intf_cfunc) {
@@ -185,7 +193,6 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         cfunc = intf_cfunc;
     }
 
-    Builder->SetInsertPoint(block);
     CallInst *call = Builder->CreateCall(cfunc, argsRef);
     
     // set signedness

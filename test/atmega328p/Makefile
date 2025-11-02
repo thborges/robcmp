@@ -32,7 +32,9 @@ out/atmega328p.ll : ../../lib/atmega328p.rob ${DEPENDS}
 
 .SECONDARY:
 out/%.o : %.rob out/atmega328p.o ${DEPENDS}
-	${ROBCMP} -bdep -a atmega328p ${OPT} ${INCLUDES} -o $@ $<
+	@touch temp.spec && truncate -s 0 temp.spec
+	@[ -f $(patsubst %.rob,%.spec,$<) ] && cp $(patsubst %.rob,%.spec,$<) temp.spec || true
+	${ROBCMP} -bdep -a atmega328p ${OPT} ${INCLUDES} -s temp.spec -o $@ $<
 
 out/%.ll : %.rob ${DEPENDS}
 	${ROBCMP} -bdep -a atmega328p ${OPT} ${INCLUDES} $< > $@

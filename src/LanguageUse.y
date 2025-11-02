@@ -29,7 +29,7 @@
 %type <fps> function_params
 %type <fp> function_param
 
-%type <ident> TOK_IDENTIFIER TOK_XIDENTIFIER
+%type <ident> TOK_IDENTIFIER TOK_USE_IDENTIFIER
 %type <nint> TOK_INTEGER qualifier
 %type <unint> TOK_UINTEGER
 %type <nfloat> TOK_FLOAT
@@ -85,7 +85,7 @@ use : TOK_USE TOK_IDENTIFIER ';' {
 	$$ = NULL;
 }
 
-use : TOK_USE TOK_XIDENTIFIER ';' {
+use : TOK_USE TOK_USE_IDENTIFIER ';' {
 	parseUseFile($2, @TOK_USE);
 	$$ = NULL;
 }
@@ -351,7 +351,6 @@ ignore_stmt : ignore				{ $$ = NULL; }
  * to be precise, the FIRST(stmt) of Language.y
  */
 ignore : TOK_IDENTIFIER  { YYERROR; }
-	   | TOK_XIDENTIFIER { YYERROR; }
 	   | TOK_WHILE       { YYERROR; }
 	   | TOK_RETURN      { YYERROR; }
 	   | TOK_CONST       { YYERROR; }

@@ -40,6 +40,7 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
         yyerrorcpp("Symbol " + ident.getFullName() + " not found.", this);
 		return NULL;
 	}
+	loadSymbol = symbol;
 
 	dt = identSymbol->getDataType();
 
@@ -72,7 +73,7 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 			 *   v = v >> pointer_bits - field_width
 			 */
 			int bs = buildTypes->bitWidth(reg->getDataType()) - buildTypes->bitWidth(symbol->getDataType());
-			unsigned fieldStartBit = reg->getFieldStartBit(symbol);
+			unsigned fieldStartBit = reg->getFieldStartBit(symbol->getName());
 			if (bs - fieldStartBit > 0)
 				v = Builder->CreateShl(v, ConstantInt::get(req_eq_ty, bs - fieldStartBit));
 			if (bs > 0)
@@ -110,6 +111,8 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 		}
 		if (leftValue)
 			leftValue->setPointerToPointer(true);
+		return alloc;
+	} else if (toStore) {
 		return alloc;
 	} else {
 		Type *ty = buildTypes->llvmType(sdt);

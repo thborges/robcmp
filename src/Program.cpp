@@ -11,10 +11,12 @@
 #include "Load.h"
 #include "BuildTypes.h"
 #include "ConstructorCall.h"
+#include "Scalar.h"
 #include "semantic/PrintAstVisitor.h"
 #include "semantic/PropagateTypes.h"
 #include "semantic/SymbolizeTree.h"
 #include "semantic/VirtualDispatchPasses.h"
+#include "semantic/InjectionsBind.h"
 
 Program::Program() : Node({0,0,0,0}) {
 	mainmodule = new Module(this->getFile(), global_context);
@@ -106,38 +108,17 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 		}
 	*/
 	vector<FunctionImpl*> finjects;
-	for (auto &[key, itype] : injections) {
+	for (auto &[key, ij] : injections) {
 		Identifier to(key, loc);
-		Identifier bind(itype->bind, loc);
+		Identifier bind(ij->bind, loc);
 
-		// injection validation
-		auto subTypeName = regex_replace(bind.getFullName(), regex("\\."), ":"); //internal types use :
-		Identifier bindSubtypes(subTypeName, loc);
-		Node *injectType = bindSubtypes.getSymbol(this, false);
-
-		DataType destinationTy = BuildTypes::undefinedType;
-		string destinationTyName;
+		Node *nodeTo = to.getSymbol(program, false);
+		DataType destinationTy = nodeTo->getDataType();
+		
+        auto subTypeName = regex_replace(bind.getFullName(), regex("\\."), ":"); //internal types use :
+        Identifier bindSubtypes(subTypeName, loc);
+        Node *injectType = bindSubtypes.getSymbol(program, false);
 		UserType *bindUserTy = dynamic_cast<UserType*>(injectType);
-		if (!bindUserTy) {
-			yyerrorcpp(string_format("Bind symbol %s is not of a bindable type.",
-				bind.getFullName().c_str()), &itype->loc);
-			continue;
-		} else {
-			Node *nodeTo = to.getSymbol(this, false);
-			if (!nodeTo) {
-				yyerrorcpp(string_format("Injection destination %s not found.",
-					to.getFullName().c_str()), &itype->loc);
-				continue;			
-			} else {
-				destinationTy = nodeTo->getDataType();
-				destinationTyName = buildTypes->name(destinationTy);
-				if (!bindUserTy->implementsInterface(destinationTyName)) {
-					yyerrorcpp(string_format("Bind symbol %s does not implements %s.",
-						bind.getFullName().c_str(), destinationTyName.c_str()), bindUserTy);				
-					continue;
-				}
-			}
-		}
 
 		// setup dispatcher to resolv from destinationTy to bindUserTy
 		program->getDispatcher()->addDataTypeImplementation(destinationTy,
@@ -152,8 +133,8 @@ void Program::generateInjectionSetup(SourceLocation *sl) {
 		finject->setScope(this);
 		finject->setAttributes(new FunctionAttributes(fa_inline));
 		
-		if (itype->scope == bs_singleton) {
-			string globalVarName = itype->singletonName;
+		if (ij->scope == bs_singleton) {
+			string globalVarName = ij->singletonName;
 			Load *load = new Load(Identifier(globalVarName, loc));
 			Return *ret = new Return(load);
 			ret->setScope(finject);
@@ -220,24 +201,26 @@ void Program::generateBuiltins() {
 	Builder->SetCurrentDebugLocation(SavedLoc);
 }
 
-extern bool parseIsCompleted;
-
 void Program::doSemanticAnalysis() {
-    parseIsCompleted = true;
 
 	declareBuiltins();
 
-	// instrumentation passes
+	// set scope in the AST
 	SymbolizeTree st;
 	st.visit(*this);
 
+	// identify types for which virtual dispatch will be needed
 	IdentifyVirtualDispatch ivd;
 	ivd.visit(*this);
 
+	// bind interfaces in the AST
+	InjectionsBind ibind;
+	if (ibind.validate())
+		ibind.visit(*this);
+
+	// propagate and coherce types in the AST
 	PropagateTypes pt;
 	pt.visit(*this);
-
-	ivd.applyIdentifiedChanges();
 
 	buildTypes->generateDebugInfoForTypes();
 	

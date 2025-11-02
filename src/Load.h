@@ -2,18 +2,44 @@
 
 #include "Node.h"
 #include "Identifier.h"
+#include "Variable.h"
 #include "semantic/Visitor.h"
 
-class Load: public Node {
+class LoadBase: public Node {
+protected:
+	LoadBase *leftValue = NULL;
+	Variable *loadSymbol = NULL;
+	bool toStore = false;
+public:
+	LoadBase(location_t loc) : Node(loc) {}
+
+	virtual Variable* getLoadSymbol() {
+		return loadSymbol; 
+	}
+
+	void setToStore(bool to) {
+		LoadBase *lb = this;
+		while (lb) {
+			lb->toStore = to;
+			lb = lb->leftValue;
+		}
+	}
+	
+	LoadBase* getLeftValue() {
+		return leftValue;
+	}
+};
+
+class Load: public LoadBase {
 private:
 	Identifier ident;
 	Variable *leftValue = NULL;
 	Node *identSymbol = NULL;
 	
 public:
-	Load(const char* i, location_t loc): Node(loc), ident(i, loc) {	}
-	Load(Identifier i): Node(i.getLoc()), ident(i.getFullName(), i.getLoc()) { }
-	Load(Node *n): Node(n->getLoc()), ident(n->getName(), n->getLoc()) {
+	Load(const char* i, location_t loc): LoadBase(loc), ident(i, loc) {	}
+	Load(Identifier i): LoadBase(i.getLoc()), ident(i.getFullName(), i.getLoc()) { }
+	Load(Node *n): LoadBase(n->getLoc()), ident(n->getName(), n->getLoc()) {
 		identSymbol = n;
 	}
  

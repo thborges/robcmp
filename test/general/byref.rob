@@ -1,8 +1,4 @@
 
-interface intf {
-	void print(int8 v);
-}
-
 type sub_t {
 	y = 18;
 }
@@ -13,10 +9,6 @@ type main_t {
 
 	void setSubt(sub_t v) {
 		ss = copy(v);
-	}
-
-	ii implements intf {
-		void print(int8 v) {}
 	}
 }
 

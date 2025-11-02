@@ -32,3 +32,6 @@ using namespace std;
 #include <llvm/ADT/StringExtras.h>
 
 using namespace llvm;
+
+template<typename ... Args>
+string string_format(const char *format, Args ... args);

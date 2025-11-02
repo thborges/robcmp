@@ -42,9 +42,9 @@ Value *Pointer::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
     return alloc;
 }
 
-unsigned Pointer::getFieldStartBit(Node *field) {
+unsigned Pointer::getFieldStartBit(const string& fieldName) {
     Node *dtsymbol = findSymbol(buildTypes->name(getDataType()));
     UserType *ut = dynamic_cast<UserType*>(dtsymbol);
     assert(ut && "Can't get field start bit from a non-complex type.");
-    return ut->getFieldStartBit(field);
+    return ut->getFieldStartBit(fieldName);
 }

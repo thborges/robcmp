@@ -24,7 +24,7 @@ protected:
 	virtual void createDataType() override;
 
 public:
-	Matrix(const char *n, MatrixElements *me, location_t loc);
+	Matrix(const string& n, MatrixElements *me, location_t loc);
 
 	std::vector<MatrixElement*> const& getMatrixElements() {
 		return melements->getElements();

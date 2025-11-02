@@ -1,7 +1,7 @@
 /* vim: set tabstop=4:softtabstop=4:shiftwidth=4:noexpandtab */ 
 
 int32 fibonacci (int32 n) {
-	if (n == 1 or n == 2) {
+	if n == 1 or n == 2 {
 		return 1;
 	} else {
 		return fibonacci(n - 1) + fibonacci(n - 2);

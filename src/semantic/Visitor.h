@@ -38,6 +38,8 @@ class MemCopy;
 class Enum;
 class BitCast;
 class CoercionBase;
+class CompoundStore;
+class FieldAccess;
 
 #define VISITOR_DECLAREP(T, P) \
 	virtual Node *visit(T& n) { return visit((P&)n); } \
@@ -91,6 +93,8 @@ public:
 	VISITOR_DECLARE(UpdateArray)
 	VISITOR_DECLARE(BitCast)
 	VISITOR_DECLARE(CoercionBase)
+	VISITOR_DECLARE(CompoundStore)
+	VISITOR_DECLARE(FieldAccess)
 
 };
 

@@ -6,6 +6,12 @@
 #include "ConstructorCall.h"
 #include "Scalar.h"
 #include "Program.h"
+#include "NamedConst.h"
+#include "Enum.h"
+#include "ast/FieldAccess.h"
+#include "ast/ArrayAccess.h"
+#include "ast/MatrixAccess.h"
+#include "ast/EnumAccess.h"
 
 void PropagateTypes::propagateChildren(Node& n, std::function<void(Node&)> lambda) {
     for (auto it = n.node_children.begin(); it != n.node_children.end(); ++it) {
@@ -371,10 +377,10 @@ Node* PropagateTypes::visit(FunctionCall& fc) {
     }
 
     // coerce call arguments
-    Identifier calledIdent(fc.getName(), fc.getLoc());
-    Node *calledSymbol = calledIdent.getSymbol(&fc, false);
+    Node *calledSymbol = fc.getSymbol();
     FunctionBase *calledFunc = dynamic_cast<FunctionBase*>(calledSymbol);
-    if (calledFunc && calledFunc->getNumCodedParams() == fc.getParameters().size()) {
+    assert(calledFunc && "Called function not found.");
+    if (calledFunc->getNumCodedParams() == fc.getParameters().size()) {
         auto calledFuncParam = calledFunc->getParameters().getParameters().begin();
         auto passedParam = fc.getParameters().begin();
         while (passedParam != fc.getParameters().end()) {
@@ -482,6 +488,21 @@ Node* PropagateTypes::visit(Enum& n) {
     return NULL;
 }
 
+Node* PropagateTypes::visit(FieldAccess& n) {
+    
+    // promote FieldAccess to EnumAccess
+    Node *loadNode = n.getLeftValue();
+    if (Load *load = dynamic_cast<Load*>(loadNode)) {
+        Node *enumSymbol = load->getIdentSymbol(false);
+        if (Enum *en = dynamic_cast<Enum*>(enumSymbol)) {
+            return new EnumAccess(en, n.getField());
+        }
+    }
+
+    visit((LoadBase&)n);
+    return NULL;
+}
+
 Node* PropagateTypes::visit(Variable& n) {
     
     propagateChildren(n);
@@ -489,31 +510,38 @@ Node* PropagateTypes::visit(Variable& n) {
     bool checkCoercion = false;
     DataType destDt = BuildTypes::undefinedType;
 
-    // Verify if a complex identifier exists
-    Identifier& id = n.getIdent();
-    if (id.isComplex()) {
-        if (!id.getSymbol(&n, true))
-            return NULL;
-    }
-    
-    Node *firstDecl = n.getScope()->findSymbol(n.getName());
-    if (firstDecl && firstDecl != &n) {
-        DataType ndt = n.getDataType();
-        destDt = firstDecl->getDataType();
-        if (ndt != BuildTypes::undefinedType &&
-            destDt != BuildTypes::undefinedType &&
-            ndt != destDt) {
-            // the var was first defined as destDt.
-            // try to coherce the right hand side to match it
+    // Verify if the var value is being reassigned
+    // TODO: Make it check Array class redefinition
+    if (Scalar *scalar = dynamic_cast<Scalar*>(&n)) {
+        Node *varLeftValue = scalar->getLeftValue();
+        if (dynamic_cast<FieldAccess*>(varLeftValue) ||
+            dynamic_cast<ArrayAccess*>(varLeftValue) ||
+            dynamic_cast<MatrixAccess*>(varLeftValue)) {
+            destDt = n.getDataType();
             checkCoercion = true;
+
+        } else {
+            Node *firstDecl = n.getScope()->findSymbol(n.getName());
+            if (firstDecl && firstDecl != &n) {
+                DataType ndt = n.getDataType();
+                destDt = firstDecl->getDataType();
+                if (ndt != BuildTypes::undefinedType &&
+                    destDt != BuildTypes::undefinedType &&
+                    ndt != destDt) {
+                    // the var was first defined as destDt.
+                    // try to coherce the right hand side to match it
+                    checkCoercion = true;
+                }
+            } else {
+                destDt = n.getDataType();
+            }
         }
     }
     
     Node *expr = n.getExpr();
-    if (expr && (n.getDataType() != expr->getDataType())) {
+    if (expr && (destDt != expr->getDataType())) {
         // the variable type is distinct from the right hand side
         // this can occur when using types, e.g. usertype.x = newvalue;
-        destDt = n.getDataType();
         checkCoercion = true;
     } else if (!expr) {
         // for array and matrix, getExpr returns null
@@ -532,8 +560,16 @@ Node* PropagateTypes::visit(Variable& n) {
 
 Node* PropagateTypes::visit(Scalar& n) {
     
-    Node *result = visit((Variable&)n);
+    // set variable type and cohercion
+    visit((Variable&)n);
     
+    // replace by a NamedConst
+    if (n.hasQualifier(qconst) && n.isConstExpr()) {
+        NamedConst *nc = new NamedConst(n.getName(), n.getExpr());
+        nc->setScope(n.getScope());
+        return nc;
+    }
+
     // although this should be done on SymbolizeTree,
     // some type propagation in the tree changes symbols
     // for scalars (e.g. FunctionCall -> ConstructorCall)
@@ -580,6 +616,21 @@ Node* PropagateTypes::visit(BitCast& n) {
         yyerrorcpp(string_format("Can not bitcast from '%s' to '%s'.",
                 buildTypes->name(st),
                 buildTypes->name(dt)), &n);
+    }
+
+    return NULL;
+}
+
+Node* PropagateTypes::visit(CompoundStore& n) {
+    propagateChildren(n);
+    DataType leftdt = n.getLeftDataType();
+    Node *expr = n.getExpr();
+    DataType exprdt = expr->getDataType();
+    
+    if (leftdt != exprdt) {
+        Node *result = coerceTo(expr, leftdt);
+        if (result)
+            n.setExpr(result);
     }
 
     return NULL;

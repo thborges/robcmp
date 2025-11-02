@@ -56,4 +56,11 @@ public:
 	void setSemanticError() {
 		semanticError = true;
 	}
+
+	__attribute__((used))
+	void clickableRef() {
+		cerr << string_format("%s:%d:%d: ast node is here.\n", 
+			buildStack[fileNo].string().c_str(),
+			sloc.first_line, sloc.first_column);
+	}
 };

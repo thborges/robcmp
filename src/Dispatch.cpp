@@ -41,6 +41,8 @@ void Dispatch::generateDispatchFunctions(Node *scope) {
         Identifier baseTypeId(baseTypeName, scope->getLoc());
         Node *baseTypeNode = baseTypeId.getSymbol(scope);
         Interface *baseTypeTy = dynamic_cast<Interface*>(baseTypeNode);
+        if (!baseTypeTy)
+            continue;
 
 	    for(const auto & [method, function] : baseTypeTy->getSymbols()) {
 			if (FunctionDecl *functionDecl = dynamic_cast<FunctionDecl*>(function)) {

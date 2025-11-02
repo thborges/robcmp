@@ -21,8 +21,6 @@ public:
 
 	int getOperator() const { return op; };
 
-	virtual DataType getDataType() override;
-
 	virtual bool isConstExpr() override;
 	
 	Node *lhsn() {

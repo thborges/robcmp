@@ -22,6 +22,10 @@ public:
 	}
 
     virtual Value* getLLVMValue(Node *stem, FunctionImpl *gfunc = NULL) override;
+
+	virtual Value* getAlloc() {
+		return alloc;
+	}
 	
     virtual void setGEPIndex(int idx) {
 		gepIndex = idx;

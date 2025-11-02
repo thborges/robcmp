@@ -25,6 +25,6 @@ int16 main() {
             0x885EA6EDAD94E8FE),
         5),
       0xCE4B0AD8EA5F34BD);
-	return l_12;
+	return 1-l_12;
 }
 

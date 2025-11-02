@@ -5,7 +5,7 @@
 #include "NamedConst.h"
 #include "semantic/Visitor.h"
 
-Matrix::Matrix(const char *n, MatrixElements *me, location_t loc) : Array(n, loc), melements(me) {
+Matrix::Matrix(const string& n, MatrixElements *me, location_t loc) : Array(n, loc), melements(me) {
 	NamedConst *rows = new NamedConst("rows", getNodeForUIntConst(me->getRowCount(), this->getLoc()));
 	NamedConst *cols = new NamedConst("cols", getNodeForUIntConst(me->getColumnCount(), this->getLoc()));
 	addChild(rows);

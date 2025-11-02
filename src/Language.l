@@ -112,10 +112,6 @@ EXP ([Ee][-+]?[0-9]+)?
 {ID}					{ yylval->ident = strndup(yytext, yyleng); 
 						  return TOK_IDENTIFIER; }
 
-{ID}(\.{ID})+			{ yylval->ident = strndup(yytext, yyleng);
-						  return TOK_XIDENTIFIER;
-						}
-
 [0-9]+\.[0-9]+{EXP}		{ char *aux = strndup(yytext, yyleng);
 						  yylval->nfloat = strtof(aux, NULL);
 						  free(aux);

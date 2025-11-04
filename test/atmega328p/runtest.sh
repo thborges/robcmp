@@ -6,7 +6,12 @@ RED="\033[0;31m"
 NC="\033[0m"
 
 echo -n "               $1 "
-make -s $2
+if [ "${V}0" -eq 10 ]; then
+    make $2
+else
+    make -s $2
+fi
+
 if [ "$?" -eq 0 ]; then
     if [ "$V" = "1" ]; then
         ${CMD}

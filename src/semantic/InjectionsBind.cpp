@@ -23,7 +23,7 @@ bool InjectionsBind::validate() {
         Identifier bind(ij->bind, loc);
 
         // injection validation
-        auto subTypeName = regex_replace(bind.getFullName(), regex("\\."), ":"); //internal types use :
+        auto subTypeName = regex_replace(bind.getFullName(), regex("\\."), "."); //internal types use :
         Identifier bindSubtypes(subTypeName, loc);
         Node *injectType = bindSubtypes.getSymbol(program, false);
 

@@ -53,7 +53,7 @@ Value* MatrixAccess::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 
     Type *leftTy = buildTypes->llvmType(dt);
     if (buildTypes->isComplex(dt)) // an array of refs
-        leftTy = PointerType::getUnqual(leftTy);
+        leftTy = PointerType::get(global_context, 0);
     ArrayType *arrayTy = ArrayType::get(leftTy, 0);
 	Value *zero = ConstantInt::get(Type::getInt8Ty(global_context), 0);
 	Value *indexList[2] = {zero, index}; 

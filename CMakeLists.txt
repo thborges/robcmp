@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.20.0)
 cmake_policy(SET CMP0054 NEW)
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
-set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -O0 -fno-exceptions")
+set(CMAKE_CXX_FLAGS_DEBUG "-gfull -gdwarf-4 -O0 -fno-inline -fno-elide-constructors -fno-omit-frame-pointer -fno-exceptions")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -fno-exceptions")
-add_compile_definitions()
+add_compile_definitions(_LIBCPP_DEBUG=1)
 
 project(robcmp)
 

@@ -106,7 +106,7 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 	DataType sdt = symbol->getDataType();
 	if (buildTypes->isComplex(sdt) || buildTypes->isArrayOrMatrix(sdt)) {
 		if (symbol->isPointerToPointer()) {
-			Type *ty = PointerType::getUnqual(buildTypes->llvmType(sdt));
+			Type *ty = PointerType::get(global_context, 0);
 			alloc = Builder->CreateLoad(ty, alloc, symbol->hasQualifier(qvolatile), "deref");
 		}
 		if (leftValue)
@@ -141,7 +141,7 @@ Value* Load::getRecursiveField(Identifier &ident, Node *scope, FunctionImpl *fun
 
 	Type *udt = buildTypes->llvmType(first->getDataType());
 	if (first->isPointerToPointer()) {
-		alloc = Builder->CreateLoad(PointerType::getUnqual(udt), alloc, "deref");
+		alloc = Builder->CreateLoad(PointerType::get(global_context, 0), alloc, "deref");
 	}
 
 	for(auto &x : symbols) {
@@ -149,7 +149,7 @@ Value* Load::getRecursiveField(Identifier &ident, Node *scope, FunctionImpl *fun
 		if (var) {
 			int gepidx = var->getGEPIndex();
 			if (var->isPointerToPointer()) {
-				alloc = Builder->CreateLoad(PointerType::getUnqual(udt), alloc, "deref");
+				alloc = Builder->CreateLoad(PointerType::get(global_context, 0), alloc, "deref");
 			}
 			alloc = Builder->CreateStructGEP(udt, alloc, gepidx, x->getName());		
 			udt = buildTypes->llvmType(var->getDataType());

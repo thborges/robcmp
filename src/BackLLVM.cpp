@@ -142,12 +142,18 @@ void setup_target_machine(char opt_level) {
 			break;
 	}
 
-	targetMachine = Target->createTargetMachine(ai.triple, 
+	#if LLVM_VERSION_MAJOR <= 20
+	const string triple = ai.triple;
+	#else
+	Triple triple(ai.triple);
+	#endif
+
+	targetMachine = Target->createTargetMachine(triple, 
 		ai.cpu, ai.features, opt, reloc, CodeModel::Small, cgoptl);
 	const DataLayout dl = targetMachine->createDataLayout();
 
 	mainmodule->setDataLayout(dl);
-	mainmodule->setTargetTriple(ai.triple);
+	mainmodule->setTargetTriple(triple);
 	mainmodule->setFramePointer(FramePointerKind::All);
 }
 

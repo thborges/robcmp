@@ -160,7 +160,7 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         Value *thisPointer = func->getThisArg();
         DataType thisDt = func->getThisArgDt();
         Type *thisTy = buildTypes->llvmType(thisDt);
-        Value *ptr = Builder->CreateLoad(PointerType::getUnqual(thisTy), thisPointer, "derefthis");
+        Value *ptr = Builder->CreateLoad(PointerType::get(global_context, 0), thisPointer, "derefthis");
         args.push_back(ptr);
         dataTypes.push_back(fsymbol->getThisArgDt());
     }

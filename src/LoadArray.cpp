@@ -65,7 +65,7 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 	}
 
 	if (!ident.isComplex() && symbol->isPointerToPointer()) {
-		Type *ty = PointerType::getUnqual(buildTypes->llvmType(symbol->getDataType()));	
+		Type *ty = PointerType::get(global_context, 0);
 		alloc = Builder->CreateLoad(ty, alloc, symbol->hasQualifier(qvolatile), "deref");
 	}
 
@@ -80,7 +80,7 @@ Value *LoadArray::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *al
 		if (leftValue) {
 			leftValue->setPointerToPointer(true);
 		}
-		elemType = PointerType::getUnqual(elemType);
+		elemType = PointerType::get(global_context, 0);
 	}
 
 	LoadInst *ret = Builder->CreateLoad(elemType, ptr, ident.getFullName());	

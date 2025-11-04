@@ -17,7 +17,7 @@ Value* ArrayAccess::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *
     // x[a]
     Type *leftTy = buildTypes->llvmType(dt);
     if (buildTypes->isComplex(dt)) { // an array of refs
-        leftTy = PointerType::getUnqual(leftTy);
+        leftTy = PointerType::get(global_context, 0);
         loadSymbol = leftValue->getLoadSymbol();
     }
     ArrayType *arrayTy = ArrayType::get(leftTy, 0);

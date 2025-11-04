@@ -130,9 +130,9 @@ Value* Node::generateChildren(FunctionImpl *func, BasicBlock *block, BasicBlock 
 
 Type* Node::getLLVMType() {
 	DataType aux = getDataType();
-	Type *taux = buildTypes->llvmType(getDataType());
+	Type *taux = buildTypes->llvmType(aux);
 	if (buildTypes->isInterface(aux))
-		return PointerType::getUnqual(taux);
+		return PointerType::get(global_context, 0);
 	else
 		return taux;
 }

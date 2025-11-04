@@ -65,7 +65,7 @@ Value* MemCopy::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
         if (buildTypes->isArrayOrMatrix(dt)) {
             DataType eldt = buildTypes->getArrayElementType(dt);
             dest = Builder->CreateAlloca(buildTypes->llvmType(eldt), dataAddrSpace, nelem, leftValue->getName());
-            leftvty = PointerType::getUnqual(buildTypes->llvmType(dt));
+            leftvty = PointerType::get(global_context, 0);
         } else {
             leftvty = buildTypes->llvmType(dt);
             dest = Builder->CreateAlloca(buildTypes->llvmType(dt), dataAddrSpace, nelem, leftValue->getName());

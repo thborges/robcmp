@@ -33,7 +33,7 @@ public:
 		return dt;
 	}
     virtual Type* getLLVMType() override {
-        return PointerType::getUnqual(global_context);
+        return PointerType::get(global_context, 0);
     }
 };
 
@@ -123,7 +123,8 @@ bool UserType::createDataType() {
                 v->setPointer(pm_nopointer);
             
             Type *llvmType = v->getLLVMType();
-            assert(llvmType && "Can not construct a type without its LLVM type.");
+            if (!llvmType)
+                 assert(llvmType && "Can not construct a type without its LLVM type.");
             if (!llvmType)
                 return false;
 

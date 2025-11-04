@@ -62,7 +62,7 @@ BuildTypes::BuildTypes(DataType targetPointerType, Program *program) :
     tinfo[tldouble] = {"ldouble",     128, Type::getFP128Ty(global_context),   dwarf::DW_ATE_float};
 
     // a generic internal pointer
-    tinfo[tobject]  = {"object", pts, PointerType::getUnqual(Type::getVoidTy(global_context)), dwarf::DW_ATE_address};
+    tinfo[tobject]  = {"object", pts, PointerType::get(global_context, 0), dwarf::DW_ATE_address};
     tinfo[tobject].isComplex = true;
 
     const DataLayout &dl = mainmodule->getDataLayout();
@@ -103,7 +103,7 @@ DataType BuildTypes::getArrayType(const string& elementName, SourceLocation n,
                 Type *I = elementInfo.llvmType;
                 if (elementInfo.isComplex) {
                     // In rob, any array of complex types is an array of refs
-                    I = PointerType::getUnqual(elementInfo.llvmType);
+                    I = PointerType::get(global_context, 0);
                 }
                 // we don't know the array size at compile time
                 info.llvmType = ArrayType::get(I, 0); 
@@ -245,7 +245,7 @@ void BuildTypes::generateDebugInfoForUserType(DataTypeInfo &info, Node *userType
         DIType *memberDiType = diType(mdt);
         if (Variable *v = dynamic_cast<Variable*>(m)) {
             if (v->getPointerMode() == pm_pointer) {
-                memberTy = PointerType::getUnqual(memberTy);
+                memberTy = PointerType::get(global_context, 0);
                 memberDiType = diPointerType(mdt);
                 if (!memberDiType) {
                     // parent field 

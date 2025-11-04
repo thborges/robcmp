@@ -133,7 +133,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 
 		Type *currty = buildTypes->llvmType(currdt);
 		if (pm == pm_pointer)
-			currty = PointerType::getUnqual(currty);
+			currty = PointerType::get(global_context, 0);
 
 		RobDbgInfo.emitLocation(this);
 		Builder->SetInsertPoint(allocblock == global_alloc ? global_alloc : block);

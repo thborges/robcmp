@@ -154,8 +154,10 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
         dataTypes.push_back(stemSymbol->getDataType());
     } else if (fsymbol->getThisArgDt() != BuildTypes::undefinedType) {
         // calling a function of the type itself, without stem
-        Type *thisTy = buildTypes->llvmType(func->getThisArgDt());
-        Value *ptr = Builder->CreateLoad(PointerType::getUnqual(thisTy), func->getThisArg(), "derefthis");
+        Value *thisPointer = func->getThisArg();
+        DataType thisDt = func->getThisArgDt();
+        Type *thisTy = buildTypes->llvmType(thisDt);
+        Value *ptr = Builder->CreateLoad(PointerType::get(global_context, 0), thisPointer, "derefthis");
         args.push_back(ptr);
         dataTypes.push_back(fsymbol->getThisArgDt());
     }

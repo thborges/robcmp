@@ -2,5 +2,12 @@ CXX=/usr/local/opt/llvm/bin/clang++
 CC=/usr/local/opt/llvm/bin/clang
 export CXX
 export CC
+#cmake -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC \
+#      -DCMAKE_CXX_FLAGS="-stdlib=libc++" -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++" \
+#      -DCMAKE_CXX_FLAGS_DEBUG="-gfull -gdwarf-4" \
+#      -DCMAKE_BUILD_RPATH="" -DCMAKE_INSTALL_RPATH="" \
+#      -DCMAKE_BUILD_TYPE="Debug" ..
+LDFLAGS="-L/usr/local/opt/llvm/lib/c++ -L/usr/local/opt/llvm/lib/unwind -lunwind"
+export LDFLAGS
 cmake -DCMAKE_BUILD_TYPE="Debug" ..
 #cmake -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE="Debug" ..

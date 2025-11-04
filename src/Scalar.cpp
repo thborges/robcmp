@@ -84,7 +84,7 @@ Value *Scalar::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *alloc
 				Type *gty = buildTypes->llvmType(dt);
 				if (expr->isPointerToPointer()) {
 					setPointerToPointer(true);
-					gty = PointerType::getUnqual(gty);
+					gty = PointerType::get(global_context, 0);
 				}
 				GlobalVariable *gv = new GlobalVariable(*mainmodule, gty, hasQualifier(qconst), 
 					GlobalValue::ExternalLinkage, exprvc, name);

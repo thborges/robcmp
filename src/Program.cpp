@@ -195,7 +195,7 @@ void Program::generateBuiltins() {
 	auto& Arg = *typeidFunc->args().begin();
 	Arg.addAttr(Attribute::ReadOnly);
 	auto *CmpVoid = Builder->CreateCmp(FCmpInst::ICMP_EQ, &Arg, 
-		ConstantPointerNull::get(PointerType::getUnqual(Arg.getType())));
+		ConstantPointerNull::get(PointerType::get(global_context, 0)));
 	
 	// if pointer is not set, return zero/void
 	BasicBlock *returnVoid = BasicBlock::Create(global_context, "", typeidFunc);

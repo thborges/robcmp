@@ -7,6 +7,7 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Type.h"
 
+#include "Scalar.h"
 #include "BackLLVM.h"
 
 using namespace llvm;
@@ -18,9 +19,15 @@ struct StripUnusedParentFieldsPass : PassInfoMixin<StripUnusedParentFieldsPass> 
     PreservedAnalyses run(Module &M, ModuleAnalysisManager &AM) {
         map<Type*, Type*> modifiedTypes;
 
-        for(auto& structName : unusedParents) {           
+        for(auto& [structName, fieldpair] : typesWithParents) {
+            Scalar* scl = (Scalar*)fieldpair.first;
+            if (scl->isUsed()) {
+                continue;
+            } else {
+                yywarncpp(structName + " parent was not used.", scl);
+            }
+
             StructType *oldTy = StructType::getTypeByName(M.getContext(), structName);
-            
             if (!oldTy || oldTy->isOpaque() || oldTy->getNumElements() == 0)
                 continue;
 
@@ -28,7 +35,13 @@ struct StripUnusedParentFieldsPass : PassInfoMixin<StripUnusedParentFieldsPass> 
 
             // Prepare new element list without parent (last field)
             ArrayRef<Type*> elements = oldTy->elements();
-            std::vector<Type*> newElements(elements.begin(), elements.end() - 1);
+            std::vector<Type*> newElements;
+            newElements.reserve(elements.size() - 1);
+            for (unsigned i = 0; i < elements.size(); ++i) {
+                auto fieldPos = fieldpair.second;
+                if (i != fieldPos)
+                    newElements.push_back(elements[i]);
+            }
 
             // Create the new StructType
             StructType *newTy = StructType::create(oldTy->getContext(), newElements,

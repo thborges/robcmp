@@ -41,13 +41,13 @@ struct DebugInfo RobDbgInfo;
 std::unique_ptr<BuildTypes> buildTypes;
 TargetMachine *targetMachine;
 
-unsigned int codeAddrSpace = 1;
+unsigned int codeAddrSpace = 0;
 unsigned int dataAddrSpace = 0;
 
 
 // Injections
 map<string, Injection*> injections;
-set<string> unusedParents;
+map<string, pair<Node*, int>> typesWithParents;
 
 enum SupportedTargets currentTargetId;
 extern char *build_outputfilename;

@@ -2,10 +2,10 @@
 #include "Loop.h"
 #include "FunctionImpl.h"
 
-Loop::Loop(vector<Node*> &&stms, location_t loc) : Node(std::move(stms), loc) {
+InfinityLoop::InfinityLoop(vector<Node*> &&stms, location_t loc) : Node(std::move(stms), loc) {
 }
 
-Value *Loop::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
+Value *InfinityLoop::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocblock) {
 	BasicBlock *bodyloop = BasicBlock::Create(global_context, "loop_body", 
 		func->getLLVMFunction(), 0);
 	

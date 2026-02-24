@@ -69,6 +69,13 @@ void Program::generateInjectionGlobals(SourceLocation *sl) {
 			yyerrorcpp(string_format("Injection symbol %s not found.", 
 				bind.getFullName().c_str()), &itype->loc);
 			continue;
+		} else {
+			// Prevent parent strip of binded types
+			UserType *butype = dynamic_cast<UserType*>(injectType);
+			if (butype->getParent()) {
+				Scalar *scl = (Scalar*)butype->symbols["parent"];
+				scl->setUsed(true);
+			}
 		}
 
 		if (itype->scope == bs_singleton) {
@@ -253,7 +260,8 @@ void Program::generate() {
 		mainFuncIt = symbols.find("__main");
 	Node *mainFunc = mainFuncIt->second;
 	
-	generateInjectionGlobals(mainFunc);
+	if (mainFunc)
+		generateInjectionGlobals(mainFunc);
 
 	// build types and global vars first
 	map<Node*, bool> already_generated;

@@ -228,17 +228,16 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
     }
 
     // check if parent was not used and remove it
-    bool parentUsed = true;
     if (parent) {
         NamedNode *sparent = symbols["parent"];
         Scalar *parentscalar = dynamic_cast<Scalar*>(sparent);
-        parentUsed = parentscalar && parentscalar->isUsed();
-        if (!parentUsed && parentscalar) {
+        if (parentscalar) {
             auto parentf = find(fields.begin(), fields.end(), parentscalar);
-            if (*parentf)
+            if (*parentf) {
+                size_t parentPositionInFields = std::distance(fields.begin(), parentf);
                 fields.erase(parentf);
-            removeChild(parentscalar);
-            unusedParents.insert(getTypeName());
+                typesWithParents[getTypeName()] = make_pair(parentscalar, parentPositionInFields);
+            }
         }
     }
 
@@ -253,9 +252,7 @@ Value *UserType::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *all
     }
     finit->addThisArgument(dt);
     if (parent) {
-        if (parentUsed) {
-            finit->addParentArgument(parent->getDataType());
-        }
+        finit->addParentArgument(parent->getDataType());
         // nested user types can be inlined in the parent init
         finit->getAttributes()->addAttribute(fa_inline);
     }

@@ -30,7 +30,7 @@ class StringConst;
 class Array;
 class UpdateArray;
 class While;
-class Loop;
+class InfinityLoop;
 class UserType;
 class Variable;
 class NamedConst;
@@ -75,7 +75,7 @@ public:
 	VISITOR_DECLARE(Return)
 	VISITOR_DECLARE(StringConst)
 	VISITOR_DECLARE(While)
-	VISITOR_DECLARE(Loop)
+	VISITOR_DECLARE(InfinityLoop)
 	VISITOR_DECLAREP(Scalar, Variable)
 	VISITOR_DECLAREP(Variable, NamedNode)
 	VISITOR_DECLAREP(NamedConst, NamedNode)

@@ -1,7 +1,9 @@
-CXX=/usr/local/opt/llvm/bin/clang++
-CC=/usr/local/opt/llvm/bin/clang
+CXX=/usr/local/opt/llvm@19/bin/clang++
+CC=/usr/local/opt/llvm@19/bin/clang
+LLVM_DIR=/usr/local/Cellar/llvm@19/19.1.7/lib/cmake
 export CXX
 export CC
+export LLVM_DIR
 #cmake -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC \
 #      -DCMAKE_CXX_FLAGS="-stdlib=libc++" -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++" \
 #      -DCMAKE_CXX_FLAGS_DEBUG="-gfull -gdwarf-4" \

@@ -349,6 +349,34 @@ DEFUN memset
     ret
 ENDF memset
 
+#undef r_cnt
+
+/*******************************************************
+       Division 8 / 8 => (result + remainder)
+*******************************************************/
+#define	r_rem	r25	/* remainder */
+#define	r_arg1	r24	/* dividend, quotient */
+#define	r_arg2	r22	/* divisor */
+#define	r_cnt	r23	/* loop count */
+
+DEFUN __udivmodqi4
+	clr	r_rem		; clear remainder
+	ldi	r_cnt,8		; init loop counter
+	lsl	r_arg1		; shift dividend
+__udivmodqi4_loop:
+	rol	r_rem		; shift dividend into remainder
+	cp	r_rem,r_arg2	; compare remainder & divisor
+	brcs	__udivmodqi4_ep	; remainder <= divisor
+	sub	r_rem,r_arg2	; restore remainder
+__udivmodqi4_ep:
+	rol	r_arg1		; shift dividend (with CARRY)
+	dec	r_cnt		; decrement loop counter
+	brne	__udivmodqi4_loop
+	com	r_arg1		; complement result
+				; because C flag was complemented in loop
+	ret
+ENDF __udivmodqi4
+
 /* 
  * The assembly code below implements float32 functions and was slight
  * adapted from avrlibc/libm (https://github.com/avrdudes/avr-libc)

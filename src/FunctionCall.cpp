@@ -35,6 +35,8 @@ Value *FunctionCall::generate(FunctionImpl *func, BasicBlock *block, BasicBlock 
 
     RobDbgInfo.emitLocation(this);
     string name = ident.getFullName();
+    if (name == "b3.mode")
+        assert(1);
 
     if (!symbol)
         symbol = ident.getSymbol(getScope(), false);

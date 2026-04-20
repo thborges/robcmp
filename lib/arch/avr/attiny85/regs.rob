@@ -1,0 +1,786 @@
+
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ *
+ * This file was machine generated from avr/attiny85/attiny85.svd. Don't edit.
+ */
+
+/*
+	vendor: Atmel
+	name: ATtiny85
+	version: 1.0
+	description: No description available.
+	width: 8
+	size: 0x8
+*/
+
+/* Types and registers for AC 
+  Analog Comparator
+ */
+
+ enum ACSR_ACIS {
+	INTERRUPT_ON_TOGGLE = 0,        // Interrupt on Toggle
+	RESERVED = 1,                   // Reserved
+	INTERRUPT_ON_FALLING_EDGE = 2,  // Interrupt on Falling Edge
+	INTERRUPT_ON_RISING_EDGE = 3    // Interrupt on Rising Edge
+ }
+
+ type ACSR_t {
+	ACIS  = uint2(0);           // Analog Comparator Interrupt Mode Select bits
+	_res1 = false;              // Reserved, 1 bits
+	ACIE  = false;              // Analog Comparator Interrupt Enable
+	ACI   = false;              // Analog Comparator Interrupt Flag
+	ACO   = false;              // Analog Compare Output
+	ACBG  = false;              // Analog Comparator Bandgap Select
+	ACD   = false;              // Analog Comparator Disable
+ }
+
+ // Analog Comparator Control And Status Register
+ register ACSR_t ACSR at 0x28;
+ register uint8 ACSR_raw at 0x28;
+
+ type AC_ADCSRB_t {
+	_res1 = uint6(0);           // Reserved, 6 bits
+	ACME  = false;              // Analog Comparator Multiplexer Enable
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // ADC Control and Status Register B
+ register AC_ADCSRB_t AC_ADCSRB at 0x00000023;
+ register uint8 AC_ADCSRB_raw at 0x00000023;
+
+ type AC_DIDR0_t {
+	AIN0D = false;              // AIN0 Digital Input Disable
+	AIN1D = false;              // AIN1 Digital Input Disable
+	_res1 = uint6(0);           // Reserved, 6 bits
+ }
+
+ // No Description.
+ register AC_DIDR0_t AC_DIDR0 at 0x34;
+ register uint8 AC_DIDR0_raw at 0x34;
+
+
+/* Types and registers for ADC 
+  Analog-to-Digital Converter
+ */
+
+ // ADC Data Register Bytes
+ register uint16 ADC at 0x24;
+
+ enum ADCSRA_ADPS {
+	_2 = 1,   // 2
+	_4 = 2,   // 4
+	_8 = 3,   // 8
+	_16 = 4,  // 16
+	_32 = 5,  // 32
+	_64 = 6,  // 64
+	_128 = 7  // 128
+ }
+
+ type ADCSRA_t {
+	ADPS  = uint3(0);           // ADC Prescaler Select Bits
+	ADIE  = false;              // ADC Interrupt Enable
+	ADIF  = false;              // ADC Interrupt Flag
+	ADATE = false;              // ADC Auto Trigger Enable
+	ADSC  = false;              // ADC Start Conversion
+	ADEN  = false;              // ADC Enable
+ }
+
+ // The ADC Control and Status register
+ register ADCSRA_t ADCSRA at 0x26;
+ register uint8 ADCSRA_raw at 0x26;
+
+ enum ADC_ADCSRB_ADTS {
+	FREE_RUNNING_MODE = 0,               // Free Running mode
+	ANALOG_COMPARATOR = 1,               // Analog Comparator
+	EXTERNAL_INTERRUPT_REQUEST_0 = 2,    // External Interrupt Request 0
+	TIMER_COUNTER0_COMPARE_MATCH_A = 3,  // Timer/Counter0 Compare Match A
+	TIMER_COUNTER0_OVERFLOW = 4,         // Timer/Counter0 Overflow
+	TIMER_COUNTER1_COMPARE_MATCH_B = 5,  // Timer/Counter1 Compare Match B
+	TIMER_COUNTER1_OVERFLOW = 6,         // Timer/Counter1 Overflow
+	TIMER_COUNTER1_CAPTURE_EVENT = 7     // Timer/Counter1 Capture Event
+ }
+
+ type ADC_ADCSRB_t {
+	ADTS  = uint3(0);           // ADC Auto Trigger Sources
+	_res1 = uint2(0);           // Reserved, 2 bits
+	IPR   = false;              // Input Polarity Mode
+	_res2 = false;              // Reserved, 1 bits
+	BIN   = false;              // Bipolar Input Mode
+ }
+
+ // ADC Control and Status Register B
+ register ADC_ADCSRB_t ADC_ADCSRB at 0x00000023;
+ register uint8 ADC_ADCSRB_raw at 0x00000023;
+
+ type ADMUX_t {
+	MUX   = uint4(0);           // Analog Channel and Gain Selection Bits
+	REFS2 = false;              // Reference Selection Bit 2
+	ADLAR = false;              // Left Adjust Result
+	REFS  = uint2(0);           // Reference Selection Bits
+ }
+
+ // The ADC multiplexer Selection Register
+ register ADMUX_t ADMUX at 0x27;
+ register uint8 ADMUX_raw at 0x27;
+
+ type ADC_DIDR0_t {
+	_res1 = uint2(0);           // Reserved, 2 bits
+	ADC1D = false;              // ADC1 Digital input Disable
+	ADC3D = false;              // ADC3 Digital input Disable
+	ADC2D = false;              // ADC2 Digital input Disable
+	ADC0D = false;              // ADC0 Digital input Disable
+	_res2 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // Digital Input Disable Register 0
+ register ADC_DIDR0_t ADC_DIDR0 at 0x34;
+ register uint8 ADC_DIDR0_raw at 0x34;
+
+
+/* Types and registers for BOOT_LOAD 
+  Bootloader
+ */
+
+ type SPMCSR_t {
+	SPMEN = false;              // Store Program Memory Enable
+	PGERS = false;              // Page Erase
+	PGWRT = false;              // Page Write
+	RFLB  = false;              // Read fuse and lock bits
+	CTPB  = false;              // Clear temporary page buffer
+	RSIG  = false;              // Read Device Signature Imprint Table
+	_res1 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // Store Program Memory Control Register
+ register SPMCSR_t SPMCSR at 0x00000057;
+ register uint8 SPMCSR_raw at 0x00000057;
+
+
+/* Types and registers for CPU 
+  CPU Registers
+ */
+
+ enum CLKPR_CLKPS {
+	_1 = 0,   // 1
+	_2 = 1,   // 2
+	_4 = 2,   // 4
+	_8 = 3,   // 8
+	_16 = 4,  // 16
+	_32 = 5,  // 32
+	_64 = 6,  // 64
+	_128 = 7, // 128
+	_256 = 8  // 256
+ }
+
+ type CLKPR_t {
+	CLKPS  = uint4(0);           // Clock Prescaler Select Bits
+	_res1  = uint3(0);           // Reserved, 3 bits
+	CLKPCE = false;              // Clock Prescaler Change Enable
+ }
+
+ // Clock Prescale Register
+ register CLKPR_t CLKPR at 0x46;
+ register uint8 CLKPR_raw at 0x46;
+
+ // debugWire data register
+ register uint8 DWDR at 0x42;
+
+ // General purpose register 0
+ register uint8 GPIOR0 at 0x00000031;
+
+ // General Purpose register 1
+ register uint8 GPIOR1 at 0x32;
+
+ // General Purpose IO register 2
+ register uint8 GPIOR2 at 0x33;
+
+ enum CPU_MCUCR_ISC0 {
+	LOW_LEVEL_OF_INTX = 0,           // Low Level of INTX
+	ANY_LOGICAL_CHANGE_IN_INTX = 1,  // Any Logical Change in INTX
+	FALLING_EDGE_OF_INTX = 2,        // Falling Edge of INTX
+	RISING_EDGE_OF_INTX = 3          // Rising Edge of INTX
+ }
+
+ enum CPU_MCUCR_SM {
+	IDLE = 0,      // Idle
+	ADC = 1,       // ADC Noise Reduction (If Available)
+	PDOWN = 2,     // Power Down
+	VAL_0x03 = 3   // Reserved
+ }
+
+ type CPU_MCUCR_t {
+	ISC0  = uint2(0);           // Interrupt Sense Control 0 bits
+	_res1 = false;              // Reserved, 1 bits
+	SM    = uint2(0);           // Sleep Mode Select Bits
+	SE    = false;              // Sleep Enable
+	PUD   = false;              // Pull-up Disable
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // MCU Control Register
+ register CPU_MCUCR_t CPU_MCUCR at 0x55;
+ register uint8 CPU_MCUCR_raw at 0x55;
+
+ type MCUSR_t {
+	PORF  = false;              // Power-On Reset Flag
+	EXTRF = false;              // External Reset Flag
+	BORF  = false;              // Brown-out Reset Flag
+	WDRF  = false;              // Watchdog Reset Flag
+	_res1 = uint4(0);           // Reserved, 4 bits
+ }
+
+ // MCU Status register
+ register MCUSR_t MCUSR at 0x54;
+ register uint8 MCUSR_raw at 0x54;
+
+ type OSCCAL_t {
+	OSCCAL = uint8(0);           // Oscillator Calibration
+ }
+
+ // Oscillator Calibration Register
+ register OSCCAL_t OSCCAL at 0x51;
+ register uint8 OSCCAL_raw at 0x51;
+
+ type PLLCSR_t {
+	PLOCK = false;              // PLL Lock detector
+	PLLE  = false;              // PLL Enable
+	PCKE  = false;              // PCK Enable
+	_res1 = uint4(0);           // Reserved, 4 bits
+	LSM   = false;              // Low speed mode
+ }
+
+ // PLL Control and status register
+ register PLLCSR_t PLLCSR at 0x47;
+ register uint8 PLLCSR_raw at 0x47;
+
+ type PRR_t {
+	PRADC  = false;              // Power Reduction ADC
+	PRUSI  = false;              // Power Reduction USI
+	PRTIM0 = false;              // Power Reduction Timer/Counter0
+	PRTIM1 = false;              // Power Reduction Timer/Counter1
+	_res1  = uint4(0);           // Reserved, 4 bits
+ }
+
+ // Power Reduction Register
+ register PRR_t PRR at 0x40;
+ register uint8 PRR_raw at 0x40;
+
+
+/* Types and registers for EEPROM 
+  EEPROM
+ */
+
+ // EEPROM Address Register Bytes
+ register uint16 EEAR at 0x3e;
+
+ enum EECR_EEPM {
+	ERASE_AND_WRITE_IN_ONE_OPERATION = 0,  // Erase and Write in one operation
+	ERASE_ONLY = 1,                        // Erase Only
+	WRITE_ONLY = 2                         // Write Only
+ }
+
+ type EECR_t {
+	EERE  = false;              // EEPROM Read Enable
+	EEPE  = false;              // EEPROM Write Enable
+	EEMPE = false;              // EEPROM Master Write Enable
+	EERIE = false;              // EEPROM Ready Interrupt Enable
+	EEPM  = uint2(0);           // EEPROM Programming Mode Bits
+	_res1 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // EEPROM Control Register
+ register EECR_t EECR at 0x0000003C;
+ register uint8 EECR_raw at 0x0000003C;
+
+ // EEPROM Data Register
+ register uint8 EEDR at 0x3d;
+
+
+/* Types and registers for EXINT 
+  External Interrupts
+ */
+
+ type GIFR_t {
+	_res1 = uint5(0);           // Reserved, 5 bits
+	PCIF  = false;              // Pin Change Interrupt Flag
+	INTF0 = false;              // External Interrupt Flag 0
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // General Interrupt Flag register
+ register GIFR_t GIFR at 0x5a;
+ register uint8 GIFR_raw at 0x5a;
+
+ type GIMSK_t {
+	_res1 = uint5(0);           // Reserved, 5 bits
+	PCIE  = false;              // Pin Change Interrupt Enable
+	INT0  = false;              // External Interrupt Request 0 Enable
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // General Interrupt Mask Register
+ register GIMSK_t GIMSK at 0x5b;
+ register uint8 GIMSK_raw at 0x5b;
+
+ enum EXINT_MCUCR_ISC00 {
+	LOW_LEVEL_OF_INTX = 0,           // Low Level of INTX
+	ANY_LOGICAL_CHANGE_ON_INTX = 1   // Any Logical Change on INTX
+ }
+
+ type EXINT_MCUCR_t {
+	ISC00 = false;              // Interrupt Sense Control 0 Bit 0
+	ISC01 = false;              // Interrupt Sense Control 0 Bit 1
+	_res1 = uint6(0);           // Reserved, 6 bits
+ }
+
+ // MCU Control Register
+ register EXINT_MCUCR_t EXINT_MCUCR at 0x55;
+ register uint8 EXINT_MCUCR_raw at 0x55;
+
+ // Pin Change Enable Mask
+ register uint8 PCMSK at 0x00000035;
+
+
+/* Types and registers for FUSE 
+  Fuses
+ */
+
+ type EXTENDED_t {
+	SELFPRGEN = false;              // Self Programming enable
+	_res1     = uint7(0);           // Reserved, 7 bits
+ }
+
+ // No Description.
+ register EXTENDED_t EXTENDED at 0x2;
+ register uint8 EXTENDED_raw at 0x2;
+
+ enum HIGH_BODLEVEL {
+	_4V3 = 4,      // Brown-out detection at VCC=4.3 V
+	_2V7 = 5,      // Brown-out detection at VCC=2.7 V
+	_1V8 = 6,      // Brown-out detection at VCC=1.8 V
+	DISABLED = 7   // Brown-out detection disabled
+ }
+
+ type HIGH_t {
+	BODLEVEL = uint3(0);           // Brown-out Detector trigger level
+	EESAVE   = false;              // Preserve EEPROM through the Chip Erase cycle
+	WDTON    = false;              // Watch-dog Timer always on
+	SPIEN    = false;              // Serial program downloading (SPI) enabled
+	DWEN     = false;              // Debug Wire enable
+	RSTDISBL = false;              // Reset Disabled (Enable PB5 as i/o pin)
+ }
+
+ // No Description.
+ register HIGH_t HIGH at 0x1;
+ register uint8 HIGH_raw at 0x1;
+
+ enum LOW_SUT_CKSEL {
+	EXTCLK_6CK_14CK_0MS = 0,                   // Ext. Clock; Start-up time PWRDWN/RESET: 6 CK/14 CK + 0 ms
+	PLLCLK_1KCK_14CK_4MS = 1,                  // PLL Clock; Start-up time PWRDWN/RESET: 1K CK/14 CK + 4 ms
+	INTRCOSC_8MHZ_6CK_14CK_0MS = 2,            // Int. RC Osc. 8 MHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 0 ms
+	INTRCOSC_6MHZ4_6CK_14CK_64MS = 3,          // ATtiny15 Comp: Int. RC Osc. 6.4 MHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 64 ms
+	WDOSC_128KHZ_6CK_14CK_0MS = 4,             // WD. Osc. 128 kHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 0 ms
+	EXTLOFXTAL_1KCK_14CK_0MS = 6,              // Ext. Low-Freq. Crystal; Start-up time PWRDWN/RESET: 1K CK/14 CK + 0 ms
+	EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_4MS1 = 8,   // Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms
+	EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_65MS = 9,    // Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 65 ms
+	EXTXOSC_0MHZ9_3MHZ_258CK_14CK_4MS1 = 10,   // Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms
+	EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_65MS = 11,    // Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 65 ms
+	EXTXOSC_3MHZ_8MHZ_258CK_14CK_4MS1 = 12,    // Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms
+	EXTXOSC_3MHZ_8MHZ_1KCK_14CK_65MS = 13,     // Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 65 ms
+	EXTXOSC_8MHZ_XX_258CK_14CK_4MS1 = 14,      // Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms
+	EXTXOSC_8MHZ_XX_1KCK_14CK_65MS = 15,       // Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 65 ms
+	EXTCLK_6CK_14CK_4MS1 = 16,                 // Ext. Clock; Start-up time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms
+	PLLCLK_16KCK_14CK_4MS = 17,                // PLL Clock; Start-up time PWRDWN/RESET: 16K CK/14 CK + 4 ms
+	INTRCOSC_8MHZ_6CK_14CK_4MS = 18,           // Int. RC Osc. 8 MHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 4 ms
+	WDOSC_128KHZ_6CK_14CK_4MS = 20,            // WD. Osc. 128 kHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 4 ms
+	EXTLOFXTAL_1KCK_14CK_4MS = 22,             // Ext. Low-Freq. Crystal; Start-up time PWRDWN/RESET: 1K CK/14 CK + 4 ms
+	EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_65MS = 24,  // Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 65 ms
+	EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_0MS = 25,   // Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 0 ms
+	EXTXOSC_0MHZ9_3MHZ_258CK_14CK_65MS = 26,   // Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 65 ms
+	EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_0MS = 27,    // Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 0 ms
+	EXTXOSC_3MHZ_8MHZ_258CK_14CK_65MS = 28,    // Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 65 ms
+	EXTXOSC_3MHZ_8MHZ_16KCK_14CK_0MS = 29,     // Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 0 ms
+	EXTXOSC_8MHZ_XX_258CK_14CK_65MS = 30,      // Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 65 ms
+	EXTXOSC_8MHZ_XX_16KCK_14CK_0MS = 31,       // Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 0 ms
+	EXTCLK_6CK_14CK_65MS = 32,                 // Ext. Clock; Start-up time PWRDWN/RESET: 6 CK/14 CK + 65 ms
+	PLLCLK_1KCK_14CK_64MS = 33,                // PLL Clock; Start-up time PWRDWN/RESET: 1K CK/14 CK + 64 ms
+	INTRCOSC_8MHZ_6CK_14CK_64MS = 34,          // Int. RC Osc. 8 MHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 64 ms
+	INTRCOSC_6MHZ4_6CK_14CK_4MS = 35,          // ATtiny15 Comp: Int. RC Osc. 6.4 MHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 4 ms
+	WDOSC_128KHZ_6CK_14CK_64MS = 36,           // WD. Osc. 128 kHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 64 ms
+	EXTLOFXTAL_32KCK_14CK_64MS = 38,           // Ext. Low-Freq. Crystal; Start-up time PWRDWN/RESET: 32K CK/14 CK + 64 ms
+	EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_0MS = 40,    // Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 0 ms
+	EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_4MS1 = 41,  // Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 4.1 ms
+	EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_0MS = 42,     // Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 0 ms
+	EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_4MS1 = 43,   // Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 4.1 ms
+	EXTXOSC_3MHZ_8MHZ_1KCK_14CK_0MS = 44,      // Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 0 ms
+	EXTXOSC_3MHZ_8MHZ_16KCK_14CK_4MS1 = 45,    // Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 4.1 ms
+	EXTXOSC_8MHZ_XX_1KCK_14CK_0MS = 46,        // Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 0 ms
+	EXTXOSC_8MHZ_XX_16KCK_14CK_4MS1 = 47,      // Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 4.1 ms
+	PLLCLK_16KCK_14CK_64MS = 49,               // PLL Clock; Start-up time PWRDWN/RESET: 16K CK/14 CK + 64 ms
+	INTRCOSC_6MHZ4_1CK_14CK_0MS = 51,          // ATtiny15 Comp: Int. RC Osc. 6.4 MHz; Start-up time PWRDWN/RESET: 1 CK/14 CK + 0 ms
+	EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_4MS1 = 56,   // Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 4.1 ms
+	EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_65MS = 57,  // Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 65 ms
+	EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_4MS1 = 58,    // Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 4.1 ms
+	EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_65MS = 59,   // Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 65 ms
+	EXTXOSC_3MHZ_8MHZ_1KCK_14CK_4MS1 = 60,     // Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 4.1 ms
+	EXTXOSC_3MHZ_8MHZ_16KCK_14CK_65MS = 61,    // Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 65 ms
+	EXTXOSC_8MHZ_XX_1KCK_14CK_4MS1 = 62,       // Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 4.1 ms
+	EXTXOSC_8MHZ_XX_16KCK_14CK_65MS = 63       // Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 65 ms
+ }
+
+ type LOW_t {
+	SUT_CKSEL = uint6(0);           // Select Clock source
+	CKOUT     = false;              // Clock output on PORTB4
+	CKDIV8    = false;              // Divide clock by 8 internally
+ }
+
+ // No Description.
+ register LOW_t LOW at 0x00000000;
+ register uint8 LOW_raw at 0x00000000;
+
+
+/* Types and registers for LOCKBIT 
+  Lockbits
+ */
+
+ enum LOCKBIT_LB {
+	PROG_VER_DISABLED = 0,  // Further programming and verification disabled
+	PROG_DISABLED = 2,      // Further programming disabled
+	NO_LOCK = 3             // No memory lock features enabled
+ }
+
+ type LOCKBIT_t {
+	LB    = uint2(0);           // Memory Lock
+	_res1 = uint6(0);           // Reserved, 6 bits
+ }
+
+ // No Description.
+ register LOCKBIT_t LOCKBIT at 0x00000000;
+ register uint8 LOCKBIT_raw at 0x00000000;
+
+
+/* Types and registers for PORTB 
+  I/O Port
+ */
+
+ type DDRB_t {
+	PB0   = false;              // Pin B0
+	PB1   = false;              // Pin B1
+	PB2   = false;              // Pin B2
+	PB3   = false;              // Pin B3
+	PB4   = false;              // Pin B4
+	PB5   = false;              // Pin B5
+	_res1 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // Data Direction Register, Port B
+ register DDRB_t DDRB at 0x37;
+ register uint8 DDRB_raw at 0x37;
+
+ type PINB_t {
+	PB0   = false;              // Pin B0
+	PB1   = false;              // Pin B1
+	PB2   = false;              // Pin B2
+	PB3   = false;              // Pin B3
+	PB4   = false;              // Pin B4
+	PB5   = false;              // Pin B5
+	_res1 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // Input Pins, Port B
+ register PINB_t PINB at 0x00000036;
+ register uint8 PINB_raw at 0x00000036;
+
+ type PORTB_t {
+	PB0   = false;              // Pin B0
+	PB1   = false;              // Pin B1
+	PB2   = false;              // Pin B2
+	PB3   = false;              // Pin B3
+	PB4   = false;              // Pin B4
+	PB5   = false;              // Pin B5
+	_res1 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // Data Register, Port B
+ register PORTB_t PORTB at 0x38;
+ register uint8 PORTB_raw at 0x38;
+
+
+/* Types and registers for TC0 
+  Timer/Counter, 8-bit
+ */
+
+ type TC0_GTCCR_t {
+	PSR0  = false;              // Prescaler Reset Timer/Counter1 and Timer/Counter0
+	_res1 = uint6(0);           // Reserved, 6 bits
+	TSM   = false;              // Timer/Counter Synchronization Mode
+ }
+
+ // General Timer/Counter Control Register
+ register TC0_GTCCR_t TC0_GTCCR at 0x4c;
+ register uint8 TC0_GTCCR_raw at 0x4c;
+
+ // Timer/Counter0 Output Compare Register
+ register uint8 OCR0A at 0x49;
+
+ // Timer/Counter0 Output Compare Register
+ register uint8 OCR0B at 0x00000048;
+
+ type TCCR0A_t {
+	WGM0  = uint2(0);           // Waveform Generation Mode
+	_res1 = uint2(0);           // Reserved, 2 bits
+	COM0B = uint2(0);           // Compare Output Mode, Fast PWm
+	COM0A = uint2(0);           // Compare Output Mode, Phase Correct PWM Mode
+ }
+
+ // Timer/Counter Control Register A
+ register TCCR0A_t TCCR0A at 0x4a;
+ register uint8 TCCR0A_raw at 0x4a;
+
+ enum TCCR0B_CS0 {
+	NO_CLOCK_SOURCE_STOPPED = 0,         // No Clock Source (Stopped)
+	RUNNING_NO_PRESCALING = 1,           // Running, No Prescaling
+	RUNNING_CLK_8 = 2,                   // Running, CLK/8
+	RUNNING_CLK_64 = 3,                  // Running, CLK/64
+	RUNNING_CLK_256 = 4,                 // Running, CLK/256
+	RUNNING_CLK_1024 = 5,                // Running, CLK/1024
+	RUNNING_EXTCLK_TN_FALLING_EDGE = 6,  // Running, ExtClk Tn Falling Edge
+	RUNNING_EXTCLK_TN_RISING_EDGE = 7    // Running, ExtClk Tn Rising Edge
+ }
+
+ type TCCR0B_t {
+	CS0   = uint3(0);           // Clock Select
+	WGM02 = false;              // No Description.
+	_res1 = uint2(0);           // Reserved, 2 bits
+	FOC0B = false;              // Force Output Compare B
+	FOC0A = false;              // Force Output Compare A
+ }
+
+ // Timer/Counter Control Register B
+ register TCCR0B_t TCCR0B at 0x53;
+ register uint8 TCCR0B_raw at 0x53;
+
+ // Timer/Counter0
+ register uint8 TCNT0 at 0x52;
+
+ type TC0_TIFR_t {
+	_res1 = false;              // Reserved, 1 bits
+	TOV0  = false;              // Timer/Counter0 Overflow Flag
+	_res2 = false;              // Reserved, 1 bits
+	OCF0B = false;              // Timer/Counter0 Output Compare Flag 0B
+	OCF0A = false;              // Timer/Counter0 Output Compare Flag 0A
+	_res3 = uint3(0);           // Reserved, 3 bits
+ }
+
+ // Timer/Counter0 Interrupt Flag register
+ register TC0_TIFR_t TC0_TIFR at 0x58;
+ register uint8 TC0_TIFR_raw at 0x58;
+
+ type TC0_TIMSK_t {
+	_res1  = false;              // Reserved, 1 bits
+	TOIE0  = false;              // Timer/Counter0 Overflow Interrupt Enable
+	_res2  = false;              // Reserved, 1 bits
+	OCIE0B = false;              // Timer/Counter0 Output Compare Match B Interrupt Enable
+	OCIE0A = false;              // Timer/Counter0 Output Compare Match A Interrupt Enable
+	_res3  = uint3(0);           // Reserved, 3 bits
+ }
+
+ // Timer/Counter Interrupt Mask Register
+ register TC0_TIMSK_t TC0_TIMSK at 0x59;
+ register uint8 TC0_TIMSK_raw at 0x59;
+
+
+/* Types and registers for TC1 
+  Timer/Counter, 16-bit
+ */
+
+ type DT1A_t {
+	DTVL = uint4(0);           // No Description.
+	DTVH = uint4(0);           // No Description.
+ }
+
+ // Dead time value register
+ register DT1A_t DT1A at 0x45;
+ register uint8 DT1A_raw at 0x45;
+
+ type DT1B_t {
+	DTVL = uint4(0);           // No Description.
+	DTVH = uint4(0);           // No Description.
+ }
+
+ // Dead time value B
+ register DT1B_t DT1B at 0x44;
+ register uint8 DT1B_raw at 0x44;
+
+ type DTPS_t {
+	DTPS  = uint2(0);           // No Description.
+	_res1 = uint6(0);           // Reserved, 6 bits
+ }
+
+ // Dead time prescaler register
+ register DTPS_t DTPS at 0x00000043;
+ register uint8 DTPS_raw at 0x00000043;
+
+ type TC1_GTCCR_t {
+	_res1 = false;              // Reserved, 1 bits
+	PSR1  = false;              // Prescaler Reset Timer/Counter1
+	FOC1A = false;              // Force Output Compare 1A
+	FOC1B = false;              // Force Output Compare Match 1B
+	COM1B = uint2(0);           // Comparator B Output Mode
+	PWM1B = false;              // Pulse Width Modulator B Enable
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // Timer counter control register
+ register TC1_GTCCR_t TC1_GTCCR at 0x4c;
+ register uint8 TC1_GTCCR_raw at 0x4c;
+
+ // Output Compare Register
+ register uint8 OCR1A at 0x4e;
+
+ // Output Compare Register
+ register uint8 OCR1B at 0x4b;
+
+ // Output compare register
+ register uint8 OCR1C at 0x4d;
+
+ enum TCCR1_CS1 {
+	NO_CLOCK_SOURCE_STOPPED = 0,  // No Clock Source (Stopped)
+	RUNNING_NO_PRESCALING = 1,    // Running, No Prescaling
+	RUNNING_CLK_2 = 2,            // Running, CLK/2
+	RUNNING_CLK_4 = 3,            // Running, CLK/4
+	RUNNING_CLK_8 = 4,            // Running, CLK/8
+	RUNNING_CLK_16 = 5,           // Running, CLK/16
+	RUNNING_CLK_32 = 6,           // Running, CLK/32
+	RUNNING_CLK_64 = 7,           // Running, CLK/64
+	RUNNING_CLK_128 = 8,          // Running, CLK/128
+	RUNNING_CLK_256 = 9,          // Running, CLK/256
+	RUNNING_CLK_512 = 10,         // Running, CLK/512
+	RUNNING_CLK_1024 = 11,        // Running, CLK/1024
+	RUNNING_CLK_2048 = 12,        // Running, CLK/2048
+	RUNNING_CLK_4096 = 13,        // Running, CLK/4096
+	RUNNING_CLK_8192 = 14,        // Running, CLK/8192
+	RUNNING_CLK_16384 = 15        // Running, CLK/16384
+ }
+
+ enum TCCR1_COM1A {
+	DISCONNECTED_FROM_OCN_PWMN = 0,   // Disconnected from OCn/PWMn
+	TOGGLE_OCN_PWMN_OUTPUT_LINE = 1,  // Toggle OCn/PWMn output line
+	CLEAR_OCN_PWMN_OUTPUT_LINE = 2,   // Clear OCn/PWMn output line
+	SET_OCN_PWMN_OUTPUT_LINE = 3      // set OCn/PWMn output line
+ }
+
+ type TCCR1_t {
+	CS1   = uint4(0);           // Clock Select Bits
+	COM1A = uint2(0);           // Compare Output Mode, Bits
+	PWM1A = false;              // Pulse Width Modulator Enable
+	CTC1  = false;              // Clear Timer/Counter on Compare Match
+ }
+
+ // Timer/Counter Control Register
+ register TCCR1_t TCCR1 at 0x50;
+ register uint8 TCCR1_raw at 0x50;
+
+ // Timer/Counter Register
+ register uint8 TCNT1 at 0x4f;
+
+ type TC1_TIFR_t {
+	_res1 = uint2(0);           // Reserved, 2 bits
+	TOV1  = false;              // Timer/Counter1 Overflow Flag
+	_res2 = uint2(0);           // Reserved, 2 bits
+	OCF1B = false;              // Timer/Counter1 Output Compare Flag 1B
+	OCF1A = false;              // Timer/Counter1 Output Compare Flag 1A
+	_res3 = false;              // Reserved, 1 bits
+ }
+
+ // Timer/Counter Interrupt Flag Register
+ register TC1_TIFR_t TC1_TIFR at 0x58;
+ register uint8 TC1_TIFR_raw at 0x58;
+
+ type TC1_TIMSK_t {
+	_res1  = uint2(0);           // Reserved, 2 bits
+	TOIE1  = false;              // Timer/Counter1 Overflow Interrupt Enable
+	_res2  = uint2(0);           // Reserved, 2 bits
+	OCIE1B = false;              // OCIE1A: Timer/Counter1 Output Compare B Interrupt Enable
+	OCIE1A = false;              // OCIE1A: Timer/Counter1 Output Compare Interrupt Enable
+	_res3  = false;              // Reserved, 1 bits
+ }
+
+ // Timer/Counter Interrupt Mask Register
+ register TC1_TIMSK_t TC1_TIMSK at 0x59;
+ register uint8 TC1_TIMSK_raw at 0x59;
+
+
+/* Types and registers for USI 
+  Universal Serial Interface
+ */
+
+ // USI Buffer Register
+ register uint8 USIBR at 0x30;
+
+ enum USICR_USIWM {
+	NORMAL_OPERATION = 0,        // Normal Operation
+	THREE_WIRE_MODE = 1,         // Three-Wire Mode
+	TWO_WIRE_MODE = 2,           // Two-Wire Mode
+	TWO_WIRE_MODE_HELD_LOW = 3   // Two-Wire Mode Held Low
+ }
+
+ type USICR_t {
+	USITC  = false;              // Toggle Clock Port Pin
+	USICLK = false;              // Clock Strobe
+	USICS  = uint2(0);           // USI Clock Source Select Bits
+	USIWM  = uint2(0);           // USI Wire Mode Bits
+	USIOIE = false;              // Counter Overflow Interrupt Enable
+	USISIE = false;              // Start Condition Interrupt Enable
+ }
+
+ // USI Control Register
+ register USICR_t USICR at 0x0000002D;
+ register uint8 USICR_raw at 0x0000002D;
+
+ // USI Data Register
+ register uint8 USIDR at 0x2f;
+
+ type USISR_t {
+	USICNT = uint4(0);           // USI Counter Value Bits
+	USIDC  = false;              // Data Output Collision
+	USIPF  = false;              // Stop Condition Flag
+	USIOIF = false;              // Counter Overflow Interrupt Flag
+	USISIF = false;              // Start Condition Interrupt Flag
+ }
+
+ // USI Status Register
+ register USISR_t USISR at 0x2e;
+ register uint8 USISR_raw at 0x2e;
+
+
+/* Types and registers for WDT 
+  Watchdog Timer
+ */
+
+ enum WDTCR_WDP {
+	OSCILLATOR_CYCLES_2K = 0,    // Oscillator Cycles 2K
+	OSCILLATOR_CYCLES_4K = 1,    // Oscillator Cycles 4K
+	OSCILLATOR_CYCLES_8K = 2,    // Oscillator Cycles 8K
+	OSCILLATOR_CYCLES_16K = 3,   // Oscillator Cycles 16K
+	OSCILLATOR_CYCLES_32K = 4,   // Oscillator Cycles 32K
+	OSCILLATOR_CYCLES_64K = 5,   // Oscillator Cycles 64K
+	OSCILLATOR_CYCLES_128K = 6,  // Oscillator Cycles 128K
+	OSCILLATOR_CYCLES_256K = 7   // Oscillator Cycles 256K
+ }
+
+ type WDTCR_t {
+	WDP   = uint6(0);           // Watchdog Timer Prescaler Bits
+	WDE   = false;              // Watch Dog Enable
+	WDCE  = false;              // Watchdog Change Enable
+	_res1 = false;              // Reserved, 1 bits
+	WDIE  = false;              // Watchdog Timeout Interrupt Enable
+	WDIF  = false;              // Watchdog Timeout Interrupt Flag
+ }
+
+ // Watchdog Timer Control Register
+ register WDTCR_t WDTCR at 0x00000041;
+ register uint8 WDTCR_raw at 0x00000041;
+

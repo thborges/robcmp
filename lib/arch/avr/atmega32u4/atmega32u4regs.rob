@@ -1,0 +1,1350 @@
+
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ *
+ * This file was machine generated from avr/atmega32u4/atmega32u4.svd. Don't edit.
+ */
+
+
+/* Types and registers for AC: Analog Comparator
+ */
+
+ type ACSR_t {
+	ACIS = uint2(0);           // 
+	ACIC = false;              // 
+	ACIE = false;              // 
+	ACI  = false;              // 
+	ACO  = false;              // 
+	ACBG = false;              // 
+	ACD  = false;              // 
+ }
+
+ // 
+ register ACSR_t ACSR at 0x00000050;
+
+ type ADCSRB_t {
+	_res1 = uint6(0);           // Reserved, 6 bits
+	ACME  = false;              // 
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register ADCSRB_t ADCSRB at 0x00000050 + 0x2B;
+
+ type DIDR1_t {
+	AIN0D = false;              // 
+	AIN1D = false;              // 
+	_res1 = uint6(0);           // Reserved, 6 bits
+ }
+
+ // 
+ register DIDR1_t DIDR1 at 0x00000050 + 0x2F;
+
+
+/* Types and registers for ADC: Analog-to-Digital Converter
+ */
+
+ // 
+ register uint16 ADC at 0x00000078;
+
+ type ADCSRA_t {
+	ADPS  = uint3(0);           // 
+	ADIE  = false;              // 
+	ADIF  = false;              // 
+	ADATE = false;              // 
+	ADSC  = false;              // 
+	ADEN  = false;              // 
+ }
+
+ // 
+ register ADCSRA_t ADCSRA at 0x00000078 + 0x2;
+
+ type ADCSRB_t {
+	ADTS  = uint4(0);           // 
+	_res1 = false;              // Reserved, 1 bits
+	MUX5  = false;              // 
+	_res2 = false;              // Reserved, 1 bits
+	ADHSM = false;              // 
+ }
+
+ // 
+ register ADCSRB_t ADCSRB at 0x00000078 + 0x3;
+
+ type ADMUX_t {
+	MUX   = uint5(0);           // 
+	ADLAR = false;              // 
+	REFS  = uint2(0);           // 
+ }
+
+ // 
+ register ADMUX_t ADMUX at 0x00000078 + 0x4;
+
+ type DIDR0_t {
+	ADC0D = false;              // 
+	ADC1D = false;              // 
+	ADC2D = false;              // 
+	ADC3D = false;              // 
+	ADC4D = false;              // 
+	ADC5D = false;              // 
+	ADC6D = false;              // 
+	ADC7D = false;              // 
+ }
+
+ // 
+ register DIDR0_t DIDR0 at 0x00000078 + 0x6;
+
+ type DIDR2_t {
+	ADC8D  = false;              // 
+	ADC9D  = false;              // 
+	ADC10D = false;              // 
+	ADC11D = false;              // 
+	ADC12D = false;              // 
+	ADC13D = false;              // 
+	_res1  = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register DIDR2_t DIDR2 at 0x00000078 + 0x5;
+
+
+/* Types and registers for BOOT_LOAD: Bootloader
+ */
+
+ type SPMCSR_t {
+	SPMEN  = false;              // 
+	PGERS  = false;              // 
+	PGWRT  = false;              // 
+	BLBSET = false;              // 
+	RWWSRE = false;              // 
+	SIGRD  = false;              // 
+	RWWSB  = false;              // 
+	SPMIE  = false;              // 
+ }
+
+ // 
+ register SPMCSR_t SPMCSR at 0x00000057;
+
+
+/* Types and registers for CPU: CPU Registers
+ */
+
+ type CLKPR_t {
+	CLKPS  = uint4(0);           // 
+	_res1  = uint3(0);           // Reserved, 3 bits
+	CLKPCE = false;              // 
+ }
+
+ // 
+ register CLKPR_t CLKPR at 0x0000003E + 0x23;
+
+ type CLKSEL0_t {
+	CLKS  = false;              // 
+	_res1 = false;              // Reserved, 1 bits
+	EXTE  = false;              // 
+	RCE   = false;              // 
+	EXSUT = uint2(0);           // 
+	RCSUT = uint2(0);           // 
+ }
+
+ // 
+ register CLKSEL0_t CLKSEL0 at 0x0000003E + 0x87;
+
+ type CLKSEL1_t {
+	EXCKSEL = uint4(0);           // 
+	RCCKSEL = uint4(0);           // 
+ }
+
+ // 
+ register CLKSEL1_t CLKSEL1 at 0x0000003E + 0x88;
+
+ type CLKSTA_t {
+	EXTON = false;              // 
+	RCON  = false;              // 
+	_res1 = uint6(0);           // Reserved, 6 bits
+ }
+
+ // 
+ register CLKSTA_t CLKSTA at 0x0000003E + 0x89;
+
+ // 
+ register uint8 EIND at 0x0000003E + 0x1E;
+
+ type GPIOR0_t {
+	GPIOR00 = false;              // 
+	GPIOR01 = false;              // 
+	GPIOR02 = false;              // 
+	GPIOR03 = false;              // 
+	GPIOR04 = false;              // 
+	GPIOR05 = false;              // 
+	GPIOR06 = false;              // 
+	GPIOR07 = false;              // 
+ }
+
+ // 
+ register GPIOR0_t GPIOR0 at 0x0000003E;
+
+ type GPIOR1_t {
+	GPIOR = uint8(0);           // 
+ }
+
+ // 
+ register GPIOR1_t GPIOR1 at 0x0000003E + 0xC;
+
+ type GPIOR2_t {
+	GPIOR = uint8(0);           // 
+ }
+
+ // 
+ register GPIOR2_t GPIOR2 at 0x0000003E + 0xD;
+
+ type MCUCR_t {
+	IVCE  = false;              // 
+	IVSEL = false;              // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+	PUD   = false;              // 
+	_res2 = uint2(0);           // Reserved, 2 bits
+	JTD   = false;              // 
+ }
+
+ // 
+ register MCUCR_t MCUCR at 0x0000003E + 0x17;
+
+ type MCUSR_t {
+	PORF  = false;              // 
+	EXTRF = false;              // 
+	BORF  = false;              // 
+	WDRF  = false;              // 
+	JTRF  = false;              // 
+	_res1 = uint3(0);           // Reserved, 3 bits
+ }
+
+ // 
+ register MCUSR_t MCUSR at 0x0000003E + 0x16;
+
+ type OSCCAL_t {
+	OSCCAL = uint8(0);           // 
+ }
+
+ // 
+ register OSCCAL_t OSCCAL at 0x0000003E + 0x28;
+
+ type PRR0_t {
+	PRADC    = false;              // 
+	PRUSART0 = false;              // 
+	PRSPI    = false;              // 
+	PRTIM1   = false;              // 
+	_res1    = false;              // Reserved, 1 bits
+	PRTIM0   = false;              // 
+	PRTIM2   = false;              // 
+	PRTWI    = false;              // 
+ }
+
+ // 
+ register PRR0_t PRR0 at 0x0000003E + 0x26;
+
+ type PRR1_t {
+	PRUSART1 = false;              // 
+	_res1    = uint2(0);           // Reserved, 2 bits
+	PRTIM3   = false;              // 
+	PRTIM4   = false;              // 
+	_res2    = uint2(0);           // Reserved, 2 bits
+	PRUSB    = false;              // 
+ }
+
+ // 
+ register PRR1_t PRR1 at 0x0000003E + 0x27;
+
+ type RAMPZ_t {
+	RAMPZ = uint2(0);           // 
+	Res   = uint6(0);           // 
+ }
+
+ // 
+ register RAMPZ_t RAMPZ at 0x0000003E + 0x1D;
+
+ type RCCTRL_t {
+	RCFREQ = false;              // 
+	_res1  = uint7(0);           // Reserved, 7 bits
+ }
+
+ // 
+ register RCCTRL_t RCCTRL at 0x0000003E + 0x29;
+
+ type SMCR_t {
+	SE    = false;              // 
+	SM    = uint3(0);           // 
+	_res1 = uint4(0);           // Reserved, 4 bits
+ }
+
+ // 
+ register SMCR_t SMCR at 0x0000003E + 0x15;
+
+
+/* Types and registers for EEPROM: EEPROM
+ */
+
+ // 
+ register uint16 EEAR at 0x0000003F + 0x2;
+
+ type EECR_t {
+	EERE  = false;              // 
+	EEPE  = false;              // 
+	EEMPE = false;              // 
+	EERIE = false;              // 
+	EEPM  = uint2(0);           // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register EECR_t EECR at 0x0000003F;
+
+ // 
+ register uint8 EEDR at 0x0000003F + 0x1;
+
+
+/* Types and registers for EXINT: External Interrupts
+ */
+
+ type EICRA_t {
+	ISC0 = uint2(0);           // 
+	ISC1 = uint2(0);           // 
+	ISC2 = uint2(0);           // 
+	ISC3 = uint2(0);           // 
+ }
+
+ // 
+ register EICRA_t EICRA at 0x0000003B + 0x2E;
+
+ type EICRB_t {
+	ISC4 = uint2(0);           // 
+	ISC5 = uint2(0);           // 
+	ISC6 = uint2(0);           // 
+	ISC7 = uint2(0);           // 
+ }
+
+ // 
+ register EICRB_t EICRB at 0x0000003B + 0x2F;
+
+ type EIFR_t {
+	INTF = uint8(0);           // 
+ }
+
+ // 
+ register EIFR_t EIFR at 0x0000003B + 0x1;
+
+ type EIMSK_t {
+	INT = uint8(0);           // 
+ }
+
+ // 
+ register EIMSK_t EIMSK at 0x0000003B + 0x2;
+
+ type PCICR_t {
+	PCIE0 = false;              // 
+	_res1 = uint7(0);           // Reserved, 7 bits
+ }
+
+ // 
+ register PCICR_t PCICR at 0x0000003B + 0x2D;
+
+ type PCIFR_t {
+	PCIF0 = false;              // 
+	_res1 = uint7(0);           // Reserved, 7 bits
+ }
+
+ // 
+ register PCIFR_t PCIFR at 0x0000003B;
+
+ // 
+ register uint8 PCMSK0 at 0x0000003B + 0x30;
+
+
+/* Types and registers for FUSE: Fuses
+ */
+
+ type EXTENDED_t {
+	BODLEVEL = uint3(0);           // 
+	HWBE     = false;              // 
+	_res1    = uint4(0);           // Reserved, 4 bits
+ }
+
+ // 
+ register EXTENDED_t EXTENDED at 0x00000000 + 0x2;
+
+ type HIGH_t {
+	BOOTRST = false;              // 
+	BOOTSZ  = uint2(0);           // 
+	EESAVE  = false;              // 
+	WDTON   = false;              // 
+	SPIEN   = false;              // 
+	JTAGEN  = false;              // 
+	OCDEN   = false;              // 
+ }
+
+ // 
+ register HIGH_t HIGH at 0x00000000 + 0x1;
+
+ type LOW_t {
+	SUT_CKSEL = uint6(0);           // 
+	CKOUT     = false;              // 
+	CKDIV8    = false;              // 
+ }
+
+ // 
+ register LOW_t LOW at 0x00000000;
+
+
+/* Types and registers for JTAG: JTAG Interface
+ */
+
+ type MCUCR_t {
+	_res1 = uint7(0);           // Reserved, 7 bits
+	JTD   = false;              // 
+ }
+
+ // 
+ register MCUCR_t MCUCR at 0x00000051 + 0x4;
+
+ type MCUSR_t {
+	_res1 = uint4(0);           // Reserved, 4 bits
+	JTRF  = false;              // 
+	_res2 = uint3(0);           // Reserved, 3 bits
+ }
+
+ // 
+ register MCUSR_t MCUSR at 0x00000051 + 0x3;
+
+ // 
+ register uint8 OCDR at 0x00000051;
+
+
+/* Types and registers for LOCKBIT: Lockbits
+ */
+
+ type LOCKBIT_t {
+	LB    = uint2(0);           // 
+	BLB0  = uint2(0);           // 
+	BLB1  = uint2(0);           // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register LOCKBIT_t LOCKBIT at 0x00000000;
+
+
+/* Types and registers for PLL: Phase Locked Loop
+ */
+
+ type PLLCSR_t {
+	PLOCK  = false;              // 
+	PLLE   = false;              // 
+	_res1  = uint2(0);           // Reserved, 2 bits
+	PINDIV = false;              // 
+	_res2  = uint3(0);           // Reserved, 3 bits
+ }
+
+ // 
+ register PLLCSR_t PLLCSR at 0x00000049;
+
+ type PLLFRQ_t {
+	PDIV   = uint4(0);           // 
+	PLLTM  = uint2(0);           // 
+	PLLUSB = false;              // 
+	PINMUX = false;              // 
+ }
+
+ // 
+ register PLLFRQ_t PLLFRQ at 0x00000049 + 0x9;
+
+
+/* Types and registers for PORTB: I/O Port
+ */
+
+ type DDRB_t {
+	PB0 = false;              // 
+	PB1 = false;              // 
+	PB2 = false;              // 
+	PB3 = false;              // 
+	PB4 = false;              // 
+	PB5 = false;              // 
+	PB6 = false;              // 
+	PB7 = false;              // 
+ }
+
+ // 
+ register DDRB_t DDRB at 0x00000023 + 0x1;
+
+ type PINB_t {
+	PB0 = false;              // 
+	PB1 = false;              // 
+	PB2 = false;              // 
+	PB3 = false;              // 
+	PB4 = false;              // 
+	PB5 = false;              // 
+	PB6 = false;              // 
+	PB7 = false;              // 
+ }
+
+ // 
+ register PINB_t PINB at 0x00000023;
+
+ type PORTB_t {
+	PB0 = false;              // 
+	PB1 = false;              // 
+	PB2 = false;              // 
+	PB3 = false;              // 
+	PB4 = false;              // 
+	PB5 = false;              // 
+	PB6 = false;              // 
+	PB7 = false;              // 
+ }
+
+ // 
+ register PORTB_t PORTB at 0x00000023 + 0x2;
+
+
+/* Types and registers for PORTC: I/O Port
+ */
+
+ type DDRC_t {
+	_res1 = uint6(0);           // Reserved, 6 bits
+	PC6   = false;              // 
+	PC7   = false;              // 
+ }
+
+ // 
+ register DDRC_t DDRC at 0x00000026 + 0x1;
+
+ type PINC_t {
+	_res1 = uint6(0);           // Reserved, 6 bits
+	PC6   = false;              // 
+	PC7   = false;              // 
+ }
+
+ // 
+ register PINC_t PINC at 0x00000026;
+
+ type PORTC_t {
+	_res1 = uint6(0);           // Reserved, 6 bits
+	PC6   = false;              // 
+	PC7   = false;              // 
+ }
+
+ // 
+ register PORTC_t PORTC at 0x00000026 + 0x2;
+
+
+/* Types and registers for PORTD: I/O Port
+ */
+
+ type DDRD_t {
+	PD0 = false;              // 
+	PD1 = false;              // 
+	PD2 = false;              // 
+	PD3 = false;              // 
+	PD4 = false;              // 
+	PD5 = false;              // 
+	PD6 = false;              // 
+	PD7 = false;              // 
+ }
+
+ // 
+ register DDRD_t DDRD at 0x00000029 + 0x1;
+
+ type PIND_t {
+	PD0 = false;              // 
+	PD1 = false;              // 
+	PD2 = false;              // 
+	PD3 = false;              // 
+	PD4 = false;              // 
+	PD5 = false;              // 
+	PD6 = false;              // 
+	PD7 = false;              // 
+ }
+
+ // 
+ register PIND_t PIND at 0x00000029;
+
+ type PORTD_t {
+	PD0 = false;              // 
+	PD1 = false;              // 
+	PD2 = false;              // 
+	PD3 = false;              // 
+	PD4 = false;              // 
+	PD5 = false;              // 
+	PD6 = false;              // 
+	PD7 = false;              // 
+ }
+
+ // 
+ register PORTD_t PORTD at 0x00000029 + 0x2;
+
+
+/* Types and registers for PORTE: I/O Port
+ */
+
+ type DDRE_t {
+	_res1 = uint2(0);           // Reserved, 2 bits
+	PE2   = false;              // 
+	_res2 = uint3(0);           // Reserved, 3 bits
+	PE6   = false;              // 
+	_res3 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register DDRE_t DDRE at 0x0000002C + 0x1;
+
+ type PINE_t {
+	_res1 = uint2(0);           // Reserved, 2 bits
+	PE2   = false;              // 
+	_res2 = uint3(0);           // Reserved, 3 bits
+	PE6   = false;              // 
+	_res3 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register PINE_t PINE at 0x0000002C;
+
+ type PORTE_t {
+	_res1 = uint2(0);           // Reserved, 2 bits
+	PE2   = false;              // 
+	_res2 = uint3(0);           // Reserved, 3 bits
+	PE6   = false;              // 
+	_res3 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register PORTE_t PORTE at 0x0000002C + 0x2;
+
+
+/* Types and registers for PORTF: I/O Port
+ */
+
+ type DDRF_t {
+	PF0   = false;              // 
+	PF1   = false;              // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+	PF4   = false;              // 
+	PF5   = false;              // 
+	PF6   = false;              // 
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register DDRF_t DDRF at 0x0000002F + 0x1;
+
+ type PINF_t {
+	PF0   = false;              // 
+	PF1   = false;              // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+	PF4   = false;              // 
+	PF5   = false;              // 
+	PF6   = false;              // 
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register PINF_t PINF at 0x0000002F;
+
+ type PORTF_t {
+	PF0   = false;              // 
+	PF1   = false;              // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+	PF4   = false;              // 
+	PF5   = false;              // 
+	PF6   = false;              // 
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register PORTF_t PORTF at 0x0000002F + 0x2;
+
+
+/* Types and registers for SPI: Serial Peripheral Interface
+ */
+
+ type SPCR_t {
+	SPR  = uint2(0);           // 
+	CPHA = false;              // 
+	CPOL = false;              // 
+	MSTR = false;              // 
+	DORD = false;              // 
+	SPE  = false;              // 
+	SPIE = false;              // 
+ }
+
+ // 
+ register SPCR_t SPCR at 0x0000004C;
+
+ // 
+ register uint8 SPDR at 0x0000004C + 0x2;
+
+ type SPSR_t {
+	SPI2X = false;              // 
+	_res1 = uint5(0);           // Reserved, 5 bits
+	WCOL  = false;              // 
+	SPIF  = false;              // 
+ }
+
+ // 
+ register SPSR_t SPSR at 0x0000004C + 0x1;
+
+
+/* Types and registers for TC0: Timer/Counter, 8-bit
+ */
+
+ type GTCCR_t {
+	PSRSYNC = false;              // 
+	PSRASY  = false;              // 
+	_res1   = uint5(0);           // Reserved, 5 bits
+	TSM     = false;              // 
+ }
+
+ // 
+ register GTCCR_t GTCCR at 0x00000035 + 0xE;
+
+ // 
+ register uint8 OCR0A at 0x00000035 + 0x12;
+
+ // 
+ register uint8 OCR0B at 0x00000035 + 0x13;
+
+ type TCCR0A_t {
+	WGM0  = uint2(0);           // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+	COM0B = uint2(0);           // 
+	COM0A = uint2(0);           // 
+ }
+
+ // 
+ register TCCR0A_t TCCR0A at 0x00000035 + 0xF;
+
+ type TCCR0B_t {
+	CS0   = uint3(0);           // 
+	WGM02 = false;              // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+	FOC0B = false;              // 
+	FOC0A = false;              // 
+ }
+
+ // 
+ register TCCR0B_t TCCR0B at 0x00000035 + 0x10;
+
+ // 
+ register uint8 TCNT0 at 0x00000035 + 0x11;
+
+ type TIFR0_t {
+	TOV0  = false;              // 
+	OCF0A = false;              // 
+	OCF0B = false;              // 
+	_res1 = uint5(0);           // Reserved, 5 bits
+ }
+
+ // 
+ register TIFR0_t TIFR0 at 0x00000035;
+
+ type TIMSK0_t {
+	TOIE0  = false;              // 
+	OCIE0A = false;              // 
+	OCIE0B = false;              // 
+	_res1  = uint5(0);           // Reserved, 5 bits
+ }
+
+ // 
+ register TIMSK0_t TIMSK0 at 0x00000035 + 0x39;
+
+
+/* Types and registers for TC1: Timer/Counter, 16-bit
+ */
+
+ // 
+ register uint16 ICR1 at 0x00000036 + 0x50;
+
+ // 
+ register uint16 OCR1A at 0x00000036 + 0x52;
+
+ // 
+ register uint16 OCR1B at 0x00000036 + 0x54;
+
+ // 
+ register uint16 OCR1C at 0x00000036 + 0x56;
+
+ type TCCR1A_t {
+	WGM1  = uint2(0);           // 
+	COM1C = uint2(0);           // 
+	COM1B = uint2(0);           // 
+	COM1A = uint2(0);           // 
+ }
+
+ // 
+ register TCCR1A_t TCCR1A at 0x00000036 + 0x4A;
+
+ type TCCR1B_t {
+	CS1   = uint3(0);           // 
+	WGM1  = uint2(0);           // 
+	_res1 = false;              // Reserved, 1 bits
+	ICES1 = false;              // 
+	ICNC1 = false;              // 
+ }
+
+ // 
+ register TCCR1B_t TCCR1B at 0x00000036 + 0x4B;
+
+ type TCCR1C_t {
+	_res1 = uint5(0);           // Reserved, 5 bits
+	FOC1C = false;              // 
+	FOC1B = false;              // 
+	FOC1A = false;              // 
+ }
+
+ // 
+ register TCCR1C_t TCCR1C at 0x00000036 + 0x4C;
+
+ // 
+ register uint16 TCNT1 at 0x00000036 + 0x4E;
+
+ type TIFR1_t {
+	TOV1  = false;              // 
+	OCF1A = false;              // 
+	OCF1B = false;              // 
+	OCF1C = false;              // 
+	_res1 = false;              // Reserved, 1 bits
+	ICF1  = false;              // 
+	_res2 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register TIFR1_t TIFR1 at 0x00000036;
+
+ type TIMSK1_t {
+	TOIE1  = false;              // 
+	OCIE1A = false;              // 
+	OCIE1B = false;              // 
+	OCIE1C = false;              // 
+	_res1  = false;              // Reserved, 1 bits
+	ICIE1  = false;              // 
+	_res2  = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register TIMSK1_t TIMSK1 at 0x00000036 + 0x39;
+
+
+/* Types and registers for TC3: Timer/Counter, 16-bit
+ */
+
+ // 
+ register uint16 ICR3 at 0x00000038 + 0x5E;
+
+ // 
+ register uint16 OCR3A at 0x00000038 + 0x60;
+
+ // 
+ register uint16 OCR3B at 0x00000038 + 0x62;
+
+ // 
+ register uint16 OCR3C at 0x00000038 + 0x64;
+
+ type TCCR3A_t {
+	WGM3  = uint2(0);           // 
+	COM3C = uint2(0);           // 
+	COM3B = uint2(0);           // 
+	COM3A = uint2(0);           // 
+ }
+
+ // 
+ register TCCR3A_t TCCR3A at 0x00000038 + 0x58;
+
+ type TCCR3B_t {
+	CS3   = uint3(0);           // 
+	WGM3  = uint2(0);           // 
+	_res1 = false;              // Reserved, 1 bits
+	ICES3 = false;              // 
+	ICNC3 = false;              // 
+ }
+
+ // 
+ register TCCR3B_t TCCR3B at 0x00000038 + 0x59;
+
+ type TCCR3C_t {
+	_res1 = uint5(0);           // Reserved, 5 bits
+	FOC3C = false;              // 
+	FOC3B = false;              // 
+	FOC3A = false;              // 
+ }
+
+ // 
+ register TCCR3C_t TCCR3C at 0x00000038 + 0x5A;
+
+ // 
+ register uint16 TCNT3 at 0x00000038 + 0x5C;
+
+ type TIFR3_t {
+	TOV3  = false;              // 
+	OCF3A = false;              // 
+	OCF3B = false;              // 
+	OCF3C = false;              // 
+	_res1 = false;              // Reserved, 1 bits
+	ICF3  = false;              // 
+	_res2 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register TIFR3_t TIFR3 at 0x00000038;
+
+ type TIMSK3_t {
+	TOIE3  = false;              // 
+	OCIE3A = false;              // 
+	OCIE3B = false;              // 
+	OCIE3C = false;              // 
+	_res1  = false;              // Reserved, 1 bits
+	ICIE3  = false;              // 
+	_res2  = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register TIMSK3_t TIMSK3 at 0x00000038 + 0x39;
+
+
+/* Types and registers for TC4: Timer/Counter, 10-bit
+ */
+
+ type DT4_t {
+	DT4L = uint8(0);           // 
+ }
+
+ // 
+ register DT4_t DT4 at 0x00000039 + 0x9B;
+
+ // 
+ register uint8 OCR4A at 0x00000039 + 0x96;
+
+ // 
+ register uint8 OCR4B at 0x00000039 + 0x97;
+
+ // 
+ register uint8 OCR4C at 0x00000039 + 0x98;
+
+ // 
+ register uint8 OCR4D at 0x00000039 + 0x99;
+
+ // 
+ register uint8 TC4H at 0x00000039 + 0x86;
+
+ type TCCR4A_t {
+	PWM4B = false;              // 
+	PWM4A = false;              // 
+	FOC4B = false;              // 
+	FOC4A = false;              // 
+	COM4B = uint2(0);           // 
+	COM4A = uint2(0);           // 
+ }
+
+ // 
+ register TCCR4A_t TCCR4A at 0x00000039 + 0x87;
+
+ type TCCR4B_t {
+	CS4   = uint4(0);           // 
+	DTPS4 = uint2(0);           // 
+	PSR4  = false;              // 
+	PWM4X = false;              // 
+ }
+
+ // 
+ register TCCR4B_t TCCR4B at 0x00000039 + 0x88;
+
+ type TCCR4C_t {
+	PWM4D   = false;              // 
+	FOC4D   = false;              // 
+	COM4D   = uint2(0);           // 
+	COM4B0S = false;              // 
+	COM4B1S = false;              // 
+	COM4A0S = false;              // 
+	COM4A1S = false;              // 
+ }
+
+ // 
+ register TCCR4C_t TCCR4C at 0x00000039 + 0x89;
+
+ type TCCR4D_t {
+	WGM4  = uint2(0);           // 
+	FPF4  = false;              // 
+	FPAC4 = false;              // 
+	FPES4 = false;              // 
+	FPNC4 = false;              // 
+	FPEN4 = false;              // 
+	FPIE4 = false;              // 
+ }
+
+ // 
+ register TCCR4D_t TCCR4D at 0x00000039 + 0x8A;
+
+ type TCCR4E_t {
+	OC4OE  = uint6(0);           // 
+	ENHC4  = false;              // 
+	TLOCK4 = false;              // 
+ }
+
+ // 
+ register TCCR4E_t TCCR4E at 0x00000039 + 0x8B;
+
+ // 
+ register uint8 TCNT4 at 0x00000039 + 0x85;
+
+ type TIFR4_t {
+	_res1 = uint2(0);           // Reserved, 2 bits
+	TOV4  = false;              // 
+	_res2 = uint2(0);           // Reserved, 2 bits
+	OCF4B = false;              // 
+	OCF4A = false;              // 
+	OCF4D = false;              // 
+ }
+
+ // 
+ register TIFR4_t TIFR4 at 0x00000039;
+
+ type TIMSK4_t {
+	_res1  = uint2(0);           // Reserved, 2 bits
+	TOIE4  = false;              // 
+	_res2  = uint2(0);           // Reserved, 2 bits
+	OCIE4B = false;              // 
+	OCIE4A = false;              // 
+	OCIE4D = false;              // 
+ }
+
+ // 
+ register TIMSK4_t TIMSK4 at 0x00000039 + 0x39;
+
+
+/* Types and registers for TWI: Two Wire Serial Interface
+ */
+
+ type TWAMR_t {
+	_res1 = false;              // Reserved, 1 bits
+	TWAM  = uint7(0);           // 
+ }
+
+ // 
+ register TWAMR_t TWAMR at 0x000000B8 + 0x5;
+
+ type TWAR_t {
+	TWGCE = false;              // 
+	TWA   = uint7(0);           // 
+ }
+
+ // 
+ register TWAR_t TWAR at 0x000000B8 + 0x2;
+
+ // 
+ register uint8 TWBR at 0x000000B8;
+
+ type TWCR_t {
+	TWIE  = false;              // 
+	_res1 = false;              // Reserved, 1 bits
+	TWEN  = false;              // 
+	TWWC  = false;              // 
+	TWSTO = false;              // 
+	TWSTA = false;              // 
+	TWEA  = false;              // 
+	TWINT = false;              // 
+ }
+
+ // 
+ register TWCR_t TWCR at 0x000000B8 + 0x4;
+
+ // 
+ register uint8 TWDR at 0x000000B8 + 0x3;
+
+ type TWSR_t {
+	TWPS  = uint2(0);           // 
+	_res1 = false;              // Reserved, 1 bits
+	TWS   = uint5(0);           // 
+ }
+
+ // 
+ register TWSR_t TWSR at 0x000000B8 + 0x1;
+
+
+/* Types and registers for USART1: USART
+ */
+
+ // 
+ register uint16 UBRR1 at 0x000000C8 + 0x4;
+
+ type UCSR1A_t {
+	MPCM1 = false;              // 
+	U2X1  = false;              // 
+	UPE1  = false;              // 
+	DOR1  = false;              // 
+	FE1   = false;              // 
+	UDRE1 = false;              // 
+	TXC1  = false;              // 
+	RXC1  = false;              // 
+ }
+
+ // 
+ register UCSR1A_t UCSR1A at 0x000000C8;
+
+ type UCSR1B_t {
+	TXB81  = false;              // 
+	RXB81  = false;              // 
+	UCSZ12 = false;              // 
+	TXEN1  = false;              // 
+	RXEN1  = false;              // 
+	UDRIE1 = false;              // 
+	TXCIE1 = false;              // 
+	RXCIE1 = false;              // 
+ }
+
+ // 
+ register UCSR1B_t UCSR1B at 0x000000C8 + 0x1;
+
+ type UCSR1C_t {
+	UCPOL1 = false;              // 
+	UCSZ1  = uint2(0);           // 
+	USBS1  = false;              // 
+	UPM1   = uint2(0);           // 
+	UMSEL1 = uint2(0);           // 
+ }
+
+ // 
+ register UCSR1C_t UCSR1C at 0x000000C8 + 0x2;
+
+ type UCSR1D_t {
+	RTSEN = false;              // 
+	CTSEN = false;              // 
+	_res1 = uint6(0);           // Reserved, 6 bits
+ }
+
+ // 
+ register UCSR1D_t UCSR1D at 0x000000C8 + 0x3;
+
+ // 
+ register uint8 UDR1 at 0x000000C8 + 0x6;
+
+
+/* Types and registers for USB_DEVICE: USB Device Registers
+ */
+
+ type UDADDR_t {
+	UADD  = uint7(0);           // 
+	ADDEN = false;              // 
+ }
+
+ // 
+ register UDADDR_t UDADDR at 0x000000D7 + 0xC;
+
+ type UDCON_t {
+	DETACH = false;              // 
+	RMWKUP = false;              // 
+	LSM    = false;              // 
+	RSTCPU = false;              // 
+	_res1  = uint4(0);           // Reserved, 4 bits
+ }
+
+ // 
+ register UDCON_t UDCON at 0x000000D7 + 0x9;
+
+ // 
+ register uint16 UDFNUM at 0x000000D7 + 0xD;
+
+ type UDIEN_t {
+	SUSPE   = false;              // 
+	_res1   = false;              // Reserved, 1 bits
+	SOFE    = false;              // 
+	EORSTE  = false;              // 
+	WAKEUPE = false;              // 
+	EORSME  = false;              // 
+	UPRSME  = false;              // 
+	_res2   = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register UDIEN_t UDIEN at 0x000000D7 + 0xB;
+
+ type UDINT_t {
+	SUSPI   = false;              // 
+	_res1   = false;              // Reserved, 1 bits
+	SOFI    = false;              // 
+	EORSTI  = false;              // 
+	WAKEUPI = false;              // 
+	EORSMI  = false;              // 
+	UPRSMI  = false;              // 
+	_res2   = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register UDINT_t UDINT at 0x000000D7 + 0xA;
+
+ type UDMFN_t {
+	_res1  = uint4(0);           // Reserved, 4 bits
+	FNCERR = false;              // 
+	_res2  = uint3(0);           // Reserved, 3 bits
+ }
+
+ // 
+ register UDMFN_t UDMFN at 0x000000D7 + 0xF;
+
+ // 
+ register uint8 UEBCHX at 0x000000D7 + 0x1C;
+
+ // 
+ register uint8 UEBCLX at 0x000000D7 + 0x1B;
+
+ type UECFG0X_t {
+	EPDIR  = false;              // 
+	_res1  = uint5(0);           // Reserved, 5 bits
+	EPTYPE = uint2(0);           // 
+ }
+
+ // 
+ register UECFG0X_t UECFG0X at 0x000000D7 + 0x15;
+
+ type UECFG1X_t {
+	_res1  = false;              // Reserved, 1 bits
+	ALLOC  = false;              // 
+	EPBK   = uint2(0);           // 
+	EPSIZE = uint3(0);           // 
+	_res2  = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register UECFG1X_t UECFG1X at 0x000000D7 + 0x16;
+
+ type UECONX_t {
+	EPEN     = false;              // 
+	_res1    = uint2(0);           // Reserved, 2 bits
+	RSTDT    = false;              // 
+	STALLRQC = false;              // 
+	STALLRQ  = false;              // 
+	_res2    = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register UECONX_t UECONX at 0x000000D7 + 0x14;
+
+ type UEDATX_t {
+	DAT = uint8(0);           // 
+ }
+
+ // 
+ register UEDATX_t UEDATX at 0x000000D7 + 0x1A;
+
+ type UEIENX_t {
+	TXINE    = false;              // 
+	STALLEDE = false;              // 
+	RXOUTE   = false;              // 
+	RXSTPE   = false;              // 
+	NAKOUTE  = false;              // 
+	_res1    = false;              // Reserved, 1 bits
+	NAKINE   = false;              // 
+	FLERRE   = false;              // 
+ }
+
+ // 
+ register UEIENX_t UEIENX at 0x000000D7 + 0x19;
+
+ // 
+ register uint8 UEINT at 0x000000D7 + 0x1D;
+
+ type UEINTX_t {
+	TXINI    = false;              // 
+	STALLEDI = false;              // 
+	RXOUTI   = false;              // 
+	RXSTPI   = false;              // 
+	NAKOUTI  = false;              // 
+	RWAL     = false;              // 
+	NAKINI   = false;              // 
+	FIFOCON  = false;              // 
+ }
+
+ // 
+ register UEINTX_t UEINTX at 0x000000D7 + 0x11;
+
+ // 
+ register uint8 UENUM at 0x000000D7 + 0x12;
+
+ type UERST_t {
+	EPRST = uint7(0);           // 
+	_res1 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register UERST_t UERST at 0x000000D7 + 0x13;
+
+ type UESTA0X_t {
+	NBUSYBK = uint2(0);           // 
+	DTSEQ   = uint2(0);           // 
+	_res1   = false;              // Reserved, 1 bits
+	UNDERFI = false;              // 
+	OVERFI  = false;              // 
+	CFGOK   = false;              // 
+ }
+
+ // 
+ register UESTA0X_t UESTA0X at 0x000000D7 + 0x17;
+
+ type UESTA1X_t {
+	CURRBK  = uint2(0);           // 
+	CTRLDIR = false;              // 
+	_res1   = uint5(0);           // Reserved, 5 bits
+ }
+
+ // 
+ register UESTA1X_t UESTA1X at 0x000000D7 + 0x18;
+
+ type UHWCON_t {
+	UVREGE = false;              // 
+	_res1  = uint7(0);           // Reserved, 7 bits
+ }
+
+ // 
+ register UHWCON_t UHWCON at 0x000000D7;
+
+ type USBCON_t {
+	VBUSTE  = false;              // 
+	_res1   = uint3(0);           // Reserved, 3 bits
+	OTGPADE = false;              // 
+	FRZCLK  = false;              // 
+	_res2   = false;              // Reserved, 1 bits
+	USBE    = false;              // 
+ }
+
+ // 
+ register USBCON_t USBCON at 0x000000D7 + 0x1;
+
+ type USBINT_t {
+	VBUSTI = false;              // 
+	_res1  = uint7(0);           // Reserved, 7 bits
+ }
+
+ // 
+ register USBINT_t USBINT at 0x000000D7 + 0x3;
+
+ type USBSTA_t {
+	VBUS  = false;              // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+	SPEED = false;              // 
+	_res2 = uint4(0);           // Reserved, 4 bits
+ }
+
+ // 
+ register USBSTA_t USBSTA at 0x000000D7 + 0x2;
+
+
+/* Types and registers for WDT: Watchdog Timer
+ */
+
+ type WDTCSR_t {
+	WDP   = uint6(0);           // 
+	WDE   = false;              // 
+	WDCE  = false;              // 
+	_res1 = false;              // Reserved, 1 bits
+	WDIE  = false;              // 
+	WDIF  = false;              // 
+ }
+
+ // 
+ register WDTCSR_t WDTCSR at 0x00000060;
+

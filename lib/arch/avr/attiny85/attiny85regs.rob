@@ -1,0 +1,538 @@
+
+/*
+ * Part of the Robotics Language Standard Library, under the
+ * Apache License v2.0.
+ *
+ * This file was machine generated from avr/attiny85/attiny85.svd. Don't edit.
+ */
+
+
+/* Types and registers for AC: Analog Comparator
+ */
+
+ type ACSR_t {
+	ACIS  = uint2(0);           // 
+	_res1 = false;              // Reserved, 1 bits
+	ACIE  = false;              // 
+	ACI   = false;              // 
+	ACO   = false;              // 
+	ACBG  = false;              // 
+	ACD   = false;              // 
+ }
+
+ // 
+ register ACSR_t ACSR at 0x00000023 + 0x5;
+
+ type ADCSRB_t {
+	_res1 = uint6(0);           // Reserved, 6 bits
+	ACME  = false;              // 
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register ADCSRB_t ADCSRB at 0x00000023;
+
+ type DIDR0_t {
+	AIN0D = false;              // 
+	AIN1D = false;              // 
+	_res1 = uint6(0);           // Reserved, 6 bits
+ }
+
+ // 
+ register DIDR0_t DIDR0 at 0x00000023 + 0x11;
+
+
+/* Types and registers for ADC: Analog-to-Digital Converter
+ */
+
+ // 
+ register uint16 ADC at 0x00000023 + 0x1;
+
+ type ADCSRA_t {
+	ADPS  = uint3(0);           // 
+	ADIE  = false;              // 
+	ADIF  = false;              // 
+	ADATE = false;              // 
+	ADSC  = false;              // 
+	ADEN  = false;              // 
+ }
+
+ // 
+ register ADCSRA_t ADCSRA at 0x00000023 + 0x3;
+
+ type ADCSRB_t {
+	ADTS  = uint3(0);           // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+	IPR   = false;              // 
+	_res2 = false;              // Reserved, 1 bits
+	BIN   = false;              // 
+ }
+
+ // 
+ register ADCSRB_t ADCSRB at 0x00000023;
+
+ type ADMUX_t {
+	MUX   = uint4(0);           // 
+	REFS2 = false;              // 
+	ADLAR = false;              // 
+	REFS  = uint2(0);           // 
+ }
+
+ // 
+ register ADMUX_t ADMUX at 0x00000023 + 0x4;
+
+ type DIDR0_t {
+	_res1 = uint2(0);           // Reserved, 2 bits
+	ADC1D = false;              // 
+	ADC3D = false;              // 
+	ADC2D = false;              // 
+	ADC0D = false;              // 
+	_res2 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register DIDR0_t DIDR0 at 0x00000023 + 0x11;
+
+
+/* Types and registers for BOOT_LOAD: Bootloader
+ */
+
+ type SPMCSR_t {
+	SPMEN = false;              // 
+	PGERS = false;              // 
+	PGWRT = false;              // 
+	RFLB  = false;              // 
+	CTPB  = false;              // 
+	RSIG  = false;              // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register SPMCSR_t SPMCSR at 0x00000057;
+
+
+/* Types and registers for CPU: CPU Registers
+ */
+
+ type CLKPR_t {
+	CLKPS  = uint4(0);           // 
+	_res1  = uint3(0);           // Reserved, 3 bits
+	CLKPCE = false;              // 
+ }
+
+ // 
+ register CLKPR_t CLKPR at 0x00000031 + 0x15;
+
+ // 
+ register uint8 DWDR at 0x00000031 + 0x11;
+
+ // 
+ register uint8 GPIOR0 at 0x00000031;
+
+ // 
+ register uint8 GPIOR1 at 0x00000031 + 0x1;
+
+ // 
+ register uint8 GPIOR2 at 0x00000031 + 0x2;
+
+ type MCUCR_t {
+	ISC0  = uint2(0);           // 
+	_res1 = false;              // Reserved, 1 bits
+	SM    = uint2(0);           // 
+	SE    = false;              // 
+	PUD   = false;              // 
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register MCUCR_t MCUCR at 0x00000031 + 0x24;
+
+ type MCUSR_t {
+	PORF  = false;              // 
+	EXTRF = false;              // 
+	BORF  = false;              // 
+	WDRF  = false;              // 
+	_res1 = uint4(0);           // Reserved, 4 bits
+ }
+
+ // 
+ register MCUSR_t MCUSR at 0x00000031 + 0x23;
+
+ type OSCCAL_t {
+	OSCCAL = uint8(0);           // 
+ }
+
+ // 
+ register OSCCAL_t OSCCAL at 0x00000031 + 0x20;
+
+ type PLLCSR_t {
+	PLOCK = false;              // 
+	PLLE  = false;              // 
+	PCKE  = false;              // 
+	_res1 = uint4(0);           // Reserved, 4 bits
+	LSM   = false;              // 
+ }
+
+ // 
+ register PLLCSR_t PLLCSR at 0x00000031 + 0x16;
+
+ type PRR_t {
+	PRADC  = false;              // 
+	PRUSI  = false;              // 
+	PRTIM0 = false;              // 
+	PRTIM1 = false;              // 
+	_res1  = uint4(0);           // Reserved, 4 bits
+ }
+
+ // 
+ register PRR_t PRR at 0x00000031 + 0xF;
+
+
+/* Types and registers for EEPROM: EEPROM
+ */
+
+ // 
+ register uint16 EEAR at 0x0000003C + 0x2;
+
+ type EECR_t {
+	EERE  = false;              // 
+	EEPE  = false;              // 
+	EEMPE = false;              // 
+	EERIE = false;              // 
+	EEPM  = uint2(0);           // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register EECR_t EECR at 0x0000003C;
+
+ // 
+ register uint8 EEDR at 0x0000003C + 0x1;
+
+
+/* Types and registers for EXINT: External Interrupts
+ */
+
+ type GIFR_t {
+	_res1 = uint5(0);           // Reserved, 5 bits
+	PCIF  = false;              // 
+	INTF0 = false;              // 
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register GIFR_t GIFR at 0x00000035 + 0x25;
+
+ type GIMSK_t {
+	_res1 = uint5(0);           // Reserved, 5 bits
+	PCIE  = false;              // 
+	INT0  = false;              // 
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register GIMSK_t GIMSK at 0x00000035 + 0x26;
+
+ type MCUCR_t {
+	ISC00 = false;              // 
+	ISC01 = false;              // 
+	_res1 = uint6(0);           // Reserved, 6 bits
+ }
+
+ // 
+ register MCUCR_t MCUCR at 0x00000035 + 0x20;
+
+ // 
+ register uint8 PCMSK at 0x00000035;
+
+
+/* Types and registers for FUSE: Fuses
+ */
+
+ type EXTENDED_t {
+	SELFPRGEN = false;              // 
+	_res1     = uint7(0);           // Reserved, 7 bits
+ }
+
+ // 
+ register EXTENDED_t EXTENDED at 0x00000000 + 0x2;
+
+ type HIGH_t {
+	BODLEVEL = uint3(0);           // 
+	EESAVE   = false;              // 
+	WDTON    = false;              // 
+	SPIEN    = false;              // 
+	DWEN     = false;              // 
+	RSTDISBL = false;              // 
+ }
+
+ // 
+ register HIGH_t HIGH at 0x00000000 + 0x1;
+
+ type LOW_t {
+	SUT_CKSEL = uint6(0);           // 
+	CKOUT     = false;              // 
+	CKDIV8    = false;              // 
+ }
+
+ // 
+ register LOW_t LOW at 0x00000000;
+
+
+/* Types and registers for LOCKBIT: Lockbits
+ */
+
+ type LOCKBIT_t {
+	LB    = uint2(0);           // 
+	_res1 = uint6(0);           // Reserved, 6 bits
+ }
+
+ // 
+ register LOCKBIT_t LOCKBIT at 0x00000000;
+
+
+/* Types and registers for PORTB: I/O Port
+ */
+
+ type DDRB_t {
+	PB0   = false;              // 
+	PB1   = false;              // 
+	PB2   = false;              // 
+	PB3   = false;              // 
+	PB4   = false;              // 
+	PB5   = false;              // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register DDRB_t DDRB at 0x00000036 + 0x1;
+
+ type PINB_t {
+	PB0   = false;              // 
+	PB1   = false;              // 
+	PB2   = false;              // 
+	PB3   = false;              // 
+	PB4   = false;              // 
+	PB5   = false;              // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register PINB_t PINB at 0x00000036;
+
+ type PORTB_t {
+	PB0   = false;              // 
+	PB1   = false;              // 
+	PB2   = false;              // 
+	PB3   = false;              // 
+	PB4   = false;              // 
+	PB5   = false;              // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+ }
+
+ // 
+ register PORTB_t PORTB at 0x00000036 + 0x2;
+
+
+/* Types and registers for TC0: Timer/Counter, 8-bit
+ */
+
+ type GTCCR_t {
+	PSR0  = false;              // 
+	_res1 = uint6(0);           // Reserved, 6 bits
+	TSM   = false;              // 
+ }
+
+ // 
+ register GTCCR_t GTCCR at 0x00000048 + 0x4;
+
+ // 
+ register uint8 OCR0A at 0x00000048 + 0x1;
+
+ // 
+ register uint8 OCR0B at 0x00000048;
+
+ type TCCR0A_t {
+	WGM0  = uint2(0);           // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+	COM0B = uint2(0);           // 
+	COM0A = uint2(0);           // 
+ }
+
+ // 
+ register TCCR0A_t TCCR0A at 0x00000048 + 0x2;
+
+ type TCCR0B_t {
+	CS0   = uint3(0);           // 
+	WGM02 = false;              // 
+	_res1 = uint2(0);           // Reserved, 2 bits
+	FOC0B = false;              // 
+	FOC0A = false;              // 
+ }
+
+ // 
+ register TCCR0B_t TCCR0B at 0x00000048 + 0xB;
+
+ // 
+ register uint8 TCNT0 at 0x00000048 + 0xA;
+
+ type TIFR_t {
+	_res1 = false;              // Reserved, 1 bits
+	TOV0  = false;              // 
+	_res2 = false;              // Reserved, 1 bits
+	OCF0B = false;              // 
+	OCF0A = false;              // 
+	_res3 = uint3(0);           // Reserved, 3 bits
+ }
+
+ // 
+ register TIFR_t TIFR at 0x00000048 + 0x10;
+
+ type TIMSK_t {
+	_res1  = false;              // Reserved, 1 bits
+	TOIE0  = false;              // 
+	_res2  = false;              // Reserved, 1 bits
+	OCIE0B = false;              // 
+	OCIE0A = false;              // 
+	_res3  = uint3(0);           // Reserved, 3 bits
+ }
+
+ // 
+ register TIMSK_t TIMSK at 0x00000048 + 0x11;
+
+
+/* Types and registers for TC1: Timer/Counter, 16-bit
+ */
+
+ type DT1A_t {
+	DTVL = uint4(0);           // 
+	DTVH = uint4(0);           // 
+ }
+
+ // 
+ register DT1A_t DT1A at 0x00000043 + 0x2;
+
+ type DT1B_t {
+	DTVL = uint4(0);           // 
+	DTVH = uint4(0);           // 
+ }
+
+ // 
+ register DT1B_t DT1B at 0x00000043 + 0x1;
+
+ type DTPS_t {
+	DTPS  = uint2(0);           // 
+	_res1 = uint6(0);           // Reserved, 6 bits
+ }
+
+ // 
+ register DTPS_t DTPS at 0x00000043;
+
+ type GTCCR_t {
+	_res1 = false;              // Reserved, 1 bits
+	PSR1  = false;              // 
+	FOC1A = false;              // 
+	FOC1B = false;              // 
+	COM1B = uint2(0);           // 
+	PWM1B = false;              // 
+	_res2 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register GTCCR_t GTCCR at 0x00000043 + 0x9;
+
+ // 
+ register uint8 OCR1A at 0x00000043 + 0xB;
+
+ // 
+ register uint8 OCR1B at 0x00000043 + 0x8;
+
+ // 
+ register uint8 OCR1C at 0x00000043 + 0xA;
+
+ type TCCR1_t {
+	CS1   = uint4(0);           // 
+	COM1A = uint2(0);           // 
+	PWM1A = false;              // 
+	CTC1  = false;              // 
+ }
+
+ // 
+ register TCCR1_t TCCR1 at 0x00000043 + 0xD;
+
+ // 
+ register uint8 TCNT1 at 0x00000043 + 0xC;
+
+ type TIFR_t {
+	_res1 = uint2(0);           // Reserved, 2 bits
+	TOV1  = false;              // 
+	_res2 = uint2(0);           // Reserved, 2 bits
+	OCF1B = false;              // 
+	OCF1A = false;              // 
+	_res3 = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register TIFR_t TIFR at 0x00000043 + 0x15;
+
+ type TIMSK_t {
+	_res1  = uint2(0);           // Reserved, 2 bits
+	TOIE1  = false;              // 
+	_res2  = uint2(0);           // Reserved, 2 bits
+	OCIE1B = false;              // 
+	OCIE1A = false;              // 
+	_res3  = false;              // Reserved, 1 bits
+ }
+
+ // 
+ register TIMSK_t TIMSK at 0x00000043 + 0x16;
+
+
+/* Types and registers for USI: Universal Serial Interface
+ */
+
+ // 
+ register uint8 USIBR at 0x0000002D + 0x3;
+
+ type USICR_t {
+	USITC  = false;              // 
+	USICLK = false;              // 
+	USICS  = uint2(0);           // 
+	USIWM  = uint2(0);           // 
+	USIOIE = false;              // 
+	USISIE = false;              // 
+ }
+
+ // 
+ register USICR_t USICR at 0x0000002D;
+
+ // 
+ register uint8 USIDR at 0x0000002D + 0x2;
+
+ type USISR_t {
+	USICNT = uint4(0);           // 
+	USIDC  = false;              // 
+	USIPF  = false;              // 
+	USIOIF = false;              // 
+	USISIF = false;              // 
+ }
+
+ // 
+ register USISR_t USISR at 0x0000002D + 0x1;
+
+
+/* Types and registers for WDT: Watchdog Timer
+ */
+
+ type WDTCR_t {
+	WDP   = uint6(0);           // 
+	WDE   = false;              // 
+	WDCE  = false;              // 
+	_res1 = false;              // Reserved, 1 bits
+	WDIE  = false;              // 
+	WDIF  = false;              // 
+ }
+
+ // 
+ register WDTCR_t WDTCR at 0x00000041;
+

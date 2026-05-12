@@ -22,8 +22,8 @@ register SREG_t SREG at 0x5f;
 
 
 /*
- * IO PORTS
- */
+* IO PORTS
+*/
 
 type PORTB_t {
 	b0 = false;
@@ -37,6 +37,36 @@ type PORTB_t {
 
 register PORTB_t portb at 0x25;
 register PORTB_t ddrb at 0x24;
+
+
+type PORTC_t {
+	c0 = false;
+	c1 = false;
+	c2 = false;
+	c3 = false;
+	c4 = false;
+	c5 = false;
+	c6 = false;
+	ignore = false;
+}
+
+register PORTC_t portc at 0x27;
+register PORTC_t ddrc at 0x26;
+
+
+type PORTD_t {
+	d0 = false;
+	d1 = false;
+	d2 = false;
+	d3 = false;
+	d4 = false;
+	d5 = false;
+	d6 = false;
+	d7 = false;
+}
+
+register PORTD_t portd at 0x2B;
+register PORTD_t ddrd at 0x2A;
 
 
 /*

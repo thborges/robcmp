@@ -5,6 +5,10 @@
 %define parse.lac full
 %param {yyscan_t scanner}
 
+%code requires {
+  #include "BuildTypes.h"
+}
+
 %code top {
   #include <stdlib.h>
   #include <limits.h>
@@ -34,6 +38,7 @@
 
 %token TOK_QUANDO TOK_ESTA
 %token EQ_OP NE_OP GE_OP LE_OP GT_OP LT_OP TOK_LSHIFT TOK_RSHIFT
+%token TOK_MUL_ASSIGN
 
 %token TOK_INLINE TOK_NOINLINE TOK_WEAK TOK_SECTION TOK_NAKED TOK_SIGNAL TOK_DEBUGONLY TOK_NOOPT
 
@@ -43,6 +48,7 @@
 	char ch;
 	int64_t nint;
 	uint64_t unint;
+	DataType dtype;
 	float nfloat;
 	double ndouble;
 	long double nldouble;

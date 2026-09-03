@@ -1,0 +1,6 @@
+int32 main() {
+    x = int32(7);
+    int32* p = &x;
+    *p = 9;
+    return x;
+}

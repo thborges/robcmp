@@ -1,1 +1,16 @@
-../atmega328p/uart.rob
+
+use arch.avr.avr5mcu;
+
+int16 main() {
+    mmcu = avr5mcu();
+    serial = mmcu.uart0;
+    serial.setup(9600);
+
+    serial.write('A');
+    serial.write('B');
+    serial.write('C');
+    serial.write('\n');
+
+    return 0;
+}
+

@@ -1,0 +1,9 @@
+void incrementar(int32* p) {
+    *p = *p + 1;
+}
+
+int32 main() {
+    x = int32(7);
+    incrementar(&x);
+    return x;
+}

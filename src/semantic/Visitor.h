@@ -40,6 +40,9 @@ class BitCast;
 class CoercionBase;
 class CompoundStore;
 class FieldAccess;
+class AddressOf;
+class Dereference;
+class PointerStore;
 
 #define VISITOR_DECLAREP(T, P) \
 	virtual Node *visit(T& n) { return visit((P&)n); } \
@@ -95,6 +98,8 @@ public:
 	VISITOR_DECLARE(CoercionBase)
 	VISITOR_DECLARE(CompoundStore)
 	VISITOR_DECLARE(FieldAccess)
+	VISITOR_DECLARE(AddressOf)
+	VISITOR_DECLARE(Dereference)
+	VISITOR_DECLARE(PointerStore)
 
 };
-

@@ -45,6 +45,7 @@
 #include "While.h"
 #include "Loop.h"
 #include "Pointer.h"
+#include "PointerOperations.h"
 #include "FlipOp.h"
 #include "InlineAssembly.h"
 #include "Interface.h"

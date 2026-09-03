@@ -1,0 +1,4 @@
+int32 main() {
+    x = int32(7);
+    return *x;
+}

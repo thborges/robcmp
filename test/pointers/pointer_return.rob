@@ -1,0 +1,9 @@
+int32* identidade(int32* p) {
+    return p;
+}
+
+int32 main() {
+    x = int32(7);
+    int32* p = identidade(&x);
+    return *p;
+}

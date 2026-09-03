@@ -1,1 +1,83 @@
-../atmega328p/itoa.rob
+
+use arch.avr.avr5mcu;
+use convert.itoa;
+
+numbers = {-32123, -15678, -4364, -501, -25, 0, 25, 512, 4364, 15678, 32767};
+
+base10 = {
+  {'-', '3', '2', '1', '2', '3', 0},
+  {'-', '1', '5', '6', '7', '8', 0},
+  {'-', '4', '3', '6', '4',  0 , 0},
+  {'-', '5', '0', '1',  0 ,  0 , 0},
+  {'-', '2', '5',  0 ,  0 ,  0 , 0},
+  {'0',  0 ,  0 ,  0 ,  0 ,  0 , 0},
+  {'2', '5',  0 ,  0 ,  0 ,  0 , 0},
+  {'5', '1', '2',  0 ,  0 ,  0 , 0},
+  {'4', '3', '6', '4',  0 ,  0 , 0},
+  {'1', '5', '6', '7', '8',  0 , 0},
+  {'3', '2', '7', '6', '7',  0 , 0}
+};
+
+base16 = {
+  {'-', '7', 'd', '7', 'b', 0},
+  {'-', '3', 'd', '3', 'e', 0},
+  {'-', '1', '1', '0', 'c', 0},
+  {'-', '1', 'f', '5',  0 , 0},
+  {'-', '1', '9',  0 ,  0 , 0},
+  {'0',  0 ,  0 ,  0 ,  0 , 0},
+  {'1', '9',  0 ,  0 ,  0 , 0},
+  {'2', '0', '0',  0 ,  0 , 0},
+  {'1', '1', '0', 'c',  0 , 0},
+  {'3', 'd', '3', 'e',  0 , 0},
+  {'7', 'f', 'f', 'f',  0 , 0}
+};
+
+bool check(uint8 id, char[][] expected, char[] result) {
+	ret = true;
+	i = 0u;
+	while result[i] != 0 and ret {
+		if result[i] != expected[id][i] {
+			ret = false;
+		}
+		i++;
+	}
+	return ret;
+}
+
+void print_result(databus s, char[] result) {
+	i = 0;
+	while result[i] != 0 {
+		s.write(result[i]);
+		i++;
+	}
+	s.write('\n');
+}
+
+int16 main() {
+	mmcu = avr5mcu();
+	serial = mmcu.uart0;
+	serial.setup(9600);
+
+    result = {'\0':18};
+	ret = true;
+	i = 0u;
+	while i < numbers.size and ret {
+		itoa(numbers[i], 10, result);
+		ret = check(i, base10, result);
+		print_result(serial, result);
+
+		if ret {
+			itoa(numbers[i], 16, result);
+			ret = check(i, base16, result);
+			print_result(serial, result);
+		}
+		i++;
+	}
+
+	if ret {
+		return 0;
+	} else {
+		return 1;
+	}
+}
+

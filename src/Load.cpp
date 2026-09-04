@@ -44,6 +44,17 @@ Value* Load::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allocbl
 
 	dt = identSymbol->getDataType();
 
+	// Taking the address of a simple variable must also work for mutable globals.
+	// Return its storage directly, without emitting a load or requiring a block.
+	if (!ident.isComplex() && toStore) {
+		Value *address = symbol->getLLVMValue(func);
+		if (!address) {
+			yyerrorcpp(string_format("Symbol %s has no addressable storage.",
+				ident.getFullName().c_str()), this);
+		}
+		return address;
+	}
+
 	if (block == NULL && (allocblock == NULL || allocblock == global_alloc)) {
 		// trying to load a variable to initialize a global one.
 		// permitted only for const globals

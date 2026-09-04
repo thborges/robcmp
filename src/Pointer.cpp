@@ -37,7 +37,10 @@ Value *Pointer::generate(FunctionImpl *func, BasicBlock *block, BasicBlock *allo
     // In favor of faster and smaller code size, we return the pointer
     // as a ConstantExpr. This limits pointer arithmetic.
     Constant *addr_num = dyn_cast<Constant>(addr);
-    assert(addr_num && "FIXME: global pointer defined without constant address.");
+    if (!addr_num) {
+        yyerrorcpp("A register-mapped address must be a compile-time constant.", this);
+        return NULL;
+    }
     alloc = ConstantExpr::getIntToPtr(addr_num, targetPointerType);
     return alloc;
 }

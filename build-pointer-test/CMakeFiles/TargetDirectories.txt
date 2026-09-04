@@ -1,0 +1,9 @@
+/home/alisson/Downloads/robcmp-svds_and_rp2040/build-pointer-test/CMakeFiles/intrinsics_gen.dir
+/home/alisson/Downloads/robcmp-svds_and_rp2040/build-pointer-test/CMakeFiles/vt_gen.dir
+/home/alisson/Downloads/robcmp-svds_and_rp2040/build-pointer-test/CMakeFiles/omp_gen.dir
+/home/alisson/Downloads/robcmp-svds_and_rp2040/build-pointer-test/CMakeFiles/acc_gen.dir
+/home/alisson/Downloads/robcmp-svds_and_rp2040/build-pointer-test/CMakeFiles/target_parser_gen.dir
+/home/alisson/Downloads/robcmp-svds_and_rp2040/build-pointer-test/CMakeFiles/parsers.dir
+/home/alisson/Downloads/robcmp-svds_and_rp2040/build-pointer-test/CMakeFiles/robcmp.dir
+/home/alisson/Downloads/robcmp-svds_and_rp2040/build-pointer-test/CMakeFiles/edit_cache.dir
+/home/alisson/Downloads/robcmp-svds_and_rp2040/build-pointer-test/CMakeFiles/rebuild_cache.dir

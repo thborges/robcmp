@@ -91,6 +91,7 @@ EXP ([Ee][-+]?[0-9]+)?
 "{"						{ return '{'; }
 "}"						{ return '}'; }
 
+"*="					{ return TOK_MUL_ASSIGN; }
 "*"						{ return '*'; }
 "/"						{ return '/'; }
 "+"						{ return '+'; }
@@ -191,4 +192,3 @@ char *strndup(const char *s, size_t n) {
 	return (char*)memcpy(newstr, s, len);
 }
 #endif
-

@@ -44,6 +44,7 @@
 %type <fattrs> function_attributes
 %type <fattr> function_attribute
 %type <leftvd> ident_access array_access matrix_access left_value_base
+%type <dtype> pointer_type
 
 /* operator precedences */
 %left TOK_OR
@@ -56,7 +57,7 @@
 %left TOK_LSHIFT TOK_RSHIFT
 %left '+' '-'
 %left '*' '/' '%'
-%precedence UMINUS '!' '~'
+%precedence UMINUS UADDRESS UDEREFERENCE '!' '~'
 
 %%
 
@@ -145,9 +146,22 @@ function_decl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' 
 	$$ = func;
 }
 
+function_decl : pointer_type[type] TOK_IDENTIFIER[id] '(' function_params ')' function_attributes[fa] ';' {
+	FunctionDecl *func = new FunctionDecl($type, $id, $function_params, @id);
+	func->setAttributes($fa);
+	$$ = func;
+}
+
 function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' function_attributes[fa] '{' stmts '}'[ef] {
 	FunctionImpl *func = new FunctionImpl(buildTypes->getType($type, true), $id, $function_params,
 		std::move(*$stmts), @id, @ef); 
+	func->setAttributes($fa);
+	$$ = func;
+}
+
+function_impl : pointer_type[type] TOK_IDENTIFIER[id] '(' function_params ')' function_attributes[fa] '{' stmts '}'[ef] {
+	FunctionImpl *func = new FunctionImpl($type, $id, $function_params,
+		std::move(*$stmts), @id, @ef);
 	func->setAttributes($fa);
 	$$ = func;
 }
@@ -206,6 +220,14 @@ function_params: %empty {
 
 function_param : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] {
 	$$ = new Variable($id, buildTypes->getType($type, true), @type);
+}
+
+function_param : pointer_type[type] TOK_IDENTIFIER[id] {
+	$$ = new Variable($id, $type, @id);
+}
+
+pointer_type : TOK_IDENTIFIER[type] '*' {
+	$$ = buildTypes->getPointerType($type, @type, true);
 }
 
 function_param : TOK_IDENTIFIER[type] '[' ']' TOK_IDENTIFIER[id] {
@@ -339,11 +361,12 @@ stmt : left_value_base[cl] '+' '+' ';'		{ $$ = new CompoundStore($cl, '+', new I
 	 | left_value_base[cl] '-' '-' ';'		{ $$ = new CompoundStore($cl, '-', new Int8(1, @cl)); }
 	 | left_value_base[cl] '+' '=' expr ';'	{ $$ = new CompoundStore($cl, '+', $expr); }
 	 | left_value_base[cl] '-' '=' expr ';'	{ $$ = new CompoundStore($cl, '-', $expr); }
-	 | left_value_base[cl] '*' '=' expr ';'	{ $$ = new CompoundStore($cl, '*', $expr); }
+	 | left_value_base[cl] TOK_MUL_ASSIGN expr ';' { $$ = new CompoundStore($cl, '*', $expr); }
 	 | left_value_base[cl] '/' '=' expr ';'	{ $$ = new CompoundStore($cl, '/', $expr); }
 	 | left_value_base[cl] '|' '=' expr ';'	{ $$ = new CompoundStore($cl, '|', $expr); }
 	 | left_value_base[cl] '&' '=' expr ';'	{ $$ = new CompoundStore($cl, '&', $expr); }
 	 | left_value_base[cl] '^' '=' expr ';'	{ $$ = new CompoundStore($cl, '^', $expr); }
+	 | '*' expr[pointer] '=' expr[value] ';'	{ $$ = new PointerStore($pointer, $value, @pointer); }
 	 | var_decl
 	 | asminline ';'
 	 | returnblock ';'
@@ -360,6 +383,22 @@ var_decl_stmt : left_value_base[lv] '=' matrix	{ $$ = new Matrix($lv->ident, $ma
 var_decl_stmt : left_value_base[lv] '=' expr {
 	$lv->value->setToStore(true);
 	$$ = new Scalar($lv, $expr);
+}
+
+var_decl_stmt : pointer_type[type] TOK_IDENTIFIER[id] '=' expr[value] {
+	auto *lv = new LeftValueData();
+	lv->ident = $id;
+	lv->loc = @id;
+	Scalar *pointer = new Scalar(lv, $value);
+	pointer->setDataType($type);
+	$$ = pointer;
+}
+
+var_decl_stmt : pointer_type[type] TOK_IDENTIFIER[id] {
+	NullPointer *nullValue = new NullPointer($type, @id);
+	Scalar *pointer = new Scalar($id, nullValue);
+	pointer->setDataType($type);
+	$$ = pointer;
 }
 
 returnblock : TOK_RETURN expr			{ $$ = new Return($2); }
@@ -431,6 +470,8 @@ expr: expr[e1] TOK_LSHIFT expr[e2]	{ $$ = new BinaryOp($e1, TOK_LSHIFT, $e2); }
 expr: expr[e1] TOK_RSHIFT expr[e2]	{ $$ = new BinaryOp($e1, TOK_RSHIFT, $e2); }
 expr: '-' expr[e] %prec UMINUS		{ $$ = new BinaryOp($e, '*', getNodeForIntConst(-1, @e)); }
 expr: '~' expr[e]					{ $$ = new FlipOp($e); }
+expr: '&' expr[e] %prec UADDRESS		{ $$ = new AddressOf($e, @e); }
+expr: '*' expr[e] %prec UDEREFERENCE	{ $$ = new Dereference($e, @e); }
 expr: factor
 
 factor : '(' expr[e] ')'		{ $$ = $e; }

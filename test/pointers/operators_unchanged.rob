@@ -1,0 +1,5 @@
+int32 main() {
+    x = int32(6);
+    y = int32(3);
+    return (x * y) + (x & y);
+}

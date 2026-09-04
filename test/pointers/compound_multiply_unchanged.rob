@@ -1,0 +1,5 @@
+int32 main() {
+    x = int32(3);
+    x *= 2;
+    return x;
+}

@@ -1,1 +1,32 @@
-../atmega328p/bsscheck.rob
+
+/* This test case allocates a zeroed matrix in .bss region.
+   It tests if the assembly func __do_clear_bss, called
+   before main, is working properly.
+ */
+
+random_seed16 = 0xE7A8;
+matrix = {{0u:128}:8};
+
+uint16 check_random(uint8 row) {
+    random_seed16 += row;
+    return random_seed16;
+}
+
+int8 main() {
+    row = 0u;
+    while row < matrix.rows {
+        col = 0u;
+        while col < matrix.cols {
+            if matrix[row][col] != 0 {
+                return 1;
+            }
+            col++;
+        }
+        row++;
+    }
+    if check_random(row) != 0xE7A8 + 8 {
+        return 2;
+    }
+    return 0;
+}
+

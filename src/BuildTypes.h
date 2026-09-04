@@ -38,6 +38,8 @@ struct DataTypeInfo {
     bool isEnum;
     bool isInterface;
     bool isInternal;
+    bool isPointer;
+    DataType pointedType;
     unsigned char arrayDimensions;
 
     DataTypeInfo() {}
@@ -54,13 +56,15 @@ struct DataTypeInfo {
         this->isEnum = false;
         this->isInternal = false;
         this->isInterface = false;
+        this->isPointer = false;
+        this->pointedType = -1;
         this->arrayDimensions = 0;
     }
 
     DataTypeInfo(const char* name, unsigned bitWidth, Type *llvmType, unsigned dwarfEnc):
         name(name), bitWidth(bitWidth), llvmType(llvmType), dwarfEnc(dwarfEnc), diType(NULL),
         diPointerType(NULL), sl(NULL), isDefined(true), isComplex(false), isInternal(false),
-        isInterface(false), isEnum(false), arrayDimensions(0) {};
+        isInterface(false), isEnum(false), isPointer(false), pointedType(-1), arrayDimensions(0) {};
 };
 
 class Program;
@@ -96,6 +100,14 @@ public:
         unsigned char dimensions, bool createUndefined = false);
 
     DataType getArrayElementType(DataType arrayDt);
+
+    DataType getPointerType(const string& pointedName, SourceLocation n,
+        bool createUndefined = false);
+
+    DataType getPointerType(DataType pointedType, SourceLocation n,
+        bool createUndefined = false);
+
+    DataType getPointedType(DataType pointerDt);
 
     const char *name(DataType tid) {
         assert(tid != -1 && "Undefined type");
@@ -205,6 +217,12 @@ public:
     bool isArrayOrMatrix(DataType tid) {
         assert(tid != -1 && "Undefined type");
         return tinfo[tid].arrayDimensions > 0;
+    }
+
+    bool isPointer(DataType tid) {
+        if (tid == undefinedType)
+            return false;
+        return tinfo[tid].isPointer;
     }
 
     unsigned char dimensions(DataType tid) {

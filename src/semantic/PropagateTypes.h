@@ -17,6 +17,7 @@
 #include "BitCast.h"
 #include "semantic/Visitor.h"
 #include "ast/CompoundStore.h"
+#include "PointerOperations.h"
 
 class CoercionBase: public Node {
 protected:
@@ -227,6 +228,9 @@ public:
     virtual Node* visit(Load& n) override;
     virtual Node* visit(MemCopy& n) override;
     virtual Node* visit(CompoundStore& n) override;
+    virtual Node* visit(AddressOf& n) override;
+    virtual Node* visit(Dereference& n) override;
+    virtual Node* visit(PointerStore& n) override;
 
     virtual Node* visit(Array& n) override;
     virtual Node* visit(Matrix& n) override;

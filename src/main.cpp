@@ -108,7 +108,10 @@ int main(int argc, char *argv[]) {
 
 	setup_target_machine(optimization);
 
-	program->doSemanticAnalysis();
+	// Do not run semantic passes over an AST that already contains parser/type
+	// construction errors. Those passes assume that declared types are valid.
+	if (errorsfound <= 0)
+		program->doSemanticAnalysis();
 	
 	if (errorsfound <= 0)
 		program->generate(); 
@@ -121,4 +124,3 @@ int main(int argc, char *argv[]) {
 
 	return errorsfound;
 }
-

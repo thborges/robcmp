@@ -56,6 +56,18 @@ Node* PropagateTypes::coerceTo(Node *n, const DataType destTy, bool warns) {
     if (valueTy == destTy)
         return n;
 
+    bool destinationIsPointer = buildTypes->isPointer(destTy);
+    bool valueIsPointer = buildTypes->isPointer(valueTy);
+    if (destinationIsPointer || valueIsPointer) {
+        if (destinationIsPointer && valueIsPointer &&
+            buildTypes->getPointedType(destTy) == buildTypes->getPointedType(valueTy)) {
+            return n;
+        }
+        yyerrorcpp(string_format("Can not assign '%s' to '%s'.",
+            buildTypes->name(valueTy), buildTypes->name(destTy)), n);
+        return NULL;
+    }
+
     // can coerce only between numeric types
     bool lIsNumeric = buildTypes->isNumericDataType(destTy);
     bool rIsNumeric = buildTypes->isNumericDataType(valueTy);
@@ -633,5 +645,32 @@ Node* PropagateTypes::visit(CompoundStore& n) {
             n.setExpr(result);
     }
 
+    return NULL;
+}
+
+Node* PropagateTypes::visit(AddressOf& n) {
+    propagateChildren(n);
+    n.getDataType();
+    return NULL;
+}
+
+Node* PropagateTypes::visit(Dereference& n) {
+    propagateChildren(n);
+    n.getDataType();
+    return NULL;
+}
+
+Node* PropagateTypes::visit(PointerStore& n) {
+    propagateChildren(n);
+    DataType pointedType = n.getDataType();
+    if (pointedType == BuildTypes::undefinedType)
+        return NULL;
+
+    Node *storedValue = n.value();
+    if (storedValue->getDataType() != pointedType) {
+        Node *converted = coerceTo(storedValue, pointedType);
+        if (converted)
+            n.setValue(converted);
+    }
     return NULL;
 }

@@ -39,6 +39,7 @@
 
 %type <fattrs> function_attributes
 %type <fattr> function_attribute
+%type <dtype> pointer_type
 
 %printer { fprintf(yyo, "'%s'", $$); } <ident>
 %printer { fprintf(yyo, "'%s'", $$ ? $$->getName().c_str() : ""); } <node>
@@ -128,6 +129,12 @@ function_decl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' 
 	$$ = func;
 }
 
+function_decl : pointer_type[type] TOK_IDENTIFIER[id] '(' function_params ')' function_attributes[fa] ';' {
+	FunctionDecl *func = new FunctionDecl($type, $id, $function_params, @id);
+	func->setAttributes($fa);
+	$$ = func;
+}
+
 function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' function_attributes[fa] '{' stmts_rec '}'[ef] {
 	vector<Node*> stmts;
 	FunctionImpl *func = new FunctionImpl(buildTypes->getType($type, true), $id, $function_params,
@@ -135,6 +142,16 @@ function_impl : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] '(' function_params ')' 
 	func->setExternal(true);
 	func->setDeclaration(true);
     func->setAttributes($fa);
+	$$ = func;
+}
+
+function_impl : pointer_type[type] TOK_IDENTIFIER[id] '(' function_params ')' function_attributes[fa] '{' stmts_rec '}'[ef] {
+	vector<Node*> stmts;
+	FunctionImpl *func = new FunctionImpl($type, $id, $function_params,
+		std::move(stmts), @id, @ef);
+	func->setExternal(true);
+	func->setDeclaration(true);
+	func->setAttributes($fa);
 	$$ = func;
 }
 
@@ -183,6 +200,14 @@ function_params: %empty {
 
 function_param : TOK_IDENTIFIER[type] TOK_IDENTIFIER[id] {
 	$$ = new Variable($id, buildTypes->getType($type, true), @type);
+}
+
+function_param : pointer_type[type] TOK_IDENTIFIER[id] {
+	$$ = new Variable($id, $type, @id);
+}
+
+pointer_type : TOK_IDENTIFIER[type] '*' {
+	$$ = buildTypes->getPointerType($type, @type, true);
 }
 
 function_param : TOK_IDENTIFIER[type] '[' ']' TOK_IDENTIFIER[id] {

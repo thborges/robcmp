@@ -1,1 +1,88 @@
-../atmega328p/float.rob
+
+/* Test case to check float support on atmega328p */
+
+use math.float;
+
+a = 1.2;
+b = 1.1;
+
+float sum() {
+    c = a + b;
+    return c;    
+}
+
+float sub() {
+    c = a - b;
+    return c;
+}
+
+float mult() {
+    c = a * b;
+    return c;
+}
+
+float div() {
+    c = a / b;
+    return c;
+}
+
+int64 floattoi64(float x) {
+    return int64(x);
+}
+
+int32 floattoi32(float x) {
+    return int32(x);
+}
+
+const epsilon = 0.000001;
+
+int8 main() {
+    r = sum();
+    if r - 2.3 >= epsilon {
+        return 1;
+    }
+
+    r = sub();
+    if r - 0.1 >= epsilon {
+        return 2;
+    }
+
+    r = mult();
+    if r - 1.32 >= epsilon {
+        return 3;
+    }
+
+    r = div();
+    if r - 1.090909 >= epsilon {
+        return 4;
+    }
+
+    r = NAN;
+    if !isnan(r) {
+        return 5;
+    }
+ 
+    r = INFINITY;
+    if !isinf(r) {
+        return 6;
+    }
+   
+    r = -INFINITY;
+    if !isinf(r) {
+        return 7;
+    }
+
+    r = div();
+    s = floattoi64(r);
+    if s != 1 {
+        return 8;
+    }
+
+    t = floattoi32(r);
+    if t != 1 {
+        return 9;
+    }
+
+   return 0;
+}
+

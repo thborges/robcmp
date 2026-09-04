@@ -16,8 +16,6 @@
 BuildTypes::BuildTypes(DataType targetPointerType, Program *program) :
     targetPointerType(targetPointerType) {
 
-    unsigned pts = tinfo[targetPointerType].bitWidth;
-
     tinfo[tvoid]    = {"void",          0, Type::getVoidTy(global_context),    dwarf::DW_ATE_address};
     tinfo[tbool]    = {"bool",          1, Type::getInt1Ty(global_context),    dwarf::DW_ATE_boolean};
     tinfo[tchar]    = {"char",          8, Type::getInt8Ty(global_context),    dwarf::DW_ATE_unsigned_char};
@@ -60,6 +58,8 @@ BuildTypes::BuildTypes(DataType targetPointerType, Program *program) :
     tinfo[tfloat]   = {"float",        32, Type::getFloatTy(global_context),   dwarf::DW_ATE_float};
     tinfo[tdouble]  = {"double",       64, Type::getDoubleTy(global_context),  dwarf::DW_ATE_float};
     tinfo[tldouble] = {"ldouble",     128, Type::getFP128Ty(global_context),   dwarf::DW_ATE_float};
+
+    unsigned pts = tinfo[targetPointerType].bitWidth;
 
     // a generic internal pointer
     tinfo[tobject]  = {"object", pts, PointerType::get(global_context, 0), dwarf::DW_ATE_address};
@@ -126,6 +126,62 @@ DataType BuildTypes::getArrayElementType(DataType arrayDt) {
     string elementName = name(arrayDt);
     elementName = elementName.substr(0, elementName.length() - 2*dimensions(arrayDt));
     return getType(elementName);
+}
+
+DataType BuildTypes::getPointerType(const string& pointedName, SourceLocation n,
+    bool createUndefined) {
+    DataType pointedDt = getType(pointedName, createUndefined);
+    if (pointedDt == undefinedType) {
+        yyerrorcpp(string_format("Type %s is not defined.", pointedName.c_str()), &n, true);
+        return undefinedType;
+    }
+    return getPointerType(pointedDt, n, createUndefined);
+}
+
+DataType BuildTypes::getPointerType(DataType pointedDt, SourceLocation n,
+    bool createUndefined) {
+    if (pointedDt == undefinedType || !isDefined(pointedDt)) {
+        yyerrorcpp("The pointed type is not defined.", &n, true);
+        return undefinedType;
+    }
+    if (pointedDt == tvoid) {
+        yyerrorcpp("void pointers are not supported yet.", &n, true);
+        return undefinedType;
+    }
+    if (isPointer(pointedDt)) {
+        yyerrorcpp("Pointers to pointers are not supported yet.", &n, true);
+        return undefinedType;
+    }
+    if (isArrayOrMatrix(pointedDt)) {
+        yyerrorcpp("Pointers to arrays or matrices are not supported yet.", &n, true);
+        return undefinedType;
+    }
+
+    string pointerName = string(name(pointedDt)) + "*";
+    auto existing = namedTypes.find(pointerName);
+    if (existing != namedTypes.end())
+        return existing->second;
+    if (!createUndefined)
+        return undefinedType;
+
+    DataTypeInfo info(pointerName);
+    info.llvmType = PointerType::get(global_context, 0);
+    info.bitWidth = getTargetPointerBitWidth();
+    info.dwarfEnc = dwarf::DW_ATE_address;
+    info.isDefined = true;
+    info.isPointer = true;
+    info.pointedType = pointedDt;
+    if (debug_info) {
+        info.diType = DBuilder->createPointerType(diType(pointedDt), info.bitWidth);
+        info.diPointerType = DBuilder->createPointerType(info.diType, info.bitWidth);
+    }
+    return addDataType(info);
+}
+
+DataType BuildTypes::getPointedType(DataType pointerDt) {
+    if (!isPointer(pointerDt))
+        return undefinedType;
+    return tinfo[pointerDt].pointedType;
 }
 
 DataType BuildTypes::getType(const string& name, bool createUndefined) {

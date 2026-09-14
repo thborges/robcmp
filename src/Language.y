@@ -389,7 +389,7 @@ whileblock : TOK_WHILE logicexpr ';' {
 }
 
 whileblock : TOK_LOOP '{' stmts '}' {
-	$$ = new Loop(std::move(*$stmts), @TOK_LOOP);
+	$$ = new InfinityLoop(std::move(*$stmts), @TOK_LOOP);
 }
 
 /*

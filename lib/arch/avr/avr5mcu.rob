@@ -42,6 +42,9 @@ type avr5mcu implements mcu {
 	b0 = digport<ddrb.b0, io_digital, portb.b0>
 	*/
 
+/*
+        PORTB
+*/
 	b0 implements digitalport {
 		void mode(port_mode m) inline { ddrb.b0 = m; }
 		void set(bool v) inline { portb.b0 = v; }
@@ -76,6 +79,104 @@ type avr5mcu implements mcu {
 		void mode(port_mode m) inline { ddrb.b5 = m; }
 		void set(bool v) inline { portb.b5 = v; }
 		bool get() inline { return portb.b5; }
+	}
+
+/*
+        PORTC
+*/
+
+	c0 implements digitalport {
+		void mode(port_mode m) inline { ddrc.c0 = m; }
+		void set(bool v) inline { portc.c0 = v; }
+		bool get() inline { return portc.c0; }
+	}
+
+	c1 implements digitalport {
+		void mode(port_mode m) inline { ddrc.c1 = m; }
+		void set(bool v) inline { portc.c1 = v; }
+		bool get() inline { return portc.c1; }
+	}
+
+	c2 implements digitalport {
+		void mode(port_mode m) inline { ddrc.c2 = m; }
+		void set(bool v) inline { portc.c2 = v; }
+		bool get() inline { return portc.c2; }
+	}
+
+	c3 implements digitalport {
+		void mode(port_mode m) inline { ddrc.c3 = m; }
+		void set(bool v) inline { portc.c3 = v; }
+		bool get() inline { return portc.c3; }
+	}
+
+	c4 implements digitalport {
+		void mode(port_mode m) inline { ddrc.c4 = m; }
+		void set(bool v) inline { portc.c4 = v; }
+		bool get() inline { return portc.c4; }
+	}
+
+	c5 implements digitalport {
+		void mode(port_mode m) inline { ddrc.c5 = m; }
+		void set(bool v) inline { portc.c5 = v; }
+		bool get() inline { return portc.c5; }
+	}
+
+	c6 implements digitalport {
+		void mode(port_mode m) inline { ddrc.c6 = m; }
+		void set(bool v) inline { portc.c6 = v; }
+		bool get() inline { return portc.c6; }
+	}
+
+/*
+        PORTD
+*/
+
+	d0 implements digitalport {
+		void mode(port_mode m) inline { ddrd.d0 = m; }
+		void set(bool v) inline { portd.d0 = v; }
+		bool get() inline { return portd.d0; }
+	}
+
+	d1 implements digitalport {
+		void mode(port_mode m) inline { ddrd.d1 = m; }
+		void set(bool v) inline { portd.d1 = v; }
+		bool get() inline { return portd.d1; }
+	}
+
+	d2 implements digitalport {
+		void mode(port_mode m) inline { ddrd.d2 = m; }
+		void set(bool v) inline { portd.d2 = v; }
+		bool get() inline { return portd.d2; }
+	}
+
+	d3 implements digitalport {
+		void mode(port_mode m) inline { ddrd.d3 = m; }
+		void set(bool v) inline { portd.d3 = v; }
+		bool get() inline { return portd.d3; }
+	}
+
+	d4 implements digitalport {
+		void mode(port_mode m) inline { ddrd.d4 = m; }
+		void set(bool v) inline { portd.d4 = v; }
+		bool get() inline { return portd.d4; }
+	}
+
+	d5 implements digitalport {
+		void mode(port_mode m) inline { ddrd.d5 = m; }
+		void set(bool v) inline { portd.d5 = v; }
+		bool get() inline { return portd.d5; }
+	}
+
+	d6 implements digitalport {
+		void mode(port_mode m) inline { ddrd.d6 = m; }
+		void set(bool v) inline { portd.d6 = v; }
+		bool get() inline { return portd.d6; }
+	}
+
+	d7 implements digitalport {
+		void mode(port_mode m) inline { ddrd.d7 = m; }
+		void set(bool v) inline { portd.d7 = v; }
+		bool get() inline { return portd.d7; }
 	}
 
 	void enable_led() {
